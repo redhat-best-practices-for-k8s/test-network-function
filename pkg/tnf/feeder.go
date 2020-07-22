@@ -3,7 +3,7 @@ package tnf
 import (
 	"bufio"
 	"fmt"
-	"github.com/redhat-nfvpe/test-network-function/reel"
+	"github.com/redhat-nfvpe/test-network-function/internal/reel"
 	"os"
 	"strings"
 )

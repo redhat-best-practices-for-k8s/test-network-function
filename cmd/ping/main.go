@@ -3,8 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/redhat-nfvpe/test-network-function/reel"
-	"github.com/redhat-nfvpe/test-network-function/tnf"
+	"github.com/redhat-nfvpe/test-network-function/internal/reel"
+	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
 	"os"
 )
 

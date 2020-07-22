@@ -24,7 +24,7 @@ Using default options, the `ping` tool sends a single ICMP Echo Request to the
 target host.
 
 ```bash
-$ go run tnf.redhat.com/tnf/cmd/ping/main.go -d success.log 10.5.0.3
+$ go run cmd/ping/main.go -d success.log 10.5.0.3
 PING 10.5.0.3 (10.5.0.3) 56(84) bytes of data.
 64 bytes from 10.5.0.3: icmp_seq=1 ttl=63 time=38.6 ms
 
@@ -63,7 +63,7 @@ The following example shows the controlling process giving up on the test due
 to a timeout and killing the controlled subprocess.
 
 ```bash
-$ go run tnf.redhat.com/tnf/cmd/ping/main.go -d failure.log 10.3.0.99
+$ go run cmd/ping/main.go -d failure.log 10.3.0.99
 (timeout)
 PING 10.3.0.99 (10.3.0.99) 56(84) bytes of data.
 ^C
@@ -96,7 +96,7 @@ PING 10.3.0.99 (10.3.0.99) 56(84) bytes of data.
 The final example shows a test-specific error in executing the test.
 
 ```bash
-$ go run tnf.redhat.com/tnf/cmd/ping/main.go -c 8 -t 10 10.5.0.99
+$ go run cmd/ping/main.go -c 8 -t 10 10.5.0.99
 PING 10.5.0.99 (10.5.0.99) 56(84) bytes of data.
 From 10.3.0.1 icmp_seq=1 Destination Host Unreachable
 From 10.3.0.1 icmp_seq=2 Destination Host Unreachable
@@ -126,7 +126,7 @@ Each command is executed when a prompt string (regex) is matched.
 In this example, two commands are supplied from a here document.
 
 ```bash
-$ env TERM=vt220 go run tnf.redhat.com/tnf/cmd/ssh/main.go -d ssh.log 'user@hhh:\S+\$ ' hhh -o 'PreferredAuthentications=publickey' <<EOF
+$ env TERM=vt220 go run cmd/ssh/main.go -d ssh.log 'user@hhh:\S+\$ ' hhh -o 'PreferredAuthentications=publickey' <<EOF
 > echo foobar
 > date
 > EOF
@@ -165,7 +165,7 @@ $ cat tests.json
 {"test": "https://tnf.redhat.com/ping/one", "host": "ggg"}
 {"test": "https://tnf.redhat.com/ping/flexi", "count": 77, "host": "10.3.0.99"}
 
-$ env TERM=vt220 go run tnf.redhat.com/tnf/cmd/ssh/main.go -d ssh.log -T 'user@hhh:\S+\$ ' hhh -o 'PreferredAuthentications=publickey' <tests.json
+$ env TERM=vt220 go run cmd/ssh/main.go -d ssh.log -T 'user@hhh:\S+\$ ' hhh -o 'PreferredAuthentications=publickey' <tests.json
 Last login: Tue Jul 14 15:59:07 2020 from 10.3.0.109
 user@hhh:~$ ping -c 1 ggg
 PING ggg.ddd (10.5.0.5) 56(84) bytes of data.

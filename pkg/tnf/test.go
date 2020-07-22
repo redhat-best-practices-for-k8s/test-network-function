@@ -1,7 +1,7 @@
 package tnf
 
 import (
-	"github.com/redhat-nfvpe/test-network-function/reel"
+	"github.com/redhat-nfvpe/test-network-function/internal/reel"
 )
 
 const (
