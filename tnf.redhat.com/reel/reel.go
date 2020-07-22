@@ -16,14 +16,14 @@ type Step struct {
     Timeout int         `json:"timeout,omitempty"`
 }
 
-type Event struct {
-    /* "event" in {"match","timeout","eof"} */
-    Event   string      `json:"event"`
-    /* only when "event" = "match" */
-    Idx     int         `json:"idx,omitempty"`
-    Pattern string      `json:"pattern,omitempty"`
-    Before  string      `json:"before,omitempty"`
-    Match   string      `json:"match,omitempty"`
+// reel.exp sends an event as a JSON object in a single line of text.
+// Value constraints are documented in comments.
+type _Event struct {
+    Event   string  `json:"event"`              // only "match" or "timeout" or "eof"
+    Idx     int     `json:"idx,omitempty"`      // only present when "event" is "match"
+    Pattern string  `json:"pattern,omitempty"`  // only present when "event" is "match"
+    Before  string  `json:"before,omitempty"`   // only present when "event" is "match"
+    Match   string  `json:"match,omitempty"`    // only present when "event" is "match"
 }
 
 type Handler interface {
@@ -61,7 +61,7 @@ func (reel *Reel) Step(step *Step, handler Handler) error {
             return nil
         }
 
-        var event Event
+        var event _Event
         reel.scanner.Scan()
         err = json.Unmarshal(reel.scanner.Bytes(), &event)
         if err != nil {
