@@ -35,6 +35,8 @@ func (ping *Ping) ReelMatch(pattern string, before string, match string) (*reel.
     matched := re.FindStringSubmatch(match)
     if matched != nil {
         var txd, rxd, ers int
+        // Ignore errors in converting matches to decimal integers.
+        // Regular expression `stat` is required to underwrite this assumption.
         txd, _ = strconv.Atoi(matched[1])
         rxd, _ = strconv.Atoi(matched[2])
         ers, _ = strconv.Atoi(matched[3])
