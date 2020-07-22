@@ -9,7 +9,7 @@ import (
 	"os"
 )
 
-func tester() (string, reel.Handler, *tnf.Ssh) {
+func parseArgs() (string, reel.Handler, *tnf.Ssh) {
 	logfile := flag.String("d", "", "Filename to capture expect dialogue to")
 	timeout := flag.Int("t", 2, "Timeout in seconds")
 	testers := flag.Bool("T", false, "Feed tests as JSON from stdin")
@@ -33,9 +33,14 @@ func tester() (string, reel.Handler, *tnf.Ssh) {
 	return *logfile, feeder, ssh
 }
 
+// Execute a SSH session with exit code 0 on success, 1 on failure, 2 on error.
+// Print interaction with the controlled subprocess which implements the session.
+// Optionally log dialogue with the controlled subprocess to file.
+// By default, read command lines to execute from stdin.
+// Alternatively, read each input line as a JSON test configuration to execute.
 func main() {
 	result := tnf.ERROR
-	logfile, feeder, ssh := tester()
+	logfile, feeder, ssh := parseArgs()
 	printer := reel.NewPrinter(" \r\n")
 	test, err := tnf.NewTest(logfile, ssh, []reel.Handler{printer, feeder, ssh})
 	if err == nil {
