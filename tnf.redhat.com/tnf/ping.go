@@ -55,7 +55,7 @@ func (ping *Ping) ReelMatch(pattern string, before string, match string) (*reel.
 }
 func (ping *Ping) ReelTimeout() (*reel.Step) {
     return &reel.Step{
-        Execute: "\003", // ^C
+        Execute: reel.CTRL_C,
         Expect: []string{done},
     }
 }

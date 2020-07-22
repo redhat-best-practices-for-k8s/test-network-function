@@ -41,7 +41,7 @@ func (f *TestFeeder) ReelMatch(pattern string, before string, match string) (*re
 func (f *TestFeeder) ReelTimeout() (*reel.Step) {
     if f.tester != nil {
         return &reel.Step{
-            Execute: "\003", // ^C
+            Execute: reel.CTRL_C,
             Expect: []string{f.prompt},
             Timeout: f.timeout,
         }

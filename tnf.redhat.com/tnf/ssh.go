@@ -36,14 +36,14 @@ func (ssh *Ssh) ReelMatch(pattern string, before string, match string) (*reel.St
         return nil
     }
     return &reel.Step{
-        Execute: "\004", // ^D
+        Execute: reel.CTRL_D,
         Expect: []string{closed},
         Timeout: ssh.timeout,
     }
 }
 func (ssh *Ssh) ReelTimeout() (*reel.Step) {
     return &reel.Step{
-        Execute: "\004", // ^D
+        Execute: reel.CTRL_D,
         Expect: []string{closed},
         Timeout: ssh.timeout,
     }

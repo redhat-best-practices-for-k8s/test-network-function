@@ -36,7 +36,7 @@ func (f *LineFeeder) ReelTimeout() (*Step) {
     if f.active {
         f.active = false
         return &Step{
-            Execute: "\003", // ^C
+            Execute: CTRL_C,
             Expect: []string{f.prompt},
             Timeout: f.timeout,
         }

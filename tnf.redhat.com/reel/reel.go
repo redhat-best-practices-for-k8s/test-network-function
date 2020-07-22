@@ -7,6 +7,9 @@ import (
     "encoding/json"
 )
 
+const CTRL_C string = "\003" // ^C
+const CTRL_D string = "\004" // ^D
+
 type Step struct {
     Execute string      `json:"execute,omitempty"`
     Expect  []string    `json:"expect,omitempty"`
