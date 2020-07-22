@@ -3,7 +3,7 @@ package tnf
 import (
     "strconv"
     "regexp"
-    "tnf.redhat.com/reel"
+    "github.com/redhat-nfvpe/test-network-function/reel"
 )
 
 type Ping struct {

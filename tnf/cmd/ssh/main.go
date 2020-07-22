@@ -5,8 +5,8 @@ import (
     "fmt"
     "os"
     "bufio"
-    "tnf.redhat.com/tnf"
-    "tnf.redhat.com/reel"
+    "github.com/redhat-nfvpe/test-network-function/tnf"
+    "github.com/redhat-nfvpe/test-network-function/reel"
 )
 
 func tester() (string, reel.Handler, *tnf.Ssh) {
