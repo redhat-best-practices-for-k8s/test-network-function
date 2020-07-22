@@ -1,2 +1,4 @@
 .idea
 vendor
+*.test
+test-network-function_junit.xml
