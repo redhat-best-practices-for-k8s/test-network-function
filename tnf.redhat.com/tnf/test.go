@@ -6,8 +6,8 @@ import (
 
 const (
     SUCCESS = iota
-    FAILURE = iota
-    ERROR = iota
+    FAILURE
+    ERROR
 )
 
 type Tester interface {
