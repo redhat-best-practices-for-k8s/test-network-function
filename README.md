@@ -240,4 +240,12 @@ user@hhh:~$ {"event":"match","idx":0,"pattern":"user@hhh:\\S+\\$ ","before":"pin
 logout
 Connection to hhh.ddd closed.
 {"event":"match","idx":0,"pattern":"Connection to .+ closed\\..*$","before":"logout\r\n","match":"Connection to hhh.ddd closed.\r"}
+
+## Running Tests
+
+The default `Makefile` rule is `functests`, which runs all tests.  In order to run the tests, issue the following
+command:
+
+```shell script
+make
 ```

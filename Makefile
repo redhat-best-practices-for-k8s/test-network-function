@@ -1,4 +1,5 @@
 .PHONY: build \
+	cnftests \
 	deps-update \
 	clean
 
@@ -7,6 +8,11 @@ export GO111MODULE=on
 
 build:
 	go build ./...
+
+cnftests: build build-cnftests
+
+build-cnftests:
+	ginkgo build ./test-network-functions
 
 deps-update:
 	go mod tidy && \

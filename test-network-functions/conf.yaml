@@ -1,0 +1,6 @@
+containerUnderTest:
+  name: "kiknos"
+  namespace: "cisco"
+partnerContainer:
+  name: "ikester"
+  namespace: "cisco"

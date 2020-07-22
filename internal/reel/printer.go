@@ -11,7 +11,7 @@ import (
 // match string. (When that text is empty after being right-trimmed using
 // `trimr`, it is not printed.)
 type Printer struct {
-	trimr string
+	trimr  string
 }
 
 // Returns no step; a printer does not feed steps.
