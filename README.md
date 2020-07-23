@@ -118,15 +118,25 @@ correctly executed; no result could be determined).
 
 ### ssh
 
-Using default options, the `ssh` tool executes each line of text from its stdin
-as a separate command across the SSH session. The controlled subprocess is the
-native `ssh` client tool, with its command line options and args passed through.
-Each command is executed when a prompt string (regex) is matched.
+Using default options, the `ssh` tool simply establishes a SSH session to the
+target host, then closes it. The controlled subprocess is the native `ssh`
+client tool, with its command line options and args passed through. The
+session is closed when the supplied prompt string (regex) is matched.
+
+```bash
+$ env TERM=vt220 go run cmd/ssh/main.go 'user@hhh:\S+\$ ' hhh -o 'PreferredAuthentications=publickey'
+Last login: Thu Jul 23 18:10:34 2020 from 10.3.0.109
+user@hhh:~$ logout
+Connection to hhh.ddd closed.
+```
+
+Using `-f lines` allows interactive execution of lines of text from stdin,
+mimicking the native client tool.
 
 In this example, two commands are supplied from a here document.
 
 ```bash
-$ env TERM=vt220 go run cmd/ssh/main.go -d ssh.log 'user@hhh:\S+\$ ' hhh -o 'PreferredAuthentications=publickey' <<EOF
+$ env TERM=vt220 go run cmd/ssh/main.go -d ssh.log -f lines 'user@hhh:\S+\$ ' hhh -o 'PreferredAuthentications=publickey' <<EOF
 > echo foobar
 > date
 > EOF
@@ -157,15 +167,15 @@ logout
 {"event":"match","idx":0,"pattern":"Connection to .+ closed\\..*$","before":"logout\r\n","match":"Connection to hhh.ddd closed.\r"}
 ```
 
-Alternatively, when invoked with the `-T` option, each line from stdin contains
-a test configuration.
+Using `-f tests` allows execution of test configurations; each line from stdin
+contains a JSON test configuration.
 
 ```bash
 $ cat tests.json
 {"test": "https://tnf.redhat.com/ping/one", "host": "ggg"}
 {"test": "https://tnf.redhat.com/ping/flexi", "count": 77, "host": "10.3.0.99"}
 
-$ env TERM=vt220 go run cmd/ssh/main.go -d ssh.log -T 'user@hhh:\S+\$ ' hhh -o 'PreferredAuthentications=publickey' <tests.json
+$ env TERM=vt220 go run cmd/ssh/main.go -d ssh.log -f tests 'user@hhh:\S+\$ ' hhh -o 'PreferredAuthentications=publickey' <tests.json
 Last login: Tue Jul 14 15:59:07 2020 from 10.3.0.109
 user@hhh:~$ ping -c 1 ggg
 PING ggg.ddd (10.5.0.5) 56(84) bytes of data.

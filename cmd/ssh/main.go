@@ -12,9 +12,9 @@ import (
 func parseArgs() (string, reel.Handler, *tnf.Ssh) {
 	logfile := flag.String("d", "", "Filename to capture expect dialogue to")
 	timeout := flag.Int("t", 2, "Timeout in seconds")
-	testers := flag.Bool("T", false, "Feed tests as JSON from stdin")
+	feed := flag.String("f", "", "Feed 'tests' (JSON configurations) or 'lines' from stdin")
 	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "usage: %s [-d logfile] [-t timeout] [-T] prompt host ?ssh-opt .. ssh-opt?\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "usage: %s [-d logfile] [-t timeout] [-f 'lines'|'tests'] prompt host ?ssh-opt .. ssh-opt?\n", os.Args[0])
 		flag.PrintDefaults()
 		os.Exit(tnf.ERROR)
 	}
@@ -24,10 +24,13 @@ func parseArgs() (string, reel.Handler, *tnf.Ssh) {
 		flag.Usage()
 	}
 	var feeder reel.Handler
-	if *testers {
+	switch *feed {
+	case "tests":
 		feeder = tnf.NewTestFeeder(*timeout, args[0], bufio.NewScanner(os.Stdin))
-	} else {
+	case "lines":
 		feeder = reel.NewLineFeeder(*timeout, args[0], bufio.NewScanner(os.Stdin))
+	default:
+		feeder = nil
 	}
 	ssh := tnf.NewSsh(*timeout, args[0], args[1], args[2:])
 	return *logfile, feeder, ssh
@@ -42,7 +45,13 @@ func main() {
 	result := tnf.ERROR
 	logfile, feeder, ssh := parseArgs()
 	printer := reel.NewPrinter(" \r\n")
-	test, err := tnf.NewTest(logfile, ssh, []reel.Handler{printer, feeder, ssh})
+	var chain []reel.Handler
+	if feeder != nil {
+		chain = []reel.Handler{printer, feeder, ssh}
+	} else {
+		chain = []reel.Handler{printer, ssh}
+	}
+	test, err := tnf.NewTest(logfile, ssh, chain)
 	if err == nil {
 		result, err = test.Run()
 	}
