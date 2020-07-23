@@ -1,4 +1,3 @@
-// A general purpose handler feeding steps from an input scanner.
 package reel
 
 import (

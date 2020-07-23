@@ -1,4 +1,3 @@
-// A general purpose handler printing event interaction.
 package reel
 
 import (
