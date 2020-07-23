@@ -59,8 +59,8 @@ func (ping *Ping) ReelTimeout() *reel.Step {
 		Expect:  []string{done},
 	}
 }
-func (ping *Ping) ReelEof() *reel.Step {
-	return nil
+func (ping *Ping) ReelEof() {
+	// empty
 }
 
 func PingCmd(host string, count int) []string {

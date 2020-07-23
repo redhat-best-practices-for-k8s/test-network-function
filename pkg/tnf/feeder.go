@@ -48,8 +48,8 @@ func (f *TestFeeder) ReelTimeout() *reel.Step {
 	}
 	return nil
 }
-func (f *TestFeeder) ReelEof() *reel.Step {
-	return nil
+func (f *TestFeeder) ReelEof() {
+	// empty
 }
 
 func NewTestFeeder(timeout int, prompt string, scanner *bufio.Scanner) *TestFeeder {

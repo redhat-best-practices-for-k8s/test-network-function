@@ -48,8 +48,8 @@ func (ssh *Ssh) ReelTimeout() *reel.Step {
 		Timeout: ssh.timeout,
 	}
 }
-func (ssh *Ssh) ReelEof() *reel.Step {
-	return nil
+func (ssh *Ssh) ReelEof() {
+	// empty
 }
 
 func SshCmd(host string, sshopts []string) []string {

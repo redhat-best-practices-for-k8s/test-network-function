@@ -53,11 +53,10 @@ func (t *Test) ReelTimeout() *reel.Step {
 	}
 	return t.dispatch(fp)
 }
-func (t *Test) ReelEof() *reel.Step {
-	fp := func(handler reel.Handler) *reel.Step {
-		return handler.ReelEof()
+func (t *Test) ReelEof() {
+	for _, handler := range t.chain {
+		handler.ReelEof()
 	}
-	return t.dispatch(fp)
 }
 
 func NewTest(logfile string, tester Tester, chain []reel.Handler) (*Test, error) {
