@@ -68,24 +68,24 @@ func (ssh *Ssh) ReelEof() {
 }
 
 // Return command line args for establishing a SSH session with `host` using
-// ssh command line options `sshopts`.
-func SshCmd(host string, sshopts []string) []string {
+// ssh command line options `opts`.
+func SshCmd(host string, opts []string) []string {
 	args := []string{"ssh"}
-	if len(sshopts) > 0 {
-		args = append(args, sshopts...)
+	if len(opts) > 0 {
+		args = append(args, opts...)
 		args = append(args, "--")
 	}
 	return append(args, host)
 }
 
 // Create a new `Ssh` test session with `host` using ssh command line options
-// `sshopts`, expecting `prompt` string and requires steps to execute in
+// `opts`, expecting `prompt` string and requires steps to execute within
 // `timeout` seconds.
-func NewSsh(timeout int, prompt string, host string, sshopts []string) *Ssh {
+func NewSsh(timeout int, prompt string, host string, opts []string) *Ssh {
 	return &Ssh{
 		result:  ERROR,
 		timeout: timeout,
 		prompt:  prompt,
-		args:    SshCmd(host, sshopts),
+		args:    SshCmd(host, opts),
 	}
 }
