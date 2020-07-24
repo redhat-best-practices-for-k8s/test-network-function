@@ -93,8 +93,8 @@ func PingCmd(host string, count int) []string {
 }
 
 // Create a new `Ping` test which pings `hosts` with `count` requests, or
-// indefinitely if `count` is not positive, and executes in a maximum of
-// `timeout` seconds.
+// indefinitely if `count` is not positive, and executes within `timeout`
+// seconds.
 func NewPing(timeout int, host string, count int) *Ping {
 	return &Ping{
 		result:  ERROR,
