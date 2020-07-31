@@ -241,3 +241,13 @@ logout
 Connection to hhh.ddd closed.
 {"event":"match","idx":0,"pattern":"Connection to .+ closed\\..*$","before":"logout\r\n","match":"Connection to hhh.ddd closed.\r"}
 ```
+
+## Running Tests
+
+In order to run the CNF tests, issue the following command:
+
+```shell script
+make cnftests
+```
+
+A JUnit report containing results is created at `test-network-functions/test-network-function_junit.xml`
