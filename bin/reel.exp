@@ -39,13 +39,18 @@ array set ctrl [parse_argv $argv]
 package require json
 
 proc step_decode { str } {
+    set CTRL_D [format %c 4]
     array set step {timeout -1}
     foreach {key val} [json::json2dict $str] {
         switch $key {
             expect {
                 for { set idx 0 } { $idx < [llength $val] } { incr idx } {
                     set exp [lindex $val $idx]
-                    lappend step(expect) -re "^.*($exp)" [list matched $idx $exp]
+                    if { $CTRL_D != $exp } {
+                        lappend step(expect) -re "^.*($exp)" [list matched $idx $exp]
+                    } elseif { ![info exists step(expect)] } {
+                        array set step {expect {}}
+                    }
                 }
             }
             execute -
