@@ -1,0 +1,16 @@
+podUnderTest:
+  name: "test"
+  namespace: "default"
+  containerConfiguration:
+    name: "test"
+    defaultNetworkDevice: "eth0"
+    multusIpAddresses:
+      - "192.168.2.1"
+partnerPod:
+  name: "partner"
+  namespace: "default"
+  containerConfiguration:
+    name: "partner"
+    defaultNetworkDevice: "eth0"
+    multusIpAddresses:
+      - "192.168.2.3"
