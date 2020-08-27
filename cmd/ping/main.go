@@ -3,13 +3,16 @@ package main
 import (
 	"flag"
 	"fmt"
+	expect "github.com/google/goexpect"
 	"github.com/redhat-nfvpe/test-network-function/internal/reel"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
+	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/ping"
+	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/interactive"
 	"os"
+	"time"
 )
 
-func parseArgs() (string, *tnf.Ping) {
-	logfile := flag.String("d", "", "Filename to capture expect dialogue to")
+func parseArgs() (*ping.Ping, time.Duration) {
 	timeout := flag.Int("t", 2, "Timeout in seconds")
 	count := flag.Int("c", 1, "Number of requests to send")
 	flag.Usage = func() {
@@ -22,7 +25,8 @@ func parseArgs() (string, *tnf.Ping) {
 	if len(args) == 0 {
 		flag.Usage()
 	}
-	return *logfile, tnf.NewPing(*timeout, args[0], *count)
+	timeoutDuration := time.Duration(*timeout) * time.Second
+	return ping.NewPing(timeoutDuration, args[0], *count), timeoutDuration
 }
 
 // Execute a ping test with exit code 0 on success, 1 on failure, 2 on error.
@@ -30,14 +34,23 @@ func parseArgs() (string, *tnf.Ping) {
 // Optionally log dialogue with the controlled subprocess to file.
 func main() {
 	result := tnf.ERROR
-	logfile, ping := parseArgs()
-	printer := reel.NewPrinter("")
-	test, err := tnf.NewTest(logfile, ping, []reel.Handler{printer, ping})
-	if err == nil {
-		result, err = test.Run()
-	}
+	ping, timeoutDuration := parseArgs()
+	goExpectSpawner := interactive.NewGoExpectSpawner()
+	var spawner interactive.Spawner = goExpectSpawner
+	context, err := interactive.SpawnShell(&spawner, timeoutDuration, expect.Verbose(true))
+
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
+		os.Exit(result)
 	}
+	printer := reel.NewPrinter("")
+	tester, err := tnf.NewTest(context.GetExpecter(), ping, []reel.Handler{printer, ping}, context.GetErrorChannel())
+
+	if err == nil {
+		result, err = tester.Run()
+	} else {
+		fmt.Fprintln(os.Stderr, err)
+	}
+
 	os.Exit(result)
 }

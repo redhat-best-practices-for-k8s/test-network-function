@@ -1,7 +1,9 @@
 package tnf
 
 import (
+	expect "github.com/google/goexpect"
 	"github.com/redhat-nfvpe/test-network-function/internal/reel"
+	"time"
 )
 
 const (
@@ -12,7 +14,7 @@ const (
 
 type Tester interface {
 	Args() []string
-	Timeout() int
+	Timeout() time.Duration
 	Result() int
 }
 
@@ -26,6 +28,7 @@ func (t *Test) Run() (int, error) {
 	err := t.runner.Run(t)
 	return t.tester.Result(), err
 }
+
 func (t *Test) dispatch(fp reel.StepFunc) *reel.Step {
 	for _, handler := range t.chain {
 		step := fp(handler)
@@ -35,6 +38,7 @@ func (t *Test) dispatch(fp reel.StepFunc) *reel.Step {
 	}
 	return nil
 }
+
 func (t *Test) ReelFirst() *reel.Step {
 	fp := func(handler reel.Handler) *reel.Step {
 		return handler.ReelFirst()
@@ -59,14 +63,12 @@ func (t *Test) ReelEof() {
 	}
 }
 
-func NewTest(logfile string, tester Tester, chain []reel.Handler) (*Test, error) {
-	runner, err := reel.NewReel(logfile, tester.Args())
+func NewTest(expecter *expect.Expecter, tester Tester, chain []reel.Handler, errorChannel <-chan error) (*Test, error) {
+	var args []string
+	args = tester.Args()
+	runner, err := reel.NewReel(expecter, args, errorChannel)
 	if err != nil {
 		return nil, err
 	}
-	return &Test{
-		runner: runner,
-		tester: tester,
-		chain:  chain,
-	}, err
+	return &Test{runner: runner, tester: tester, chain: chain}, nil
 }

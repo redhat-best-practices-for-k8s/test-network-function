@@ -1,0 +1,25 @@
+PING 192.168.1.1 (192.168.1.1) 56(84) bytes of data.
+64 bytes from 192.168.1.1: icmp_seq=1 ttl=61 time=1.79 ms
+64 bytes from 192.168.1.1: icmp_seq=2 ttl=61 time=3.37 ms
+64 bytes from 192.168.1.1: icmp_seq=3 ttl=61 time=2.14 ms
+64 bytes from 192.168.1.1: icmp_seq=4 ttl=61 time=3.62 ms
+From 10.0.2.2 icmp_seq=5 Destination Net Unreachable
+From 10.0.2.2 icmp_seq=6 Destination Net Unreachable
+From 10.0.2.2 icmp_seq=7 Destination Net Unreachable
+From 10.0.2.2 icmp_seq=8 Destination Net Unreachable
+64 bytes from 192.168.1.1: icmp_seq=9 ttl=61 time=297 ms
+64 bytes from 192.168.1.1: icmp_seq=10 ttl=61 time=258 ms
+64 bytes from 192.168.1.1: icmp_seq=11 ttl=61 time=276 ms
+64 bytes from 192.168.1.1: icmp_seq=12 ttl=61 time=1.58 ms
+64 bytes from 192.168.1.1: icmp_seq=13 ttl=61 time=445 ms
+64 bytes from 192.168.1.1: icmp_seq=14 ttl=61 time=3.57 ms
+64 bytes from 192.168.1.1: icmp_seq=15 ttl=61 time=60.5 ms
+64 bytes from 192.168.1.1: icmp_seq=16 ttl=61 time=585 ms
+64 bytes from 192.168.1.1: icmp_seq=17 ttl=61 time=155 ms
+64 bytes from 192.168.1.1: icmp_seq=18 ttl=61 time=20.4 ms
+64 bytes from 192.168.1.1: icmp_seq=19 ttl=61 time=26.7 ms
+64 bytes from 192.168.1.1: icmp_seq=20 ttl=61 time=2.14 ms
+
+--- 192.168.1.1 ping statistics ---
+20 packets transmitted, 16 received, +4 errors, 20% packet loss, time 19118ms
+rtt min/avg/max/mdev = 1.582/134.079/585.861/179.394 ms
