@@ -1,4 +1,21 @@
-package cnftests
+package configuration
+
+import (
+	"os"
+)
+
+const (
+	configurationFilePathEnvironmentVariableKey = "TEST_CONFIGURATION_PATH"
+	defaultConfigurationFilePath = "./test-configuration.yaml"
+)
+
+func GetConfigurationFilePathFromEnvironment() string {
+	environmentSourcedConfigurationFilePath := os.Getenv(configurationFilePathEnvironmentVariableKey)
+	if environmentSourcedConfigurationFilePath != "" {
+		return environmentSourcedConfigurationFilePath
+	}
+	return defaultConfigurationFilePath
+}
 
 // Generic test related configuration
 type TestConfiguration struct {
@@ -15,7 +32,7 @@ type TestConfiguration struct {
 			// OpenShift Default network interface name (i.e., eth0)
 			DefaultNetworkDevice string `yaml:"defaultNetworkDevice"`
 			// Container overlay IP
-			MultusIpAddress string `yaml:"multusIpAddress"`
+			MultusIpAddresses []string `yaml:"multusIpAddresses"`
 		} `yaml:"containerConfiguration"`
 	} `yaml:"podUnderTest"`
 	PartnerPod struct {
@@ -30,7 +47,7 @@ type TestConfiguration struct {
 			// OpenShift Default network interface name (i.e., eth0)
 			DefaultNetworkDevice string `yaml:"defaultNetworkDevice"`
 			// Container overlay IP
-			MultusIpAddress string `yaml:"multusIpAddress"`
+			MultusIpAddresses []string `yaml:"multusIpAddresses"`
 		} `yaml:"containerConfiguration"`
 	} `yaml:"partnerPod"`
 }

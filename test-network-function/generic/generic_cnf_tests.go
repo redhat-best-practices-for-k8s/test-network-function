@@ -1,4 +1,4 @@
-package cnftests
+package generic
 
 import (
 	"fmt"
@@ -6,6 +6,7 @@ import (
 	"github.com/onsi/gomega"
 	"github.com/redhat-nfvpe/test-network-function/internal/reel"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
+	"github.com/redhat-nfvpe/test-network-function/test-network-function/configuration"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
@@ -14,12 +15,13 @@ import (
 const (
 	defaultNumPings = 10
 	defaultTnfTimeout = 20
+	GenericTestsKey = "generic"
+	MultusTestsKey = "multus"
 	openshiftNamespaceArgument = "-n"
-	testConfigurationFileName  = "conf.yaml"
 )
 
-// Runs the generic CNF test cases.
-var _ = ginkgo.Describe("Generic CNF Tests", func() {
+// Runs the cnf-certification-generic-tests CNF test cases.
+var _ = ginkgo.Describe(GenericTestsKey, func() {
 	config := GetTestConfiguration()
 	log.Infof("Test Configuration: %s", config)
 
@@ -27,7 +29,6 @@ var _ = ginkgo.Describe("Generic CNF Tests", func() {
 	podUnderTestName := config.PodUnderTest.Name
 	podUnderTestContainerName := config.PodUnderTest.ContainerConfiguration.Name
 	podUnderTestDefaultNetworkDevice := config.PodUnderTest.ContainerConfiguration.DefaultNetworkDevice
-	podUnderTestMultusIpAddress := config.PodUnderTest.ContainerConfiguration.MultusIpAddress
 
 	partnerPodNamespaceArgs := CreateNamespaceArgs(config.PartnerPod.Namespace)
 	partnerPodName := config.PartnerPod.Name
@@ -51,7 +52,21 @@ var _ = ginkgo.Describe("Generic CNF Tests", func() {
 		testNetworkConnectivity(podUnderTestName, podUnderTestContainerName, partnerPodName,
 			partnerPodContainerName, partnerPodIpAddress, podUnderTestNamespaceArgs, defaultNumPings)
 	})
+})
 
+// TODO: Multus is not applicable to every CNF, so in some regards it is CNF-specific.  On the other hand, it is likely
+// a useful test across most CNFs.  Should "multus" be considered generic, cnf-specific, or somewhere in between.
+var _ = ginkgo.Describe(MultusTestsKey, func() {
+	config := GetTestConfiguration()
+	log.Infof("Test Configuration: %s", config)
+
+	podUnderTestName := config.PodUnderTest.Name
+	podUnderTestContainerName := config.PodUnderTest.ContainerConfiguration.Name
+	podUnderTestMultusIpAddress := config.PodUnderTest.ContainerConfiguration.MultusIpAddresses[0]
+
+	partnerPodNamespaceArgs := CreateNamespaceArgs(config.PartnerPod.Namespace)
+	partnerPodName := config.PartnerPod.Name
+	partnerPodContainerName := config.PartnerPod.ContainerConfiguration.Name
 	ginkgo.Context("Both Pods are connected via a Multus Overlay Network", func() {
 		testNetworkConnectivity(partnerPodName, partnerPodContainerName, podUnderTestName,
 			podUnderTestContainerName, podUnderTestMultusIpAddress, partnerPodNamespaceArgs, defaultNumPings)
@@ -102,11 +117,11 @@ func getContainerDefaultNetworkIpAddress(pod, container string, device string, a
 	return "", err
 }
 
-// Get generic test configuration.
-func GetTestConfiguration() *TestConfiguration {
-	config := &TestConfiguration{}
+// Get cnf-certification-generic-tests test configuration.
+func GetTestConfiguration() *configuration.TestConfiguration {
+	config := &configuration.TestConfiguration{}
 	ginkgo.Context("Instantiate some configuration information from the environment", func() {
-		yamlFile, err := ioutil.ReadFile(testConfigurationFileName)
+		yamlFile, err := ioutil.ReadFile(configuration.GetConfigurationFilePathFromEnvironment())
 		gomega.Expect(err).To(gomega.BeNil())
 		err = yaml.Unmarshal(yamlFile, config)
 		gomega.Expect(err).To(gomega.BeNil())

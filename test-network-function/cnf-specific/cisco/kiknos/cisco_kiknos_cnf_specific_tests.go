@@ -1,10 +1,11 @@
-package cnftests
+package kiknos
 
 import (
 	"fmt"
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
 	"github.com/redhat-nfvpe/test-network-function/internal/itc"
+	"github.com/redhat-nfvpe/test-network-function/test-network-function/generic"
 	"time"
 )
 
@@ -27,9 +28,9 @@ const (
 	udpSize = 100
 )
 
-var _ = ginkgo.Describe("Cisco Kiknos Specific CNF Tests", func() {
-	// Extract some basic configuration parameters from the "generic" configuration.
-	config := GetTestConfiguration()
+var _ = ginkgo.Describe("cisco_kiknos", func() {
+	// Extract some basic configuration parameters from the generic configuration.
+	config := generic.GetTestConfiguration()
 	partnerPodName := config.PartnerPod.Name
 	partnerPodNamespace := config.PartnerPod.Namespace
 	partnerPodContainerName := config.PartnerPod.ContainerConfiguration.Name

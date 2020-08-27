@@ -244,10 +244,33 @@ Connection to hhh.ddd closed.
 
 ## Running Tests
 
-In order to run the CNF tests, issue the following command:
+### Run Generic Tests Only
+
+In order to run the Generic CNF tests only, issue the following command:
 
 ```shell script
-make cnftests
+make generic-cnf-tests
 ```
 
-A JUnit report containing results is created at `test-network-functions/test-network-function_junit.xml`
+A JUnit report containing results is created at `test-network-function/cnf-certification-tests_junit.xml`.
+
+### Run All CNF Certification Tests
+
+In order to run all CNF tests, issue the following command:
+
+```shell script
+make cnf-tests
+```
+
+A JUnit report containing results is created at `test-network-function/cnf-certification-tests_junit.xml`.
+
+### Run a Specific Test Suite
+
+In order to run a specific test suite, `cisco_kiknos` for example, issue the following command:
+
+```shell script
+make build build-cnf-tests
+cd ./test-network-function && ./test-network-function.test -ginkgo.v -ginkgo.focus="cisco_kiknos" -junit . -report .
+```
+
+A JUnit report containing results is created at `test-network-function/cnf-certification-tests_junit.xml`.
