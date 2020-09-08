@@ -13,10 +13,10 @@ import (
 )
 
 const (
-	defaultNumPings = 10
-	defaultTnfTimeout = 20
-	GenericTestsKey = "generic"
-	MultusTestsKey = "multus"
+	defaultNumPings            = 10
+	defaultTnfTimeout          = 20
+	GenericTestsKey            = "generic"
+	MultusTestsKey             = "multus"
 	openshiftNamespaceArgument = "-n"
 )
 
