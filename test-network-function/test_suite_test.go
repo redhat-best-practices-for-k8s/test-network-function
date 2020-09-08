@@ -13,11 +13,11 @@ import (
 )
 
 const (
-	defaultCliArgValue = ""
+	defaultCliArgValue            = ""
 	CnfCertificationTestSuiteName = "CNF Certification Test Suite"
-	junitFlagKey = "junit"
-	JunitXmlFileName = "cnf-certification-tests_junit.xml"
-	reportFlagKey = "report"
+	junitFlagKey                  = "junit"
+	JunitXmlFileName              = "cnf-certification-tests_junit.xml"
+	reportFlagKey                 = "report"
 )
 
 var junitPath *string

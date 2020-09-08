@@ -13,6 +13,7 @@ export GO111MODULE=on
 export COMMON_GINKGO_ARGS="-ginkgo.v -junit . -report ."
 
 build:
+	go fmt ./...
 	go build ./...
 
 generic-cnf-tests: build build-cnf-tests run-generic-cnf-tests

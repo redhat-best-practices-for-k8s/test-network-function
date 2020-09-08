@@ -91,7 +91,6 @@ func verifyICMPTraffic(partnerPodName string, partnerPodContainerName string, pa
 	gomega.Expect(icmpCountDiff).To(gomega.Equal(numPings))
 }
 
-
 // Create an IPSEC tunnel and verify it was successfully established.
 func createAndVerifyTunnel(partnerPodName string, partnerPodContainerName string, partnerPodNamespace string) int {
 	var newTunnelIndex int

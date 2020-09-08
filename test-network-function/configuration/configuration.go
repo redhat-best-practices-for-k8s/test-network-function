@@ -6,7 +6,7 @@ import (
 
 const (
 	configurationFilePathEnvironmentVariableKey = "TEST_CONFIGURATION_PATH"
-	defaultConfigurationFilePath = "./test-configuration.yaml"
+	defaultConfigurationFilePath                = "./test-configuration.yaml"
 )
 
 func GetConfigurationFilePathFromEnvironment() string {
