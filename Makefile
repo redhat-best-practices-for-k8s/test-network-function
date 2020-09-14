@@ -35,8 +35,7 @@ run-cnf-tests:
 	cd ./test-network-function && ./test-network-function.test $COMMON_GINKGO_ARGS
 
 deps-update:
-	go mod tidy && \
-	go mod vendor
+	go mod tidy && go mod vendor
 
 mocks:
 	mockgen -source=pkg/tnf/interactive/spawner.go -destination=pkg/tnf/interactive/mocks/mock_spawner.go
@@ -44,10 +43,14 @@ mocks:
 	mockgen -source=./internal/reel/reel.go -destination=./internal/reel/mocks/mock_reel.go
 
 unit-tests:
-	go test -coverprofile=cover.out `go list ./... | grep -v "github.com/redhat-nfvpe/test-network-function/test-network-function" | grep -v mock` && go tool cover -html=cover.out
+	go test -race -coverprofile=cover.out `go list ./... | grep -v "github.com/redhat-nfvpe/test-network-function/test-network-function" | grep -v mock`
 
 lint:
 	golint `go list ./... | grep -v vendor`
+
+golangci_lint:
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s v1.31.0
+	./bin/golangci-lint run
 
 .PHONY: clean
 clean:

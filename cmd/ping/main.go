@@ -46,10 +46,12 @@ func main() {
 	printer := reel.NewPrinter("")
 	tester, err := tnf.NewTest(context.GetExpecter(), ping, []reel.Handler{printer, ping}, context.GetErrorChannel())
 
+	var runErr error
 	if err == nil {
-		result, err = tester.Run()
-	} else {
-		fmt.Fprintln(os.Stderr, err)
+		result, runErr = tester.Run()
+	}
+	if runErr != nil {
+		fmt.Fprintln(os.Stderr, runErr)
 	}
 
 	os.Exit(result)

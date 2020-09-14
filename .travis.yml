@@ -1,0 +1,20 @@
+language: go
+
+
+go: "1.13.x"
+env:
+  global
+  - GO111MODULE=on
+
+script:
+  - golangci-lint run
+  - go test -v -race `go list ./... | grep -v test-network-function` -covermode=atomic -coverprofile=coverage.out
+
+install: true
+
+before_script:
+  - curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $GOPATH/bin v1.23.1
+
+before_install:
+  - go get golang.org/x/lint/golint
+  - go get golang.org/x/tools/cmd/cover

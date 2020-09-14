@@ -4,3 +4,4 @@ vendor
 test-network-function_junit.xml
 cover.out
 cnf-certification-tests_junit.xml
+bin
