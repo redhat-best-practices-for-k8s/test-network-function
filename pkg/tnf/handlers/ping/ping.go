@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-// A ping test implemented using command line tool `ping`.
+// Ping provides a ping test implemented using command line tool `ping`.
 type Ping struct {
 	result      int
 	timeout     time.Duration
@@ -19,26 +19,29 @@ type Ping struct {
 }
 
 const (
-	ConnectInvalidArgument = `(?m)connect: Invalid argument$`
-	SuccessfulOutputRegex  = `(?m)(\d+) packets transmitted, (\d+)( packets){0,1} received, (?:\+(\d+) errors)?.*$`
+	// ConnectInvalidArgumentRegex is a regex which matches when an invalid IP address or hostname is provided as input.
+	ConnectInvalidArgumentRegex = `(?m)connect: Invalid argument$`
+	// SuccessfulOutputRegex matches a successfully run "ping" command.  That does not mean that no errors or drops
+	// occurred during the test.
+	SuccessfulOutputRegex = `(?m)(\d+) packets transmitted, (\d+)( packets){0,1} received, (?:\+(\d+) errors)?.*$`
 )
 
-// Return the command line args for the test.
+// Args returns the command line args for the test.
 func (p *Ping) Args() []string {
 	return p.args
 }
 
-// Return the timeout in seconds for the test.
+// Timeout returns the timeout in seconds for the test.
 func (p *Ping) Timeout() time.Duration {
 	return p.timeout
 }
 
-// Return the test result.
+// Result returns the test result.
 func (p *Ping) Result() int {
 	return p.result
 }
 
-// Return a step which expects the ping statistics within the test timeout.
+// ReelFirst returns a step which expects the ping statistics within the test timeout.
 func (p *Ping) ReelFirst() *reel.Step {
 	return &reel.Step{
 		Expect:  p.GetReelFirstRegularExpressions(),
@@ -46,7 +49,7 @@ func (p *Ping) ReelFirst() *reel.Step {
 	}
 }
 
-// On match, parse the ping statistics and set the test result.
+// ReelMatch parses the ping statistics and set the test result on match.
 // The result is success if at least one response was received and the number of
 // responses received is at most one less than the number received (the "missing"
 // response may be in flight).
@@ -55,7 +58,7 @@ func (p *Ping) ReelFirst() *reel.Step {
 // Otherwise the result is failure.
 // Returns no step; the test is complete.
 func (p *Ping) ReelMatch(_ string, _ string, match string) *reel.Step {
-	re := regexp.MustCompile(ConnectInvalidArgument)
+	re := regexp.MustCompile(ConnectInvalidArgumentRegex)
 	matched := re.FindStringSubmatch(match)
 	if matched != nil {
 		p.result = tnf.ERROR
@@ -80,42 +83,40 @@ func (p *Ping) ReelMatch(_ string, _ string, match string) *reel.Step {
 	return nil
 }
 
-// On timeout, return a step which kills the ping test by sending it ^C.
+// ReelTimeout returns a step which kills the ping test by sending it ^C.
 func (p *Ping) ReelTimeout() *reel.Step {
 	return &reel.Step{Execute: reel.CtrlC}
 }
 
-// On eof, take no action.
-func (p *Ping) ReelEof() {
-	// empty
+// ReelEOF does nothing;  ping requires no intervention on eof.
+func (p *Ping) ReelEOF() {
 }
 
+// GetStats returns the transmitted, received and error counts.
 func (p *Ping) GetStats() (int, int, int) {
 	return p.transmitted, p.received, p.errors
 }
 
-// Return command line args for pinging `host` with `count` requests, or
-// indefinitely if `count` is not positive.
-func PingCmd(host string, count int) []string {
+// Command returns command line args for pinging `host` with `count` requests, or indefinitely if `count` is not
+// positive.
+func Command(host string, count int) []string {
 	if count > 0 {
 		return []string{"ping", "-c", strconv.Itoa(count), host}
-	} else {
-		return []string{"ping", host}
 	}
+	return []string{"ping", host}
 }
 
-// Create a new `Ping` test which pings `hosts` with `count` requests, or
-// indefinitely if `count` is not positive, and executes within `timeout`
-// seconds.
+// NewPing creates a new `Ping` test which pings `hosts` with `count` requests, or indefinitely if `count` is not
+// positive, and executes within `timeout` seconds.
 func NewPing(timeout time.Duration, host string, count int) *Ping {
 	return &Ping{
 		result:  tnf.ERROR,
 		timeout: timeout,
-		args:    PingCmd(host, count),
+		args:    Command(host, count),
 	}
 }
 
-// Utility method to get the regular expressions used for matching in ReelFirst(...).
+// GetReelFirstRegularExpressions returns the regular expressions used for matching in ReelFirst.
 func (p *Ping) GetReelFirstRegularExpressions() []string {
-	return []string{ConnectInvalidArgument, SuccessfulOutputRegex}
+	return []string{ConnectInvalidArgumentRegex, SuccessfulOutputRegex}
 }

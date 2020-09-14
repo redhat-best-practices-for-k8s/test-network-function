@@ -8,27 +8,40 @@ import (
 	"time"
 )
 
+// UnitTestMode is used to determine if the context is unit test oriented v.s. an actual CNF test run, so appropriate
+// mock interfaces can be injected.  This allows the spanFunc to be injected without complicating the Spawner interface.
 var UnitTestMode = false
 var spawnFunc *SpawnFunc
 
+// SetSpawnFunc sets the SpawnFunc, allowing for the actual CNF tests to be run or mocked for unit test purposes.
 func SetSpawnFunc(sFunc *SpawnFunc) {
 	spawnFunc = sFunc
 }
 
-// Abstracts a wrapper interface over the required methods of the exec.Cmd API for testing purposes.
+// SpawnFunc Abstracts a wrapper interface over the required methods of the exec.Cmd API for testing purposes.
 type SpawnFunc interface {
+	// Command consult exec.Cmd.Command
 	Command(name string, arg ...string) *SpawnFunc
+
+	// Start consult exec.Cmd.Start.
 	Start() error
+
+	// StdinPipe consult exec.Cmd.StdinPipe
 	StdinPipe() (io.WriteCloser, error)
+
+	// StdoutPipe consult exec.Cmd.StdoutPipe
 	StdoutPipe() (io.Reader, error)
+
+	// Wait consult exec.Cmd.Wait
 	Wait() error
 }
 
-// An implementation of SpawnFunc using exec.Cmd.
+// ExecSpawnFunc is an implementation of SpawnFunc using exec.Cmd.
 type ExecSpawnFunc struct {
 	cmd *exec.Cmd
 }
 
+// Command wraps exec.Cmd.Command.
 func (e *ExecSpawnFunc) Command(name string, arg ...string) *SpawnFunc {
 	cmd := exec.Command(name, arg...)
 	execSpawnFunc := &ExecSpawnFunc{cmd: cmd}
@@ -36,27 +49,33 @@ func (e *ExecSpawnFunc) Command(name string, arg ...string) *SpawnFunc {
 	return &spawnFunc
 }
 
+// Wait wraps exec.Cmd.Wait.
 func (e *ExecSpawnFunc) Wait() error {
 	return e.cmd.Wait()
 }
 
+// Start wraps exec.Cmd.Start.
 func (e *ExecSpawnFunc) Start() error {
 	return e.cmd.Start()
 }
 
+// StdinPipe wraps exec.Cmd.StdinPipe
 func (e *ExecSpawnFunc) StdinPipe() (io.WriteCloser, error) {
 	return e.cmd.StdinPipe()
 }
 
+// StdoutPipe wraps exec.Cmd.Stdoutpipe
 func (e *ExecSpawnFunc) StdoutPipe() (io.Reader, error) {
 	return e.cmd.StdoutPipe()
 }
 
+// Spawner provides an interface for creating interactive sessions such as oc, ssh, or shell.
 type Spawner interface {
+	// Spawn creates the interactive session.
 	Spawn(command string, args []string, timeout time.Duration, opts ...expect.Option) (*Context, error)
 }
 
-// Type Context represents an interactive context.  This abstraction is meant to be overloaded, and can represent
+// Context represents an interactive context.  This abstraction is meant to be overloaded, and can represent
 // something as simple as a shell, to as complex as an interactive OpenShift client or SSH session.  Context follows the
 // Container design pattern, and is a simple data transfer object.
 type Context struct {
@@ -64,27 +83,32 @@ type Context struct {
 	errorChannel <-chan error
 }
 
+// GetExpecter returns the expect.Expecter Context.
 func (c *Context) GetExpecter() *expect.Expecter {
 	return c.expecter
 }
 
+// GetErrorChannel returns the error channel.
 func (c *Context) GetErrorChannel() <-chan error {
 	return c.errorChannel
 }
 
+// NewContext creates a Context.
 func NewContext(expecter *expect.Expecter, errorChannel <-chan error) *Context {
 	return &Context{expecter: expecter, errorChannel: errorChannel}
 }
 
+// GoExpectSpawner provides an implementation of a Spawner based on GoExpect.  This was abstracted for testing purposes.
 type GoExpectSpawner struct {
 }
 
+// NewGoExpectSpawner creates a new GoExpectSpawner.
 func NewGoExpectSpawner() *GoExpectSpawner {
 	return &GoExpectSpawner{}
 }
 
-// Creates a subprocess, setting standard input and standard output appropriately.  This is the base method to create
-// any interactive PTY based process.
+// Spawn creates a subprocess, setting standard input and standard output appropriately.  This is the base method to
+// create any interactive PTY based process.
 func (g *GoExpectSpawner) Spawn(command string, args []string, timeout time.Duration, opts ...expect.Option) (*Context, error) {
 	if !UnitTestMode {
 		execSpawnFunc := &ExecSpawnFunc{}

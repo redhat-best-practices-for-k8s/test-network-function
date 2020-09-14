@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-// A hostname test implemented using command line tool "hostname".
+// Hostname provides a hostname test implemented using command line tool "hostname".
 type Hostname struct {
 	result  int
 	timeout time.Duration
@@ -16,27 +16,28 @@ type Hostname struct {
 }
 
 const (
+	// Command is the command name for the unix "hostname" command.
 	Command = "hostname"
-	// Anything other than the empty string is considered good output.
+	// SuccessfulOutputRegex is the regular expression match for hostname output.
 	SuccessfulOutputRegex = `.+`
 )
 
-// Return the command line args for the test.
+// Args returns the command line args for the test.
 func (h *Hostname) Args() []string {
 	return h.args
 }
 
-// Return the timeout in seconds for the test.
+// Timeout return the timeout for the test.
 func (h *Hostname) Timeout() time.Duration {
 	return h.timeout
 }
 
-// Return the test result.
+// Result returns the test result.
 func (h *Hostname) Result() int {
 	return h.result
 }
 
-// Return a step which expects an ip summary for the given device.
+// ReelFirst returns a step which expects an hostname summary for the given device.
 func (h *Hostname) ReelFirst() *reel.Step {
 	return &reel.Step{
 		Expect:  []string{SuccessfulOutputRegex},
@@ -44,7 +45,7 @@ func (h *Hostname) ReelFirst() *reel.Step {
 	}
 }
 
-// On match, parse the hostname output and set the test result.
+// ReelMatch parses the hostname output and set the test result on match.
 // Returns no step; the test is complete.
 func (h *Hostname) ReelMatch(_ string, _ string, match string) *reel.Step {
 	h.hostname = match
@@ -52,22 +53,21 @@ func (h *Hostname) ReelMatch(_ string, _ string, match string) *reel.Step {
 	return nil
 }
 
-// On timeout, return a step which kills the ping test by sending it ^C.
+// ReelTimeout does nothing;  hostname requires no explicit intervention for a timeout.
 func (h *Hostname) ReelTimeout() *reel.Step {
 	return nil
 }
 
-// On eof, take no action.
-func (h *Hostname) ReelEof() {
+// ReelEOF does nothing;  hostname requires no explicit intervention for EOF.
+func (h *Hostname) ReelEOF() {
 }
 
+// GetHostname returns the extracted hostname, if one is extracted.
 func (h *Hostname) GetHostname() string {
 	return h.hostname
 }
 
-// Create a new `Ping` test which pings `hosts` with `count` requests, or
-// indefinitely if `count` is not positive, and executes within `timeout`
-// seconds.
+// NewHostname creates a new `Hostname` test which runs the "hostname" command.
 func NewHostname(timeout time.Duration) *Hostname {
 	return &Hostname{
 		result:  tnf.ERROR,

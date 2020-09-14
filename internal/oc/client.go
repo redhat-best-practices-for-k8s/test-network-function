@@ -10,7 +10,7 @@ const (
 	ocNamespaceArg            = "-n"
 )
 
-// Lightweight wrapper client around oc client.
+// InvokeOCCommand is a lightweight wrapper client around oc client.
 func InvokeOCCommand(pod string, container string, namespace string, command []string) (string, error) {
 	invokeCommandArgs := []string{ocExecCommand, pod, ocExecContainerArg, container}
 	if namespace != "" {

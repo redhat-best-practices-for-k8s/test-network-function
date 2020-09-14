@@ -211,5 +211,5 @@ func TestTest_ReelEof(t *testing.T) {
 
 	assert.Nil(t, err)
 	// just ensure there are no panics
-	test.ReelEof()
+	test.ReelEOF()
 }

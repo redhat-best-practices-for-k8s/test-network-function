@@ -1,7 +1,6 @@
 package nrf
 
 import (
-	"errors"
 	"fmt"
 	"github.com/redhat-nfvpe/test-network-function/internal/reel"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
@@ -21,14 +20,14 @@ const (
 	SingleEntryRegexString = `(\w+)\s+(\w+)\s+([0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12})\s+(\w+)`
 )
 
-// OutputRegex matches the output from inspecting NRFID registrations.
+// OutputRegex matches the output from inspecting ID registrations.
 var OutputRegex = regexp.MustCompile(OutputRegexString)
 
-// SingleEntryRegex matches a single matching NRFID.
+// SingleEntryRegex matches a single matching ID.
 var SingleEntryRegex = regexp.MustCompile(SingleEntryRegexString)
 
-// NRFID follows the container design pattern, and stores Network Registration information.
-type NRFID struct {
+// ID follows the container design pattern, and stores Network Registration information.
+type ID struct {
 	nrf    string
 	typ    string
 	instID string
@@ -36,17 +35,17 @@ type NRFID struct {
 }
 
 // GetType extracts the type of CNF.
-func (n *NRFID) GetType() string {
+func (n *ID) GetType() string {
 	return n.typ
 }
 
-// NewNRFID creates a new NRFID.
-func NewNRFID(nrf, typ, instID, status string) *NRFID {
-	return &NRFID{nrf: nrf, typ: typ, instID: instID, status: status}
+// NewNRFID creates a new ID.
+func NewNRFID(nrf, typ, instID, status string) *ID {
+	return &ID{nrf: nrf, typ: typ, instID: instID, status: status}
 }
 
-// fromString creates an NRFID from a string.
-func fromString(nrf string) (*NRFID, error) {
+// fromString creates an ID from a string.
+func fromString(nrf string) (*ID, error) {
 	match := SingleEntryRegex.FindStringSubmatch(nrf)
 	if match != nil {
 		nrf := match[1]
@@ -56,7 +55,7 @@ func fromString(nrf string) (*NRFID, error) {
 		return NewNRFID(nrf, typ, instID, status), nil
 	}
 	// Untestable code below.  No current clients will ever call the code below.
-	return nil, errors.New(fmt.Sprintf("nrf string is not parsable: %s", nrf))
+	return nil, fmt.Errorf("nrf string is not parsable: %s", nrf)
 }
 
 // Registration is a tnf.Test that dumps the output of all CNF registrations in the CR.
@@ -69,26 +68,26 @@ type Registration struct {
 	result int
 	// timeout is the tnf.Test timeout.
 	timeout time.Duration
-	// registeredNRFs is a mapping of uuid to other NRF facets (NRFID).
-	registeredNRFs map[string]*NRFID
+	// registeredNRFs is a mapping of uuid to other NRF facets (ID).
+	registeredNRFs map[string]*ID
 }
 
-// Return the command line args for the test.
+// Args returns the command line args for the test.
 func (r *Registration) Args() []string {
 	return r.args
 }
 
-// Return the timeout in seconds for the test.
+// Timeout returns the timeout in seconds for the test.
 func (r *Registration) Timeout() time.Duration {
 	return r.timeout
 }
 
-// Return the test result.
+// Result returns the test result.
 func (r *Registration) Result() int {
 	return r.result
 }
 
-// Return a step which expects an ip summary for the given device.
+// ReelFirst returns a step which expects an ip summary for the given device.
 func (r *Registration) ReelFirst() *reel.Step {
 	return &reel.Step{
 		Expect:  []string{OutputRegexString, CommandCompleteRegexString},
@@ -96,8 +95,7 @@ func (r *Registration) ReelFirst() *reel.Step {
 	}
 }
 
-// On match, parse the ip addr output and set the test result.
-// Returns no step; the test is complete.
+// ReelMatch parses the Registration.  Returns no step; the test is complete.
 func (r *Registration) ReelMatch(pattern string, _ string, match string) *reel.Step {
 	if pattern == CommandCompleteRegexString {
 		// Indicates that the command was successfully run, but there were no registered NRFs.
@@ -123,17 +121,17 @@ func (r *Registration) ReelMatch(pattern string, _ string, match string) *reel.S
 	return nil
 }
 
-// On timeout, do nothing;  no intervention is needed.
+// ReelTimeout does nothing;  no intervention is needed.
 func (r *Registration) ReelTimeout() *reel.Step {
 	return nil
 }
 
-// On eof, take no action.
-func (r *Registration) ReelEof() {
+// ReelEOF does nothing.  On EOF, take no action.
+func (r *Registration) ReelEOF() {
 }
 
-// GetRegisteredNRFs returns the map of registered NRFID instances.
-func (r *Registration) GetRegisteredNRFs() map[string]*NRFID {
+// GetRegisteredNRFs returns the map of registered ID instances.
+func (r *Registration) GetRegisteredNRFs() map[string]*ID {
 	return r.registeredNRFs
 }
 
@@ -145,5 +143,5 @@ func registrationCommand(namespace string) []string {
 
 // NewRegistration creates a Registration instance.
 func NewRegistration(timeout time.Duration, namespace string) *Registration {
-	return &Registration{result: tnf.ERROR, timeout: timeout, args: registrationCommand(namespace), namespace: namespace, registeredNRFs: map[string]*NRFID{}}
+	return &Registration{result: tnf.ERROR, timeout: timeout, args: registrationCommand(namespace), namespace: namespace, registeredNRFs: map[string]*ID{}}
 }

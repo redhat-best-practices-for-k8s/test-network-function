@@ -137,5 +137,5 @@ func TestRegistration_ReelTimeout(t *testing.T) {
 func TestRegistration_ReelEof(t *testing.T) {
 	r := nrf.NewRegistration(defaultTestTimeout, defaultNamespace)
 	// Just ensure it doesn't panic.
-	r.ReelEof()
+	r.ReelEOF()
 }

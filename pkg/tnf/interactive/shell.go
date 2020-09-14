@@ -10,7 +10,8 @@ const (
 	shellEnvironmentVariableKey = "SHELL"
 )
 
-// Creates an interactive shell subprocess based on the value of $SHELL, spawning the appropriate underlying PTY.
+// SpawnShell creates an interactive shell subprocess based on the value of $SHELL, spawning the appropriate underlying
+// PTY.
 func SpawnShell(spawner *Spawner, timeout time.Duration, opts ...expect.Option) (*Context, error) {
 	shellEnv := os.Getenv(shellEnvironmentVariableKey)
 	var args []string

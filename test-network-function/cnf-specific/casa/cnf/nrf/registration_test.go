@@ -15,7 +15,7 @@ const (
 
 // TestNewCheckRegistration also tests Timeout and Result.
 func TestNewCheckRegistration(t *testing.T) {
-	cr := nrf.NewCheckRegistration(testNamespace, testTimeout, &nrf.NRFID{})
+	cr := nrf.NewCheckRegistration(testNamespace, testTimeout, &nrf.ID{})
 	assert.NotNil(t, cr)
 	assert.Equal(t, testTimeout, cr.Timeout())
 	assert.Equal(t, tnf.ERROR, cr.Result())
@@ -77,5 +77,5 @@ func TestCheckRegistration_ReelEof(t *testing.T) {
 	assert.NotNil(t, cr)
 
 	// just ensures no panics.
-	cr.ReelEof()
+	cr.ReelEOF()
 }
