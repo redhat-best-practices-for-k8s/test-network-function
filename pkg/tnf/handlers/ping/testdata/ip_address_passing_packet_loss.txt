@@ -1,0 +1,24 @@
+PING 192.168.1.5 (192.168.1.5) 56(84) bytes of data.
+64 bytes from 192.168.1.5: icmp_seq=1 ttl=61 time=14.8 ms
+64 bytes from 192.168.1.5: icmp_seq=2 ttl=61 time=11.2 ms
+64 bytes from 192.168.1.5: icmp_seq=3 ttl=61 time=10.9 ms
+64 bytes from 192.168.1.5: icmp_seq=5 ttl=61 time=9.68 ms
+64 bytes from 192.168.1.5: icmp_seq=6 ttl=61 time=4.55 ms
+64 bytes from 192.168.1.5: icmp_seq=7 ttl=61 time=3.38 ms
+64 bytes from 192.168.1.5: icmp_seq=8 ttl=61 time=3.67 ms
+64 bytes from 192.168.1.5: icmp_seq=9 ttl=61 time=3.77 ms
+64 bytes from 192.168.1.5: icmp_seq=10 ttl=61 time=3.77 ms
+64 bytes from 192.168.1.5: icmp_seq=11 ttl=61 time=3.77 ms
+64 bytes from 192.168.1.5: icmp_seq=12 ttl=61 time=3.77 ms
+64 bytes from 192.168.1.5: icmp_seq=13 ttl=61 time=3.77 ms
+64 bytes from 192.168.1.5: icmp_seq=14 ttl=61 time=3.77 ms
+64 bytes from 192.168.1.5: icmp_seq=15 ttl=61 time=3.77 ms
+64 bytes from 192.168.1.5: icmp_seq=16 ttl=61 time=3.77 ms
+64 bytes from 192.168.1.5: icmp_seq=17 ttl=61 time=3.77 ms
+64 bytes from 192.168.1.5: icmp_seq=18 ttl=61 time=3.77 ms
+64 bytes from 192.168.1.5: icmp_seq=19 ttl=61 time=3.77 ms
+
+--- 192.168.1.5 ping statistics ---
+20 packets transmitted, 19 received, 5% packet loss, time 19297ms
+rtt min/avg/max/mdev = 3.381/7.772/14.867/4.167 ms
+

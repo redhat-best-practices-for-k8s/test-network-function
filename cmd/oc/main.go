@@ -1,39 +1,35 @@
 package main
 
 import (
-	"bufio"
 	"flag"
 	"fmt"
+	expect "github.com/google/goexpect"
 	"github.com/redhat-nfvpe/test-network-function/internal/reel"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
+	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/ping"
+	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/interactive"
 	"os"
+	"time"
 )
 
-func parseArgs() (string, reel.Handler, *tnf.Oc) {
-	logfile := flag.String("d", "", "Filename to capture expect dialogue to")
+func parseArgs() (*interactive.Oc, <-chan error, string, time.Duration, error) {
 	timeout := flag.Int("t", 2, "Timeout in seconds")
-	feed := flag.String("f", "", "Feed 'tests' (JSON configurations) or 'lines' from stdin")
 	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "usage: %s [-d logfile] [-t timeout] [-f 'lines'|'tests'] pod ?oc-exec-opt .. oc-exec-opt?\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "usage: %s [-t timeout] pod container targetIpAddress ?oc-exec-opt ... oc-exec-opt?\n", os.Args[0])
 		flag.PrintDefaults()
 		os.Exit(tnf.ERROR)
 	}
 	flag.Parse()
 	args := flag.Args()
-	if len(args) < 1 {
+	if len(args) < 3 {
 		flag.Usage()
 	}
-	var feeder reel.Handler
-	switch *feed {
-	case "tests":
-		feeder = tnf.NewTestFeeder(*timeout, tnf.OcPrompt, bufio.NewScanner(os.Stdin))
-	case "lines":
-		feeder = reel.NewLineFeeder(*timeout, tnf.OcPrompt, bufio.NewScanner(os.Stdin))
-	default:
-		feeder = nil
-	}
-	oc := tnf.NewOc(*timeout, args[0], args[1:])
-	return *logfile, feeder, oc
+
+	timeoutDuration := time.Duration(*timeout) * time.Second
+	goExpectSpawner := interactive.NewGoExpectSpawner()
+	var spawner interactive.Spawner = goExpectSpawner
+	oc, ch, err := interactive.SpawnOc(&spawner, args[0], args[1], "default", timeoutDuration, expect.Verbose(true))
+	return oc, ch, args[2], timeoutDuration, err
 }
 
 // Execute an OpenShift shell with exit code 0 on success, 1 on failure, 2 on error.
@@ -43,15 +39,18 @@ func parseArgs() (string, reel.Handler, *tnf.Oc) {
 // Alternatively, read each input line as a JSON test configuration to execute.
 func main() {
 	result := tnf.ERROR
-	logfile, feeder, oc := parseArgs()
-	printer := reel.NewPrinter(" \r\n")
-	var chain []reel.Handler
-	if feeder != nil {
-		chain = []reel.Handler{printer, feeder, oc}
-	} else {
-		chain = []reel.Handler{printer, oc}
+	oc, ch, targetIpAddress, timeoutDuration, err := parseArgs()
+
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(result)
 	}
-	test, err := tnf.NewTest(logfile, oc, chain)
+
+	printer := reel.NewPrinter(" \r\n")
+	request := ping.NewPing(timeoutDuration, targetIpAddress, 5)
+	chain := []reel.Handler{printer, request}
+	test, err := tnf.NewTest(oc.GetExpecter(), request, chain, ch)
+
 	if err == nil {
 		result, err = test.Run()
 	}

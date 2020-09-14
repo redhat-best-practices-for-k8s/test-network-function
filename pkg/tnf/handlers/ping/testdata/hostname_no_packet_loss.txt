@@ -1,0 +1,15 @@
+PING www.google.com (172.217.12.132) 56(84) bytes of data.
+64 bytes from lga34s19-in-f4.1e100.net (172.217.12.132): icmp_seq=1 ttl=61 time=25.4 ms
+64 bytes from lga34s19-in-f4.1e100.net (172.217.12.132): icmp_seq=2 ttl=61 time=27.1 ms
+64 bytes from lga34s19-in-f4.1e100.net (172.217.12.132): icmp_seq=3 ttl=61 time=26.7 ms
+64 bytes from lga34s19-in-f4.1e100.net (172.217.12.132): icmp_seq=4 ttl=61 time=24.2 ms
+64 bytes from lga34s19-in-f4.1e100.net (172.217.12.132): icmp_seq=5 ttl=61 time=28.0 ms
+64 bytes from lga34s19-in-f4.1e100.net (172.217.12.132): icmp_seq=6 ttl=61 time=37.0 ms
+64 bytes from lga34s19-in-f4.1e100.net (172.217.12.132): icmp_seq=7 ttl=61 time=21.6 ms
+64 bytes from lga34s19-in-f4.1e100.net (172.217.12.132): icmp_seq=8 ttl=61 time=30.6 ms
+64 bytes from lga34s19-in-f4.1e100.net (172.217.12.132): icmp_seq=9 ttl=61 time=27.3 ms
+64 bytes from lga34s19-in-f4.1e100.net (172.217.12.132): icmp_seq=10 ttl=61 time=27.9 ms
+
+--- www.google.com ping statistics ---
+10 packets transmitted, 10 received, 0% packet loss, time 9014ms
+rtt min/avg/max/mdev = 21.650/27.619/37.003/3.885 ms

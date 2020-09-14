@@ -1,0 +1,4 @@
+24: eth0@if25: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default
+    link/ether 02:42:ac:11:00:07 brd ff:ff:ff:ff:ff:ff link-netnsid 0
+    inet 172.17.0.7/16 brd 172.17.255.255 scope global eth0
+       valid_lft forever preferred_lft forever

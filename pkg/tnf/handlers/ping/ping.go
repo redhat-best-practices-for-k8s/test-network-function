@@ -1,41 +1,48 @@
-package tnf
+package ping
 
 import (
 	"github.com/redhat-nfvpe/test-network-function/internal/reel"
+	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
 	"regexp"
 	"strconv"
+	"time"
 )
 
 // A ping test implemented using command line tool `ping`.
 type Ping struct {
-	result  int
-	timeout int
-	args    []string
+	result      int
+	timeout     time.Duration
+	args        []string
+	transmitted int
+	received    int
+	errors      int
 }
 
-const stat string = `(?m)^\D(\d+) packets transmitted, (\d+) received, (?:\+(\d+) errors)?.*$`
-const done string = `\D\d+ packets transmitted.*\r\n(?:rtt )?.*$`
+const (
+	ConnectInvalidArgument = `(?m)connect: Invalid argument$`
+	SuccessfulOutputRegex  = `(?m)(\d+) packets transmitted, (\d+)( packets){0,1} received, (?:\+(\d+) errors)?.*$`
+)
 
 // Return the command line args for the test.
-func (ping *Ping) Args() []string {
-	return ping.args
+func (p *Ping) Args() []string {
+	return p.args
 }
 
 // Return the timeout in seconds for the test.
-func (ping *Ping) Timeout() int {
-	return ping.timeout
+func (p *Ping) Timeout() time.Duration {
+	return p.timeout
 }
 
 // Return the test result.
-func (ping *Ping) Result() int {
-	return ping.result
+func (p *Ping) Result() int {
+	return p.result
 }
 
 // Return a step which expects the ping statistics within the test timeout.
-func (ping *Ping) ReelFirst() *reel.Step {
+func (p *Ping) ReelFirst() *reel.Step {
 	return &reel.Step{
-		Expect:  []string{done},
-		Timeout: ping.timeout,
+		Expect:  p.GetReelFirstRegularExpressions(),
+		Timeout: p.timeout,
 	}
 }
 
@@ -47,39 +54,44 @@ func (ping *Ping) ReelFirst() *reel.Step {
 // unreachable), no requests were sent or there was some test execution error.
 // Otherwise the result is failure.
 // Returns no step; the test is complete.
-func (ping *Ping) ReelMatch(pattern string, before string, match string) *reel.Step {
-	re := regexp.MustCompile(stat)
+func (p *Ping) ReelMatch(_ string, _ string, match string) *reel.Step {
+	re := regexp.MustCompile(ConnectInvalidArgument)
 	matched := re.FindStringSubmatch(match)
 	if matched != nil {
-		var txd, rxd, ers int
+		p.result = tnf.ERROR
+	}
+	re = regexp.MustCompile(SuccessfulOutputRegex)
+	matched = re.FindStringSubmatch(match)
+	if matched != nil {
 		// Ignore errors in converting matches to decimal integers.
 		// Regular expression `stat` is required to underwrite this assumption.
-		txd, _ = strconv.Atoi(matched[1])
-		rxd, _ = strconv.Atoi(matched[2])
-		ers, _ = strconv.Atoi(matched[3])
+		p.transmitted, _ = strconv.Atoi(matched[1])
+		p.received, _ = strconv.Atoi(matched[2])
+		p.errors, _ = strconv.Atoi(matched[4])
 		switch {
-		case txd == 0 || ers > 0:
-			ping.result = ERROR
-		case rxd > 0 && txd-rxd <= 1:
-			ping.result = SUCCESS
+		case p.transmitted == 0 || p.errors > 0:
+			p.result = tnf.ERROR
+		case p.received > 0 && (p.transmitted-p.received) <= 1:
+			p.result = tnf.SUCCESS
 		default:
-			ping.result = FAILURE
+			p.result = tnf.FAILURE
 		}
 	}
 	return nil
 }
 
 // On timeout, return a step which kills the ping test by sending it ^C.
-func (ping *Ping) ReelTimeout() *reel.Step {
-	return &reel.Step{
-		Execute: reel.CTRL_C,
-		Expect:  []string{done},
-	}
+func (p *Ping) ReelTimeout() *reel.Step {
+	return &reel.Step{Execute: reel.CtrlC}
 }
 
 // On eof, take no action.
-func (ping *Ping) ReelEof() {
+func (p *Ping) ReelEof() {
 	// empty
+}
+
+func (p *Ping) GetStats() (int, int, int) {
+	return p.transmitted, p.received, p.errors
 }
 
 // Return command line args for pinging `host` with `count` requests, or
@@ -95,10 +107,15 @@ func PingCmd(host string, count int) []string {
 // Create a new `Ping` test which pings `hosts` with `count` requests, or
 // indefinitely if `count` is not positive, and executes within `timeout`
 // seconds.
-func NewPing(timeout int, host string, count int) *Ping {
+func NewPing(timeout time.Duration, host string, count int) *Ping {
 	return &Ping{
-		result:  ERROR,
+		result:  tnf.ERROR,
 		timeout: timeout,
 		args:    PingCmd(host, count),
 	}
+}
+
+// Utility method to get the regular expressions used for matching in ReelFirst(...).
+func (p *Ping) GetReelFirstRegularExpressions() []string {
+	return []string{ConnectInvalidArgument, SuccessfulOutputRegex}
 }

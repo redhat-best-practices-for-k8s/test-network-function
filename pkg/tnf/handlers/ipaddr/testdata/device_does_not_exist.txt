@@ -1,0 +1,2 @@
+Device "dne" does not exist.
+command terminated with exit code 1
