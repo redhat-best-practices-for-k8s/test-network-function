@@ -52,7 +52,7 @@ func getMockOutput(t *testing.T, testName string) string {
 
 func TestNewIpAddr(t *testing.T) {
 	for _, testCase := range testCases {
-		ipAddr := ipaddr.NewIpAddr(testTimeoutDuration, testCase.device)
+		ipAddr := ipaddr.NewIPAddr(testTimeoutDuration, testCase.device)
 		assert.NotNil(t, ipAddr)
 		assert.Equal(t, tnf.ERROR, ipAddr.Result())
 		assert.Equal(t, []string{"ip", "addr", "show", "dev", testCase.device}, ipAddr.Args())
@@ -61,21 +61,21 @@ func TestNewIpAddr(t *testing.T) {
 
 func TestIpAddr_Args(t *testing.T) {
 	for _, testCase := range testCases {
-		ipAddr := ipaddr.NewIpAddr(testTimeoutDuration, testCase.device)
+		ipAddr := ipaddr.NewIPAddr(testTimeoutDuration, testCase.device)
 		assert.Equal(t, []string{"ip", "addr", "show", "dev", testCase.device}, ipAddr.Args())
 	}
 }
 
 func TestIpAddr_Timeout(t *testing.T) {
 	for _, testCase := range testCases {
-		ipAddr := ipaddr.NewIpAddr(testTimeoutDuration, testCase.device)
+		ipAddr := ipaddr.NewIPAddr(testTimeoutDuration, testCase.device)
 		assert.Equal(t, testTimeoutDuration, ipAddr.Timeout())
 	}
 }
 
 func TestIpAddr_ReelFirst(t *testing.T) {
 	for _, testCase := range testCases {
-		ipAddr := ipaddr.NewIpAddr(testTimeoutDuration, testCase.device)
+		ipAddr := ipaddr.NewIPAddr(testTimeoutDuration, testCase.device)
 		step := ipAddr.ReelFirst()
 		assert.Equal(t, "", step.Execute)
 		assert.Contains(t, step.Expect, ipaddr.SuccessfulOutputRegex)
@@ -85,7 +85,7 @@ func TestIpAddr_ReelFirst(t *testing.T) {
 
 func TestIpAddr_Result(t *testing.T) {
 	for testName, testCase := range testCases {
-		ipAddr := ipaddr.NewIpAddr(testTimeoutDuration, testCase.device)
+		ipAddr := ipaddr.NewIPAddr(testTimeoutDuration, testCase.device)
 		assert.Equal(t, tnf.ERROR, ipAddr.Result())
 		step := ipAddr.ReelMatch(testCase.pattern, "", getMockOutput(t, testName))
 		assert.Nil(t, step)
@@ -95,16 +95,16 @@ func TestIpAddr_Result(t *testing.T) {
 
 func TestIpAddr_GetIpv4Address(t *testing.T) {
 	for testName, testCase := range testCases {
-		ipAddr := ipaddr.NewIpAddr(testTimeoutDuration, testCase.device)
+		ipAddr := ipaddr.NewIPAddr(testTimeoutDuration, testCase.device)
 		step := ipAddr.ReelMatch(testCase.pattern, "", getMockOutput(t, testName))
 		assert.Nil(t, step)
-		assert.Equal(t, testCase.expectedIpv4Address, ipAddr.GetIpv4Address())
+		assert.Equal(t, testCase.expectedIpv4Address, ipAddr.GetIPv4Address())
 	}
 }
 
 func TestIpAddr_ReelTimeout(t *testing.T) {
 	for _, testCase := range testCases {
-		ipAddr := ipaddr.NewIpAddr(testTimeoutDuration, testCase.device)
+		ipAddr := ipaddr.NewIPAddr(testTimeoutDuration, testCase.device)
 		assert.Nil(t, ipAddr.ReelTimeout())
 	}
 }
@@ -112,7 +112,7 @@ func TestIpAddr_ReelTimeout(t *testing.T) {
 // Ensure there are no panics.
 func TestIpAddr_ReelEof(t *testing.T) {
 	for _, testCase := range testCases {
-		ipAddr := ipaddr.NewIpAddr(testTimeoutDuration, testCase.device)
-		ipAddr.ReelEof()
+		ipAddr := ipaddr.NewIPAddr(testTimeoutDuration, testCase.device)
+		ipAddr.ReelEOF()
 	}
 }

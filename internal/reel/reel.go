@@ -1,5 +1,3 @@
-// Run a target subprocess with programmatic control over interaction with it.
-// Programmatic control uses a Read-Execute-Expect-Loop ("REEL") pattern.
 package reel
 
 import (
@@ -11,12 +9,13 @@ import (
 )
 
 const (
+	// CtrlC is the constant representing SIGINT.
 	CtrlC   = "\003" // ^C
 	newLine = "\n"
 	sep     = " "
 )
 
-// A Step is an instruction for a single REEL pass.
+// Step is an instruction for a single REEL pass.
 // To process a step, first send the `Execute` string to the target subprocess (if supplied).  Block until the
 // subprocess output to stdout matches one of the regular expressions in `Expect` (if any supplied). A positive integer
 // `Timeout` (seconds) prevents blocking forever.
@@ -52,10 +51,11 @@ type Handler interface {
 	// ReelTimeout informs of a timeout event, returning the next step to perform.
 	ReelTimeout() *Step
 
-	// ReelEof informs of the eof event.
-	ReelEof()
+	// ReelEOF informs of the eof event.
+	ReelEOF()
 }
 
+// StepFunc provides a wrapper around a generic Handler.
 type StepFunc func(Handler) *Step
 
 // A Reel instance allows interaction with a target subprocess.
@@ -118,7 +118,7 @@ func isTimeout(err error) bool {
 	return ok
 }
 
-// Perform `step`, then, in response to events, consequent steps fed by `handler`.
+// Step performs `step`, then, in response to events, consequent steps fed by `handler`.
 // Return on first error, or when there is no next step to perform.
 func (reel *Reel) Step(step *Step, handler Handler) error {
 	for step != nil {
@@ -176,8 +176,8 @@ func createExecutableCommand(command string) string {
 	return command
 }
 
-// Create a new `Reel` instance for interacting with a target subprocess.  The command line for the target is specified
-// by the args parameter.
+// NewReel create a new `Reel` instance for interacting with a target subprocess.  The command line for the target is
+// specified by the args parameter.
 func NewReel(expecter *expect.Expecter, args []string, errorChannel <-chan error) (*Reel, error) {
 	if len(args) > 0 {
 		command := createExecutableCommand(strings.Join(args, sep))

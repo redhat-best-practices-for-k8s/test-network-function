@@ -28,7 +28,7 @@ func TestHostname_ReelFirst(t *testing.T) {
 func TestHostname_ReelEof(t *testing.T) {
 	h := hostname.NewHostname(testTimeoutDuration)
 	// just ensures lack of panic
-	h.ReelEof()
+	h.ReelEOF()
 }
 
 func TestHostname_ReelTimeout(t *testing.T) {

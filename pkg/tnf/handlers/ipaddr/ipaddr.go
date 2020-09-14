@@ -9,8 +9,8 @@ import (
 	"time"
 )
 
-// An ip addr test implemented using command line tool `ip`.
-type IpAddr struct {
+// IPAddr provides an ip addr test implemented using command line tool `ip addr`.
+type IPAddr struct {
 	result  int
 	timeout time.Duration
 	args    []string
@@ -19,37 +19,39 @@ type IpAddr struct {
 }
 
 const (
-	ipAddrCommand           = "ip addr show dev"
+	ipAddrCommand = "ip addr show dev"
+	// DeviceDoesNotExistRegex matches `ip addr` output when the given device does not exist.
 	DeviceDoesNotExistRegex = `(?m)Device \"(\w+)\" does not exist.$`
-	SuccessfulOutputRegex   = `(?m)^\s+inet ((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?))`
+	// SuccessfulOutputRegex matches `ip addr` output for a given device, and provides grouping to extract the associated Ipv4 address.
+	SuccessfulOutputRegex = `(?m)^\s+inet ((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?))`
 )
 
-// Return the command line args for the test.
-func (i *IpAddr) Args() []string {
+// Args returns the command line args for the test.
+func (i *IPAddr) Args() []string {
 	return i.args
 }
 
-// Return the timeout in seconds for the test.
-func (i *IpAddr) Timeout() time.Duration {
+// Timeout return the timeout for the test.
+func (i *IPAddr) Timeout() time.Duration {
 	return i.timeout
 }
 
-// Return the test result.
-func (i *IpAddr) Result() int {
+// Result returns the test result.
+func (i *IPAddr) Result() int {
 	return i.result
 }
 
-// Return a step which expects an ip summary for the given device.
-func (i *IpAddr) ReelFirst() *reel.Step {
+// ReelFirst returns a step which expects an ip summary for the given device.
+func (i *IPAddr) ReelFirst() *reel.Step {
 	return &reel.Step{
 		Expect:  []string{SuccessfulOutputRegex, DeviceDoesNotExistRegex},
 		Timeout: i.timeout,
 	}
 }
 
-// On match, parse the ip addr output and set the test result.
+// ReelMatch parses the ip addr output and set the test result on match.
 // Returns no step; the test is complete.
-func (i *IpAddr) ReelMatch(pattern string, _ string, match string) *reel.Step {
+func (i *IPAddr) ReelMatch(pattern string, _ string, match string) *reel.Step {
 	if pattern == DeviceDoesNotExistRegex {
 		i.result = tnf.ERROR
 		return nil
@@ -63,16 +65,17 @@ func (i *IpAddr) ReelMatch(pattern string, _ string, match string) *reel.Step {
 	return nil
 }
 
-// On timeout, return a step which kills the ping test by sending it ^C.
-func (i *IpAddr) ReelTimeout() *reel.Step {
+// ReelTimeout does nothing;  no intervention is needed for `ip addr` timeout.
+func (i *IPAddr) ReelTimeout() *reel.Step {
 	return nil
 }
 
-// On eof, take no action.
-func (i *IpAddr) ReelEof() {
+// ReelEOF does nothing;  no intervention is needed for `ip addr` EOF.
+func (i *IPAddr) ReelEOF() {
 }
 
-func (i *IpAddr) GetIpv4Address() string {
+// GetIPv4Address returns the extracted IPv4 address for the given device (interface).
+func (i *IPAddr) GetIPv4Address() string {
 	return i.ipv4Address
 }
 
@@ -80,9 +83,7 @@ func ipAddrCmd(dev string) []string {
 	return strings.Split(fmt.Sprintf("%s %s", ipAddrCommand, dev), " ")
 }
 
-// Create a new `Ping` test which pings `hosts` with `count` requests, or
-// indefinitely if `count` is not positive, and executes within `timeout`
-// seconds.
-func NewIpAddr(timeout time.Duration, dev string) *IpAddr {
-	return &IpAddr{result: tnf.ERROR, timeout: timeout, args: ipAddrCmd(dev)}
+// NewIPAddr creates a new `ip addr` test for the given device.
+func NewIPAddr(timeout time.Duration, device string) *IPAddr {
+	return &IPAddr{result: tnf.ERROR, timeout: timeout, args: ipAddrCmd(device)}
 }

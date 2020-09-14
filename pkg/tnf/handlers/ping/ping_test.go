@@ -93,7 +93,7 @@ func TestNewPing(t *testing.T) {
 	for _, testCase := range testCases {
 		request := ping.NewPing(testTimeoutDuration, testCase.host, testCase.count)
 		assert.NotNil(t, request)
-		args := ping.PingCmd(testCase.host, testCase.count)
+		args := ping.Command(testCase.host, testCase.count)
 		assert.Equal(t, args, request.Args())
 		assert.Equal(t, tnf.ERROR, request.Result())
 	}
@@ -164,15 +164,15 @@ func TestPing_Timeout(t *testing.T) {
 func TestPing_ReelEof(t *testing.T) {
 	for _, testCase := range testCases {
 		request := ping.NewPing(testTimeoutDuration, testCase.host, testCase.count)
-		request.ReelEof()
+		request.ReelEOF()
 	}
 }
 
 func TestPingCmd(t *testing.T) {
-	cmd := ping.PingCmd("192.168.1.1", 0)
+	cmd := ping.Command("192.168.1.1", 0)
 	assert.Equal(t, []string{"ping", "192.168.1.1"}, cmd)
-	cmd = ping.PingCmd("192.168.1.1", -1)
+	cmd = ping.Command("192.168.1.1", -1)
 	assert.Equal(t, []string{"ping", "192.168.1.1"}, cmd)
-	cmd = ping.PingCmd("192.168.1.1", 1)
+	cmd = ping.Command("192.168.1.1", 1)
 	assert.Equal(t, []string{"ping", "-c", "1", "192.168.1.1"}, cmd)
 }

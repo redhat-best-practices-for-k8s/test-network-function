@@ -4,7 +4,7 @@ podUnderTest:
   containerConfiguration:
     name: "test"
     defaultNetworkDevice: "eth0"
-    multusIpAddresses:
+    multusIPAddresses:
       - "192.168.2.1"
 partnerPod:
   name: "partner"
@@ -12,5 +12,5 @@ partnerPod:
   containerConfiguration:
     name: "partner"
     defaultNetworkDevice: "eth0"
-    multusIpAddresses:
+    multusIPAddresses:
       - "192.168.2.3"

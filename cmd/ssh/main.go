@@ -28,7 +28,7 @@ func parseArgs() (*interactive.Context, string, time.Duration, error) {
 	timeoutDuration := time.Duration(*timeout) * time.Second
 	goExpectSpawner := interactive.NewGoExpectSpawner()
 	var spawner interactive.Spawner = goExpectSpawner
-	context, err := interactive.SpawnSsh(&spawner, args[0], args[1], time.Duration(10), expect.Verbose(true))
+	context, err := interactive.SpawnSSH(&spawner, args[0], args[1], time.Duration(10), expect.Verbose(true))
 	return context, args[2], timeoutDuration, err
 }
 
@@ -36,7 +36,7 @@ func parseArgs() (*interactive.Context, string, time.Duration, error) {
 // Execute a ping to the target IP address and print interaction with the controlled subprocess.
 func main() {
 	result := tnf.ERROR
-	context, targetIpAddress, timeoutDuration, err := parseArgs()
+	context, targetIPAddress, timeoutDuration, err := parseArgs()
 
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
@@ -44,7 +44,7 @@ func main() {
 	}
 
 	printer := reel.NewPrinter(" \r\n")
-	request := ping.NewPing(timeoutDuration, targetIpAddress, 5)
+	request := ping.NewPing(timeoutDuration, targetIPAddress, 5)
 	chain := []reel.Handler{printer, request}
 	test, err := tnf.NewTest(context.GetExpecter(), request, chain, context.GetErrorChannel())
 

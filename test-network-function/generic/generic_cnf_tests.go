@@ -87,15 +87,15 @@ var _ = ginkgo.Describe(testsKey, func() {
 		partnerPodName, partnerPodContainerName, partnerPodNamespace, defaultTimeout, defaultExpectArgs)
 
 	// Extract the ip addresses for the pod under test and the test partner
-	podUnderTestIpAddress := getContainerDefaultNetworkIpAddress(podUnderTestOc, podUnderTestDefaultNetworkDevice)
-	log.Infof("%s(%s) IP Address: %s", podUnderTestName, podUnderTestContainerName, podUnderTestIpAddress)
+	podUnderTestIPAddress := getContainerDefaultNetworkIPAddress(podUnderTestOc, podUnderTestDefaultNetworkDevice)
+	log.Infof("%s(%s) IP Address: %s", podUnderTestName, podUnderTestContainerName, podUnderTestIPAddress)
 
-	partnerPodIpAddress := getContainerDefaultNetworkIpAddress(partnerPodOc, partnerPodDefaultNetworkDevice)
-	log.Infof("%s(%s) IP Address: %s", partnerPodName, partnerPodContainerName, partnerPodIpAddress)
+	partnerPodIPAddress := getContainerDefaultNetworkIPAddress(partnerPodOc, partnerPodDefaultNetworkDevice)
+	log.Infof("%s(%s) IP Address: %s", partnerPodName, partnerPodContainerName, partnerPodIPAddress)
 
 	ginkgo.Context("Both Pods are on the Default network", func() {
-		testNetworkConnectivity(podUnderTestOc, partnerPodOc, partnerPodIpAddress, defaultNumPings)
-		testNetworkConnectivity(partnerPodOc, podUnderTestOc, podUnderTestIpAddress, defaultNumPings)
+		testNetworkConnectivity(podUnderTestOc, partnerPodOc, partnerPodIPAddress, defaultNumPings)
+		testNetworkConnectivity(partnerPodOc, podUnderTestOc, podUnderTestIPAddress, defaultNumPings)
 	})
 })
 
@@ -108,7 +108,7 @@ var _ = ginkgo.Describe(multusTestsKey, func() {
 	podUnderTestNamespace := config.PodUnderTest.Namespace
 	podUnderTestName := config.PodUnderTest.Name
 	podUnderTestContainerName := config.PodUnderTest.ContainerConfiguration.Name
-	podUnderTestMultusIpAddress := config.PodUnderTest.ContainerConfiguration.MultusIpAddresses[0]
+	podUnderTestMultusIPAddress := config.PodUnderTest.ContainerConfiguration.MultusIPAddresses[0]
 
 	partnerPodNamespace := config.PartnerPod.Namespace
 	partnerPodName := config.PartnerPod.Name
@@ -118,25 +118,25 @@ var _ = ginkgo.Describe(multusTestsKey, func() {
 		partnerPodName, partnerPodContainerName, partnerPodNamespace, defaultTimeout, defaultExpectArgs)
 
 	ginkgo.Context("Both Pods are connected via a Multus Overlay Network", func() {
-		testNetworkConnectivity(partnerPodOc, podUnderTestOc, podUnderTestMultusIpAddress, defaultNumPings)
+		testNetworkConnectivity(partnerPodOc, podUnderTestOc, podUnderTestMultusIPAddress, defaultNumPings)
 	})
 })
 
 // Helper to test that a container can ping a target IP address, and report through Ginkgo.
-func testNetworkConnectivity(initiatingPodOc *interactive.Oc, targetPodOc *interactive.Oc, targetPodIpAddress string, count int) {
+func testNetworkConnectivity(initiatingPodOc *interactive.Oc, targetPodOc *interactive.Oc, targetPodIPAddress string, count int) {
 	ginkgo.When(fmt.Sprintf("a Ping is issued from %s(%s) to %s(%s) %s", initiatingPodOc.GetPodName(),
 		initiatingPodOc.GetPodContainerName(), targetPodOc.GetPodName(), targetPodOc.GetPodContainerName(),
-		targetPodIpAddress), func() {
+		targetPodIPAddress), func() {
 		ginkgo.It(fmt.Sprintf("%s(%s) should reply", targetPodOc.GetPodName(), targetPodOc.GetPodContainerName()), func() {
-			testPing(initiatingPodOc, targetPodIpAddress, count)
+			testPing(initiatingPodOc, targetPodIPAddress, count)
 		})
 	})
 }
 
 // Test that a container can ping a target IP address.
-func testPing(initiatingPodOc *interactive.Oc, targetPodIpAddress string, count int) {
-	log.Infof("Sending ICMP traffic(%s to %s)", initiatingPodOc.GetPodName(), targetPodIpAddress)
-	pingTester := ping.NewPing(defaultTimeout, targetPodIpAddress, count)
+func testPing(initiatingPodOc *interactive.Oc, targetPodIPAddress string, count int) {
+	log.Infof("Sending ICMP traffic(%s to %s)", initiatingPodOc.GetPodName(), targetPodIPAddress)
+	pingTester := ping.NewPing(defaultTimeout, targetPodIPAddress, count)
 	test, err := tnf.NewTest(initiatingPodOc.GetExpecter(), pingTester, []reel.Handler{pingTester}, initiatingPodOc.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
 	testResult, err := test.Run()
@@ -149,17 +149,17 @@ func testPing(initiatingPodOc *interactive.Oc, targetPodIpAddress string, count 
 
 // Extract a container ip address for a particular device.  This is needed since container default network IP address
 // is served by dhcp, and thus is ephemeral.
-func getContainerDefaultNetworkIpAddress(oc *interactive.Oc, dev string) string {
-	ipTester := ipaddr.NewIpAddr(defaultTimeout, dev)
+func getContainerDefaultNetworkIPAddress(oc *interactive.Oc, dev string) string {
+	ipTester := ipaddr.NewIPAddr(defaultTimeout, dev)
 	test, err := tnf.NewTest(oc.GetExpecter(), ipTester, []reel.Handler{ipTester}, oc.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
 	testResult, err := test.Run()
 	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
 	gomega.Expect(err).To(gomega.BeNil())
-	return ipTester.GetIpv4Address()
+	return ipTester.GetIPv4Address()
 }
 
-// Get cnf-certification-generic-tests test configuration.
+// GetTestConfiguration returns the cnf-certification-generic-tests test configuration.
 func GetTestConfiguration() *configuration.TestConfiguration {
 	config := &configuration.TestConfiguration{}
 	ginkgo.Context("Instantiate some configuration information from the environment", func() {

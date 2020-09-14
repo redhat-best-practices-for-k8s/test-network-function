@@ -39,7 +39,7 @@ func parseArgs() (*interactive.Oc, <-chan error, string, time.Duration, error) {
 // Alternatively, read each input line as a JSON test configuration to execute.
 func main() {
 	result := tnf.ERROR
-	oc, ch, targetIpAddress, timeoutDuration, err := parseArgs()
+	oc, ch, targetIPAddress, timeoutDuration, err := parseArgs()
 
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
@@ -47,7 +47,7 @@ func main() {
 	}
 
 	printer := reel.NewPrinter(" \r\n")
-	request := ping.NewPing(timeoutDuration, targetIpAddress, 5)
+	request := ping.NewPing(timeoutDuration, targetIPAddress, 5)
 	chain := []reel.Handler{printer, request}
 	test, err := tnf.NewTest(oc.GetExpecter(), request, chain, ch)
 

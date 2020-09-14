@@ -15,7 +15,7 @@ const (
 	ocInteractiveArg         = "-it"
 )
 
-// An OpenShift Client designed to wrap the "oc" CLI.
+// Oc provides an OpenShift Client designed to wrap the "oc" CLI.
 type Oc struct {
 	// name of the pod
 	pod string
@@ -35,7 +35,7 @@ type Oc struct {
 	errorChannel <-chan error
 }
 
-// Creates an OpenShift Client subprocess, spawning the appropriate underlying PTY.
+// SpawnOc creates an OpenShift Client subprocess, spawning the appropriate underlying PTY.
 func SpawnOc(spawner *Spawner, pod, container, namespace string, timeout time.Duration, opts ...expect.Option) (*Oc, <-chan error, error) {
 	ocArgs := []string{ocExecCommand, ocNamespaceArg, namespace, ocInteractiveArg, pod, ocContainerArg, container, ocClientCommandSeparator, ocDefaultShell}
 	context, err := (*spawner).Spawn(ocCommand, ocArgs, timeout, opts...)
@@ -46,37 +46,37 @@ func SpawnOc(spawner *Spawner, pod, container, namespace string, timeout time.Du
 	return &Oc{pod: pod, container: container, namespace: namespace, timeout: timeout, opts: opts, expecter: context.GetExpecter(), spawnErr: err, errorChannel: errorChannel}, errorChannel, nil
 }
 
-// Extract the expect.Expecter reference used to control the OpenShift client.
+// GetExpecter returns a reference to the expect.Expecter reference used to control the OpenShift client.
 func (o *Oc) GetExpecter() *expect.Expecter {
 	return o.expecter
 }
 
-// Extract the name of the pod.
+// GetPodName returns the name of the pod.
 func (o *Oc) GetPodName() string {
 	return o.pod
 }
 
-// Extract the name of the container.
+// GetPodContainerName returns the name of the container.
 func (o *Oc) GetPodContainerName() string {
 	return o.container
 }
 
-// Extract the namespace of the pod.
+// GetPodNamespace extracts the namespace of the pod.
 func (o *Oc) GetPodNamespace() string {
 	return o.namespace
 }
 
-// Extract the timeout for the expect.Expecter.
+// GetTimeout returns the timeout for the expect.Expecter.
 func (o *Oc) GetTimeout() time.Duration {
 	return o.timeout
 }
 
-// Extract the options, such as verbosity.
+// GetOptions returns the options, such as verbosity.
 func (o *Oc) GetOptions() []expect.Option {
 	return o.opts
 }
 
-// Extract the error channel for interactive monitoring.
+// GetErrorChannel returns the error channel for interactive monitoring.
 func (o *Oc) GetErrorChannel() <-chan error {
 	return o.errorChannel
 }

@@ -4,6 +4,7 @@
 	cnf-tests \
 	deps-update \
 	generic-cnf-tests \
+	lint \
 	mocks \
 	run-cnf-tests \
 	run-generic-cnf-tests \
@@ -15,9 +16,10 @@ export GO111MODULE=on
 export COMMON_GINKGO_ARGS=-ginkgo.v -junit . -report .
 export COMMON_GO_ARGS=-race
 
-build:
+build: lint
 	go fmt ./...
 	go build ${COMMON_GO_ARGS} ./...
+	make unit-tests
 
 generic-cnf-tests: build build-cnf-tests run-generic-cnf-tests
 
@@ -43,6 +45,9 @@ mocks:
 
 unit-tests:
 	go test -coverprofile=cover.out `go list ./... | grep -v "github.com/redhat-nfvpe/test-network-function/test-network-function" | grep -v mock` && go tool cover -html=cover.out
+
+lint:
+	golint `go list ./... | grep -v vendor`
 
 .PHONY: clean
 clean:
