@@ -1,0 +1,56 @@
+{
+  "description": "checks for RHEL version.",
+  "reelFirstStep": {
+    "execute": "if [ -e /etc/redhat-release ]; then cat /etc/redhat-release; else echo \"Unknown Base Image\"; fi\n",
+    "expect": [
+      "(?m)Unknown Base Image",
+      "(?m)Red Hat Enterprise Linux Server release (\\d+\\.\\d+) \\((\\w+)\\)",
+      "(?m)contrived match"
+    ],
+    "timeout": 2000000000
+  },
+  "resultContexts": [
+    {
+      "pattern": "(?m)Unknown Base Image",
+      "defaultResult": 2
+    },
+    {
+      "pattern": "(?m)Red Hat Enterprise Linux Server release (\\d+\\.\\d+) \\((\\w+)\\)",
+      "defaultResult": 1,
+      "composedAssertions": [
+        {
+          "assertions": [
+            {
+              "groupIdx": 1,
+              "condition": {
+                "type": "equals",
+                "expected": "7.8"
+              }
+            },
+            {
+              "groupIdx": 2,
+              "condition": {
+                "type": "equals",
+                "expected": "Maipo"
+              }
+            }
+          ],
+          "logic": {
+            "type": "and"
+          }
+        }
+      ]
+    },
+    {
+      "pattern": "(?m)contrived match",
+      "defaultResult": 0,
+      "nextStep": {
+        "execute": "ls -al\n",
+        "expect": ["(?m).+"],
+        "timeout": 2000000000
+      }
+    }
+  ],
+  "testResult": 0,
+  "testTimeout": 2000000000
+}

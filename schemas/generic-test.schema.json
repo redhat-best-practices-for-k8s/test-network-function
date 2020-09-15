@@ -21,7 +21,7 @@
         },
         "timeout": {
           "type": "integer",
-          "description": "timeout is the timeout for the Step.  A positive timeout prevents blocking forever."
+          "description": "timeout is the timeout for the Step.  A positive timeout prevents blocking forever.  Provide the timeout in nanoseconds."
         }
       },
       "additionalProperties": false,
@@ -267,7 +267,7 @@
     },
     "testTimeout": {
       "type": "integer",
-      "description": "testTimeout prevents the Test from running forever."
+      "description": "testTimeout prevents the Test from running forever.  Provide the testTimeout in nanoseconds."
     }
   },
   "additionalProperties": false,
