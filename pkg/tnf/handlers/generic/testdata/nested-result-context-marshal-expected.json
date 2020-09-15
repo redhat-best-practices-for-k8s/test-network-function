@@ -1,0 +1,33 @@
+{
+  "pattern": "(\\d)+",
+  "composedAssertions": [
+    {
+      "assertions": [
+        {
+          "groupIdx": 1,
+          "condition": {
+            "type": "intComparison",
+            "input": 1,
+            "comparison": "=="
+          }
+        }
+      ],
+      "logic": {
+        "type": "and"
+      }
+    }
+  ],
+  "defaultResult": 2,
+  "nextStep": {
+    "execute": "echo 2",
+    "expect": [
+      "(\\d+)"
+    ]
+  },
+  "nextResultContexts": [
+    {
+      "pattern": "(\\d)+",
+      "defaultResult": 0
+    }
+  ]
+}
