@@ -1,0 +1,23 @@
+{
+  "description": false,
+  "reelFirstStep": {
+    "execute": "if [ -e /etc/redhat-release ]; then cat /etc/redhat-release; else echo \"Unknown Base Image\"; fi\n",
+    "expect": [
+      "(?m)Unknown Base Image",
+      "(?m)Red Hat Enterprise Linux Server release (\\d+\\.\\d+) \\(\\w+\\)"
+    ],
+    "timeout": 2000000000
+  },
+  "resultContexts": [
+    {
+      "pattern": "(?m)Unknown Base Image",
+      "defaultResult": 1
+    },
+    {
+      "pattern": "(?m)Red Hat Enterprise Linux Server release (\\d+\\.\\d+) \\(\\w+\\)",
+      "defaultResult": 0
+    }
+  ],
+  "testResult": 2,
+  "testTimeout": 2000000000
+}

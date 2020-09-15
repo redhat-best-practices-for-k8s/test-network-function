@@ -1,0 +1,21 @@
+{
+  "arguments": [
+    "cat",
+    "/etc/redhat-release"
+  ],
+  "description": false,
+  "reelFirstStep": {
+    "expect": [
+      "(?m)Red Hat Enterprise Linux Server release (\\d+\\.\\d+) \\(\\w+\\)"
+    ],
+    "timeout": 2000000000
+  },
+  "resultContexts": [
+    {
+      "pattern": "(?m)Red Hat Enterprise Linux Server release (\\d+\\.\\d+) \\(\\w+\\)",
+      "defaultResult": 0
+    }
+  ],
+  "testResult": 2,
+  "testTimeout": 2000000000
+}
