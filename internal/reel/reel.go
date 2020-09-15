@@ -16,16 +16,16 @@ const (
 // Step is an instruction for a single REEL pass.
 // To process a step, first send the `Execute` string to the target subprocess (if supplied).  Block until the
 // subprocess output to stdout matches one of the regular expressions in `Expect` (if any supplied). A positive integer
-// `Timeout` (seconds) prevents blocking forever.
+// `Timeout` prevents blocking forever.
 type Step struct {
-	// A command to execute using the underlying subprocess.
-	Execute string `json:"execute,omitempty"`
+	// Execute is a Unix command to execute using the underlying subprocess.
+	Execute string `json:"execute,omitempty" yaml:"execute,omitempty"`
 
-	// An array of expected text regular expressions.  The first expectation results in a match.
-	Expect []string `json:"expect,omitempty"`
+	// Expect is an array of expected text regular expressions.  The first expectation results in a match.
+	Expect []string `json:"expect,omitempty" yaml:"expect,omitempty"`
 
-	// The timeout for the Step.  A positive Timeout prevents blocking forever.
-	Timeout time.Duration `json:"timeout,omitempty"`
+	// Timeout is the timeout for the Step.  A positive Timeout prevents blocking forever.
+	Timeout time.Duration `json:"timeout,omitempty" yaml:"timeout,omitempty"`
 }
 
 // A utility method to return the important aspects of the Step container as a tuple.
