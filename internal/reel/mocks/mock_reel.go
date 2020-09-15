@@ -81,8 +81,8 @@ func (m *MockHandler) ReelEOF() {
 	m.ctrl.Call(m, "ReelEOF")
 }
 
-// ReelEof indicates an expected call of ReelEof
-func (mr *MockHandlerMockRecorder) ReelEof() *gomock.Call {
+// ReelEOF indicates an expected call of ReelEOF
+func (mr *MockHandlerMockRecorder) ReelEOF() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReelEOF", reflect.TypeOf((*MockHandler)(nil).ReelEOF))
 }

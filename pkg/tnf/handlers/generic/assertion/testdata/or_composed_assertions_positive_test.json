@@ -1,0 +1,60 @@
+{
+  "assertions": [
+    {
+      "groupIdx": 1,
+      "condition": {
+        "type": "equals",
+        "expected": "iperf"
+      }
+    },
+    {
+      "groupIdx": 2,
+      "condition": {
+        "type": "isInt"
+      }
+    },
+    {
+      "groupIdx": 2,
+      "condition": {
+        "type": "intComparison",
+        "comparison": "==",
+        "input": 100
+      }
+    },
+    {
+      "groupIdx": 2,
+      "condition": {
+        "type": "intComparison",
+        "comparison": "<=",
+        "input": 1
+      }
+    },
+    {
+      "groupIdx": 2,
+      "condition": {
+        "type": "intComparison",
+        "comparison": ">=",
+        "input": 1
+      }
+    },
+    {
+      "groupIdx": 2,
+      "condition": {
+        "type": "intComparison",
+        "comparison": ">",
+        "input": 0
+      }
+    },
+    {
+      "groupIdx": 2,
+      "condition": {
+        "type": "intComparison",
+        "comparison": "<",
+        "input": 100
+      }
+    }
+  ],
+  "logic": {
+    "type": "or"
+  }
+}

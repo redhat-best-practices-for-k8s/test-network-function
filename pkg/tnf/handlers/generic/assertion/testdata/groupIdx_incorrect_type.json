@@ -1,0 +1,14 @@
+{
+  "assertions": [
+    {
+      "groupIdx": "non-integer group index",
+      "condition": {
+        "type": "equals",
+        "expected": "iperf"
+      }
+    }
+  ],
+  "logic": {
+    "type": "and"
+  }
+}

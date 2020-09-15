@@ -203,7 +203,7 @@ func TestTest_ReelEof(t *testing.T) {
 	mockTester.EXPECT().Args().Return(defaultTestCommand)
 
 	mockHandler := mock_reel.NewMockHandler(ctrl)
-	mockHandler.EXPECT().ReelEof().Times(1)
+	mockHandler.EXPECT().ReelEOF().Times(1)
 	var expecter expect.Expecter = mockExpecter
 	var errorChannel <-chan error
 
