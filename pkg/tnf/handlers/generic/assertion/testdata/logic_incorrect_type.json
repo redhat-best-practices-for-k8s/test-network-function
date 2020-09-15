@@ -1,0 +1,12 @@
+{
+  "assertions": [
+    {
+      "groupIdx": 1,
+      "condition": {
+        "type": "equals",
+        "expected": "iperf"
+      }
+    }
+  ],
+  "logic": "d"
+}

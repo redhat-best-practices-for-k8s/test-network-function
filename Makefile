@@ -20,7 +20,7 @@ endif
 export COMMON_GINKGO_ARGS=-ginkgo.v -junit . -report .
 export COMMON_GO_ARGS=-race
 
-build:
+build: mocks
 	go fmt ./...
 	go build ${COMMON_GO_ARGS} ./...
 	make unit-tests

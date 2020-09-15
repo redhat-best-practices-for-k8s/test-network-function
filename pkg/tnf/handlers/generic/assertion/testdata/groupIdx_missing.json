@@ -1,0 +1,13 @@
+{
+  "assertions": [
+    {
+      "condition": {
+        "type": "equals",
+        "expected": "iperf"
+      }
+    }
+  ],
+  "logic": {
+    "type": "and"
+  }
+}

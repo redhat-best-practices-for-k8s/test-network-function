@@ -1,0 +1,6 @@
+{
+  "assertions": "string",
+  "logic": {
+    "type": "and"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "assertions": [
+    {
+      "groupIdx": 0,
+      "condition": {
+        "type": "this condition type does not exist, and is for test purposes only",
+        "expected": "iperf"
+      }
+    }
+  ],
+  "logic": {
+    "type": "and"
+  }
+}
