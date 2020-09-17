@@ -31,9 +31,9 @@ const (
 var _ = ginkgo.Describe("cisco_kiknos", func() {
 	// Extract some basic configuration parameters from the generic configuration.
 	config := generic.GetTestConfiguration()
-	partnerPodName := config.PartnerPod.Name
-	partnerPodNamespace := config.PartnerPod.Namespace
-	partnerPodContainerName := config.PartnerPod.ContainerConfiguration.Name
+	partnerPodName := config.TestOrchestrator.PodName
+	partnerPodNamespace := config.TestOrchestrator.Namespace
+	partnerPodContainerName := config.TestOrchestrator.ContainerName
 
 	// Run the only CNF-Specific Test Spec., which has several sub-tests.
 	testTunnel(partnerPodName, partnerPodContainerName, partnerPodNamespace)
