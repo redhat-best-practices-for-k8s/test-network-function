@@ -7,6 +7,7 @@ import (
 	"github.com/onsi/gomega"
 	"github.com/redhat-nfvpe/test-network-function/internal/reel"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
+	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/base/redhat"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/ipaddr"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/ping"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/interactive"
@@ -97,7 +98,25 @@ var _ = ginkgo.Describe(testsKey, func() {
 		testNetworkConnectivity(podUnderTestOc, partnerPodOc, partnerPodIpAddress, defaultNumPings)
 		testNetworkConnectivity(partnerPodOc, podUnderTestOc, podUnderTestIpAddress, defaultNumPings)
 	})
+	testIsRedHatRelease(podUnderTestOc)
+	testIsRedHatRelease(partnerPodOc)
 })
+
+// testIsRedHatRelease tests whether the container attached to oc is Red Hat based.
+func testIsRedHatRelease(oc *interactive.Oc) {
+	pod := oc.GetPodName()
+	container := oc.GetPodContainerName()
+	ginkgo.When(fmt.Sprintf("%s(%s) is checked for Red Hat version", pod, container), func() {
+		ginkgo.It("Should report a proper Red Hat version", func() {
+			versionTester := redhat.NewRelease(defaultTimeout)
+			test, err := tnf.NewTest(oc.GetExpecter(), versionTester, []reel.Handler{versionTester}, oc.GetErrorChannel())
+			gomega.Expect(err).To(gomega.BeNil())
+			testResult, err := test.Run()
+			gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
+			gomega.Expect(err).To(gomega.BeNil())
+		})
+	})
+}
 
 // TODO: Multus is not applicable to every CNF, so in some regards it is CNF-specific.  On the other hand, it is likely
 // a useful test across most CNFs.  Should "multus" be considered generic, cnf-specific, or somewhere in between.
