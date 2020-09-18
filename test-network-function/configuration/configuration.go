@@ -17,37 +17,22 @@ func GetConfigurationFilePathFromEnvironment() string {
 	return defaultConfigurationFilePath
 }
 
+type ContainerIdentifier struct {
+	Namespace     string `yaml:"namespace" json:"namespace"`
+	PodName       string `yaml:"podName" json:"podName"`
+	ContainerName string `yaml:"containerName" json:"containerName"`
+}
+
+type Container struct {
+	// OpenShift Default network interface name (i.e., eth0)
+	DefaultNetworkDevice string `yaml:"defaultNetworkDevice" json:"defaultNetworkDevice"`
+	// Container overlay IP
+	MultusIpAddresses []string `yaml:"multusIpAddresses,omitempty" json:"multusIpAddresses,omitempty"`
+}
+
 // Generic test related configuration
 type TestConfiguration struct {
-	// The CNF pod brought by our partner
-	PodUnderTest struct {
-		// Pod name
-		Name string `yaml:"name"`
-		// Pod namespace
-		Namespace string `yaml:"namespace"`
-		// Container facets
-		ContainerConfiguration struct {
-			// Container name
-			Name string `yaml:"name"`
-			// OpenShift Default network interface name (i.e., eth0)
-			DefaultNetworkDevice string `yaml:"defaultNetworkDevice"`
-			// Container overlay IP
-			MultusIpAddresses []string `yaml:"multusIpAddresses"`
-		} `yaml:"containerConfiguration"`
-	} `yaml:"podUnderTest"`
-	PartnerPod struct {
-		// Partner Pod name
-		Name string `yaml:"name"`
-		// Partner Pod namespace
-		Namespace string `yaml:"namespace"`
-		// Container facets
-		ContainerConfiguration struct {
-			// Container name
-			Name string `yaml:"name"`
-			// OpenShift Default network interface name (i.e., eth0)
-			DefaultNetworkDevice string `yaml:"defaultNetworkDevice"`
-			// Container overlay IP
-			MultusIpAddresses []string `yaml:"multusIpAddresses"`
-		} `yaml:"containerConfiguration"`
-	} `yaml:"partnerPod"`
+	ContainersUnderTest map[ContainerIdentifier]Container `yaml:"containersUnderTest" json:"containersUnderTest"`
+	PartnerContainers   map[ContainerIdentifier]Container `yaml:"partnerContainers" json:"partnerContainers"`
+	TestOrchestrator    ContainerIdentifier               `yaml:"testOrchestrator" json:"testOrchestrator"`
 }

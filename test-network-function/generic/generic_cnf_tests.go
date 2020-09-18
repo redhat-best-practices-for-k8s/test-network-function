@@ -19,8 +19,8 @@ import (
 )
 
 const (
-	defaultNumPings       = 10
-	defaultTimeoutSeconds = 20
+	defaultNumPings       = 1
+	defaultTimeoutSeconds = 10
 	multusTestsKey        = "multus"
 	testsKey              = "generic"
 )
@@ -63,43 +63,68 @@ func getOcSession(pod, container, namespace string, timeout time.Duration, optio
 	return containerOc
 }
 
-func getOcSessions(podUnderTestName, podUnderTestContainerName, podUnderTestNamespace, partnerPodName, partnerPodContainerName, partnerPodNamespace string, timeout time.Duration, options ...expect.Option) (*interactive.Oc, *interactive.Oc) {
-	podUnderTestOc := getOcSession(podUnderTestName, podUnderTestContainerName, podUnderTestNamespace, timeout, options...)
-	partnerPodOc := getOcSession(partnerPodName, partnerPodContainerName, partnerPodNamespace, timeout, options...)
-	return podUnderTestOc, partnerPodOc
+// container is an internal construct which follows the Container design pattern.  Essentially, a container holds the
+// pertinent information to perform a test against or using an Operating System container.  This includes facets such
+// as the reference to the interactive.Oc instance, the reference to the test configuration, and the default network
+// IP address.
+type container struct {
+	containerConfiguration  configuration.Container
+	oc                      *interactive.Oc
+	defaultNetworkIpAddress string
 }
 
-// Runs the cnf-certification-generic-tests CNF test cases.
+// createContainersUnderTest sets up the interactive "oc" sessions with each container, as well as other configuration
+// aspects of the session.  A map of the aggregate information is returned.
+func createContainersUnderTest(config *configuration.TestConfiguration) map[configuration.ContainerIdentifier]*container {
+	containersUnderTest := map[configuration.ContainerIdentifier]*container{}
+	for containerId, containerConfig := range config.ContainersUnderTest {
+		oc := getOcSession(containerId.PodName, containerId.ContainerName, containerId.Namespace, defaultTimeout, expect.Verbose(true))
+		defaultIpAddress := getContainerDefaultNetworkIpAddress(oc, containerConfig.DefaultNetworkDevice)
+		containersUnderTest[containerId] = &container{containerConfiguration: containerConfig, oc: oc, defaultNetworkIpAddress: defaultIpAddress}
+	}
+	return containersUnderTest
+}
+
+// createPartnerContainers sets up the interactive "oc" sessions with each partner container, as well as other
+// configuration aspects of the session.  A map of the aggregate information is returned.
+func createPartnerContainers(config *configuration.TestConfiguration) map[configuration.ContainerIdentifier]*container {
+	partnerContainers := map[configuration.ContainerIdentifier]*container{}
+	for containerId, containerConfig := range config.PartnerContainers {
+		oc := getOcSession(containerId.PodName, containerId.ContainerName, containerId.Namespace, defaultTimeout, expect.Verbose(true))
+		defaultIpAddress := getContainerDefaultNetworkIpAddress(oc, containerConfig.DefaultNetworkDevice)
+		partnerContainers[containerId] = &container{containerConfiguration: containerConfig, oc: oc, defaultNetworkIpAddress: defaultIpAddress}
+	}
+	return partnerContainers
+}
+
+//
+// All actual test code belongs below here.  Utilities belong above.
+//
+
+// Runs the "generic" CNF test cases.
 var _ = ginkgo.Describe(testsKey, func() {
 	config := GetTestConfiguration()
 	log.Infof("Test Configuration: %s", config)
 
-	podUnderTestNamespace := config.PodUnderTest.Namespace
-	podUnderTestName := config.PodUnderTest.Name
-	podUnderTestContainerName := config.PodUnderTest.ContainerConfiguration.Name
-	podUnderTestDefaultNetworkDevice := config.PodUnderTest.ContainerConfiguration.DefaultNetworkDevice
+	containersUnderTest := createContainersUnderTest(config)
+	partnerContainers := createPartnerContainers(config)
+	testOrchestrator := partnerContainers[config.TestOrchestrator]
 
-	partnerPodNamespace := config.PartnerPod.Namespace
-	partnerPodName := config.PartnerPod.Name
-	partnerPodContainerName := config.PartnerPod.ContainerConfiguration.Name
-	partnerPodDefaultNetworkDevice := config.PartnerPod.ContainerConfiguration.DefaultNetworkDevice
-
-	podUnderTestOc, partnerPodOc := getOcSessions(podUnderTestName, podUnderTestContainerName, podUnderTestNamespace,
-		partnerPodName, partnerPodContainerName, partnerPodNamespace, defaultTimeout, defaultExpectArgs)
-
-	// Extract the ip addresses for the pod under test and the test partner
-	podUnderTestIpAddress := getContainerDefaultNetworkIpAddress(podUnderTestOc, podUnderTestDefaultNetworkDevice)
-	log.Infof("%s(%s) IP Address: %s", podUnderTestName, podUnderTestContainerName, podUnderTestIpAddress)
-
-	partnerPodIpAddress := getContainerDefaultNetworkIpAddress(partnerPodOc, partnerPodDefaultNetworkDevice)
-	log.Infof("%s(%s) IP Address: %s", partnerPodName, partnerPodContainerName, partnerPodIpAddress)
+	log.Info(testOrchestrator)
+	log.Info(containersUnderTest)
 
 	ginkgo.Context("Both Pods are on the Default network", func() {
-		testNetworkConnectivity(podUnderTestOc, partnerPodOc, partnerPodIpAddress, defaultNumPings)
-		testNetworkConnectivity(partnerPodOc, podUnderTestOc, podUnderTestIpAddress, defaultNumPings)
+		// for each container under test, ensure bidirectional ICMP traffic between the container and the orchestrator.
+		for _, containerUnderTest := range containersUnderTest {
+			testNetworkConnectivity(containerUnderTest.oc, testOrchestrator.oc, testOrchestrator.defaultNetworkIpAddress, defaultNumPings)
+			testNetworkConnectivity(testOrchestrator.oc, containerUnderTest.oc, containerUnderTest.defaultNetworkIpAddress, defaultNumPings)
+		}
 	})
-	testIsRedHatRelease(podUnderTestOc)
-	testIsRedHatRelease(partnerPodOc)
+
+	for _, containersUnderTest := range containersUnderTest {
+		testIsRedHatRelease(containersUnderTest.oc)
+	}
+	testIsRedHatRelease(testOrchestrator.oc)
 })
 
 // testIsRedHatRelease tests whether the container attached to oc is Red Hat based.
@@ -124,20 +149,17 @@ var _ = ginkgo.Describe(multusTestsKey, func() {
 	config := GetTestConfiguration()
 	log.Infof("Test Configuration: %s", config)
 
-	podUnderTestNamespace := config.PodUnderTest.Namespace
-	podUnderTestName := config.PodUnderTest.Name
-	podUnderTestContainerName := config.PodUnderTest.ContainerConfiguration.Name
-	podUnderTestMultusIpAddress := config.PodUnderTest.ContainerConfiguration.MultusIpAddresses[0]
-
-	partnerPodNamespace := config.PartnerPod.Namespace
-	partnerPodName := config.PartnerPod.Name
-	partnerPodContainerName := config.PartnerPod.ContainerConfiguration.Name
-
-	podUnderTestOc, partnerPodOc := getOcSessions(podUnderTestName, podUnderTestContainerName, podUnderTestNamespace,
-		partnerPodName, partnerPodContainerName, partnerPodNamespace, defaultTimeout, defaultExpectArgs)
+	containersUnderTest := createContainersUnderTest(config)
+	partnerContainers := createPartnerContainers(config)
+	testOrchestrator := partnerContainers[config.TestOrchestrator]
 
 	ginkgo.Context("Both Pods are connected via a Multus Overlay Network", func() {
-		testNetworkConnectivity(partnerPodOc, podUnderTestOc, podUnderTestMultusIpAddress, defaultNumPings)
+		// Unidirectional test;  for each container under test, attempt to ping the target Multus IP addresses.
+		for _, containerUnderTest := range containersUnderTest {
+			for _, multusIPAddress := range containerUnderTest.containerConfiguration.MultusIpAddresses {
+				testNetworkConnectivity(testOrchestrator.oc, containerUnderTest.oc, multusIPAddress, defaultNumPings)
+			}
+		}
 	})
 })
 
@@ -166,9 +188,10 @@ func testPing(initiatingPodOc *interactive.Oc, targetPodIpAddress string, count 
 	gomega.Expect(errors).To(gomega.BeZero())
 }
 
-// Extract a container ip address for a particular device.  This is needed since container default network IP address
+// Extract a container IP address for a particular device.  This is needed since container default network IP address
 // is served by dhcp, and thus is ephemeral.
 func getContainerDefaultNetworkIpAddress(oc *interactive.Oc, dev string) string {
+	log.Infof("Getting IP Information for: %s(%s) in ns=%s", oc.GetPodName(), oc.GetPodContainerName(), oc.GetPodNamespace())
 	ipTester := ipaddr.NewIpAddr(defaultTimeout, dev)
 	test, err := tnf.NewTest(oc.GetExpecter(), ipTester, []reel.Handler{ipTester}, oc.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
