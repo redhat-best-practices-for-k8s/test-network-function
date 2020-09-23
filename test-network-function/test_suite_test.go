@@ -5,6 +5,7 @@ import (
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/ginkgo/reporters"
 	"github.com/onsi/gomega"
+	_ "github.com/redhat-nfvpe/test-network-function/test-network-function/cnf-specific/casa/cnf"
 	_ "github.com/redhat-nfvpe/test-network-function/test-network-function/cnf-specific/cisco/kiknos"
 	_ "github.com/redhat-nfvpe/test-network-function/test-network-function/generic"
 	ginkgoreporters "kubevirt.io/qe-tools/pkg/ginkgo-reporters"
