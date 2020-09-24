@@ -1,9 +1,9 @@
 package nrf
 
 import (
-	"fmt"
 	"github.com/redhat-nfvpe/test-network-function/internal/reel"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
+	"github.com/redhat-nfvpe/test-network-function/test-network-function/utils"
 	"strings"
 	"time"
 )
@@ -76,13 +76,19 @@ func (c *CheckRegistration) ReelEof() {
 }
 
 // FormCheckRegistrationCmd forms the command to check that a CNF is registered.
-func FormCheckRegistrationCmd(namespace string, nrfID *NRFID) []string {
-	command := fmt.Sprintf(GetRegistrationNFStatusCmd, namespace, nrfID.nrf, nrfID.instID)
-	return strings.Split(command, " ")
+func FormCheckRegistrationCmd(namespace string, nrfID *NRFID) ([]string, error) {
+	command, err := utils.PrepareString(GetRegistrationNFStatusCmd, namespace, nrfID.nrf, nrfID.instID)
+	if err != nil {
+		return nil, err
+	}
+	return strings.Split(command, " "), nil
 }
 
 // NewCheckRegistration Creates a CheckRegistration tnf.Test.
-func NewCheckRegistration(namespace string, timeout time.Duration, nrf *NRFID) *CheckRegistration {
-	command := FormCheckRegistrationCmd(namespace, nrf)
-	return &CheckRegistration{nrf: nrf, command: command, timeout: timeout, result: tnf.ERROR}
+func NewCheckRegistration(namespace string, timeout time.Duration, nrf *NRFID) (*CheckRegistration, error) {
+	command, err := FormCheckRegistrationCmd(namespace, nrf)
+	if err != nil {
+		return nil, err
+	}
+	return &CheckRegistration{nrf: nrf, command: command, timeout: timeout, result: tnf.ERROR}, nil
 }

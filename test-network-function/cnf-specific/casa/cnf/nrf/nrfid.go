@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/redhat-nfvpe/test-network-function/internal/reel"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
+	"github.com/redhat-nfvpe/test-network-function/test-network-function/utils"
 	"regexp"
 	"strings"
 	"time"
@@ -138,12 +139,19 @@ func (r *Registration) GetRegisteredNRFs() map[string]*NRFID {
 }
 
 // registrationCommand creates the Unix command to check for registration.
-func registrationCommand(namespace string) []string {
-	command := fmt.Sprintf(CheckRegistrationCommand, namespace, namespace)
-	return strings.Split(command, " ")
+func registrationCommand(namespace string) ([]string, error) {
+	command, err := utils.PrepareString(CheckRegistrationCommand, namespace, namespace)
+	if err != nil {
+		return nil, err
+	}
+	return strings.Split(command, " "), nil
 }
 
 // NewRegistration creates a Registration instance.
-func NewRegistration(timeout time.Duration, namespace string) *Registration {
-	return &Registration{result: tnf.ERROR, timeout: timeout, args: registrationCommand(namespace), namespace: namespace, registeredNRFs: map[string]*NRFID{}}
+func NewRegistration(timeout time.Duration, namespace string) (*Registration, error) {
+	preparedCommand, err := registrationCommand(namespace)
+	if err != nil {
+		return nil, err
+	}
+	return &Registration{result: tnf.ERROR, timeout: timeout, args: preparedCommand, namespace: namespace, registeredNRFs: map[string]*NRFID{}}, nil
 }

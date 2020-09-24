@@ -92,7 +92,8 @@ func getTestOutputContents(name string) (string, error) {
 // TestNewRegistration also tests Registration.Timeout and Registration.Args
 func TestNewRegistration(t *testing.T) {
 	for _, testCase := range genericRegistrationTestCases {
-		r := nrf.NewRegistration(testCase.timeout, testCase.namespace)
+		r, err := nrf.NewRegistration(testCase.timeout, testCase.namespace)
+		assert.Nil(t, err)
 		assert.NotNil(t, r)
 		assert.Equal(t, testCase.timeout, r.Timeout())
 		assert.Equal(t, strings.Split(fmt.Sprintf(nrf.CheckRegistrationCommand, testCase.namespace, testCase.namespace), " "), r.Args())
@@ -101,7 +102,8 @@ func TestNewRegistration(t *testing.T) {
 
 func TestRegistration_ReelFirst(t *testing.T) {
 	for _, testCase := range genericRegistrationTestCases {
-		r := nrf.NewRegistration(testCase.timeout, testCase.namespace)
+		r, err := nrf.NewRegistration(testCase.timeout, testCase.namespace)
+		assert.Nil(t, err)
 		assert.NotNil(t, r)
 		step := r.ReelFirst()
 		assert.NotNil(t, step)
@@ -115,7 +117,8 @@ func TestRegistration_ReelFirst(t *testing.T) {
 
 func TestRegistration_ReelMatch(t *testing.T) {
 	for testCaseName, testCase := range genericRegistrationTestCases {
-		r := nrf.NewRegistration(testCase.timeout, testCase.namespace)
+		r, err := nrf.NewRegistration(testCase.timeout, testCase.namespace)
+		assert.Nil(t, err)
 		testCaseOutput, err := getTestOutputContents(testCaseName)
 		assert.Nil(t, err)
 		assert.NotNil(t, testCaseOutput)
@@ -129,13 +132,15 @@ func TestRegistration_ReelMatch(t *testing.T) {
 }
 
 func TestRegistration_ReelTimeout(t *testing.T) {
-	r := nrf.NewRegistration(defaultTestTimeout, defaultNamespace)
+	r, err := nrf.NewRegistration(defaultTestTimeout, defaultNamespace)
+	assert.Nil(t, err)
 	s := r.ReelTimeout()
 	assert.Nil(t, s)
 }
 
 func TestRegistration_ReelEof(t *testing.T) {
-	r := nrf.NewRegistration(defaultTestTimeout, defaultNamespace)
+	r, err := nrf.NewRegistration(defaultTestTimeout, defaultNamespace)
+	assert.Nil(t, err)
 	// Just ensure it doesn't panic.
 	r.ReelEof()
 }

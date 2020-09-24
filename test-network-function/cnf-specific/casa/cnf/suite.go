@@ -44,7 +44,8 @@ var _ = Describe("casa-cnf", func() {
 	var nrfs map[string]*nrf.NRFID
 	When("Registrations are polled from the \"nfregistrations.mgmt.casa.io\" Custom Resource", func() {
 		It("The appropriate registrations should be reported", func() {
-			registrationTest := nrf.NewRegistration(testTimeout, namespace)
+			registrationTest, err := nrf.NewRegistration(testTimeout, namespace)
+			Expect(err).To(BeNil())
 			Expect(registrationTest).ToNot(BeNil())
 			test, err := tnf.NewTest(context.GetExpecter(), registrationTest, []reel.Handler{registrationTest}, context.GetErrorChannel())
 			Expect(err).To(BeNil())
@@ -67,7 +68,8 @@ var _ = Describe("casa-cnf", func() {
 				for _, cnfType := range cnfTypes {
 					specificNrf := getNRF(nrfs, cnfType)
 					Expect(specificNrf).ToNot(BeNil())
-					checkRegistrationTest := nrf.NewCheckRegistration(namespace, testTimeout, specificNrf)
+					checkRegistrationTest, err := nrf.NewCheckRegistration(namespace, testTimeout, specificNrf)
+					Expect(err).To(BeNil())
 					test, err := tnf.NewTest(context.GetExpecter(), checkRegistrationTest, []reel.Handler{checkRegistrationTest}, context.GetErrorChannel())
 					Expect(err).To(BeNil())
 					Expect(test).ToNot(BeNil())
