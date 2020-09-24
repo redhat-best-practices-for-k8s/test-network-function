@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	defaultNumPings       = 1
+	defaultNumPings       = 5
 	defaultTimeoutSeconds = 10
 	multusTestsKey        = "multus"
 	testsKey              = "generic"

@@ -1,0 +1,2 @@
+nrf1   SMF    9b971c6d-12ed-48ee-9ed7-bb99ee4d0b99   REGISTERED
+nrf1   AMF    a9bb40c7-bddf-443b-bf64-89ae54812ef9   REGISTERED
