@@ -46,7 +46,7 @@ func TestSpawnSsh(t *testing.T) {
 		mockSpawner.EXPECT().Spawn(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(testCase.contextReturnValue, testCase.errReturnValue)
 
 		var spawner interactive.Spawner = mockSpawner
-		_, err := interactive.SpawnSsh(&spawner, testCase.user, testCase.host, ocTestTimeoutDuration, testCase.options...)
+		_, err := interactive.SpawnSSH(&spawner, testCase.user, testCase.host, ocTestTimeoutDuration, testCase.options...)
 		assert.Equal(t, testCase.expectedSpawnErr, err)
 	}
 }

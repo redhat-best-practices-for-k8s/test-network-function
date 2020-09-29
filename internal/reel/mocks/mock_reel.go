@@ -75,14 +75,14 @@ func (mr *MockHandlerMockRecorder) ReelTimeout() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReelTimeout", reflect.TypeOf((*MockHandler)(nil).ReelTimeout))
 }
 
-// ReelEof mocks base method
-func (m *MockHandler) ReelEof() {
+// ReelEOF mocks base method
+func (m *MockHandler) ReelEOF() {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "ReelEof")
+	m.ctrl.Call(m, "ReelEOF")
 }
 
 // ReelEof indicates an expected call of ReelEof
 func (mr *MockHandlerMockRecorder) ReelEof() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReelEof", reflect.TypeOf((*MockHandler)(nil).ReelEof))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReelEOF", reflect.TypeOf((*MockHandler)(nil).ReelEOF))
 }

@@ -17,13 +17,13 @@ const (
 	// The number of ICMP Requests to perform across the IPSEC tunnel
 	numPings = 100
 	// The number of UDP packets to send.
-	numUdpPackets = 100
+	numUDPPackets = 100
 	// The number of new tunnels to create.
 	numTunnels = 1
 	// The size of the ICMP Requests that will traverse the IPSEC tunnel
 	pingSize = 100
 	// The target IP address, which is preconfigured in the setup.
-	targetTunnelIp = "40.0.0.1"
+	targetTunnelIP = "40.0.0.1"
 	// The size of the UDP Packets
 	udpSize = 100
 )
@@ -58,19 +58,19 @@ func testTunnel(partnerPodName string, partnerPodContainerName string, partnerPo
 // Verify UDP traffic
 func verifyUDPTraffic(partnerPodName string, partnerPodContainerName string, partnerPodNamespace string, newTunnelIndex int) {
 	// Take an initial snapshot of the ICMP received count.
-	intialUdpCount, err := itc.GetUdpReceivedCount(partnerPodName, partnerPodContainerName, partnerPodNamespace)
+	initialUDPCount, err := itc.GetUDPReceivedCount(partnerPodName, partnerPodContainerName, partnerPodNamespace)
 	expectNil(err)
-	_, err = itc.SendData(partnerPodName, partnerPodContainerName, partnerPodNamespace, newTunnelIndex, messagesPerSecond, numUdpPackets, udpSize)
+	_, err = itc.SendData(partnerPodName, partnerPodContainerName, partnerPodNamespace, newTunnelIndex, messagesPerSecond, numUDPPackets, udpSize)
 	expectNil(err)
 
 	// TODO:  Could this be done asynchronously through a channel?
 	time.Sleep(busyWaitSeconds * time.Second)
 
 	// Check that numPings were received.
-	updatedUdpCount, err := itc.GetUdpReceivedCount(partnerPodName, partnerPodContainerName, partnerPodNamespace)
+	updatedUDPCount, err := itc.GetUDPReceivedCount(partnerPodName, partnerPodContainerName, partnerPodNamespace)
 	expectNil(err)
-	udpCountDiff := updatedUdpCount - intialUdpCount
-	gomega.Expect(udpCountDiff).To(gomega.Equal(numUdpPackets))
+	udpCountDiff := updatedUDPCount - initialUDPCount
+	gomega.Expect(udpCountDiff).To(gomega.Equal(numUDPPackets))
 }
 
 // Verify ICMP traffic
@@ -78,7 +78,7 @@ func verifyICMPTraffic(partnerPodName string, partnerPodContainerName string, pa
 	// Take an initial snapshot of the ICMP received count.
 	initialIcmpCount, err := itc.GetItcIcmpReplyCount(partnerPodName, partnerPodContainerName, partnerPodNamespace)
 	expectNil(err)
-	_, err = itc.Ping(partnerPodName, partnerPodContainerName, partnerPodNamespace, newTunnelIndex, targetTunnelIp, messagesPerSecond, numPings, pingSize)
+	_, err = itc.Ping(partnerPodName, partnerPodContainerName, partnerPodNamespace, newTunnelIndex, targetTunnelIP, messagesPerSecond, numPings, pingSize)
 	expectNil(err)
 
 	// TODO:  Could this be done asynchronously through a channel?

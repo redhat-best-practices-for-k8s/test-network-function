@@ -20,7 +20,7 @@ const (
 // CheckRegistration checks whether a Casa CNF is registered.
 type CheckRegistration struct {
 	// nrf represents the underlying CNF information.
-	nrf *NRFID
+	nrf *ID
 	// command is the Unix command to run to check the registration
 	command []string
 	// result is the result of the test.
@@ -70,19 +70,19 @@ func (c *CheckRegistration) ReelTimeout() *reel.Step {
 	return nil
 }
 
-// ReelEof does nothing;  no further steps are required for EOF.
-func (c *CheckRegistration) ReelEof() {
+// ReelEOF does nothing;  no further steps are required for EOF.
+func (c *CheckRegistration) ReelEOF() {
 	// do nothing
 }
 
 // FormCheckRegistrationCmd forms the command to check that a CNF is registered.
-func FormCheckRegistrationCmd(namespace string, nrfID *NRFID) []string {
+func FormCheckRegistrationCmd(namespace string, nrfID *ID) []string {
 	command := fmt.Sprintf(GetRegistrationNFStatusCmd, namespace, nrfID.nrf, nrfID.instID)
 	return strings.Split(command, " ")
 }
 
 // NewCheckRegistration Creates a CheckRegistration tnf.Test.
-func NewCheckRegistration(namespace string, timeout time.Duration, nrf *NRFID) *CheckRegistration {
+func NewCheckRegistration(namespace string, timeout time.Duration, nrf *ID) *CheckRegistration {
 	command := FormCheckRegistrationCmd(namespace, nrf)
 	return &CheckRegistration{nrf: nrf, command: command, timeout: timeout, result: tnf.ERROR}
 }

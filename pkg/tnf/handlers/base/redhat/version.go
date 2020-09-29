@@ -74,8 +74,8 @@ func (r *Release) ReelTimeout() *reel.Step {
 	return nil
 }
 
-// ReelEof does nothing;  no intervention is needed for EOF.
-func (r *Release) ReelEof() {
+// ReelEOF does nothing;  no intervention is needed for EOF.
+func (r *Release) ReelEOF() {
 }
 
 // NewRelease create a new Release tnf.Test.

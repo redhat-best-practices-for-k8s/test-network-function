@@ -59,5 +59,5 @@ func TestRelease_ReelTimeout(t *testing.T) {
 func TestRelease_ReelEof(t *testing.T) {
 	// just ensures no panics
 	r := redhat.NewRelease(testTimeoutDuration)
-	r.ReelEof()
+	r.ReelEOF()
 }

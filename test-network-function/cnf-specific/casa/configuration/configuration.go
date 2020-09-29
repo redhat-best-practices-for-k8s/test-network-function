@@ -13,6 +13,7 @@ const (
 
 var defaultConfigurationFilePath = path.Join("cnf-specific", "casa", "casa-cnf-test-configuration.yaml")
 
+// GetCasaCNFTestConfiguration returns the Casa CNF specific test configuration.
 func GetCasaCNFTestConfiguration() (*CasaCNFConfiguration, error) {
 	config := &CasaCNFConfiguration{}
 	configFilePath := getCasaCNFConfigurationFilePathFromEnvironment()
@@ -35,6 +36,7 @@ func getCasaCNFConfigurationFilePathFromEnvironment() string {
 	return defaultConfigurationFilePath
 }
 
+// CasaCNFConfiguration stores the Casa CNF specific test configuration.
 type CasaCNFConfiguration struct {
 	NRFName   string   `json:"nrfName" yaml:"nrfName"`
 	CNFTypes  []string `json:"cnfTypes" yaml:"cnfTypes"`

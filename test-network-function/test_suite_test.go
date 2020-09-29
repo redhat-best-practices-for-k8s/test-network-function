@@ -1,4 +1,4 @@
-package test_network_function
+package suite
 
 import (
 	"flag"
@@ -17,7 +17,7 @@ const (
 	defaultCliArgValue            = ""
 	CnfCertificationTestSuiteName = "CNF Certification Test Suite"
 	junitFlagKey                  = "junit"
-	JunitXmlFileName              = "cnf-certification-tests_junit.xml"
+	JunitXMLFileName              = "cnf-certification-tests_junit.xml"
 	reportFlagKey                 = "report"
 )
 
@@ -42,7 +42,7 @@ func TestTest(t *testing.T) {
 	}
 
 	if *junitPath != "" {
-		junitFile := path.Join(*junitPath, JunitXmlFileName)
+		junitFile := path.Join(*junitPath, JunitXMLFileName)
 		ginkgoReporters = append(ginkgoReporters, reporters.NewJUnitReporter(junitFile))
 	}
 
