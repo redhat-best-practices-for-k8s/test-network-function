@@ -11,11 +11,12 @@ const (
 	casaCNFTestConfigurationFilePathEnvironmentVariableKey = "CASA_CNF_TEST_CONFIGURATION_PATH"
 )
 
-var defaultConfigurationFilePath = path.Join("cnf-specific", "casa", "cnf", "casa-cnf-test-configuration.yaml")
+var defaultConfigurationFilePath = path.Join("cnf-specific", "casa", "casa-cnf-test-configuration.yaml")
 
 func GetCasaCNFTestConfiguration() (*CasaCNFConfiguration, error) {
 	config := &CasaCNFConfiguration{}
-	yamlFile, err := ioutil.ReadFile(getCasaCNFConfigurationFilePathFromEnvironment())
+	configFilePath := getCasaCNFConfigurationFilePathFromEnvironment()
+	yamlFile, err := ioutil.ReadFile(configFilePath)
 	if err != nil {
 		return nil, err
 	}

@@ -2,6 +2,7 @@
 	build-generic-cnf-tests \
 	clean \
 	cnf-tests \
+	dependencies \
 	deps-update \
 	generic-cnf-tests \
 	mocks \
@@ -11,6 +12,12 @@
 
 # Export GO111MODULE=on to enable project to be built from within GOPATH/src
 export GO111MODULE=on
+
+ifeq (,$(shell go env GOBIN))
+  GOBIN=$(shell go env GOPATH)/bin
+else
+  GOBIN=$(shell go env GOBIN)
+endif
 
 export COMMON_GINKGO_ARGS=-ginkgo.v -junit . -report .
 export COMMON_GO_ARGS=-race
@@ -24,7 +31,7 @@ generic-cnf-tests: build build-cnf-tests run-generic-cnf-tests
 cnf-tests: build build-cnf-tests run-cnf-tests
 
 build-cnf-tests:
-	ginkgo build ./test-network-function
+	PATH=${PATH}:${GOBIN} ginkgo build ./test-network-function
 
 run-generic-cnf-tests:
 	cd ./test-network-function && ./test-network-function.test -ginkgo.focus="generic" ${COMMON_GINKGO_ARGS}
@@ -49,3 +56,7 @@ clean:
 	go clean
 	rm -f ./test-network-function/test-network-function.test
 	rm -f ./test-network-function/cnf-certification-tests_junit.xml
+
+dependencies:
+	go get github.com/onsi/ginkgo/ginkgo
+	go get github.com/onsi/gomega/...

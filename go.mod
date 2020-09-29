@@ -7,8 +7,8 @@ require (
 	github.com/golang/mock v1.4.3
 	github.com/google/goexpect v0.0.0-20200816234442-b5b77125c2c5
 	github.com/google/goterm v0.0.0-20190703233501-fc88cf888a3f // indirect
-	github.com/onsi/ginkgo v1.14.0
-	github.com/onsi/gomega v1.10.1
+	github.com/onsi/ginkgo v1.14.1
+	github.com/onsi/gomega v1.10.2
 	github.com/sirupsen/logrus v1.6.0
 	github.com/stretchr/testify v1.2.2
 	google.golang.org/grpc v1.31.0
