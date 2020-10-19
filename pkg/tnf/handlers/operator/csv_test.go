@@ -20,14 +20,12 @@ const (
 func TestCsv_Args(t *testing.T) {
 	c := operator.NewCsv(csvName, namespace, expectedStatus, testTimeoutDuration)
 	args := strings.Split(fmt.Sprintf(operator.CheckCSVCommand, c.Name, c.Namespace), " ")
-	fmt.Println(args)
 	assert.Equal(t, args, c.Args())
 }
 func TestCsv_ReelFirst(t *testing.T) {
 	c := operator.NewCsv(csvName, namespace, expectedStatus, testTimeoutDuration)
 	step := c.ReelFirst()
 	assert.Equal(t, "", step.Execute)
-	fmt.Println(c.ExpectStatus)
 	assert.Equal(t, []string{c.ExpectStatus}, step.Expect)
 	assert.Equal(t, testTimeoutDuration, step.Timeout)
 }
