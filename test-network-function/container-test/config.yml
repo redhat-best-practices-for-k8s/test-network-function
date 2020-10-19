@@ -1,0 +1,7 @@
+pod:
+  - name: "nginx"
+    namespace: "default"
+    status: "Running"
+    tests:
+      - "PRIVILEGED_POD"
+

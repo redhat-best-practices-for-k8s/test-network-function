@@ -281,7 +281,7 @@ In order to run an operator test suite, `operator-test` for example, issue the f
 
 ```shell script
 make build build-cnf-operator-tests
-cd ./test-network-function/operator-test && ./operator-test.test -ginkgo.v -ginkgo.focus="operatr_test" -junit . -report .
+cd ./test-network-function/operator-test && ./operator-test.test -ginkgo.v -ginkgo.focus="operator_test" -junit . -report .
 ```
 
 Test Configuration
@@ -298,9 +298,67 @@ Sample config.yml
       status: "Succeeded"
       
 ```
-cd ./test-network-function/operator-test && ./operator-test.test -config=config.yml  -ginkgo.v -ginkgo.focus="operatr_test" -junit . -report .
+cd ./test-network-function/operator-test && ./operator-test.test -config=config.yml  -ginkgo.v -ginkgo.focus="operator_test" -junit . -report .
 ```
 
 
 A JUnit report containing results is created at `test-network-function/operator-test/cnf-operator-certification-tests_junit.xml`.
+
+### Run an Container Test Suite
+
+In order to run an container test suite, `container-test` for example, issue the following command:
+
+```shell script
+make build build-cnf-container-tests
+cd ./test-network-function/container-test && ./container-test.test -ginkgo.v -ginkgo.focus="container_test" -junit . -report .
+```
+
+Test Configuration
+ 
+You can either edit the provided config at `test-network-function/container-test/config.yml`
+or you can pass config with `-config` flag to the test suite
+
+Sample config.yml
+    ---
+    pod:
+      - name: "nginx"
+        namespace: "default"
+        status: "Running"
+        tests:
+          - "PRIVILEGED_POD"
+      
+```shell script
+make build build-cnf-container-tests
+cd ./test-network-function/container-test && ./container-test.test -config=config.yml  -ginkgo.v -ginkgo.focus="container_test" -junit . -report .
+```
+
+Configuring test cases
+
+By default the test suite will run all the default test cases defined by the suite,
+but you can override those test cases by creating a folder named`testcases` and adding test steps under that folder.
+The filenames and contents should match as shown below.    
+
+Example:
+```
+ ./testcases/
+      privileged.yml
+   ```
+
+You can delete or comment the test step for bypassing the tests.
+For an example, if you remove `"HOST_PATH_CHECK"` from the privileged.yml then that test will be skipped.
+1. privileged.yml
+```
+---
+ testconfigured:
+   - "HOST_NETWORK_CHECK"
+   - "HOST_PORT_CHECK"
+   - "HOST_PATH_CHECK"
+   - "HOST_IPC_CHECK"
+   - "HOST_PID_CHECK"
+   - "CAPABILITY_CHECK"
+   - "ROOT_CHECK"
+   - "PRIVILEGE_ESCALATION"`
+```      
+
+A JUnit report containing results is created at `test-network-function/container-test/cnf-operator-certification-tests_junit.xml`.
 

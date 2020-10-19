@@ -1,0 +1,15 @@
+---
+testconfigured:
+  - "HOST_NETWORK_CHECK"
+  - "HOST_PORT_CHECK"
+  - "HOST_PATH_CHECK"
+  - "HOST_IPC_CHECK"
+  - "HOST_PID_CHECK"
+  - "CAPABILITY_CHECK"
+  - "ROOT_CHECK"
+  - "PRIVILEGE_ESCALATION"
+
+
+
+
+
