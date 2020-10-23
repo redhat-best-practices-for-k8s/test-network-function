@@ -274,3 +274,33 @@ cd ./test-network-function && ./test-network-function.test -ginkgo.v -ginkgo.foc
 ```
 
 A JUnit report containing results is created at `test-network-function/cnf-certification-tests_junit.xml`.
+
+### Run an Operator Test Suite
+
+In order to run an operator test suite, `operator-test` for example, issue the following command:
+
+```shell script
+make build build-cnf-operator-tests
+cd ./test-network-function/operator-test && ./operator-test.test -ginkgo.v -ginkgo.focus="operatr_test" -junit . -report .
+```
+
+Test Configuration
+ 
+You can either edit the provided config at `test-network-function/operator-test/config/config.yml`
+or you can pass config with `-config` flag to the test suite
+
+Sample config.yml
+
+    ---
+    csv:
+      name: "etcdoperator.v0.9.4"
+      namespace: "my-etcd"
+      status: "Succeeded"
+      
+```
+cd ./test-network-function/operator-test && ./operator-test.test -config=config.yml  -ginkgo.v -ginkgo.focus="operatr_test" -junit . -report .
+```
+
+
+A JUnit report containing results is created at `test-network-function/operator-test/cnf-operator-certification-tests_junit.xml`.
+

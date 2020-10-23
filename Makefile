@@ -32,14 +32,22 @@ generic-cnf-tests: build build-cnf-tests run-generic-cnf-tests
 
 cnf-tests: build build-cnf-tests run-cnf-tests
 
+operator-cnf-tests: build build-cnf-operator-tests run-operator-tests
+
 build-cnf-tests:
 	PATH=${PATH}:${GOBIN} ginkgo build ./test-network-function
+
+build-cnf-operator-tests:
+	PATH=${PATH}:${GOBIN} ginkgo build ./test-network-function/operator-test --tags operator_suite
 
 run-generic-cnf-tests:
 	cd ./test-network-function && ./test-network-function.test -ginkgo.focus="generic" ${COMMON_GINKGO_ARGS}
 
 run-cnf-tests:
 	cd ./test-network-function && ./test-network-function.test $COMMON_GINKGO_ARGS
+
+run-operator-tests:
+	cd ./test-network-function/operator-test && ./operator-test.test  $COMMON_GINKGO_ARGS
 
 deps-update:
 	go mod tidy && \
@@ -61,6 +69,8 @@ clean:
 	go clean
 	rm -f ./test-network-function/test-network-function.test
 	rm -f ./test-network-function/cnf-certification-tests_junit.xml
+	rm -f ./test-network-function/operator-test/operator-test.test
+	rm -f ./test-network-function/operator-test/cnf-operator-certification-tests_junit.xml
 
 dependencies:
 	go get github.com/onsi/ginkgo/ginkgo
