@@ -11,10 +11,7 @@ import (
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/ipaddr"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/ping"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/interactive"
-	"github.com/redhat-nfvpe/test-network-function/test-network-function/configuration"
 	log "github.com/sirupsen/logrus"
-	"gopkg.in/yaml.v2"
-	"io/ioutil"
 	"time"
 )
 
@@ -68,15 +65,15 @@ func getOcSession(pod, container, namespace string, timeout time.Duration, optio
 // as the reference to the interactive.Oc instance, the reference to the test configuration, and the default network
 // IP address.
 type container struct {
-	containerConfiguration  configuration.Container
+	containerConfiguration  Container
 	oc                      *interactive.Oc
 	defaultNetworkIPAddress string
 }
 
 // createContainersUnderTest sets up the interactive "oc" sessions with each container, as well as other configuration
 // aspects of the session.  A map of the aggregate information is returned.
-func createContainersUnderTest(config *configuration.TestConfiguration) map[configuration.ContainerIdentifier]*container {
-	containersUnderTest := map[configuration.ContainerIdentifier]*container{}
+func createContainersUnderTest(config *TestConfiguration) map[ContainerIdentifier]*container {
+	containersUnderTest := map[ContainerIdentifier]*container{}
 	for containerID, containerConfig := range config.ContainersUnderTest {
 		oc := getOcSession(containerID.PodName, containerID.ContainerName, containerID.Namespace, defaultTimeout, expect.Verbose(true))
 		defaultIPAddress := getContainerDefaultNetworkIPAddress(oc, containerConfig.DefaultNetworkDevice)
@@ -87,8 +84,8 @@ func createContainersUnderTest(config *configuration.TestConfiguration) map[conf
 
 // createPartnerContainers sets up the interactive "oc" sessions with each partner container, as well as other
 // configuration aspects of the session.  A map of the aggregate information is returned.
-func createPartnerContainers(config *configuration.TestConfiguration) map[configuration.ContainerIdentifier]*container {
-	partnerContainers := map[configuration.ContainerIdentifier]*container{}
+func createPartnerContainers(config *TestConfiguration) map[ContainerIdentifier]*container {
+	partnerContainers := map[ContainerIdentifier]*container{}
 	for containerID, containerConfig := range config.PartnerContainers {
 		oc := getOcSession(containerID.PodName, containerID.ContainerName, containerID.Namespace, defaultTimeout, expect.Verbose(true))
 		defaultIPAddress := getContainerDefaultNetworkIPAddress(oc, containerConfig.DefaultNetworkDevice)
@@ -202,13 +199,9 @@ func getContainerDefaultNetworkIPAddress(oc *interactive.Oc, dev string) string 
 }
 
 // GetTestConfiguration returns the cnf-certification-generic-tests test configuration.
-func GetTestConfiguration() *configuration.TestConfiguration {
-	config := &configuration.TestConfiguration{}
-	ginkgo.Context("Instantiate some configuration information from the environment", func() {
-		yamlFile, err := ioutil.ReadFile(configuration.GetConfigurationFilePathFromEnvironment())
-		gomega.Expect(err).To(gomega.BeNil())
-		err = yaml.Unmarshal(yamlFile, config)
-		gomega.Expect(err).To(gomega.BeNil())
-	})
+func GetTestConfiguration() *TestConfiguration {
+	config, err := GetConfiguration(UseDefaultConfigurationFilePath)
+	gomega.Expect(err).To(gomega.BeNil())
+	gomega.Expect(config).ToNot(gomega.BeNil())
 	return config
 }

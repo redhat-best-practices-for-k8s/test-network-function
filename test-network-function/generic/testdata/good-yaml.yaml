@@ -17,4 +17,4 @@ testOrchestrator:
   podName: partner
   containerName: partner
 hosts:
-  - 192.168.1.1
+- 192.168.1.1

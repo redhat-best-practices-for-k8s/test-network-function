@@ -74,3 +74,18 @@ Each contributed test is expected to implement the `reel.Handler` and `tnf.Test`
 must be based on CLI commands.  No tests should utilize OpenShift client.  The choice to avoid OpenShift client is
 deliberate, and was decided to aid in support of all versions of OpenShift despite the API(s) changing.  Generally
 speaking, the CLI API changes much less quickly.
+
+## Configuration guidelines
+
+Most tests will require some form of configuration.  All configuration must implement or inherit a working `MarshalJSON`
+and `UnmarshalJSON` interface.  This is due to the fact that a
+[test-network-function-claim](https://github.com/redhat-nfvpe/test-network-function-claim) is output as JSON.
+
+Additionally, each configuration type must be registered with `pkg/config/pool`.  In order to register with the
+configuration pool, use code similar to the following:
+
+```
+(*configpool.GetInstance()).RegisterConfiguration(configurationKey, config)
+```
+
+Any configuration that adheres to these two requirements will automatically be included in the claim.
