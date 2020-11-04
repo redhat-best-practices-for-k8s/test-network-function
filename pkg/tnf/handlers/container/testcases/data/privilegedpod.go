@@ -63,7 +63,7 @@ var PrivilegedPodJSON = string(`{
       "name": "ROOT_CHECK",
       "skiptest": true,
       "command": "oc get pod  %s  -n %s -o json  | jq -r '.spec.containers[0].securityContext.runAsUser'",
-      "resultType": "string",
+      "resulttype": "string",
       "action": "allow",
       "expectedstatus": [
         "NON_ROOT_USER"
