@@ -57,7 +57,7 @@ var _ = ginkgo.Describe("container_test", func() {
 		gomega.Expect(context.GetExpecter()).ToNot(gomega.BeNil())
 	})
 	// add pdo is running check later
-	ginkgo.When("When Pod is in running state", func() {
+	ginkgo.When("pod is in running state", func() {
 		for _, pod := range podsInTest.Pod {
 			for _, testType := range pod.Tests {
 				testFile := loadConfiguredTestFile(testType)
@@ -78,9 +78,9 @@ var _ = ginkgo.Describe("container_test", func() {
 })
 
 func runTestsOnPod(name, namespace string, testCmd testcases.BaseTestCase) {
-	ginkgo.When("Pod Test ", func() {
-		ginkgo.It("Checks for "+testCmd.Name, func() {
-			podInTest := container.NewPod(testCmd.Command, name, namespace, testCmd.ExptectedStatus, testCmd.Action, testCmd.ResultType, defaultTimeout)
+	ginkgo.When("pod test ", func() {
+		ginkgo.It("checks for "+testCmd.Name, func() {
+			podInTest := container.NewPod(testCmd.Command, name, namespace, testCmd.ExptectedStatus, testCmd.ResultType, testCmd.Action, defaultTimeout)
 			gomega.Expect(podInTest).ToNot(gomega.BeNil())
 			test, err := tnf.NewTest(context.GetExpecter(), podInTest, []reel.Handler{podInTest}, context.GetErrorChannel())
 			gomega.Expect(err).To(gomega.BeNil())

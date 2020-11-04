@@ -65,7 +65,12 @@ func (p *Pod) ReelMatch(_ string, _ string, match string) *reel.Step {
 	//for type: array ,should match for any expected status or fail on any expected status
 	//based on the action type allow (default)|deny
 	if p.ResultType == "array" {
-
+		re := regexp.MustCompile(testcases.GetOutRegExp("NULL")) //Not having capabilities is positive
+		matched := re.MatchString(match)
+		if matched {
+			p.result = tnf.SUCCESS
+			return nil
+		}
 		replacer := strings.NewReplacer(`[`, ``, "\"", ``, `]`, ``, `, `, `,`)
 		match = replacer.Replace(match)
 		matchSlice := strings.Split(match, ",")

@@ -64,6 +64,13 @@ func TestPodTest_ReelMatchStringNoFound(t *testing.T) {
 	assert.Equal(t, tnf.ERROR, c.Result())
 }
 
+func TestPodTest_ReelMatchArray_Allow_Dendy_ISNULL(t *testing.T) {
+	c := container.NewPod(command, name, namespace, sliceExpectedStatus, "array", actionAllow, testTimeoutDuration)
+	step := c.ReelMatch("", "", `null`)
+	assert.Nil(t, step)
+	assert.Equal(t, tnf.SUCCESS, c.Result())
+}
+
 func TestPodTest_ReelMatchArray_Allow_Match(t *testing.T) {
 	c := container.NewPod(command, name, namespace, sliceExpectedStatus, "array", actionAllow, testTimeoutDuration)
 	step := c.ReelMatch("", "", `["NET_ADMIN", "SYS_TIME"]`)
