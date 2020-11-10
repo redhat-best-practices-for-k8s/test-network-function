@@ -5,6 +5,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	"github.com/onsi/ginkgo/reporters"
 	. "github.com/onsi/gomega"
+	containerTestConfig "github.com/redhat-nfvpe/test-network-function/pkg/tnf/config"
 	ginkgoreporters "kubevirt.io/qe-tools/pkg/ginkgo-reporters"
 	"path"
 	"testing"
@@ -42,3 +43,10 @@ func TestContainerTest(t *testing.T) {
 	}
 	RunSpecsWithDefaultAndCustomReporters(t, CnfCertificationTestSuiteName, ginkgoReporters)
 }
+
+var _ = BeforeSuite(func() {
+	tnfConfig, cfgError := containerTestConfig.GetConfig()
+	if cfgError != nil || tnfConfig.CNFs == nil {
+		Fail("Unable to load the configuration required for the test. Test aborted")
+	}
+})

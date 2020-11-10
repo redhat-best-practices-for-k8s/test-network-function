@@ -1,0 +1,18 @@
+cnftest:
+  - name: "PRIVILEGED_POD"
+    tests:
+    - "HOST_NETWORK_CHECK"
+    - "HOST_PORT_CHECK"
+    - "HOST_PATH_CHECK"
+    - "HOST_IPC_CHECK"
+    - "HOST_PID_CHECK"
+    - "CAPABILITY_CHECK"
+    - "ROOT_CHECK"
+    - "PRIVILEGE_ESCALATION"
+  - name: "PRIVILEGED_ROLE"
+    tests:
+    - "CLUSTER_ROLE_BINDING_BY_SA"
+operatortest:
+
+
+

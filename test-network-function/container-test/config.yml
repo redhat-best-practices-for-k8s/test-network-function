@@ -1,7 +1,14 @@
-pod:
+operators:
+cnfs:
+  - name: "crole-test-pod"
+    namespace: "default"
+    status: "Running"
+    tests:
+      - "PRIVILEGED_POD"
+      - "PRIVILEGED_ROLE"
   - name: "nginx"
     namespace: "default"
     status: "Running"
     tests:
       - "PRIVILEGED_POD"
-
+      - "PRIVILEGED_ROLE"
