@@ -1,0 +1,10 @@
+testcase:
+  - name: "CSV_INSTALLED"
+    skiptest: false
+    command: "oc get csv %s -n %s -o json | jq -r '.status.phase'"
+    action: "allow"
+    resulttype: "string"
+    expectedType: "string"
+    expectedstatus:
+      - "Succeeded"
+

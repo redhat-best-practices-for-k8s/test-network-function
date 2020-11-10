@@ -1,5 +1,0 @@
----
-csv:
-  name: "etcdoperator.v0.9.4"
-  namespace: "my-etcd"
-  status: "Succeeded"

@@ -8,6 +8,7 @@ var TEST_CASE_NAME_HERE = string(`{
       "command": "oc get pod  %s  -n %s -o json  | jq -r '.spec.hostNetwork'",
       "resultType": "string|array", //return result type from the command
       "action": "allow|deny",
+      "expectedtype" "string|function",
       "expectedstatus": [
         "NULL_FALSE"
       ]

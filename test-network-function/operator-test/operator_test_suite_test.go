@@ -5,6 +5,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	"github.com/onsi/ginkgo/reporters"
 	. "github.com/onsi/gomega"
+	operatorTestConfig "github.com/redhat-nfvpe/test-network-function/pkg/tnf/config"
 	ginkgoreporters "kubevirt.io/qe-tools/pkg/ginkgo-reporters"
 	"path"
 	"testing"
@@ -42,3 +43,10 @@ func TestOperatorTest(t *testing.T) {
 	}
 	RunSpecsWithDefaultAndCustomReporters(t, CnfCertificationTestSuiteName, ginkgoReporters)
 }
+
+var _ = BeforeSuite(func() {
+	tnfConfig, cfgError := operatorTestConfig.GetConfig()
+	if cfgError != nil || tnfConfig.Operator == nil {
+		Fail("Unable to load the configuration required for the test. Test aborted")
+	}
+})

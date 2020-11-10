@@ -276,8 +276,7 @@ cd ./test-network-function && ./test-network-function.test -ginkgo.v -ginkgo.foc
 A JUnit report containing results is created at `test-network-function/cnf-certification-tests_junit.xml`.
 
 ### Run an Operator Test Suite
-
-In order to run an operator test suite, `operator-test` for example, issue the following command:
+In order to run an Operator test suite, `operator-test` for example, issue the following command:
 
 ```shell script
 make build build-cnf-operator-tests
@@ -286,20 +285,54 @@ cd ./test-network-function/operator-test && ./operator-test.test -ginkgo.v -gink
 
 Test Configuration
  
-You can either edit the provided config at `test-network-function/operator-test/config/config.yml`
-or you can pass config with `-config` flag to the test suite
+You can either edit the provided config `config.yml`
+or you can pass a different config with `-config` flag to the test suite
 
 Sample config.yml
-
-    ---
-    csv:
-      name: "etcdoperator.v0.9.4"
-      namespace: "my-etcd"
-      status: "Succeeded"
-      
 ```
+operators:
+  - name: etcdoperator.v0.9.4
+    namespace: my-etcd
+    status: Succeeded
+    autogenerate: "false"
+    tests:
+      - "OPERATOR_STATUS"
+cnfs:
+
+```          
+      
+```shell script
+make build build-cnf-operator-tests
 cd ./test-network-function/operator-test && ./operator-test.test -config=config.yml  -ginkgo.v -ginkgo.focus="operator_test" -junit . -report .
 ```
+
+Configuring tests
+
+By default the test suite will run all the default test cases defined by `testconfigure.yml` file,
+but you can override those test cases by overriding to add only required tests to that file.
+The contents should match as shown below.    
+
+Example:
+```
+ operatortest:
+   - name: "OPERATOR_STATUS"
+     tests:
+       - "CSV_INSTALLED"
+ cnftest:
+   - name: "PRIVILEGED_POD"
+     tests:
+     - "HOST_NETWORK_CHECK"
+     - "HOST_PORT_CHECK"
+     - "HOST_PATH_CHECK"
+     - "HOST_IPC_CHECK"
+     - "HOST_PID_CHECK"
+     - "CAPABILITY_CHECK"
+     - "ROOT_CHECK"
+     - "PRIVILEGE_ESCALATION"
+   - name: "PRIVILEGED_ROLE"
+     tests:
+     - "CLUSTER_ROLE_BINDING_BY_SA"
+ ```
 
 
 A JUnit report containing results is created at `test-network-function/operator-test/cnf-operator-certification-tests_junit.xml`.
@@ -315,17 +348,25 @@ cd ./test-network-function/container-test && ./container-test.test -ginkgo.v -gi
 
 Test Configuration
  
-You can either edit the provided config at `test-network-function/container-test/config.yml`
-or you can pass config with `-config` flag to the test suite
+You can either edit the provided config `config.yml`
+or you can pass a different config with `-config` flag to the test suite
 
 Sample config.yml
-    ---
-    pod:
-      - name: "nginx"
-        namespace: "default"
-        status: "Running"
-        tests:
-          - "PRIVILEGED_POD"
+```
+cnfs:
+  - name: "crole-test-pod"
+    namespace: "default"
+    status: "Running"
+    tests:
+      - "PRIVILEGED_POD"
+      - "PRIVILEGED_ROLE"
+  - name: "nginx"
+    namespace: "default"
+    status: "Running"
+    tests:
+      - "PRIVILEGED_POD"
+      - "PRIVILEGED_ROLE"
+```          
       
 ```shell script
 make build build-cnf-container-tests
@@ -334,31 +375,28 @@ cd ./test-network-function/container-test && ./container-test.test -config=confi
 
 Configuring test cases
 
-By default the test suite will run all the default test cases defined by the suite,
-but you can override those test cases by creating a folder named`testcases` and adding test steps under that folder.
-The filenames and contents should match as shown below.    
+By default the test suite will run all the default test cases defined by `testconfigure.yml` file,
+but you can override those test cases by overriding to add only required tests to that file.
+The contents should match as shown below.    
 
 Example:
 ```
- ./testcases/
-      privileged.yml
-   ```
-
-You can delete or comment the test step for bypassing the tests.
-For an example, if you remove `"HOST_PATH_CHECK"` from the privileged.yml then that test will be skipped.
-1. privileged.yml
-```
----
- testconfigured:
-   - "HOST_NETWORK_CHECK"
-   - "HOST_PORT_CHECK"
-   - "HOST_PATH_CHECK"
-   - "HOST_IPC_CHECK"
-   - "HOST_PID_CHECK"
-   - "CAPABILITY_CHECK"
-   - "ROOT_CHECK"
-   - "PRIVILEGE_ESCALATION"`
-```      
+ cnftest:
+   - name: "PRIVILEGED_POD"
+     tests:
+     - "HOST_NETWORK_CHECK"
+     - "HOST_PORT_CHECK"
+     - "HOST_PATH_CHECK"
+     - "HOST_IPC_CHECK"
+     - "HOST_PID_CHECK"
+     - "CAPABILITY_CHECK"
+     - "ROOT_CHECK"
+     - "PRIVILEGE_ESCALATION"
+   - name: "PRIVILEGED_ROLE"
+     tests:
+     - "CLUSTER_ROLE_BINDING_BY_SA"
+ 
+ ```
 
 A JUnit report containing results is created at `test-network-function/container-test/cnf-operator-certification-tests_junit.xml`.
 

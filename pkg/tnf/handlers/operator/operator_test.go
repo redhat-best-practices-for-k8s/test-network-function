@@ -1,0 +1,116 @@
+package operator_test
+
+import (
+	"fmt"
+	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
+	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/operator"
+	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/testcases"
+	"github.com/stretchr/testify/assert"
+	"strings"
+	"testing"
+	"time"
+)
+
+const (
+	testTimeoutDuration = time.Second * 2
+	name                = "CSV_INSTALLED"
+	namespace           = "test"
+	command             = "oc get csv %s -n %s -o json | jq -r '.status.phase'"
+)
+
+var (
+	stringExpectedStatus             = []string{string(testcases.NullFalse)}
+	sliceExpectedStatus              = []string{"Running", "Installed"}
+	sliceExpectedStatusInvalid       = []string{"Not_Running", "Not_Installed"}
+	resultSliceExpectedStatus        = `["Running", "Installed"]`
+	resultSliceExpectedStatusInvalid = `["Not_Running", "Not_Installed"]`
+	args                             = strings.Split(fmt.Sprintf(command, name, namespace), " ")
+)
+
+func TestOperator_Args(t *testing.T) {
+	c := operator.NewOperator(args, name, namespace, stringExpectedStatus, testcases.StringType, testcases.Allow, testTimeoutDuration)
+	assert.Equal(t, args, c.Args())
+}
+
+func TestOperator_ReelFirst(t *testing.T) {
+	c := operator.NewOperator(args, name, namespace, stringExpectedStatus, testcases.StringType, testcases.Allow, testTimeoutDuration)
+	step := c.ReelFirst()
+	assert.Equal(t, "", step.Execute)
+	assert.Equal(t, []string{testcases.GetOutRegExp(testcases.AllowAll)}, step.Expect)
+	assert.Equal(t, testTimeoutDuration, step.Timeout)
+}
+
+func TestOperator_ReelEof(t *testing.T) {
+	c := operator.NewOperator(args, name, namespace, stringExpectedStatus, testcases.StringType, testcases.Allow, testTimeoutDuration)
+	// just ensures lack of panic
+	c.ReelEOF()
+}
+
+func TestOperator_ReelTimeout(t *testing.T) {
+	c := operator.NewOperator(args, name, namespace, stringExpectedStatus, testcases.StringType, testcases.Allow, testTimeoutDuration)
+	step := c.ReelTimeout()
+	assert.Nil(t, step)
+}
+
+func TestOperatorTest_ReelMatch_String(t *testing.T) {
+	c := operator.NewOperator(args, name, namespace, stringExpectedStatus, testcases.StringType, testcases.Allow, testTimeoutDuration)
+	step := c.ReelMatch("", "", "null")
+	assert.Nil(t, step)
+	assert.Equal(t, tnf.SUCCESS, c.Result())
+}
+
+func TestOperatorTest_Facts(t *testing.T) {
+	c := operator.NewOperator(args, name, namespace, stringExpectedStatus, testcases.StringType, testcases.Allow, testTimeoutDuration)
+	step := c.ReelMatch("", "", "null")
+	assert.Nil(t, step)
+	assert.NotNil(t, c.Facts())
+	assert.Equal(t, tnf.SUCCESS, c.Result())
+}
+
+func TestOperatorTest_ReelMatch_Array_Allow_Deny_ISNULL(t *testing.T) {
+	c := operator.NewOperator(args, name, namespace, sliceExpectedStatus, testcases.ArrayType, testcases.Allow, testTimeoutDuration)
+	step := c.ReelMatch("", "", `null`)
+	assert.Nil(t, step)
+	assert.Equal(t, tnf.SUCCESS, c.Result())
+}
+
+func TestOperatorTest_ReelMatch_Array_Allow_Match(t *testing.T) {
+	c := operator.NewOperator(args, name, namespace, sliceExpectedStatus, testcases.ArrayType, testcases.Allow, testTimeoutDuration)
+	step := c.ReelMatch("", "", resultSliceExpectedStatus)
+	assert.Nil(t, step)
+	assert.Equal(t, tnf.SUCCESS, c.Result())
+}
+
+func TestOperatorTest_ReelMatch_Array_Allow_NoMatch(t *testing.T) {
+	c := operator.NewOperator(args, name, namespace, sliceExpectedStatus, testcases.ArrayType, testcases.Allow, testTimeoutDuration)
+	step := c.ReelMatch("", "", resultSliceExpectedStatusInvalid)
+	assert.Nil(t, step)
+	assert.Equal(t, tnf.ERROR, c.Result())
+}
+
+func TestOperatorTest_ReelMatch_Array_Deny_Match(t *testing.T) {
+	c := operator.NewOperator(args, name, namespace, sliceExpectedStatus, testcases.ArrayType, testcases.Deny, testTimeoutDuration)
+	step := c.ReelMatch("", "", resultSliceExpectedStatus)
+	assert.Nil(t, step)
+	assert.Equal(t, tnf.ERROR, c.Result())
+}
+
+func TestOperatorTest_ReelMatch_Array_Deny_NotMatch(t *testing.T) {
+	c := operator.NewOperator(args, name, namespace, sliceExpectedStatusInvalid, testcases.ArrayType, testcases.Deny, testTimeoutDuration)
+	step := c.ReelMatch("", "", resultSliceExpectedStatusInvalid)
+	assert.Nil(t, step)
+	assert.Equal(t, tnf.ERROR, c.Result())
+}
+
+func TestOperatorTest_ReelMatch_StringNoFound(t *testing.T) {
+	c := operator.NewOperator(args, name, namespace, stringExpectedStatus, testcases.StringType, testcases.Allow, testTimeoutDuration)
+	step := c.ReelMatch("", "", "not_null")
+	assert.Nil(t, step)
+	assert.Equal(t, tnf.ERROR, c.Result())
+}
+
+func TestNewOperator(t *testing.T) {
+	c := operator.NewOperator(args, name, namespace, stringExpectedStatus, testcases.ArrayType, testcases.Allow, testTimeoutDuration)
+	assert.Equal(t, tnf.ERROR, c.Result())
+	assert.Equal(t, testTimeoutDuration, c.Timeout())
+}

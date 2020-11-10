@@ -1,53 +1,36 @@
 package container
 
 import (
+	"fmt"
 	expect "github.com/google/goexpect"
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
 	"github.com/redhat-nfvpe/test-network-function/internal/reel"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
+	containerTestConfig "github.com/redhat-nfvpe/test-network-function/pkg/tnf/config"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/container"
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/container/testcases"
-
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/interactive"
-	"gopkg.in/yaml.v2"
-	"io/ioutil"
-	"os"
+	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/testcases"
+	"strconv"
+	"strings"
 	"time"
 )
 
 const (
 	// The default test timeout.
 	defaultTimeoutSeconds = 10
+	configuredTestFile    = "testconfigure.yml"
 )
 
 var (
 	defaultTimeout = time.Duration(defaultTimeoutSeconds) * time.Second
 	context        *interactive.Context
 	err            error
-	podsInTest     *TestPodConfig
+	cnfInTest      *containerTestConfig.TnfContainerOperatorTestConfig
 )
 
-//TestTemplateConfigFileMap is the names of test files configure for test under container-test/config folder
-var TestTemplateConfigFileMap = map[string]string{
-	"PRIVILEGED_POD": "privileged.yaml",
-}
-
-type TestPodConfig struct {
-	Pod []struct {
-		Name      string   `yaml:"name" json:"name"`
-		Namespace string   `yaml:"namespace" json:"namespace"`
-		Tests     []string `yaml:"tests" json:"tests"`
-	} `yaml:"pod" json:"pod"`
-}
-
-type ConfiguredTestCase struct {
-	TestCase []string `yaml:"testconfigured"`
-}
-
 var _ = ginkgo.Describe("container_test", func() {
-	podsInTest, _ = getPodConf()
-	gomega.Expect(podsInTest).ToNot(gomega.BeNil())
+
 	ginkgo.When("A local shell is spawned", func() {
 		goExpectSpawner := interactive.NewGoExpectSpawner()
 		var spawner interactive.Spawner = goExpectSpawner
@@ -56,88 +39,93 @@ var _ = ginkgo.Describe("container_test", func() {
 		gomega.Expect(context).ToNot(gomega.BeNil())
 		gomega.Expect(context.GetExpecter()).ToNot(gomega.BeNil())
 	})
-	// add pdo is running check later
-	ginkgo.When("pod is in running state", func() {
-		for _, pod := range podsInTest.Pod {
-			for _, testType := range pod.Tests {
-				testFile := loadConfiguredTestFile(testType)
-				gomega.Expect(testFile).ToNot(gomega.BeNil())
-				testcase := renderTestCaseSpec(testType, testFile)
-				gomega.Expect(testcase).ToNot(gomega.BeNil())
-				for _, testCase := range testcase.TestCase {
-					if !testCase.SkipTest {
-						runTestsOnPod(pod.Name, pod.Namespace, testCase)
+	defer ginkgo.GinkgoRecover()
+	cnfInTest, err = containerTestConfig.GetConfig()
+	gomega.Expect(err).To(gomega.BeNil())
+	gomega.Expect(cnfInTest).ToNot(gomega.BeNil())
+	for _, cnf := range cnfInTest.CNFs {
+		// Gather facts for containers
+		podFacts, err := testcases.LoadCnfTestCaseSpecs(testcases.GatherFacts)
+		gomega.Expect(err).To(gomega.BeNil())
+		for _, factsTest := range podFacts.TestCase {
+			args := strings.Split(fmt.Sprintf(factsTest.Command, cnf.Name, cnf.Namespace), " ")
+			cnfInTest := container.NewPod(args, cnf.Name, cnf.Namespace, factsTest.ExpectedStatus, factsTest.ResultType, factsTest.Action, defaultTimeout)
+			test, err := tnf.NewTest(context.GetExpecter(), cnfInTest, []reel.Handler{cnfInTest}, context.GetErrorChannel())
+			gomega.Expect(err).To(gomega.BeNil())
+			result, err := test.Run()
+			gomega.Expect(err).To(gomega.BeNil())
+			gomega.Expect(result).To(gomega.Equal(tnf.SUCCESS))
+			if factsTest.Name == string(testcases.ContainerCount) {
+				testcases.ContainerFacts[testcases.ContainerCount] = cnfInTest.Facts()
+			} else if factsTest.Name == string(testcases.ServiceAccountName) {
+				testcases.ContainerFacts[testcases.ServiceAccountName] = cnfInTest.Facts()
+			}
+		}
+		// loop through various cnfs test
+		for _, testType := range cnf.Tests {
+			testFile, err := testcases.LoadConfiguredTestFile(configuredTestFile)
+			gomega.Expect(testFile).ToNot(gomega.BeNil())
+			gomega.Expect(err).To(gomega.BeNil())
+			testConfigure := testcases.ContainsConfiguredTest(testFile.CnfTest, testType)
+			renderedTestCase, err := testConfigure.RenderTestCaseSpec(testcases.Cnf, testType)
+			gomega.Expect(err).To(gomega.BeNil())
+			gomega.Expect(renderedTestCase).ToNot(gomega.BeNil())
+			for _, testCase := range renderedTestCase.TestCase {
+				if !testCase.SkipTest {
+					if testCase.ExpectedType == "function" {
+						for _, val := range testCase.ExpectedStatus {
+							testCase.ExpectedStatusFn(testcases.StatusFunctionType(val))
+						}
 					}
-
+					var args []interface{}
+					if testType == testcases.PrivilegedRoles {
+						args = []interface{}{cnf.Namespace, cnf.Namespace, testcases.ContainerFacts[testcases.ServiceAccountName]}
+					} else {
+						args = []interface{}{cnf.Name, cnf.Namespace}
+					}
+					if testCase.Loop > 0 {
+						containersCount, _ := strconv.Atoi(testcases.ContainerFacts[testcases.ContainerCount])
+						runTestsOnCNF(args, cnf.Name, cnf.Namespace, containersCount, testCase)
+					} else {
+						runTestsOnCNF(args, cnf.Name, cnf.Namespace, testCase.Loop, testCase)
+					}
 				}
 			}
-
 		}
-	})
 
+	}
 })
 
-func runTestsOnPod(name, namespace string, testCmd testcases.BaseTestCase) {
-	ginkgo.When("pod test ", func() {
-		ginkgo.It("checks for "+testCmd.Name, func() {
-			podInTest := container.NewPod(testCmd.Command, name, namespace, testCmd.ExptectedStatus, testCmd.ResultType, testCmd.Action, defaultTimeout)
-			gomega.Expect(podInTest).ToNot(gomega.BeNil())
-			test, err := tnf.NewTest(context.GetExpecter(), podInTest, []reel.Handler{podInTest}, context.GetErrorChannel())
-			gomega.Expect(err).To(gomega.BeNil())
-			gomega.Expect(test).ToNot(gomega.BeNil())
-			testResult, err := test.Run()
-			gomega.Expect(err).To(gomega.BeNil())
-			gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
+func runTestsOnCNF(args []interface{}, name, namespace string, containerCount int, testCmd testcases.BaseTestCase) {
+	ginkgo.When(fmt.Sprintf("cnf under test is: %s/%s ", namespace, name), func() {
+		ginkgo.It(fmt.Sprintf("tests for: %s", testCmd.Name), func() {
+			if containerCount > 0 {
+				count := 0
+				for count < containerCount {
+					argsCount := append(args, count)
+					cmdArgs := strings.Split(fmt.Sprintf(testCmd.Command, argsCount...), " ")
+					cnfInTest := container.NewPod(cmdArgs, name, namespace, testCmd.ExpectedStatus, testCmd.ResultType, testCmd.Action, defaultTimeout)
+					gomega.Expect(cnfInTest).ToNot(gomega.BeNil())
+					test, err := tnf.NewTest(context.GetExpecter(), cnfInTest, []reel.Handler{cnfInTest}, context.GetErrorChannel())
+					gomega.Expect(err).To(gomega.BeNil())
+					gomega.Expect(test).ToNot(gomega.BeNil())
+					testResult, err := test.Run()
+					gomega.Expect(err).To(gomega.BeNil())
+					gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
+					count++
+				}
+			} else {
+				cmdArgs := strings.Split(fmt.Sprintf(testCmd.Command, args...), " ")
+				cnfInTest := container.NewPod(cmdArgs, name, namespace, testCmd.ExpectedStatus, testCmd.ResultType, testCmd.Action, defaultTimeout)
+				gomega.Expect(cnfInTest).ToNot(gomega.BeNil())
+				test, err := tnf.NewTest(context.GetExpecter(), cnfInTest, []reel.Handler{cnfInTest}, context.GetErrorChannel())
+				gomega.Expect(err).To(gomega.BeNil())
+				gomega.Expect(test).ToNot(gomega.BeNil())
+				testResult, err := test.Run()
+				gomega.Expect(err).To(gomega.BeNil())
+				gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
+			}
+
 		})
 	})
-}
-
-func loadConfiguredTestFile(testName string) *ConfiguredTestCase {
-	var configuredTestCase *ConfiguredTestCase
-	yamlFile, err := ioutil.ReadFile("./config/" + testcases.TestTemplateFileMap[testName])
-	if err != nil {
-		return nil
-	}
-	err = yaml.Unmarshal(yamlFile, &configuredTestCase)
-	if err != nil {
-		return nil
-	}
-
-	return configuredTestCase
-}
-
-func renderTestCaseSpec(testName string, config *ConfiguredTestCase) *testcases.BaseTestCaseConfigSpec {
-	t, err := testcases.LoadTestCaseSpecs(testName)
-	if err != nil {
-		return nil
-	}
-	for _, elem := range config.TestCase {
-		for i, e := range t.TestCase {
-			if e.Name == elem {
-				t.TestCase[i].SkipTest = false
-			}
-		}
-
-	}
-	return t
-}
-
-//NewConfig  returns a new decoded Config struct
-func getPodConf() (*TestPodConfig, error) {
-	var file *os.File
-	var err error
-	// Create config structure
-	config := &TestPodConfig{}
-	// Open config file
-	if file, err = os.Open("config.yml"); err != nil {
-		return nil, err
-	}
-	defer file.Close()
-	// Init new YAML decode
-	d := yaml.NewDecoder(file)
-	// Start YAML decoding from file
-	if err := d.Decode(&config); err != nil {
-		return nil, err
-	}
-	return config, nil
 }

@@ -1,0 +1,39 @@
+operators:
+  - name: etcdoperator.v0.9.4
+    namespace: my-etcd
+    status: Succeeded
+    autogenerate: "true"
+    crds:
+      - name: test.crd.one
+        namespace: default
+        instances:
+          - name: Instance_one
+      - name: test.crd.two
+        namespace: default
+        instances:
+          - name: Instance_two
+    deployments:
+      - name: deployment1
+        replicas: "1"
+    permissions:
+      - name: name
+        role: clusterrole
+    cnfs:
+      - name: cnf_one
+        namespace: test
+        status: ""
+        tests:
+          - PRIVILEGED_POD
+    tests:
+      - CSV_INSTALLED
+cnfs:
+  - name: cnf_only
+    namespace: test
+    status: ""
+    tests:
+      - PRIVILEGED_POD
+cnfavailabletestcases:
+  - PRIVILEGED_POD
+  - CLUSTER_ROLE
+operatoravailabletestcases:
+  - OPERATOR_STATUS

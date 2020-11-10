@@ -1,6 +1,6 @@
-package data
+package cnf
 
-//PrivilegedPodJSON test templates for privileged pods
+// PrivilegedPodJSON test templates for privileged pods
 var PrivilegedPodJSON = string(`{
   "testcase": [
     {
@@ -8,6 +8,7 @@ var PrivilegedPodJSON = string(`{
       "skiptest": true,
       "command": "oc get pod  %s  -n %s -o json  | jq -r '.spec.hostNetwork'",
       "action": "allow",
+	   "loop": 0,
       "expectedstatus": [
         "NULL_FALSE"
       ]
@@ -15,7 +16,8 @@ var PrivilegedPodJSON = string(`{
     {
       "name": "HOST_PORT_CHECK",
       "skiptest": true,
-      "command": "oc get pod  %s  -n %s -o json  | jq -r '.spec.hostPort'",
+      "loop": 1,
+      "command": "oc get pod %s -n %s -o json  | jq -r '.spec.containers[%d].ports.hostPort'",
       "action": "allow",
       "expectedstatus": [
         "NULL_FALSE"
@@ -24,15 +26,17 @@ var PrivilegedPodJSON = string(`{
     {
       "name": "HOST_PATH_CHECK",
       "skiptest": true,
+       "loop": 0,
       "command": "oc get pod  %s  -n %s -o json  | jq -r '.spec.hostpath.path'",
       "action": "allow",
       "expectedstatus": [
-        "NOT_SET"
+        "NULL_FALSE"
       ]
     },
     {
       "name": "HOST_IPC_CHECK",
       "skiptest": true,
+      "loop": 0,
       "command": "oc get pod  %s  -n %s -o json  | jq -r '.spec.hostipc'",
       "action": "allow",
       "expectedstatus": [
@@ -42,6 +46,7 @@ var PrivilegedPodJSON = string(`{
     {
       "name": "HOST_PID_CHECK",
       "skiptest": true,
+       "loop": 0,
       "command": "oc get pod  %s  -n %s -o json  | jq -r '.spec.hostpid'",
       "action": "allow",
       "expectedstatus": [
@@ -51,7 +56,8 @@ var PrivilegedPodJSON = string(`{
     {
       "name": "CAPABILITY_CHECK",
       "skiptest": true,
-      "command": "oc get pod  %s  -n %s -o json  | jq -r '.spec.containers[0].securityContext.capabilities.add'",
+      "loop": 1,
+      "command": "oc get pod %s -n %s -o json  | jq -r '.spec.containers[%d].securityContext.capabilities.add'",
       "resultType": "array",
       "action": "deny",
       "expectedstatus": [
@@ -62,17 +68,19 @@ var PrivilegedPodJSON = string(`{
     {
       "name": "ROOT_CHECK",
       "skiptest": true,
-      "command": "oc get pod  %s  -n %s -o json  | jq -r '.spec.containers[0].securityContext.runAsUser'",
+       "loop": 1,
+      "command": "oc get pod %s -n %s -o json  | jq -r '.spec.containers[%d].securityContext.runAsUser'",
       "resulttype": "string",
       "action": "allow",
       "expectedstatus": [
-        "NON_ROOT_USER"
+        "NON_ZERO"
       ]
     },
     {
       "name": "PRIVILEGE_ESCALATION",
       "skiptest": true,
-      "command": "oc get pod  %s  -n %s -o json  | jq -r '.spec.containers[0].securityContext.allowPrivilegeEscalation'",
+      "loop": 1,
+      "command": "oc get pod  %s -n %s -o json  | jq -r '.spec.containers[%d].securityContext.allowPrivilegeEscalation'",
       "action": "allow",
       "expectedstatus": [
         "NULL_FALSE"
