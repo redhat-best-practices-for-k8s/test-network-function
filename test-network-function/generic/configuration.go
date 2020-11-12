@@ -59,7 +59,11 @@ func GetConfiguration(filepath string) (*TestConfiguration, error) {
 		err = json.Unmarshal(contents, config)
 	}
 
-	(*configpool.GetInstance()).RegisterConfiguration(configurationKey, config)
+	if err != nil {
+		return nil, err
+	}
+
+	err = (*configpool.GetInstance()).RegisterConfiguration(configurationKey, config)
 
 	return config, err
 }

@@ -37,7 +37,9 @@ func main() {
 	ping, timeoutDuration := parseArgs()
 	goExpectSpawner := interactive.NewGoExpectSpawner()
 	var spawner interactive.Spawner = goExpectSpawner
-	context, err := interactive.SpawnShell(&spawner, timeoutDuration, expect.Verbose(true))
+	var err error
+	var context *interactive.Context
+	context, err = interactive.SpawnShell(&spawner, timeoutDuration, expect.Verbose(true))
 
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
@@ -48,6 +50,9 @@ func main() {
 
 	if err == nil {
 		result, err = tester.Run()
+		if err != nil {
+			fmt.Fprintf(os.Stderr,"Fatal Error Running Test: %v\n", err)
+		}
 	} else {
 		fmt.Fprintln(os.Stderr, err)
 	}

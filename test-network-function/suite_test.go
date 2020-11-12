@@ -59,6 +59,7 @@ func createClaimRoot() *claim.Root {
 func TestTest(t *testing.T) {
 	flag.Parse()
 	gomega.RegisterFailHandler(ginkgo.Fail)
+	var err error
 
 	// Extract the version, which should be placed by the build system.
 	version, err := version.GetVersion()
@@ -89,18 +90,24 @@ func TestTest(t *testing.T) {
 		junitFile := path.Join(*junitPath, JunitXMLFileName)
 		ginkgoReporters = append(ginkgoReporters, reporters.NewJUnitReporter(junitFile))
 	}
-
+	var junitMap map[string]interface{}
 	ginkgo.RunSpecsWithDefaultAndCustomReporters(t, CnfCertificationTestSuiteName, ginkgoReporters)
-	junitMap, err := junit.ExportJUnitAsJSON(JunitXMLFileName)
+	junitMap, err = junit.ExportJUnitAsJSON(JunitXMLFileName)
+	if err != nil {
+		log.Fatalf("Couldn't convert the JUnit Results to JSON: %v", err)
+	}
 
 	endTime := time.Now()
 	claimData.JunitResults = junitMap
-
-	configurations, err := j.Marshal(config.GetInstance().GetConfigurations())
+	var configurations []byte
+	configurations, err = j.Marshal(config.GetInstance().GetConfigurations())
 	if err != nil {
 		log.Fatalf("error converting configurations to JSON: %v", err)
 	}
 	err = j.Unmarshal(configurations, &claimData.TestConfigurations)
+	if err != nil {
+		log.Fatalf("error converting configurations to JSON: %v", err)
+	}
 	claimData.EndTime = endTime.String()
 
 	payload, err := j.MarshalIndent(claimRoot, "", "  ")

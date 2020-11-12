@@ -41,8 +41,8 @@ func getOcSession(pod, container, namespace string, timeout time.Duration, optio
 	var spawner interactive.Spawner = goExpectSpawner
 
 	go func(chOut <-chan error) {
-		oc, chOut, err := interactive.SpawnOc(&spawner, pod, container, namespace, timeout, options...)
-		gomega.Expect(chOut).ToNot(gomega.BeNil())
+		oc, spawnChan, err := interactive.SpawnOc(&spawner, pod, container, namespace, timeout, options...)
+		gomega.Expect(spawnChan).ToNot(gomega.BeNil())
 		gomega.Expect(err).To(gomega.BeNil())
 		ocChan <- oc
 	}(chOut)
@@ -75,7 +75,7 @@ type container struct {
 func createContainersUnderTest(config *TestConfiguration) map[ContainerIdentifier]*container {
 	containersUnderTest := map[ContainerIdentifier]*container{}
 	for containerID, containerConfig := range config.ContainersUnderTest {
-		oc := getOcSession(containerID.PodName, containerID.ContainerName, containerID.Namespace, defaultTimeout, expect.Verbose(true))
+		oc := getOcSession(containerID.PodName, containerID.ContainerName, containerID.Namespace, defaultTimeout, defaultExpectArgs)
 		defaultIPAddress := getContainerDefaultNetworkIPAddress(oc, containerConfig.DefaultNetworkDevice)
 		containersUnderTest[containerID] = &container{containerConfiguration: containerConfig, oc: oc, defaultNetworkIPAddress: defaultIPAddress}
 	}
@@ -87,7 +87,7 @@ func createContainersUnderTest(config *TestConfiguration) map[ContainerIdentifie
 func createPartnerContainers(config *TestConfiguration) map[ContainerIdentifier]*container {
 	partnerContainers := map[ContainerIdentifier]*container{}
 	for containerID, containerConfig := range config.PartnerContainers {
-		oc := getOcSession(containerID.PodName, containerID.ContainerName, containerID.Namespace, defaultTimeout, expect.Verbose(true))
+		oc := getOcSession(containerID.PodName, containerID.ContainerName, containerID.Namespace, defaultTimeout, defaultExpectArgs)
 		defaultIPAddress := getContainerDefaultNetworkIPAddress(oc, containerConfig.DefaultNetworkDevice)
 		partnerContainers[containerID] = &container{containerConfiguration: containerConfig, oc: oc, defaultNetworkIPAddress: defaultIPAddress}
 	}

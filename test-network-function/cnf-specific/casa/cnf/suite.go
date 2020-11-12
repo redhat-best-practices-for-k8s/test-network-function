@@ -23,7 +23,7 @@ var _ = ginkgo.Describe("casa-cnf", func() {
 	var config *configuration.CasaCNFConfiguration
 	var err error
 	config, err = configuration.GetCasaCNFTestConfiguration()
-	log.Info("Casa CNF Specific Configuration: %s", config)
+	log.Infof("Casa CNF Specific Configuration: %s", config)
 	gomega.Expect(err).To(gomega.BeNil())
 	gomega.Expect(config).ToNot(gomega.BeNil())
 
@@ -53,7 +53,6 @@ var _ = ginkgo.Describe("casa-cnf", func() {
 			gomega.Expect(err).To(gomega.BeNil())
 			gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
 			nrfs = registrationTest.GetRegisteredNRFs()
-			log.Infof("nrfs=%s", nrfs)
 			for _, cnfType := range cnfTypes {
 				nrfInstalled := getNRF(nrfs, cnfType)
 				gomega.Expect(nrfInstalled).ToNot(gomega.BeNil())

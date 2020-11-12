@@ -22,7 +22,6 @@ const (
 var (
 	defaultTestCommand = []string{"ls"}
 	sendError          = errors.New("generic send error")
-	runnerError        = errors.New("runner run error")
 )
 
 type newTestTestCase struct {

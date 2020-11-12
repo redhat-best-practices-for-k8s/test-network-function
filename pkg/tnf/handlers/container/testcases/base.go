@@ -27,13 +27,6 @@ var OutRegExp = map[string]string{
 	"ERROR":         "Unknown out expression set",
 }
 
-func getOutRegExp(key string) string {
-	if val, ok := OutRegExp[key]; ok {
-		return val
-	}
-	return OutRegExp["ERROR"]
-}
-
 //BaseTestCaseConfigSpec slcie of test configurations template
 type BaseTestCaseConfigSpec struct {
 	TestCase []BaseTestCase `yaml:"testcase" json:"testcase"`

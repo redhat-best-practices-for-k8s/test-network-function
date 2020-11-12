@@ -24,8 +24,6 @@ type Release struct {
 	timeout time.Duration
 	// args stores the command and arguments.
 	args []string
-	// release contains the contents of /etc/redhat-release if it exists, or "NOT Red Hat Based" if it does not exist.
-	release string
 	// isRedHatBased contains whether the container is based on Red Hat technologies.
 	isRedHatBased bool
 }

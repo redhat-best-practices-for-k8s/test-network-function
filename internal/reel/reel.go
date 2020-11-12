@@ -141,7 +141,7 @@ func (reel *Reel) Step(step *Step, handler Handler) error {
 				return err
 			}
 		} else {
-			if results != nil && len(results) > 0 {
+			if len(results) > 0 {
 				result := results[0]
 				output := result.Output
 				match := result.Match[0]

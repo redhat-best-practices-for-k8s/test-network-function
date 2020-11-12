@@ -14,8 +14,6 @@ func TestGetInstance(t *testing.T) {
 // Also tests GetConfigurations
 func TestPool_RegisterConfiguration(t *testing.T) {
 	type arbitraryConfig struct {
-		name string
-		id   int
 	}
 	assert.Nil(t, config.GetInstance().RegisterConfiguration("someKey", &arbitraryConfig{}))
 	assert.Contains(t, config.GetInstance().GetConfigurations(), "someKey")

@@ -15,7 +15,6 @@ type Pod struct {
 	result       int
 	timeout      time.Duration
 	args         []string
-	status       string
 	Command      string
 	Name         string
 	Namespace    string
