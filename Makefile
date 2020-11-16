@@ -71,6 +71,7 @@ unit-tests:
 
 lint:
 	golint `go list ./... | grep -v vendor`
+	golangci-lint run
 
 .PHONY: clean
 clean:
