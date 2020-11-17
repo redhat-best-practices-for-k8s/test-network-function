@@ -2,247 +2,73 @@
 
 This repository contains a set of network function test cases.
 
-## Install
+## Dependencies
 
-0. Install packages for dependencies: `expect` and `tcllib`.
-1. Ensure `bin/reel.exp` is on your PATH.
+At a minimum, the following dependencies must be installed prior to running `make dependencies`.
 
-## Command Line Tools
+Dependency|Minimum Version
+---|---
+[GoLang](https://golang.org/dl/)|1.14
+[golangci-lint](https://golangci-lint.run/usage/install/)|1.32.2
+[jq](https://stedolan.github.io/jq/)|1.6
+[OpenShift Client](https://docs.openshift.com/container-platform/4.4/welcome/index.html)|4.4
 
-A set of command line tools is provided, where each tool wraps a test or some
-aspect of testing. The tools allow a test scenario to be manually invoked, which
-is useful in development and debugging.
+All other dependencies required to run tests should be installed using the following command:
 
-Where a test is implemented using a controlled subprocess, the corresponding
-command line tool provides a `-d` option. Specifying this option captures the
-dialog between the controlling process and controlled subprocess to the given
-filename.
-
-### ping
-
-Using default options, the `ping` tool sends a single ICMP Echo Request to the
-target host.
-
-```bash
-$ go run cmd/ping/main.go -d success.log 10.5.0.3
-PING 10.5.0.3 (10.5.0.3) 56(84) bytes of data.
-64 bytes from 10.5.0.3: icmp_seq=1 ttl=63 time=38.6 ms
-
---- 10.5.0.3 ping statistics ---
-1 packets transmitted, 1 received, 0% packet loss, time 0ms
-rtt min/avg/max/mdev = 38.646/38.646/38.646/0.000 ms
+```shell script
+make dependencies
 ```
 
-The tool writes to stdout the text output by the controlled subprocess.
-The exit code is 0 (zero) when the test result is success.
+*Note*:  Efforts to containerize this offering are considered a work in progress.
 
-```bash
-$ echo $?
-0
+## Available Test Specs
+
+There are two categories for CNF tests;  `generic` and `CNF-specific`.  `generic` tests are designed to test any
+commodity CNF running on OpenShift, and include specifications such as `Default` network connectivity.  `CNF-specific`
+tests are designed to test unique aspects of the CNF under test.  This could include specifications such as issuing a
+`GET` request to a web server, or passing traffic through an IPSEC tunnel.
+
+### Generic
+
+Suite|Test Spec Description|Minimum OpenShift Version
+---|---|---
+generic|The generic test suite is used to test `Default` network connectivity between containers.  It also checks that the base container image is based on `RHEL`.|4.4.3
+multus|The multus test suite is used to test SR-IOV network connectivity between containers.|4.4.3
+operator|The operator test suite is designed basic Kubernetes Operator functionality.|4.4.3
+container|The container test suite is designed to test container functionality and configuration|4.4.3
+
+
+### CNF Specific
+
+Suite|Test Spec Description|Minimum OpenShift Version
+---|---|---
+cisco_kiknos|Cisco Kiknos specific tests include establishing an IPSEC tunnel between Kiknos and test pod `ikester`, and then passing a minimum amount of `ICMP` and `UDP` traffic across the tunnel.|4.4.3
+casa_cnf|Casa 5G Core specific tests include ensuring proper registration of AMF/SMF CNFs with the NRF.|4.4.3
+
+## Performing Tests
+
+Currently, all available tests are part of the "CNF Certification Test Suite" test suite, which serves as the entrypoint
+to run all test specs.  `CNF Certification 1.0` is not containerized, and involves pulling, building, then running the
+tests.  By default, `test-network-function` emits results to `test-network-function/cnf-certification-tests_junit.xml`.
+
+### Pulling The Code
+
+In order to pull the code, issue the following command:
+
+```shell script
+mkdir ~/workspace
+cd ~/workspace
+git clone git@github.com:redhat-nfvpe/test-network-function.git
+cd test-network-function
 ```
 
-For this example, `success.log` contains the dialog observed by `bin/reel.exp`.
-This comprises each line of JSON sent by the controlling process to instruct
-`bin/reel.exp` of the next step; the text output by the controlled subprocess;
-each line of JSON sent by `bin/reel.exp` to notify the controlling process of
-an event.
+### Building the Tests
 
-```bash
-$ cat success.log
-{"expect":["\\D\\d+ packets transmitted.*\\r\\n(?:rtt )?.*$"],"timeout":2}
-PING 10.5.0.3 (10.5.0.3) 56(84) bytes of data.
-64 bytes from 10.5.0.3: icmp_seq=1 ttl=63 time=38.6 ms
+In order to build the code, first make sure you have satisfied the [dependencies](#dependencies).
 
---- 10.5.0.3 ping statistics ---
-1 packets transmitted, 1 received, 0% packet loss, time 0ms
-rtt min/avg/max/mdev = 38.646/38.646/38.646/0.000 ms
-{"event":"match","idx":0,"pattern":"\\D\\d+ packets transmitted.*\\r\\n(?:rtt )?.*$","before":"PING 10.5.0.3 (10.5.0.3) 56(84) bytes of data.\r\n64 bytes from 10.5.0.3: icmp_seq=1 ttl=63 time=38.6 ms\r\n\r\n--- 10.5.0.3 ping statistics ---\r","match":"\n1 packets transmitted, 1 received, 0% packet loss, time 0ms\r\nrtt min/avg/max/mdev = 38.646/38.646/38.646/0.000 ms\r\n"}
+```shell script
+make build-cnf-tests
 ```
-
-The following example shows the controlling process giving up on the test due
-to a timeout and killing the controlled subprocess.
-
-```bash
-$ go run cmd/ping/main.go -d failure.log 10.3.0.99
-(timeout)
-PING 10.3.0.99 (10.3.0.99) 56(84) bytes of data.
-^C
-
---- 10.3.0.99 ping statistics ---
-1 packets transmitted, 0 received, 100% packet loss, time 0ms
-
-exit status 1
-```
-
-The exit code is 1 (one) when the test result is failure (the test was correctly
-executed and a negative result was determined).
-
-The dialog clearly shows the timeout and sending of ^C to kill the subprocess.
-
-```bash
-$ cat failure.log
-{"expect":["\\D\\d+ packets transmitted.*\\r\\n(?:rtt )?.*$"],"timeout":2}
-PING 10.3.0.99 (10.3.0.99) 56(84) bytes of data.
-{"event":"timeout"}
-{"execute":"\u0003","expect":["\\D\\d+ packets transmitted.*\\r\\n(?:rtt )?.*$"]}
-^C
-
---- 10.3.0.99 ping statistics ---
-1 packets transmitted, 0 received, 100% packet loss, time 0ms
-
-{"event":"match","idx":0,"pattern":"\\D\\d+ packets transmitted.*\\r\\n(?:rtt )?.*$","before":"PING 10.3.0.99 (10.3.0.99) 56(84) bytes of data.\r\n^C\r\n\r\n--- 10.3.0.99 ping statistics ---\r","match":"\n1 packets transmitted, 0 received, 100% packet loss, time 0ms\r\n\r\n"}
-```
-
-The final example shows a test-specific error in executing the test.
-
-```bash
-$ go run cmd/ping/main.go -c 8 -t 10 10.5.0.99
-PING 10.5.0.99 (10.5.0.99) 56(84) bytes of data.
-From 10.3.0.1 icmp_seq=1 Destination Host Unreachable
-From 10.3.0.1 icmp_seq=2 Destination Host Unreachable
-From 10.3.0.1 icmp_seq=3 Destination Host Unreachable
-From 10.3.0.1 icmp_seq=4 Destination Host Unreachable
-From 10.3.0.1 icmp_seq=5 Destination Host Unreachable
-From 10.3.0.1 icmp_seq=6 Destination Host Unreachable
-From 10.3.0.1 icmp_seq=7 Destination Host Unreachable
-From 10.3.0.1 icmp_seq=8 Destination Host Unreachable
-
---- 10.5.0.99 ping statistics ---
-8 packets transmitted, 0 received, +8 errors, 100% packet loss, time 7121ms
-pipe 4
-exit status 2
-```
-
-The exit code is 2 (two) when the test result is error (the test was not
-correctly executed; no result could be determined).
-
-### ssh
-
-Using default options, the `ssh` tool simply establishes a SSH session to the
-target host, then closes it. The controlled subprocess is the native `ssh`
-client tool, with its command line options and args passed through. The
-session is closed when the supplied prompt string (regex) is matched.
-
-```bash
-$ env TERM=vt220 go run cmd/ssh/main.go 'user@hhh:\S+\$ ' hhh -o 'PreferredAuthentications=publickey'
-Last login: Thu Jul 23 18:10:34 2020 from 10.3.0.109
-user@hhh:~$ logout
-Connection to hhh.ddd closed.
-```
-
-Using `-f lines` allows interactive execution of lines of text from stdin,
-mimicking the native client tool.
-
-In this example, two commands are supplied from a here document.
-
-```bash
-$ env TERM=vt220 go run cmd/ssh/main.go -d ssh.log -f lines 'user@hhh:\S+\$ ' hhh -o 'PreferredAuthentications=publickey' <<EOF
-> echo foobar
-> date
-> EOF
-Last login: Tue Jul 14 15:58:14 2020 from 10.3.0.109
-user@hhh:~$ echo foobar
-foobar
-user@hhh:~$ date
-Tue 14 Jul 15:59:08 BST 2020
-user@hhh:~$ logout
-
-$ echo $?
-0
-
-$ cat ssh.log
-{"expect":["Are you sure you want to continue connecting \\(yes/no\\)\\?","Please type 'yes' or 'no': ","user@hhh:\\S+\\$ "],"timeout":2}
-Last login: Tue Jul 14 15:58:14 2020 from 10.3.0.109
-user@hhh:~$ {"event":"match","idx":2,"pattern":"user@hhh:\\S+\\$ ","before":"Last login: Tue Jul 14 15:58:14 2020 from 10.3.0.109\r\r\n","match":"user@hhh:~$ "}
-{"execute":"echo foobar","expect":["user@hhh:\\S+\\$ "],"timeout":2}
-echo foobar
-foobar
-user@hhh:~$ {"event":"match","idx":0,"pattern":"user@hhh:\\S+\\$ ","before":"echo foobar\r\nfoobar\r\n","match":"user@hhh:~$ "}
-{"execute":"date","expect":["user@hhh:\\S+\\$ "],"timeout":2}
-date
-Tue 14 Jul 15:59:08 BST 2020
-user@hhh:~$ {"event":"match","idx":0,"pattern":"user@hhh:\\S+\\$ ","before":"date\r\nTue 14 Jul 15:59:08 BST 2020\r\n","match":"user@hhh:~$ "}
-{"execute":"\u0004","expect":["Connection to .+ closed\\..*$"],"timeout":2}
-logout
-{"event":"match","idx":0,"pattern":"Connection to .+ closed\\..*$","before":"logout\r\n","match":"Connection to hhh.ddd closed.\r"}
-```
-
-Using `-f tests` allows execution of test configurations; each line from stdin
-contains a JSON test configuration.
-
-```bash
-$ cat tests.json
-{"test": "https://tnf.redhat.com/ping/one", "host": "ggg"}
-{"test": "https://tnf.redhat.com/ping/flexi", "count": 77, "host": "10.3.0.99"}
-
-$ env TERM=vt220 go run cmd/ssh/main.go -d ssh.log -f tests 'user@hhh:\S+\$ ' hhh -o 'PreferredAuthentications=publickey' <tests.json
-Last login: Tue Jul 14 15:59:07 2020 from 10.3.0.109
-user@hhh:~$ ping -c 1 ggg
-PING ggg.ddd (10.5.0.5) 56(84) bytes of data.
-64 bytes from ggg.ddd (10.5.0.5): icmp_seq=1 ttl=64 time=0.344 ms
-
---- ggg.ddd ping statistics ---
-1 packets transmitted, 1 received, 0% packet loss, time 0ms
-rtt min/avg/max/mdev = 0.344/0.344/0.344/0.000 ms
-user@hhh:~$ (timeout)
-ping -c 77 10.3.0.99
-PING 10.3.0.99 (10.3.0.99) 56(84) bytes of data.
-From 10.5.0.1 icmp_seq=1 Destination Host Unreachable
-From 10.5.0.1 icmp_seq=2 Destination Host Unreachable
-From 10.5.0.1 icmp_seq=3 Destination Host Unreachable
-From 10.5.0.1 icmp_seq=4 Destination Host Unreachable
-From 10.5.0.1 icmp_seq=5 Destination Host Unreachable
-From 10.5.0.1 icmp_seq=6 Destination Host Unreachable
-From 10.5.0.1 icmp_seq=7 Destination Host Unreachable
-From 10.5.0.1 icmp_seq=8 Destination Host Unreachable
-^C
-
---- 10.3.0.99 ping statistics ---
-11 packets transmitted, 0 received, +8 errors, 100% packet loss, time 10183ms
-pipe 4
-user@hhh:~$ 
-user@hhh:~$ logout
-
-$ cat ssh.log
-{"expect":["Are you sure you want to continue connecting \\(yes/no\\)\\?","Please type 'yes' or 'no': ","user@hhh:\\S+\\$ "],"timeout":2}
-Last login: Tue Jul 14 15:59:07 2020 from 10.3.0.109
-user@hhh:~$ {"event":"match","idx":2,"pattern":"user@hhh:\\S+\\$ ","before":"Last login: Tue Jul 14 15:59:07 2020 from 10.3.0.109\r\r\n","match":"user@hhh:~$ "}
-{"execute":"ping -c 1 ggg","expect":["user@hhh:\\S+\\$ "],"timeout":2}
-ping -c 1 ggg
-PING ggg.ddd (10.5.0.5) 56(84) bytes of data.
-64 bytes from ggg.ddd (10.5.0.5): icmp_seq=1 ttl=64 time=0.344 ms
-
---- ggg.ddd ping statistics ---
-1 packets transmitted, 1 received, 0% packet loss, time 0ms
-rtt min/avg/max/mdev = 0.344/0.344/0.344/0.000 ms
-user@hhh:~$ {"event":"match","idx":0,"pattern":"user@hhh:\\S+\\$ ","before":"ping -c 1 ggg\r\nPING ggg.ddd (10.5.0.5) 56(84) bytes of data.\r\n64 bytes from ggg.ddd (10.5.0.5): icmp_seq=1 ttl=64 time=0.344 ms\r\n\r\n--- ggg.ddd ping statistics ---\r\n1 packets transmitted, 1 received, 0% packet loss, time 0ms\r\nrtt min/avg/max/mdev = 0.344/0.344/0.344/0.000 ms\r\n","match":"user@hhh:~$ "}
-{"execute":"ping -c 77 10.3.0.99","expect":["user@hhh:\\S+\\$ "],"timeout":10}
-ping -c 77 10.3.0.99
-PING 10.3.0.99 (10.3.0.99) 56(84) bytes of data.
-From 10.5.0.1 icmp_seq=1 Destination Host Unreachable
-From 10.5.0.1 icmp_seq=2 Destination Host Unreachable
-From 10.5.0.1 icmp_seq=3 Destination Host Unreachable
-From 10.5.0.1 icmp_seq=4 Destination Host Unreachable
-From 10.5.0.1 icmp_seq=5 Destination Host Unreachable
-From 10.5.0.1 icmp_seq=6 Destination Host Unreachable
-From 10.5.0.1 icmp_seq=7 Destination Host Unreachable
-From 10.5.0.1 icmp_seq=8 Destination Host Unreachable
-{"event":"timeout"}
-{"execute":"\u0003","expect":["user@hhh:\\S+\\$ "],"timeout":2}
-^C
-
---- 10.3.0.99 ping statistics ---
-11 packets transmitted, 0 received, +8 errors, 100% packet loss, time 10183ms
-pipe 4
-user@hhh:~$ 
-user@hhh:~$ {"event":"match","idx":0,"pattern":"user@hhh:\\S+\\$ ","before":"ping -c 77 10.3.0.99\r\nPING 10.3.0.99 (10.3.0.99) 56(84) bytes of data.\r\nFrom 10.5.0.1 icmp_seq=1 Destination Host Unreachable\r\nFrom 10.5.0.1 icmp_seq=2 Destination Host Unreachable\r\nFrom 10.5.0.1 icmp_seq=3 Destination Host Unreachable\r\nFrom 10.5.0.1 icmp_seq=4 Destination Host Unreachable\r\nFrom 10.5.0.1 icmp_seq=5 Destination Host Unreachable\r\nFrom 10.5.0.1 icmp_seq=6 Destination Host Unreachable\r\nFrom 10.5.0.1 icmp_seq=7 Destination Host Unreachable\r\nFrom 10.5.0.1 icmp_seq=8 Destination Host Unreachable\r\n^C\r\n\r\n--- 10.3.0.99 ping statistics ---\r\n11 packets transmitted, 0 received, +8 errors, 100% packet loss, time 10183ms\r\npipe 4\r\nuser@hhh:~$ \r\n","match":"user@hhh:~$ "}
-{"execute":"\u0004","expect":["Connection to .+ closed\\..*$"],"timeout":2}
-logout
-Connection to hhh.ddd closed.
-{"event":"match","idx":0,"pattern":"Connection to .+ closed\\..*$","before":"logout\r\n","match":"Connection to hhh.ddd closed.\r"}
-```
-
-## Running Tests
 
 ### Run Generic Tests Only
 
@@ -252,8 +78,6 @@ In order to run the Generic CNF tests only, issue the following command:
 make generic-cnf-tests
 ```
 
-A JUnit report containing results is created at `test-network-function/cnf-certification-tests_junit.xml`.
-
 ### Run All CNF Certification Tests
 
 In order to run all CNF tests, issue the following command:
@@ -261,8 +85,6 @@ In order to run all CNF tests, issue the following command:
 ```shell script
 make cnf-tests
 ```
-
-A JUnit report containing results is created at `test-network-function/cnf-certification-tests_junit.xml`.
 
 ### Run a Specific Test Suite
 
@@ -273,20 +95,17 @@ make build build-cnf-tests
 cd ./test-network-function && ./test-network-function.test -ginkgo.v -ginkgo.focus="cisco_kiknos" -junit . -report .
 ```
 
-A JUnit report containing results is created at `test-network-function/cnf-certification-tests_junit.xml`.
-
-### Run an Operator Test Suite
-In order to run an Operator test suite, `operator-test` for example, issue the following command:
+### Run the Operator Test Suite
+In order to run the Operator test suite, issue the following command:
 
 ```shell script
-make build build-cnf-operator-tests
-cd ./test-network-function/operator-test && ./operator-test.test -ginkgo.v -ginkgo.focus="operator_test" -junit . -report .
+make build build-cnf-tests
+cd ./test-network-function && ./test-network-function.test -config=config.yml -ginkgo.v -ginkgo.focus="operator" -junit . -report .
 ```
 
-Test Configuration
+#### Operator Test Configuration
  
-You can either edit the provided config `config.yml`
-or you can pass a different config with `-config` flag to the test suite
+You can either edit the provided config `config.yml` or pass a different config by using the `-config` flag.
 
 Sample config.yml
 ```
@@ -298,19 +117,12 @@ operators:
     tests:
       - "OPERATOR_STATUS"
 cnfs:
-
-```          
-      
-```shell script
-make build build-cnf-operator-tests
-cd ./test-network-function/operator-test && ./operator-test.test -config=config.yml  -ginkgo.v -ginkgo.focus="operator_test" -junit . -report .
 ```
 
 Configuring tests
 
-By default the test suite will run all the default test cases defined by `testconfigure.yml` file,
-but you can override those test cases by overriding to add only required tests to that file.
-The contents should match as shown below.    
+By default, the test suite will run all the default test cases defined by `testconfigure.yml` file.  You can change
+which tests run by modifying `testconfigure.yml`.  The contents should match as shown below.
 
 Example:
 ```
@@ -334,22 +146,19 @@ Example:
      - "CLUSTER_ROLE_BINDING_BY_SA"
  ```
 
+### Run the Container Test Suite
 
-A JUnit report containing results is created at `test-network-function/operator-test/cnf-operator-certification-tests_junit.xml`.
-
-### Run an Container Test Suite
-
-In order to run an container test suite, `container-test` for example, issue the following command:
+In order to run the container test suite, issue the following command:
 
 ```shell script
-make build build-cnf-container-tests
-cd ./test-network-function/container-test && ./container-test.test -ginkgo.v -ginkgo.focus="container_test" -junit . -report .
+make build build-cnf-tests
+cd ./test-network-function && ./test-network-function.test -config=config.yml -ginkgo.v -ginkgo.focus="container" -junit . -report .
 ```
 
-Test Configuration
+#### Container Test Configuration
  
-You can either edit the provided config `config.yml`
-or you can pass a different config with `-config` flag to the test suite
+You can either edit the provided config `config.yml`  or pass a different config by using the `-config` flag to the
+test suite.
 
 Sample config.yml
 ```
@@ -366,18 +175,12 @@ cnfs:
     tests:
       - "PRIVILEGED_POD"
       - "PRIVILEGED_ROLE"
-```          
-      
-```shell script
-make build build-cnf-container-tests
-cd ./test-network-function/container-test && ./container-test.test -config=config.yml  -ginkgo.v -ginkgo.focus="container_test" -junit . -report .
 ```
 
 Configuring test cases
 
-By default the test suite will run all the default test cases defined by `testconfigure.yml` file,
-but you can override those test cases by overriding to add only required tests to that file.
-The contents should match as shown below.    
+By default, the test suite will run all the default test cases defined by `testconfigure.yml` file.  You can change
+which tests run by modifying `testconfigure.yml`.  The contents should match as shown below.
 
 Example:
 ```
@@ -396,7 +199,4 @@ Example:
      tests:
      - "CLUSTER_ROLE_BINDING_BY_SA"
  
- ```
-
-A JUnit report containing results is created at `test-network-function/container-test/cnf-operator-certification-tests_junit.xml`.
-
+```

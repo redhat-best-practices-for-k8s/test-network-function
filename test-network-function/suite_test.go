@@ -9,10 +9,12 @@ import (
 	"github.com/redhat-nfvpe/test-network-function-claim/pkg/claim"
 	"github.com/redhat-nfvpe/test-network-function/pkg/config"
 	"github.com/redhat-nfvpe/test-network-function/pkg/junit"
+	containerTestConfig "github.com/redhat-nfvpe/test-network-function/pkg/tnf/config"
 	_ "github.com/redhat-nfvpe/test-network-function/test-network-function/cnf-specific/casa/cnf"
 	_ "github.com/redhat-nfvpe/test-network-function/test-network-function/cnf-specific/cisco/kiknos"
+	_ "github.com/redhat-nfvpe/test-network-function/test-network-function/container"
 	"github.com/redhat-nfvpe/test-network-function/test-network-function/generic"
-	_ "github.com/redhat-nfvpe/test-network-function/test-network-function/generic"
+	_ "github.com/redhat-nfvpe/test-network-function/test-network-function/operator"
 	"github.com/redhat-nfvpe/test-network-function/test-network-function/version"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
@@ -44,6 +46,13 @@ func init() {
 		"the path of the report file containing details for failed tests")
 }
 
+var _ = ginkgo.BeforeSuite(func() {
+	tnfConfig, cfgError := containerTestConfig.GetConfig()
+	if cfgError != nil || tnfConfig.CNFs == nil {
+		ginkgo.Fail("Unable to load the configuration required for the test. Test aborted")
+	}
+})
+
 func createClaimRoot() *claim.Root {
 	// Initialize the claim with the start time.
 	startTime := time.Now()
@@ -58,6 +67,7 @@ func createClaimRoot() *claim.Root {
 // Invokes the CNF Certification Tests.
 func TestTest(t *testing.T) {
 	flag.Parse()
+
 	gomega.RegisterFailHandler(ginkgo.Fail)
 
 	// Extract the version, which should be placed by the build system.
@@ -91,6 +101,7 @@ func TestTest(t *testing.T) {
 	}
 
 	ginkgo.RunSpecsWithDefaultAndCustomReporters(t, CnfCertificationTestSuiteName, ginkgoReporters)
+
 	junitMap, err := junit.ExportJUnitAsJSON(JunitXMLFileName)
 
 	endTime := time.Now()

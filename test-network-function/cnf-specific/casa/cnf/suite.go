@@ -18,7 +18,7 @@ const (
 	testTimeout = time.Second * 10
 )
 
-var _ = ginkgo.Describe("casa-cnf", func() {
+var _ = ginkgo.Describe("casa_cnf", func() {
 
 	var config *configuration.CasaCNFConfiguration
 	var err error

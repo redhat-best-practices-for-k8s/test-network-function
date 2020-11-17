@@ -1,15 +1,12 @@
-.PHONY: build \
-	build-generic-cnf-tests \
-	clean \
+.PHONY: build-cnf-tests \
 	cnf-tests \
 	dependencies \
 	deps-update \
-	generic-cnf-tests \
-	lint \
 	mocks \
 	run-cnf-tests \
 	run-generic-cnf-tests \
-	unit-tests
+	run-container-tests \
+	run-operator-tests
 
 # Export GO111MODULE=on to enable project to be built from within GOPATH/src
 export GO111MODULE=on
@@ -23,39 +20,38 @@ endif
 export COMMON_GINKGO_ARGS=-ginkgo.v -junit . -report .
 export COMMON_GO_ARGS=-race
 
-build: lint
+build:
 	go fmt ./...
 	go build ${COMMON_GO_ARGS} ./...
 	make unit-tests
 
-generic-cnf-tests: build build-cnf-tests run-generic-cnf-tests
-
 cnf-tests: build build-cnf-tests run-cnf-tests
 
-operator-cnf-tests: build build-cnf-operator-tests run-operator-tests
+generic-cnf-tests: build build-cnf-tests run-generic-cnf-tests
 
-container-cnf-tests: build build-cnf-container-tests run-container-tests
+operator-cnf-tests: build build-cnf-tests run-operator-tests
 
+container-cnf-tests: build build-cnf-tests run-container-tests
+
+.PHONY: build-cnf-tests
 build-cnf-tests:
 	PATH=${PATH}:${GOBIN} ginkgo build ./test-network-function
 
-build-cnf-operator-tests:
-	PATH=${PATH}:${GOBIN} ginkgo build ./test-network-function/operator-test --tags operator_suite
-
-build-cnf-container-tests:
-	PATH=${PATH}:${GOBIN} ginkgo build ./test-network-function/container-test --tags container_suite
-
+.PHONY: run-generic-cnf-tests
 run-generic-cnf-tests:
 	cd ./test-network-function && ./test-network-function.test -ginkgo.focus="generic" ${COMMON_GINKGO_ARGS}
 
+.PHONY: run-cnf-tests
 run-cnf-tests:
 	cd ./test-network-function && ./test-network-function.test ${COMMON_GINKGO_ARGS}
 
+.PHONY: run-operator-tests
 run-operator-tests:
-	cd ./test-network-function/operator-test && ./operator-test.test  ${COMMON_GINKGO_ARGS}
+	cd ./test-network-function && ./test-network-function.test -ginkgo.focus="operator" ${COMMON_GINKGO_ARGS}
 
+.PHONY: run-container-tests
 run-container-tests:
-	cd ./test-network-function/container-test && ./container-test.test  ${COMMON_GINKGO_ARGS}
+	cd ./test-network-function && ./test-network-function.test -ginkgo.focus="container" ${COMMON_GINKGO_ARGS}
 
 deps-update:
 	go mod tidy && \
@@ -73,16 +69,12 @@ lint:
 	golint `go list ./... | grep -v vendor`
 	golangci-lint run
 
-.PHONY: clean
 clean:
 	go clean
 	rm -f ./test-network-function/test-network-function.test
 	rm -f ./test-network-function/cnf-certification-tests_junit.xml
-	rm -f ./test-network-function/operator-test/operator-test.test
-	rm -f ./test-network-function/operator-test/cnf-operator-certification-tests_junit.xml
-	rm -f ./test-network-function/container-test/container-test.test
-	rm -f ./test-network-function/container-test/cnf-container-tests_junit.xml
 
 dependencies:
 	go get github.com/onsi/ginkgo/ginkgo
 	go get github.com/onsi/gomega/...
+	go get golang.org/x/lint/golint

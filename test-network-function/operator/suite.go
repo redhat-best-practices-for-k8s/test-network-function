@@ -8,7 +8,7 @@ import (
 	"github.com/redhat-nfvpe/test-network-function/internal/reel"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
 	operatorTestConfig "github.com/redhat-nfvpe/test-network-function/pkg/tnf/config"
-	operator "github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/operator"
+	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/operator"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/interactive"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/testcases"
 	"strings"
@@ -19,6 +19,7 @@ const (
 	// The default test timeout.
 	defaultTimeoutSeconds = 10
 	configuredTestFile    = "testconfigure.yml"
+	testSpecName          = "operator"
 )
 
 var (
@@ -28,15 +29,17 @@ var (
 	operatorInTest *operatorTestConfig.TnfContainerOperatorTestConfig
 )
 
-var _ = ginkgo.Describe("operator_test", func() {
+var _ = ginkgo.Describe(testSpecName, func() {
 
-	ginkgo.When("A local shell is spawned", func() {
+	ginkgo.When("a local shell is spawned", func() {
 		goExpectSpawner := interactive.NewGoExpectSpawner()
 		var spawner interactive.Spawner = goExpectSpawner
 		context, err = interactive.SpawnShell(&spawner, defaultTimeout, expect.Verbose(true))
-		gomega.Expect(err).To(gomega.BeNil())
-		gomega.Expect(context).ToNot(gomega.BeNil())
-		gomega.Expect(context.GetExpecter()).ToNot(gomega.BeNil())
+		ginkgo.It("should be created without error", func() {
+			gomega.Expect(err).To(gomega.BeNil())
+			gomega.Expect(context).ToNot(gomega.BeNil())
+			gomega.Expect(context.GetExpecter()).ToNot(gomega.BeNil())
+		})
 	})
 	defer ginkgo.GinkgoRecover()
 	operatorInTest, err = operatorTestConfig.GetConfig()
