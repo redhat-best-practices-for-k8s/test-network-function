@@ -16,7 +16,7 @@ func parseArgs() (*ping.Ping, time.Duration) {
 	timeout := flag.Int("t", 2, "Timeout in seconds")
 	count := flag.Int("c", 1, "Number of requests to send")
 	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "usage: %s [-d logfile] [-t timeout] [-c count] host\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "usage: %s [-t timeout] [-c count] host\n", os.Args[0])
 		flag.PrintDefaults()
 		os.Exit(tnf.ERROR)
 	}
@@ -43,8 +43,7 @@ func main() {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(result)
 	}
-	printer := reel.NewPrinter("")
-	tester, err := tnf.NewTest(context.GetExpecter(), ping, []reel.Handler{printer, ping}, context.GetErrorChannel())
+	tester, err := tnf.NewTest(context.GetExpecter(), ping, []reel.Handler{ping}, context.GetErrorChannel())
 
 	if err == nil {
 		result, err = tester.Run()
