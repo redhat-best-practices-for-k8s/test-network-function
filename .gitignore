@@ -6,3 +6,4 @@ test-network-function_junit.xml
 cover.out
 test-network-function/cnf-certification-tests_junit.xml
 cnf-certification-tests_junit.xml
+.vscode
