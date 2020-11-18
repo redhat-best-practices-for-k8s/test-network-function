@@ -46,9 +46,8 @@ func main() {
 		os.Exit(result)
 	}
 
-	printer := reel.NewPrinter(" \r\n")
 	request := ping.NewPing(timeoutDuration, targetIPAddress, 5)
-	chain := []reel.Handler{printer, request}
+	chain := []reel.Handler{request}
 	test, err := tnf.NewTest(oc.GetExpecter(), request, chain, ch)
 
 	if err == nil {
