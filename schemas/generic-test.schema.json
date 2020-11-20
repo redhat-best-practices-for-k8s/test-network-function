@@ -1,0 +1,224 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "version": "0.0.1",
+
+  "definitions": {
+    "step": {
+      "type": "object",
+      "description": "step is an instruction for a single REEL pass.  To process a step, first send the execute string to the target subprocess (if supplied).  Block until the subprocess output to stdout matches one of the regular expressions in expect (if any supplied). A positive integer timeout prevents blocking forever.",
+      "properties": {
+        "execute": {
+          "type": "string",
+          "description": "execute is a Unix command to execute using the underlying subprocess."
+        },
+        "expect": {
+          "type": "array",
+          "description": "expect is an array of expected text regular expressions.  The first expectation results in a match.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "timeout": {
+          "type": "integer",
+          "description": "timeout is the timeout for the Step.  A positive Timeout prevents blocking forever."
+        }
+      },
+      "additionalProperties": false,
+      "requiredProperties": [
+        "timeout"
+      ]
+    },
+    "condition": {
+      "type": "object",
+      "description": "condition represents the polymorphic behavior of the ability to Evaluate.  Given a regular expression, match, and match index, it is useful to make assertions using Condition implementations.  For example, if a Ping test returns a matching summary, it is convenient to evaluate that summary indicates zero errors.",
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "type stores the sentinel which represents the type of Condition implemented."
+        }
+      },
+      "additionalProperties": true,
+      "requiredProperties": [
+        "type"
+      ]
+    },
+
+    "logic": {
+      "type": "object",
+      "description": "logic represents boolean logic.  Given a set of conditions, it is useful to make assertions over the set using some sort of boolean logic (\"and\" and \"or\", for example).",
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "type stores the sentinel which represents the type of BooleanLogic implemented."
+        }
+      }
+    },
+
+    "assertion": {
+      "type": "object",
+      "description": "assertion provides the ability to assert a Condition for the string extracted from GroupIdx of Match.",
+      "properties": {
+        "groupIdx": {
+          "type": "integer",
+          "description": "groupIdx is the index in the match string used in the Assertion."
+        },
+        "condition": {
+          "$ref": "#/definitions/condition",
+          "description": "condition is the condition.Condition asserted in this Assertion."
+        }
+      },
+      "additionalProperties": false,
+      "requiredProperties": [
+        "groupIdx",
+        "condition"
+      ]
+    },
+
+    "composedAssertion": {
+      "type": "object",
+      "description": "composedAssertions is a means of making many assertion.Assertion claims about the match.",
+      "properties": {
+        "assertions": {
+          "type": "array",
+          "description": "assertions provides the ability to compose BooleanLogic claims across any number of Assertion instances.",
+          "items": {
+            "$ref": "#/definitions/assertion"
+          },
+          "additionalProperties": false,
+          "requiredProperties": [
+            "matchIdx",
+            "condition"
+          ]
+        },
+        "logic": {
+          "$ref": "#/definitions/logic",
+          "definition": "logic is the BooleanLogic implementation to that is asserted over Assertions."
+        }
+      },
+      "additionalProperties": false,
+      "requiredProperties": [
+        "assertions",
+        "logic"
+      ]
+    },
+
+    "resultContext": {
+      "type": "object",
+      "description": "resultContexts provides the ability to make assertion.Assertions based on the given pattern matched.",
+      "properties": {
+        "pattern": {
+          "type": "string",
+          "description": "pattern is the pattern causing a match in reel.Handler ReelMatch."
+        },
+        "composedAssertions": {
+          "type": "array",
+          "description": "composedAssertions is a means of making many assertion.Assertion claims about the match.",
+          "items": {
+            "$ref": "#/definitions/composedAssertion"
+          }
+        },
+        "defaultResult": {
+          "type": "integer",
+          "description": "defaultResult is the result of the test.  This is only used if ComposedAssertions is not provided."
+        },
+        "nextStep": {
+          "$ref": "#/definitions/step",
+          "description": "nextStep is an optional next step to take after an initial ReelMatch."
+        },
+        "nextResultContexts": {
+          "type": "array",
+          "description": "nextResultContexts is an optional array which provides the ability to make assertion.Assertions based on the next pattern match.",
+          "items": {
+            "$ref": "#/definitions/resultContext"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "requiredProperties": [
+        "pattern",
+        "defaultResult"
+      ]
+    },
+
+    "match": {
+      "type": "object",
+      "properties": {
+        "pattern": {
+          "type": "string",
+          "description": "pattern is the pattern causing a match in reel.Handler ReelMatch."
+        },
+        "before": {
+          "type": "string",
+          "description": "before contains the text before the Match."
+        },
+        "match": {
+          "type": "string",
+          "description": "match is the matched string."
+        }
+      },
+      "additionalProperties": false,
+      "requiredProperties": [
+        "pattern",
+        "before",
+        "match"
+      ]
+    }
+  },
+
+  "type": "object",
+  "description": "generic-test is a construct for defining an arbitrary simple test with prescriptive confines.  Essentially, the definition of the state machine for a Generic reel.Handler is restricted in this facade implementation, since most common use cases do not require too much heavy lifting.",
+  "properties": {
+    "arguments": {
+      "description": "arguments is the Unix command array.",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "description": {
+      "type": "string",
+      "description": "description is a textual description of the overall functionality that is tested."
+    },
+    "failureReason": {
+      "type": "string",
+      "description": "failureReason optionally stores extra information pertaining to why the test failed."
+    },
+    "matches": {
+      "type": "array",
+      "description": "matches contains an in order array of matches.",
+      "items": {
+        "$ref": "#/definitions/match",
+        "description": "match stores information about the matched regular expression, if one exists."
+      }
+    },
+    "reelFirstStep": {
+      "$ref": "#/definitions/step",
+      "description": "reelFirstStep is the first step returned by reel.ReelFirst()."
+    },
+    "resultContexts": {
+      "type": "array",
+      "description": "resultContexts provides the ability to make assertion.Assertions based on the given pattern matched.",
+      "items": {"$ref": "#/definitions/resultContext"}
+    },
+    "reelTimeoutStep": {
+      "$ref": "#/definitions/step",
+      "description": "reelTimeoutStep is the reel.Step to take upon timeout."
+    },
+    "testResult": {
+      "type": "integer",
+      "description": "testResult is the result of running the tnf.Test.  0 indicates SUCCESS, 1 indicates FAILURE, 2 indicates ERROR."
+    },
+    "testTimeout": {
+      "type": "integer",
+      "description": "testTimeout prevents the Test from running forever."
+    }
+  },
+  "additionalProperties": false,
+  "requiredProperties": [
+    "description",
+    "reelFirstStep",
+    "resultContexts",
+    "testResult",
+    "testTimeout"
+  ]
+}
