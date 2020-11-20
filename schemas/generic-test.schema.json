@@ -1,11 +1,12 @@
 {
+  "$id": "http://test-network-function.com/schemas/generic-test.schema.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "version": "0.0.1",
-
   "definitions": {
     "step": {
+      "$id": "#step",
       "type": "object",
-      "description": "step is an instruction for a single REEL pass.  To process a step, first send the execute string to the target subprocess (if supplied).  Block until the subprocess output to stdout matches one of the regular expressions in expect (if any supplied). A positive integer timeout prevents blocking forever.",
+      "description": "step is an instruction for a single REEL pass.  To process a step, first send the execute string to the target subprocess (if supplied).  Block until the subprocess output to stdout matches one of the regular expressions in expect (if any supplied).",
       "properties": {
         "execute": {
           "type": "string",
@@ -13,37 +14,83 @@
         },
         "expect": {
           "type": "array",
-          "description": "expect is an array of expected text regular expressions.  The first expectation results in a match.",
+          "description": "expect is an array of expected text regular expressions.  Order is important, as the first matched expectation is used, and further expectations are disregarded.",
           "items": {
             "type": "string"
           }
         },
         "timeout": {
           "type": "integer",
-          "description": "timeout is the timeout for the Step.  A positive Timeout prevents blocking forever."
+          "description": "timeout is the timeout for the Step.  A positive timeout prevents blocking forever."
         }
       },
       "additionalProperties": false,
-      "requiredProperties": [
+      "required": [
         "timeout"
       ]
     },
-    "condition": {
+    "isIntCondition": {
+      "$id": "#isIntCondition",
       "type": "object",
-      "description": "condition represents the polymorphic behavior of the ability to Evaluate.  Given a regular expression, match, and match index, it is useful to make assertions using Condition implementations.  For example, if a Ping test returns a matching summary, it is convenient to evaluate that summary indicates zero errors.",
+      "description": "isIntCondition is an implementation of the condition.Condition interface which evaluates whether a match string is an integer.",
       "properties": {
         "type": {
           "type": "string",
           "description": "type stores the sentinel which represents the type of Condition implemented."
         }
       },
-      "additionalProperties": true,
-      "requiredProperties": [
+      "additionalProperties": false,
+      "required": [
         "type"
       ]
     },
-
+    "intComparisonCondition": {
+      "$id": "#intComparisonCondition",
+      "type": "object",
+      "description": "intComparisonCondition is an implementation of the condition.Condition interface which converts a match string to an integer, then checks the integer comparison against input.",
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "type stores the sentinel which represents the type of Condition implemented."
+        },
+        "input": {
+          "type": "integer",
+          "description": "input is the right operand of the integer comparison.  For example, int(match[groupIdx]) == input."
+        },
+        "comparison": {
+          "type": "string",
+          "description": "comparison is the sentinel string used to identify the integer comparison type.  The following comparisons are supported: \"==\", \"<\", \"<=\", \">\", \">=\", \"!=\"."
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "input",
+        "comparison"
+      ]
+    },
+    "stringEqualsCondition": {
+      "$id": "#stringEqualsCondition",
+      "type": "object",
+      "description": "stringEqualsCondition is an implementation of the condition.Condition interface which evaluates string equality of a match against expected.",
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "type stores the sentinel which represents the type of Condition implemented."
+        },
+        "expected": {
+          "type": "string",
+          "description": "expected is the expected string value."
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "expected"
+      ]
+    },
     "logic": {
+      "$id": "#logic",
       "type": "object",
       "description": "logic represents boolean logic.  Given a set of conditions, it is useful to make assertions over the set using some sort of boolean logic (\"and\" and \"or\", for example).",
       "properties": {
@@ -53,8 +100,8 @@
         }
       }
     },
-
     "assertion": {
+      "$id": "#assertion",
       "type": "object",
       "description": "assertion provides the ability to assert a Condition for the string extracted from GroupIdx of Match.",
       "properties": {
@@ -63,18 +110,28 @@
           "description": "groupIdx is the index in the match string used in the Assertion."
         },
         "condition": {
-          "$ref": "#/definitions/condition",
+          "oneOf": [
+            {
+              "$ref": "#isIntCondition"
+            },
+            {
+              "$ref": "#intComparisonCondition"
+            },
+            {
+              "$ref": "#stringEqualsCondition"
+            }
+          ],
           "description": "condition is the condition.Condition asserted in this Assertion."
         }
       },
       "additionalProperties": false,
-      "requiredProperties": [
+      "required": [
         "groupIdx",
         "condition"
       ]
     },
-
     "composedAssertion": {
+      "$id": "#composedAssertion",
       "type": "object",
       "description": "composedAssertions is a means of making many assertion.Assertion claims about the match.",
       "properties": {
@@ -82,27 +139,27 @@
           "type": "array",
           "description": "assertions provides the ability to compose BooleanLogic claims across any number of Assertion instances.",
           "items": {
-            "$ref": "#/definitions/assertion"
+            "$ref": "#assertion"
           },
           "additionalProperties": false,
-          "requiredProperties": [
+          "required": [
             "matchIdx",
             "condition"
           ]
         },
         "logic": {
-          "$ref": "#/definitions/logic",
+          "$ref": "#logic",
           "definition": "logic is the BooleanLogic implementation to that is asserted over Assertions."
         }
       },
       "additionalProperties": false,
-      "requiredProperties": [
+      "required": [
         "assertions",
         "logic"
       ]
     },
-
     "resultContext": {
+      "$id": "#resultContext",
       "type": "object",
       "description": "resultContexts provides the ability to make assertion.Assertions based on the given pattern matched.",
       "properties": {
@@ -114,7 +171,7 @@
           "type": "array",
           "description": "composedAssertions is a means of making many assertion.Assertion claims about the match.",
           "items": {
-            "$ref": "#/definitions/composedAssertion"
+            "$ref": "#composedAssertion"
           }
         },
         "defaultResult": {
@@ -122,25 +179,25 @@
           "description": "defaultResult is the result of the test.  This is only used if ComposedAssertions is not provided."
         },
         "nextStep": {
-          "$ref": "#/definitions/step",
+          "$ref": "#step",
           "description": "nextStep is an optional next step to take after an initial ReelMatch."
         },
         "nextResultContexts": {
           "type": "array",
           "description": "nextResultContexts is an optional array which provides the ability to make assertion.Assertions based on the next pattern match.",
           "items": {
-            "$ref": "#/definitions/resultContext"
+            "$ref": "#resultContext"
           }
         }
       },
       "additionalProperties": false,
-      "requiredProperties": [
+      "required": [
         "pattern",
         "defaultResult"
       ]
     },
-
     "match": {
+      "$id": "#match",
       "type": "object",
       "properties": {
         "pattern": {
@@ -157,14 +214,12 @@
         }
       },
       "additionalProperties": false,
-      "requiredProperties": [
+      "required": [
         "pattern",
-        "before",
         "match"
       ]
     }
   },
-
   "type": "object",
   "description": "generic-test is a construct for defining an arbitrary simple test with prescriptive confines.  Essentially, the definition of the state machine for a Generic reel.Handler is restricted in this facade implementation, since most common use cases do not require too much heavy lifting.",
   "properties": {
@@ -187,21 +242,23 @@
       "type": "array",
       "description": "matches contains an in order array of matches.",
       "items": {
-        "$ref": "#/definitions/match",
+        "$ref": "#match",
         "description": "match stores information about the matched regular expression, if one exists."
       }
     },
     "reelFirstStep": {
-      "$ref": "#/definitions/step",
+      "$ref": "#step",
       "description": "reelFirstStep is the first step returned by reel.ReelFirst()."
     },
     "resultContexts": {
       "type": "array",
       "description": "resultContexts provides the ability to make assertion.Assertions based on the given pattern matched.",
-      "items": {"$ref": "#/definitions/resultContext"}
+      "items": {
+        "$ref": "#resultContext"
+      }
     },
     "reelTimeoutStep": {
-      "$ref": "#/definitions/step",
+      "$ref": "#step",
       "description": "reelTimeoutStep is the reel.Step to take upon timeout."
     },
     "testResult": {
@@ -214,7 +271,7 @@
     }
   },
   "additionalProperties": false,
-  "requiredProperties": [
+  "required": [
     "description",
     "reelFirstStep",
     "resultContexts",
