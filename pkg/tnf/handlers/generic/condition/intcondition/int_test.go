@@ -253,7 +253,7 @@ func TestIntComparisonCondition_Evaluate(t *testing.T) {
 	for _, testCase := range intComparisonTestCases {
 		c := intcondition.NewComparisonCondition(testCase.input, testCase.comparison)
 		actualResult, actualError := c.Evaluate(testCase.match, testCase.regex, testCase.matchIdx)
-		assert.Equal(t, testCase.expectedType, intcondition.ComparisonConditionKey)
+		assert.Equal(t, testCase.expectedType, c.Type)
 		assert.Equal(t, testCase.expectedResult, actualResult)
 		assert.Equal(t, testCase.expectedError, actualError != nil)
 	}
