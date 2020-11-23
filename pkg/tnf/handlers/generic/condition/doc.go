@@ -1,2 +1,2 @@
-// Package condition defines some the Condition Evaluate contract.
+// Package condition defines the Condition Evaluate contract.
 package condition
