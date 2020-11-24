@@ -7,7 +7,7 @@ type Match struct {
 	// Pattern is the pattern causing a match in reel.Handler ReelMatch.
 	Pattern string `json:"pattern,omitempty" yaml:"pattern,omitempty"`
 
-	// Before contains the text before the Match.
+	// Before contains all output preceding Match.
 	Before string `json:"before,omitempty" yaml:"before,omitempty"`
 
 	// Match is the matched string.

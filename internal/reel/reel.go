@@ -43,7 +43,10 @@ type Handler interface {
 	// ReelFirst returns the first step to perform.
 	ReelFirst() *Step
 
-	// ReelMatch informs of a match event, returning the next step to perform.
+	// ReelMatch informs of a match event, returning the next step to perform.  ReelMatch takes three arguments:
+	// `pattern` represents the regular expression pattern which was matched.
+	// `before` contains all output preceding `match`.
+	// `match` is the text matched by `pattern`.
 	ReelMatch(pattern string, before string, match string) *Step
 
 	// ReelTimeout informs of a timeout event, returning the next step to perform.

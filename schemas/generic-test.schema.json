@@ -206,7 +206,7 @@
         },
         "before": {
           "type": "string",
-          "description": "before contains the text before the Match."
+          "description": "before contains all output preceding match."
         },
         "match": {
           "type": "string",
