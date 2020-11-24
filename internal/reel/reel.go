@@ -102,12 +102,21 @@ func generateCase(expectation string, firstMatch *string) *expect.Case {
 	}}
 }
 
+// appendNewLineIfNecessary appends a new line to the end of execute if it doesn't already end in a new line.
+func appendNewlineIfNecessary(execute string) string {
+	if strings.HasSuffix(execute, "\n") {
+		return execute
+	}
+	return execute + "\n"
+}
+
 // Each Step can have exactly one execution string (Step.Execute).  This method follows the Adapter design pattern;  a
 // single raw execution string is converted into a corresponding expect.Batcher.  The function returns an array of
 // expect.Batcher, as it is expected that there are likely expectations to follow.
 func generateBatcher(execute string) []expect.Batcher {
 	var batcher []expect.Batcher
 	if execute != "" {
+		execute = appendNewlineIfNecessary(execute)
 		batcher = append(batcher, &expect.BSnd{S: execute})
 	}
 	return batcher
