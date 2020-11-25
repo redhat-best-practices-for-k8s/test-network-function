@@ -8,8 +8,8 @@ import (
 	"github.com/redhat-nfvpe/test-network-function/internal/reel"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/interactive"
-	"github.com/redhat-nfvpe/test-network-function/test-network-function/cnf-specific/casa/cnf/nrf"
-	"github.com/redhat-nfvpe/test-network-function/test-network-function/cnf-specific/casa/configuration"
+	"github.com/redhat-nfvpe/test-network-function/test-network-function/cnf_specific/casa/cnf/nrf"
+	"github.com/redhat-nfvpe/test-network-function/test-network-function/cnf_specific/casa/configuration"
 	log "github.com/sirupsen/logrus"
 	"time"
 )

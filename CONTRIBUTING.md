@@ -14,9 +14,7 @@ This list is expected to grow over time.
 
 ## Documentation guidelines
 
-Each exported API must have proper documentation.  This documentation should adhere to `gofmt` rules.
-
-Each exported global variable or constant must have proper documentation which adheres to `gofmt`.
+Each exported API, global variable or constant must have proper documentation which adheres to `gofmt`.
 
 Each non-test `package` must have a package comment. Package comments must be block comments (`/* */`), unless they are
 short enough to fit on a single line when a line comment is allowed.

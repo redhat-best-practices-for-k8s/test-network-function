@@ -141,7 +141,7 @@ func testIsRedHatRelease(oc *interactive.Oc) {
 }
 
 // TODO: Multus is not applicable to every CNF, so in some regards it is CNF-specific.  On the other hand, it is likely
-// a useful test across most CNFs.  Should "multus" be considered generic, cnf-specific, or somewhere in between.
+// a useful test across most CNFs.  Should "multus" be considered generic, cnf_specific, or somewhere in between.
 var _ = ginkgo.Describe(multusTestsKey, func() {
 	config := GetTestConfiguration()
 	log.Infof("Test Configuration: %s", config)
