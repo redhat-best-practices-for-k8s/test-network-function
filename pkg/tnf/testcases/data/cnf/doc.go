@@ -1,2 +1,2 @@
-//Package cnf defines various test case templates definitions
+// Package cnf defines various test case templates definitions.
 package cnf

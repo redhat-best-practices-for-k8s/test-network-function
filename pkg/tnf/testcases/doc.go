@@ -1,2 +1,2 @@
-//Package testcases defines various test case templates configurations
+// Package testcases defines various test case templates configurations.
 package testcases

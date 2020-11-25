@@ -18,16 +18,20 @@ Each exported API must have proper documentation.  This documentation should adh
 
 Each exported global variable or constant must have proper documentation which adheres to `gofmt`.
 
+Each non-test `package` must have a package comment. Package comments must be block comments (`/* */`), unless they are
+short enough to fit on a single line when a line comment is allowed.
+
 ## Style guidelines
 
-The `test-network-function` project committers expect all Pull Requests to adhere to `gofmt` auto-styling tool.  To
-run `gofmt`, run the following command:
+Ensure `gofmt` has been run against all Pull Requests prior to submission.
 
-```bash
-make lint
-```
+In addition, te `test-network-function` project committers expect all Pull Requests have no linting errors when the
+configured linters are used. Please ensure you run `make lint` and resolve any issues in your changes before submitting
+your PR. Disabled linting must be justified.
 
-Prior to submitting a Pull Request, please ensure you have run the above command.
+Finally, all contributions should follow the guidance of [Effective Go](https://golang.org/doc/effective_go.html)
+unless there is a clear and considered reason not to. Contribution are more likely to be accepted quickly if any
+divergence from the guidelines is justified before someone has to ask about it.
 
 ## Test guidelines
 
