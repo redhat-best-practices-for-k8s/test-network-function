@@ -243,3 +243,7 @@ func TestReel_Step(t *testing.T) {
 		assert.Equal(t, testCase.stepReturnErr, err)
 	}
 }
+
+func TestFailure(t *testing.T) {
+	assert.True(t, false)
+}
