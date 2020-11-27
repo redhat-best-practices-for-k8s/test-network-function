@@ -78,3 +78,4 @@ dependencies:
 	go get github.com/onsi/ginkgo/ginkgo
 	go get github.com/onsi/gomega/...
 	go get golang.org/x/lint/golint
+	go get github.com/golang/mock/mockgen
