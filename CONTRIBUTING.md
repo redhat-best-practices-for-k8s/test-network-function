@@ -33,7 +33,7 @@ divergence from the guidelines is justified before someone has to ask about it.
 
 ## Test guidelines
 
-Each `tnf.Test` implementation must have unit tests.  Ideally, each `tnf.Test` implementation should strive for 100%
+Each `tnf.Tester` implementation must have unit tests.  Ideally, each `tnf.Tester` implementation should strive for 100%
 line coverage when possible.  For some examples of existing tests, consult:
 
 * pkg/tnf/handlers/base/version_test.go
@@ -72,7 +72,7 @@ For some interfaces, such as `expect.Expecter`, generate the mock using `mockgen
 
 ## Test guidelines
 
-Each contributed test is expected to implement the `reel.Handler` and `tnf.Test` interfaces.  Additionally, each test
+Each contributed test is expected to implement the `reel.Handler` and `tnf.Tester` interfaces.  Additionally, each test
 must be based on CLI commands.  No tests should utilize OpenShift client.  The choice to avoid OpenShift client is
 deliberate, and was decided to aid in support of all versions of OpenShift despite the API(s) changing.  Generally
 speaking, the CLI API changes much less quickly.
