@@ -47,20 +47,6 @@ func (mr *MockTesterMockRecorder) Args() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Args", reflect.TypeOf((*MockTester)(nil).Args))
 }
 
-// Timeout mocks base method
-func (m *MockTester) Timeout() time.Duration {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Timeout")
-	ret0, _ := ret[0].(time.Duration)
-	return ret0
-}
-
-// Timeout indicates an expected call of Timeout
-func (mr *MockTesterMockRecorder) Timeout() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Timeout", reflect.TypeOf((*MockTester)(nil).Timeout))
-}
-
 // Result mocks base method
 func (m *MockTester) Result() int {
 	m.ctrl.T.Helper()
@@ -73,4 +59,18 @@ func (m *MockTester) Result() int {
 func (mr *MockTesterMockRecorder) Result() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Result", reflect.TypeOf((*MockTester)(nil).Result))
+}
+
+// Timeout mocks base method
+func (m *MockTester) Timeout() time.Duration {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Timeout")
+	ret0, _ := ret[0].(time.Duration)
+	return ret0
+}
+
+// Timeout indicates an expected call of Timeout
+func (mr *MockTesterMockRecorder) Timeout() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Timeout", reflect.TypeOf((*MockTester)(nil).Timeout))
 }
