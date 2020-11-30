@@ -1,2 +1,2 @@
-//Package operator defines various test case templates definitions
+// Package operator defines various test case templates definitions.
 package operator

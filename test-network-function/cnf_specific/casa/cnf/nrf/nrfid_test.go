@@ -3,7 +3,7 @@ package nrf_test
 import (
 	"fmt"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
-	"github.com/redhat-nfvpe/test-network-function/test-network-function/cnf-specific/casa/cnf/nrf"
+	"github.com/redhat-nfvpe/test-network-function/test-network-function/cnf_specific/casa/cnf/nrf"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"path"
