@@ -18,7 +18,6 @@ package assertion
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/generic/condition"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/generic/condition/intcondition"
@@ -136,7 +135,7 @@ func (a *Assertion) unmarshalConditionJSON(objMap map[string]*json.RawMessage) e
 				return err
 			}
 		default:
-			return errors.New(fmt.Sprintf("unrecognized condition type: \"%s\"", typ))
+			return fmt.Errorf("unrecognized condition type: \"%s\"", typ)
 		}
 	}
 	return nil

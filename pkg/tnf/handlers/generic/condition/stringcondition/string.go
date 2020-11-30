@@ -22,6 +22,7 @@ import (
 )
 
 const (
+	// EqualsConditionKey is the sentinel key identifying a string == comparison.
 	EqualsConditionKey = "equals"
 )
 
