@@ -23,19 +23,22 @@ import (
 )
 
 const (
+	// ERROR represents an errored test.
+	ERROR = iota
 	// SUCCESS represents a successful test.
-	SUCCESS = iota
+	SUCCESS
 	// FAILURE represents a failed test.
 	FAILURE
-	// ERROR represents an errored test.
-	ERROR
 )
 
 // Tester provides the interface for a Test.
 type Tester interface {
+	// Args returns the CLI command as a string array.
 	Args() []string
-	Timeout() time.Duration
+	// Result returns the result of the test (ERROR, SUCCESS, or FAILURE).
 	Result() int
+	// Timeout returns the test timeout as a Duration.
+	Timeout() time.Duration
 }
 
 // Test runs a chain of Handlers.
