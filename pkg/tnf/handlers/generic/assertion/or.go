@@ -21,6 +21,7 @@ import (
 )
 
 const (
+	// OrBooleanLogicKey is the sentinel used for Type to identify OrBooleanLogicKey in a JSON/YAML payload.
 	OrBooleanLogicKey = "or"
 )
 

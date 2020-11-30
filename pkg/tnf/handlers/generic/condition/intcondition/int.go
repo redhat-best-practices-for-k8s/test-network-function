@@ -17,7 +17,6 @@
 package intcondition
 
 import (
-	"errors"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -110,6 +109,6 @@ func (i ComparisonCondition) evaluateComparison(actual int) (bool, error) {
 	case NotEqual:
 		return actual != i.Input, nil
 	default:
-		return false, errors.New(fmt.Sprintf("unknown comparative operator: %s", i.Comparison))
+		return false, fmt.Errorf("unknown comparative operator: %s", i.Comparison)
 	}
 }
