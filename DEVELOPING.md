@@ -7,7 +7,7 @@ UI-driven tests are considered out of scope for `test-network-function`.
 ## General Test Writing Guidelines
 
 In general, tests should adhere to the following principles:
-* Tests should be platform independent when possible.
+* Tests should be platform independent when possible, and platform-aware when not.
 * Tests must be runnable in a variety of contexts (i.e., `oc`, `ssh`, and `shell`).  Internally, we have developed a
 variety of `interactive.Context` implementations for each of these.  In general, so long as your command does not depend
 on specific prompts, the framework handles the context transparently.
