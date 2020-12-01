@@ -20,6 +20,7 @@ import (
 	"time"
 
 	expect "github.com/google/goexpect"
+	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/identifier"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/reel"
 )
 
@@ -36,8 +37,13 @@ const (
 type Tester interface {
 	// Args returns the CLI command as a string array.
 	Args() []string
+
+	// GetIdentifier returns the tnf.Test specific identifier.
+	GetIdentifier() identifier.Identifier
+
 	// Result returns the result of the test (ERROR, SUCCESS, or FAILURE).
 	Result() int
+
 	// Timeout returns the test timeout as a Duration.
 	Timeout() time.Duration
 }

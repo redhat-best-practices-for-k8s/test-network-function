@@ -23,6 +23,7 @@ import (
 	"time"
 
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
+	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/identifier"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/reel"
 	"github.com/xeipuuv/gojsonschema"
 )
@@ -41,6 +42,9 @@ type Generic struct {
 
 	// Arguments is the Unix command array.  Arguments is optional;  a command can also be issued using ReelFirstStep.
 	Arguments []string `json:"arguments,omitempty" yaml:"arguments,omitempty"`
+
+	// Identifier is the tnf.Test specific test identifier.
+	Identifier identifier.Identifier `json:"identifier" yaml:"identifier"`
 
 	// Description is a textual description of the overall functionality that is tested.
 	Description string `json:"description,omitempty" yaml:"description,omitempty"`
@@ -93,6 +97,11 @@ func (g *Generic) init() {
 // Args returns the command line arguments as an array of type string.
 func (g *Generic) Args() []string {
 	return g.Arguments
+}
+
+// GetIdentifier returns the tnf.Test specific identifier.
+func (g *Generic) GetIdentifier() identifier.Identifier {
+	return g.Identifier
 }
 
 // Timeout returns the test timeout.

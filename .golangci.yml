@@ -1,6 +1,6 @@
 linters-settings:
   dupl:
-    threshold: 75
+    threshold: 100
   funlen:
     lines: 50
     statements: 25
@@ -45,7 +45,7 @@ linters-settings:
           - (github.com/golangci/golangci-lint/pkg/logutils.Log).Errorf
           - (github.com/golangci/golangci-lint/pkg/logutils.Log).Fatalf
   lll:
-    line-length: 200
+    line-length: 250
   maligned:
     suggest-new: true
   nolintlint:

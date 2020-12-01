@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
+	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/identifier"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/reel"
 )
 
@@ -50,6 +51,11 @@ type Release struct {
 // Args returns the command line arguments for the test.
 func (r *Release) Args() []string {
 	return r.args
+}
+
+// GetIdentifier returns the tnf.Test specific identifier.
+func (r *Release) GetIdentifier() identifier.Identifier {
+	return identifier.VersionIdentifier
 }
 
 // Timeout returns the timeout for the test.

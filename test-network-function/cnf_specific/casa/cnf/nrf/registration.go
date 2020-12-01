@@ -21,6 +21,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/identifier"
+
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/reel"
 )
@@ -49,6 +51,11 @@ type CheckRegistration struct {
 // Args returns the command to test that a CNF is registered.
 func (c *CheckRegistration) Args() []string {
 	return c.command
+}
+
+// GetIdentifier returns the tnf.Test specific identifier.
+func (c *CheckRegistration) GetIdentifier() identifier.Identifier {
+	return identifier.CasaNRFRegistrationIdentifier
 }
 
 // Timeout returns the timeout of the test.

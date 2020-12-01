@@ -26,6 +26,9 @@ build: mocks
 	go build ${COMMON_GO_ARGS} ./...
 	make unit-tests
 
+catalog:
+	go run cmd/catalog/main.go > catalog.json
+
 cnf-tests: build build-cnf-tests run-cnf-tests
 
 generic-cnf-tests: build build-cnf-tests run-generic-cnf-tests

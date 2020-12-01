@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
+	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/identifier"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/reel"
 )
 
@@ -42,6 +43,11 @@ const (
 // Args returns the command line args for the test.
 func (h *Hostname) Args() []string {
 	return h.args
+}
+
+// GetIdentifier returns the tnf.Test specific identifier.
+func (h *Hostname) GetIdentifier() identifier.Identifier {
+	return identifier.HostnameIdentifier
 }
 
 // Timeout return the timeout for the test.

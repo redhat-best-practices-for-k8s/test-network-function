@@ -22,6 +22,7 @@ import (
 
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/hostname"
+	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/identifier"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -32,6 +33,11 @@ const (
 func TestHostname_Args(t *testing.T) {
 	h := hostname.NewHostname(testTimeoutDuration)
 	assert.Equal(t, []string{"hostname"}, h.Args())
+}
+
+func TestHostname_GetIdentifier(t *testing.T) {
+	h := hostname.NewHostname(testTimeoutDuration)
+	assert.Equal(t, identifier.HostnameIdentifier, h.GetIdentifier())
 }
 
 func TestHostname_ReelFirst(t *testing.T) {

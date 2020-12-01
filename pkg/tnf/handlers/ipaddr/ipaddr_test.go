@@ -25,6 +25,7 @@ import (
 
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/ipaddr"
+	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/identifier"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -80,6 +81,13 @@ func TestIpAddr_Args(t *testing.T) {
 	for _, testCase := range testCases {
 		ipAddr := ipaddr.NewIPAddr(testTimeoutDuration, testCase.device)
 		assert.Equal(t, []string{"ip", "addr", "show", "dev", testCase.device}, ipAddr.Args())
+	}
+}
+
+func TestIPAddr_GetIdentifier(t *testing.T) {
+	for _, testCase := range testCases {
+		ipAddr := ipaddr.NewIPAddr(testTimeoutDuration, testCase.device)
+		assert.Equal(t, identifier.IPAddrIdentifier, ipAddr.GetIdentifier())
 	}
 }
 
