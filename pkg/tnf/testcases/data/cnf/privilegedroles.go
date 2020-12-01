@@ -16,7 +16,8 @@
 
 package cnf
 
-//RolesJSON test templates for testing permission
+// RolesJSON test templates for testing permission
+//nolint:lll
 var RolesJSON = string(`{
   "testcase": [
     {

@@ -49,7 +49,10 @@ var genericRegistrationTestCases = map[string]*genericRegistrationTestCase{
 	"real_test_data": {
 		timeout:          defaultTestTimeout,
 		namespace:        defaultNamespace,
-		expectedArgs:     []string{"oc", "-n", "default", "get", "nfregistrations.mgmt.casa.io", "$(oc", "-n", "default", "get", "nfregistrations.mgmt.casa.io", "|", "awk", "{\"print", "$2\"}", "|", "xargs", "-n", "1)"},
+		expectedArgs:     []string{"oc", "-n", "default", "get", "nfregistrations.mgmt.casa.io",
+								   "$(oc", "-n", "default", "get", "nfregistrations.mgmt.casa.io",
+								   "|", "awk", "{\"print", "$2\"}",
+								   "|", "xargs", "-n", "1)"},
 		reelMatchPattern: nrf.OutputRegexString,
 		expectedResult:   tnf.SUCCESS,
 		expectedNRFUuids: []string{
@@ -60,7 +63,10 @@ var genericRegistrationTestCases = map[string]*genericRegistrationTestCase{
 	"default_test_case": {
 		timeout:          defaultTestTimeout,
 		namespace:        defaultNamespace,
-		expectedArgs:     []string{"oc", "-n", "default", "get", "nfregistrations.mgmt.casa.io", "$(oc", "-n", "default", "get", "nfregistrations.mgmt.casa.io", "|", "awk", "{\"print", "$2\"}", "|", "xargs", "-n", "1)"},
+		expectedArgs:     []string{"oc", "-n", "default", "get", "nfregistrations.mgmt.casa.io",
+								   "$(oc", "-n", "default", "get", "nfregistrations.mgmt.casa.io",
+								   "|", "awk", "{\"print", "$2\"}",
+								   "|", "xargs", "-n", "1)"},
 		reelMatchPattern: nrf.OutputRegexString,
 		expectedResult:   tnf.SUCCESS,
 		expectedNRFUuids: []string{
@@ -74,7 +80,10 @@ var genericRegistrationTestCases = map[string]*genericRegistrationTestCase{
 	"no_nrfs_registered": {
 		timeout:          time.Hour * 24,
 		namespace:        "someOtherNamespace",
-		expectedArgs:     []string{"oc", "-n", "someOtherNamespace", "get", "nfregistrations.mgmt.casa.io", "$(oc", "-n", "someOtherNamespace", "get", "nfregistrations.mgmt.casa.io", "|", "awk", "{\"print", "$2\"}", "|", "xargs", "-n", "1)"},
+		expectedArgs:     []string{"oc", "-n", "someOtherNamespace", "get", "nfregistrations.mgmt.casa.io",
+								   "$(oc", "-n", "someOtherNamespace", "get", "nfregistrations.mgmt.casa.io",
+								   "|", "awk", "{\"print", "$2\"}",
+								   "|", "xargs", "-n", "1)"},
 		reelMatchPattern: nrf.CommandCompleteRegexString,
 		expectedResult:   tnf.FAILURE,
 		expectedNRFUuids: []string{},
@@ -82,7 +91,10 @@ var genericRegistrationTestCases = map[string]*genericRegistrationTestCase{
 	"incorrect_match": {
 		timeout:          defaultTestTimeout,
 		namespace:        defaultNamespace,
-		expectedArgs:     []string{"oc", "-n", "default", "get", "nfregistrations.mgmt.casa.io", "$(oc", "-n", "default", "get", "nfregistrations.mgmt.casa.io", "|", "awk", "{\"print", "$2\"}", "|", "xargs", "-n", "1)"},
+		expectedArgs:     []string{"oc", "-n", "default", "get", "nfregistrations.mgmt.casa.io",
+								   "$(oc", "-n", "default", "get", "nfregistrations.mgmt.casa.io",
+								   "|", "awk", "{\"print", "$2\"}",
+								   "|", "xargs", "-n", "1)"},
 		reelMatchPattern: "some_random_match_pattern",
 		expectedResult:   tnf.ERROR,
 		expectedNRFUuids: []string{},
