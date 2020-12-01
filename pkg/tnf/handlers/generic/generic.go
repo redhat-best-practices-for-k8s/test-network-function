@@ -145,7 +145,7 @@ func (g *Generic) ReelMatch(pattern string, before string, match string) *reel.S
 				g.FailureReason = err.Error()
 				g.TestResult = tnf.ERROR
 				return nil
-			} else if success == false {
+			} else if !success {
 				// exit immediately on failure
 				g.TestResult = tnf.FAILURE
 				return nil

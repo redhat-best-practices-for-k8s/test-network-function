@@ -45,7 +45,7 @@ func (o OrBooleanLogic) Evaluate(assertions []Assertion, match string, regex reg
 		if err != nil {
 			return false, err
 		}
-		if assertionResult == true {
+		if assertionResult {
 			return true, nil
 		}
 	}
