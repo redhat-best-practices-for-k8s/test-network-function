@@ -32,6 +32,33 @@ const (
 	filePerm = 0644
 )
 
+// CNFType defines a type to be either Operator or Container
+type CNFType string
+
+const (
+	//ContainerType is a `Container Image` CNF type
+	ContainerType = "CONTAINER"
+	// OperatorType is a `Operator` CNF type
+	OperatorType = "OPERATOR"
+)
+
+// CertifiedContainerRequestInfo contains all certified images request info
+type CertifiedContainerRequestInfo struct {
+	// Name is the name of the `operator bundle package name` or `image-version` that you want to check if exists in the RedHat catalog
+	Name string `yaml:"name" json:"name"`
+	// Repository is the name of the repository `rhel8` of the container
+	// This is valid for container only and required field
+	Repository string `yaml:"repository" json:"repository"`
+}
+
+// CertifiedOperatorRequestInfo contains all certified operator request info
+type CertifiedOperatorRequestInfo struct {
+	// Name is the name of the `operator bundle package name` that you want to check if exists in the RedHat catalog
+	Name string `yaml:"name" json:"name"`
+	// Organization as understood by the operator publisher , e.g. `redhat-marketplace`
+	Organization string `yaml:"organization" json:"organization"`
+}
+
 // Operator struct defines operator manifest for testing
 type Operator struct {
 	// Name is a required field, Name of the csv .
@@ -53,6 +80,9 @@ type Operator struct {
 	Permissions []Permission `yaml:"permissions" json:"permissions"`
 	// Tests this is list of test that need to run against the operator.
 	Tests []string `yaml:"tests" json:"tests"`
+	// CertifiedOperatorRequestInfos  is list of  operator bundle names (`package-name`)
+	// that are queried for certificate status
+	CertifiedOperatorRequestInfos []CertifiedOperatorRequestInfo `yaml:"certifiedoperatorrequestinfo,omitempty" json:"certifiedoperatorrequestinfo,omitempty"`
 }
 
 // Crd struct defines Custom Resource Definition of the operator
@@ -91,11 +121,14 @@ type Cnf struct {
 	Status string `yaml:"status" json:"status"`
 	// Tests this is list of test that need to run against the CNF.
 	Tests []string `yaml:"tests" json:"tests"`
+	// CertifiedContainerRequestInfos  is list of images (`repo/image-version`)
+	// that are queried for certificate status
+	CertifiedContainerRequestInfos []CertifiedContainerRequestInfo `yaml:"certifiedcontainerrequestinfo,omitempty" json:"certifiedcontainerrequestinfo,omitempty"`
 }
 
 // Instance defines crd instances in the cluster
 type Instance struct {
-	// Name is teh name of the instance of custom resource (Auto populated)
+	// Name is the name of the instance of custom resource (Auto populated)
 	Name string `yaml:"name" json:"name"`
 }
 

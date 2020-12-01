@@ -21,6 +21,7 @@ import (
 	expect "github.com/google/goexpect"
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
+	"github.com/redhat-nfvpe/test-network-function/internal/api"
 	"github.com/redhat-nfvpe/test-network-function/internal/reel"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
 	operatorTestConfig "github.com/redhat-nfvpe/test-network-function/pkg/tnf/config"
@@ -61,8 +62,17 @@ var _ = ginkgo.Describe(testSpecName, func() {
 	operatorInTest, err = operatorTestConfig.GetConfig()
 	gomega.Expect(err).To(gomega.BeNil())
 	gomega.Expect(operatorInTest).ToNot(gomega.BeNil())
-
+	certAPIClient := api.NewHTTPClient()
 	for _, operator := range operatorInTest.Operator {
+		for _, certified := range operator.CertifiedOperatorRequestInfos {
+			ginkgo.When(fmt.Sprintf("cnf certification test for: %s/%s ", certified.Organization, certified.Name), func() {
+				ginkgo.It("tests for Operator Certification Status", func() {
+					certified := certified //pin
+					isCertified := certAPIClient.IsOperatorCertified(certified.Organization, certified.Name)
+					gomega.Expect(isCertified).To(gomega.BeTrue())
+				})
+			})
+		}
 		// TODO: Gather facts for operator
 		for _, testType := range operator.Tests {
 			testFile, err := testcases.LoadConfiguredTestFile(configuredTestFile)
@@ -74,7 +84,7 @@ var _ = ginkgo.Describe(testSpecName, func() {
 			gomega.Expect(renderedTestCase).ToNot(gomega.BeNil())
 			for _, testCase := range renderedTestCase.TestCase {
 				if !testCase.SkipTest {
-					if testCase.ExpectedType == "function" {
+					if testCase.ExpectedType == testcases.Function {
 						for _, val := range testCase.ExpectedStatus {
 							testCase.ExpectedStatusFn(testcases.StatusFunctionType(val))
 						}

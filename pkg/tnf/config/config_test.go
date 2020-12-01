@@ -37,20 +37,58 @@ var (
 )
 
 const (
-	// FullConfig represents full configuration, including Operator and CNF
-	FullConfig = "full_config"
-	// CnfConfig represents CNF configuration only
-	CnfConfig = "cnf_only_config"
-	// OperatorConfig represents operators configuration only
-	OperatorConfig = "operator_only_config"
+	// cnfConfig represents CNF configuration only
+	cnfConfig = "cnf_only_config"
+	// cnfName name of the cnf
+	cnfName = "cnf-test-one"
+	// containerImageName name of the container image name
+	containerImageName = "rhel8/nginx-116"
+	// crdNameOne name of the crd
+	crdNameOne = "crd-test-one"
+	// crdNameTwo name of the crd
+	crdNameTwo = "crd-test-two"
+	// deploymentName is the name of the deployment
+	deploymentName = "deployment-one"
+	// deploymentReplicas no of replicas
+	deploymentReplicas = "1"
+	// fullConfig represents full configuration, including Operator and CNF
+	fullConfig = "full_config"
+	// instanceNameOne name of the instance
+	instanceNameOne = "instance-one"
+	// instanceNameTwo name of the instance
+	instanceNameTwo = "instance-two"
+	// operatorConfig represents operators configuration only
+	operatorConfig = "operator_only_config"
+	// operatorName name of the operator
+	operatorName = "etcdoperator.v0.9.4"
+	// operatorNameSpace is test namespace for an operator
+	operatorNameSpace = "my-etcd"
+	// operatorPackageName operator package name in the bundle
+	operatorPackageName = "amq-streams"
+	// operatorStatus specifies status of the CSV in the cluster
+	operatorStatus = "Succeeded"
+	// organization is under which operator is published
+	organization = "redhat-marketplace"
+	// permissionName type of permission
+	permissionName = "Cluster-wide-permission"
+	// permissionRole type of role
+	permissionRole = "ClusterRole"
+	// imageRepository for  container images
+	imageRepository = "rhel8"
+	// testNameSpace k8s namespace
+	testNameSpace = "default"
 )
 
 func loadCnfConfig() {
 	// CNF only
-	test.CNFs = []config.Cnf{{Name: "cnf_only",
-		Namespace: "test",
+	test.CNFs = []config.Cnf{{Name: cnfName,
+		Namespace: testNameSpace,
 		Status:    "",
 		Tests:     []string{testcases.PrivilegedPod},
+		CertifiedContainerRequestInfos: []config.CertifiedContainerRequestInfo{{
+			Name:       containerImageName,
+			Repository: imageRepository,
+		}},
 	}}
 	test.CnfAvailableTestCases = nil
 	for key := range testcases.CnfTestTemplateFileMap {
@@ -60,53 +98,52 @@ func loadCnfConfig() {
 
 func loadOperatorConfig() {
 	operator := config.Operator{}
-	operator.Name = "etcdoperator.v0.9.4"
-	operator.Namespace = "my-etcd"
-	operator.Status = "Succeeded"
-	operator.AutoGenerate = "false"
-	crd := config.Crd{}
-	crd.Name = "test.crd.one"
-	crd.Namespace = "default"
-	instance := config.Instance{}
-	instance.Name = "Instance_one"
-	crd.Instances = append(crd.Instances, instance)
-	operator.CRDs = append(operator.CRDs, crd)
-	crd2 := config.Crd{}
-	crd2.Name = "test.crd.two"
-	crd2.Namespace = "default"
-	instance2 := config.Instance{}
-	instance2.Name = "Instance_two"
-	crd2.Instances = append(crd2.Instances, instance2)
-	operator.CRDs = append(operator.CRDs, crd2)
+	operator.Name = operatorName
+	operator.Namespace = operatorNameSpace
+	operator.Status = operatorStatus
+	setCrdsAndInstances(&operator)
 	dep := config.Deployment{}
-	dep.Name = "deployment1"
-	dep.Replicas = "1"
+	dep.Name = deploymentName
+	dep.Replicas = deploymentReplicas
 	operator.Deployments = append(operator.Deployments, dep)
-	cnf := config.Cnf{}
-	cnf.Name = "cnf_one"
-	cnf.Namespace = "test"
-	cnf.Tests = []string{testcases.PrivilegedPod}
-	permission := config.Permission{}
-	permission.Name = "Cluster_wide_permission"
-	permission.Role = "ClusterRole"
-	operator.Permissions = append(operator.Permissions, permission)
-
-	operator.CNFs = append(operator.CNFs, cnf)
+	setCnfAndPermissions(&operator)
 	operator.Tests = []string{testcases.OperatorStatus}
+	operator.CertifiedOperatorRequestInfos = []config.CertifiedOperatorRequestInfo{{
+		Name:         operatorPackageName,
+		Organization: organization,
+	}}
 	test.Operator = append(test.Operator, operator)
 	// CNF only
-	test.CNFs = []config.Cnf{{
-		Name:      "cnf_only",
-		Namespace: "test",
-		Status:    "",
-		Tests:     []string{testcases.PrivilegedPod},
-	}}
-	test.CnfAvailableTestCases = nil
-	for key := range testcases.CnfTestTemplateFileMap {
-		test.CnfAvailableTestCases = append(test.CnfAvailableTestCases, key)
-	}
+	loadCnfConfig()
 }
 
+func setCrdsAndInstances(op *config.Operator) {
+	crd := config.Crd{}
+	crd.Name = crdNameOne
+	crd.Namespace = testNameSpace
+	instance := config.Instance{}
+	instance.Name = instanceNameOne
+	crd.Instances = append(crd.Instances, instance)
+	op.CRDs = append(op.CRDs, crd)
+	crd2 := config.Crd{}
+	crd2.Name = crdNameTwo
+	crd2.Namespace = testNameSpace
+	instance2 := config.Instance{}
+	instance2.Name = instanceNameTwo
+	crd2.Instances = append(crd2.Instances, instance2)
+	op.CRDs = append(op.CRDs, crd2)
+}
+func setCnfAndPermissions(op *config.Operator) {
+	cnf := config.Cnf{}
+	cnf.Name = cnfName
+	cnf.Namespace = testNameSpace
+	cnf.Tests = []string{testcases.PrivilegedPod}
+	permission := config.Permission{}
+	permission.Name = permissionName
+	permission.Role = permissionRole
+	op.Permissions = append(op.Permissions, permission)
+	op.CNFs = append(op.CNFs, cnf)
+}
 func loadFullConfig() {
 	loadOperatorConfig()
 	loadCnfConfig()
@@ -119,13 +156,12 @@ func setup(configType string) {
 	}
 	test = config.TnfContainerOperatorTestConfig{}
 	switch configType {
-	case "full_config":
+	case fullConfig:
 		loadFullConfig()
-	case "cnf_only_config":
+	case cnfConfig:
 		loadCnfConfig()
-	case "operator_only_config":
+	case operatorConfig:
 		loadOperatorConfig()
-	case "empty":
 	}
 	err = test.SaveConfig(file.Name())
 	if err != nil {
@@ -134,17 +170,17 @@ func setup(configType string) {
 }
 
 func setupJSON(configType string) {
-	jsonFile, err = ioutil.TempFile(".", "test-json-config.yml")
+	jsonFile, err = ioutil.TempFile(".", "test-json-config.json")
 	if err != nil {
 		log.Fatal(err)
 	}
 	test = config.TnfContainerOperatorTestConfig{}
 	switch configType {
-	case "full_config":
+	case fullConfig:
 		loadFullConfig()
-	case "cnf_only_config":
+	case cnfConfig:
 		loadCnfConfig()
-	case "operator_only_config":
+	case operatorConfig:
 		loadOperatorConfig()
 	}
 	err = test.SaveConfigAsJSON(jsonFile.Name())
@@ -163,25 +199,25 @@ func teardown() {
 }
 
 func TestFullConfigLoad(t *testing.T) {
-	setup(FullConfig)
+	setup(fullConfig)
 	defer (teardown)()
 	cfg, err := config.NewConfig(file.Name())
 	assert.NotNil(t, cfg)
 	assert.Equal(t, len(cfg.Operator), 1)
-	assert.Equal(t, cfg.CNFs[0].Name, "cnf_only")
+	assert.Equal(t, cfg.CNFs[0].Name, cnfName)
 	assert.Nil(t, err)
 }
 
 func TestCnfConfigLoad(t *testing.T) {
-	setup(CnfConfig)
+	setup(cnfConfig)
 	defer (teardown)()
 	cfg, err := config.NewConfig(file.Name())
 	assert.NotNil(t, cfg)
-	assert.Equal(t, cfg.CNFs[0].Name, "cnf_only")
+	assert.Equal(t, cfg.CNFs[0].Name, cnfName)
 	assert.Nil(t, err)
 }
 func TestOperatorConfigLoad(t *testing.T) {
-	setup(OperatorConfig)
+	setup(operatorConfig)
 	defer (teardown)()
 	cfg, err := config.NewConfig(file.Name())
 	assert.NotNil(t, cfg)
@@ -200,18 +236,18 @@ func TestValidateConfigPath(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.path, func(t *testing.T) {
+			tt := tt //pin
 			err := config.ValidateConfigPath(tt.path)
 			if err == nil && tt.error != nil {
 				assert.Fail(t, err.Error())
 			}
-
 		})
 	}
 }
 
 // TestConfigLoadFunction ... Test if config is read correctly
 func TestConfigLoadFunction(t *testing.T) {
-	setup(FullConfig)
+	setup(fullConfig)
 	defer (teardown)()
 	path, _ := os.Getwd()
 	var tests = []struct {
@@ -226,6 +262,7 @@ func TestConfigLoadFunction(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(strings.Join(tt.args, " "), func(t *testing.T) {
+			tt := tt //pin
 			os.Args = tt.args
 			if len(tt.args) > 2 {
 				configPath = &tt.args[2]
@@ -246,29 +283,28 @@ func TestConfigLoadFunction(t *testing.T) {
 func TestFullJsonConfig(t *testing.T) {
 	defer (teardown)()
 	// json
-	setupJSON(FullConfig)
+	setupJSON(fullConfig)
 	jsonCfg, err := config.NewConfig(jsonFile.Name())
 	assert.NotNil(t, jsonCfg)
 	assert.Nil(t, err)
 	// yaml
-	setup(FullConfig)
+	setup(fullConfig)
 	yamlCfg, err := config.NewConfig(file.Name())
 	assert.Nil(t, err)
 	assert.NotNil(t, yamlCfg)
 	assert.Equal(t, yamlCfg.Operator, jsonCfg.Operator)
 	assert.Equal(t, yamlCfg.CNFs, jsonCfg.CNFs)
-
 }
 
 func TestCnfJsonConfig(t *testing.T) {
 	defer (teardown)()
 	// json
-	setupJSON(CnfConfig)
+	setupJSON(cnfConfig)
 	jsonCfg, err := config.NewConfig(jsonFile.Name())
 	assert.NotNil(t, jsonCfg)
 	assert.Nil(t, err)
 	// yaml
-	setup(CnfConfig)
+	setup(cnfConfig)
 	yamlCfg, err := config.NewConfig(file.Name())
 	assert.Nil(t, err)
 	assert.NotNil(t, yamlCfg)
@@ -278,12 +314,12 @@ func TestCnfJsonConfig(t *testing.T) {
 func TestOperatorJsonConfig(t *testing.T) {
 	defer (teardown)()
 	// json
-	setupJSON(OperatorConfig)
+	setupJSON(operatorConfig)
 	jsonCfg, err := config.NewConfig(jsonFile.Name())
 	assert.NotNil(t, jsonCfg)
 	assert.Nil(t, err)
 	// yaml
-	setup(OperatorConfig)
+	setup(operatorConfig)
 	yamlCfg, err := config.NewConfig(file.Name())
 	assert.Nil(t, err)
 	assert.Equal(t, yamlCfg.Operator, jsonCfg.Operator)
