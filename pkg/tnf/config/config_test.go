@@ -81,15 +81,20 @@ const (
 
 func loadCnfConfig() {
 	// CNF only
-	test.CNFs = []config.Cnf{{Name: cnfName,
-		Namespace: testNameSpace,
-		Status:    "",
-		Tests:     []string{testcases.PrivilegedPod},
-		CertifiedContainerRequestInfos: []config.CertifiedContainerRequestInfo{{
-			Name:       containerImageName,
-			Repository: imageRepository,
-		}},
-	}}
+	test.CNFs = []config.Cnf{
+		{
+			Name:      cnfName,
+			Namespace: testNameSpace,
+			Status:    "",
+			Tests:     []string{testcases.PrivilegedPod},
+			CertifiedContainerRequestInfos: []config.CertifiedContainerRequestInfo{
+				{
+					Name:       containerImageName,
+					Repository: imageRepository,
+				},
+			},
+		},
+	}
 	test.CnfAvailableTestCases = nil
 	for key := range testcases.CnfTestTemplateFileMap {
 		test.CnfAvailableTestCases = append(test.CnfAvailableTestCases, key)
@@ -108,10 +113,12 @@ func loadOperatorConfig() {
 	operator.Deployments = append(operator.Deployments, dep)
 	setCnfAndPermissions(&operator)
 	operator.Tests = []string{testcases.OperatorStatus}
-	operator.CertifiedOperatorRequestInfos = []config.CertifiedOperatorRequestInfo{{
-		Name:         operatorPackageName,
-		Organization: organization,
-	}}
+	operator.CertifiedOperatorRequestInfos = []config.CertifiedOperatorRequestInfo{
+		{
+			Name:         operatorPackageName,
+			Organization: organization,
+		},
+	}
 	test.Operator = append(test.Operator, operator)
 	// CNF only
 	loadCnfConfig()
@@ -133,6 +140,7 @@ func setCrdsAndInstances(op *config.Operator) {
 	crd2.Instances = append(crd2.Instances, instance2)
 	op.CRDs = append(op.CRDs, crd2)
 }
+
 func setCnfAndPermissions(op *config.Operator) {
 	cnf := config.Cnf{}
 	cnf.Name = cnfName
@@ -144,6 +152,7 @@ func setCnfAndPermissions(op *config.Operator) {
 	op.Permissions = append(op.Permissions, permission)
 	op.CNFs = append(op.CNFs, cnf)
 }
+
 func loadFullConfig() {
 	loadOperatorConfig()
 	loadCnfConfig()
@@ -216,6 +225,7 @@ func TestCnfConfigLoad(t *testing.T) {
 	assert.Equal(t, cfg.CNFs[0].Name, cnfName)
 	assert.Nil(t, err)
 }
+
 func TestOperatorConfigLoad(t *testing.T) {
 	setup(operatorConfig)
 	defer (teardown)()

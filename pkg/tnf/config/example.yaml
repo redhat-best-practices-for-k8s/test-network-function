@@ -44,7 +44,3 @@ cnfavailabletestcases:
   - CLUSTER_ROLE
 operatoravailabletestcases:
   - OPERATOR_STATUS
-
-
-
-

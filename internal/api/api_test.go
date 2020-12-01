@@ -99,6 +99,7 @@ var (
 func (m *MockClient) Do(req *http.Request) (*http.Response, error) {
 	return GetDoFunc(req)
 }
+
 func getDoFunc(data string, status int) func(req *http.Request) (*http.Response, error) {
 	response := ioutil.NopCloser(bytes.NewReader([]byte(data)))
 	defer response.Close()
