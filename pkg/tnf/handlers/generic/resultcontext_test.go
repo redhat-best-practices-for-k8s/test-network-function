@@ -40,8 +40,7 @@ func getContrivedCondition() *condition.Condition {
 		Input:      1,
 		Comparison: "==",
 	}
-	var intEqualsOneCondition condition.Condition
-	intEqualsOneCondition = intEqualsOneIntCondition
+	var intEqualsOneCondition condition.Condition = intEqualsOneIntCondition
 	return &intEqualsOneCondition
 }
 
@@ -49,8 +48,7 @@ func getContrivedCondition() *condition.Condition {
 // incapable of resolving an implementation without an explicit cast.
 func getContrivedBooleanLogic() *assertion.BooleanLogic {
 	andBooleanLogic := &assertion.AndBooleanLogic{Type: assertion.AndBooleanLogicKey}
-	var booleanLogic assertion.BooleanLogic
-	booleanLogic = andBooleanLogic
+	var booleanLogic assertion.BooleanLogic = andBooleanLogic
 	return &booleanLogic
 }
 

@@ -44,7 +44,7 @@ func (a AndBooleanLogic) Evaluate(assertions []Assertion, match string, regex re
 	for _, assertion := range assertions {
 		assertionResult, err := (*assertion.Condition).Evaluate(match, regex, assertion.GroupIdx)
 		// exit early if the condition is false or an error is encountered
-		if assertionResult == false || err != nil {
+		if !assertionResult || err != nil {
 			return assertionResult, err
 		}
 	}
