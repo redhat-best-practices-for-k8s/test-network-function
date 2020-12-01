@@ -88,12 +88,10 @@ linters:
     - rowserrcheck
     - scopelint
     - staticcheck
-    - structcheck
     - stylecheck
     - typecheck
     - unconvert
     - unparam
-    - unused
     - varcheck
     - whitespace
   # don't enable:
@@ -106,7 +104,9 @@ linters:
   # - maligned
   # - nestif
   # - prealloc
+  # - structcheck
   # - testpackage
+  # - unused
   # - wsl
 issues:
   # Excluding configuration per-path, per-linter, per-text and per-source
