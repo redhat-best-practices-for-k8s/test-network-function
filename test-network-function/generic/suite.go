@@ -86,28 +86,26 @@ type container struct {
 	defaultNetworkIPAddress string
 }
 
-// createContainersUnderTest sets up the interactive "oc" sessions with each container, as well as other configuration
-// aspects of the session.  A map of the aggregate information is returned.
-func createContainersUnderTest(config *TestConfiguration) map[ContainerIdentifier]*container {
-	containersUnderTest := map[ContainerIdentifier]*container{}
-	for containerID, containerConfig := range config.ContainersUnderTest {
+// createContainers contains the general steps involved in creating "oc" sessions and other configuration. A map of the
+// aggregate information is returned.
+func createContainers(containerDefinitions map[ContainerIdentifier]Container) map[ContainerIdentifier]*container {
+	createdContainers := map[ContainerIdentifier]*container{}
+	for containerID, containerConfig := range containerDefinitions {
 		oc := getOcSession(containerID.PodName, containerID.ContainerName, containerID.Namespace, defaultTimeout, expect.Verbose(true))
 		defaultIPAddress := getContainerDefaultNetworkIPAddress(oc, containerConfig.DefaultNetworkDevice)
-		containersUnderTest[containerID] = &container{containerConfiguration: containerConfig, oc: oc, defaultNetworkIPAddress: defaultIPAddress}
+		createdContainers[containerID] = &container{containerConfiguration: containerConfig, oc: oc, defaultNetworkIPAddress: defaultIPAddress}
 	}
-	return containersUnderTest
+	return createdContainers
 }
 
-// createPartnerContainers sets up the interactive "oc" sessions with each partner container, as well as other
-// configuration aspects of the session.  A map of the aggregate information is returned.
+// createContainersUnderTest sets up the test containers.
+func createContainersUnderTest(config *TestConfiguration) map[ContainerIdentifier]*container {
+	return createContainers(config.ContainersUnderTest)
+}
+
+// createPartnerContainers sets up the partner containers.
 func createPartnerContainers(config *TestConfiguration) map[ContainerIdentifier]*container {
-	partnerContainers := map[ContainerIdentifier]*container{}
-	for containerID, containerConfig := range config.PartnerContainers {
-		oc := getOcSession(containerID.PodName, containerID.ContainerName, containerID.Namespace, defaultTimeout, expect.Verbose(true))
-		defaultIPAddress := getContainerDefaultNetworkIPAddress(oc, containerConfig.DefaultNetworkDevice)
-		partnerContainers[containerID] = &container{containerConfiguration: containerConfig, oc: oc, defaultNetworkIPAddress: defaultIPAddress}
-	}
-	return partnerContainers
+	return createContainers(config.PartnerContainers)
 }
 
 //
