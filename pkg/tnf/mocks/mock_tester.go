@@ -6,6 +6,7 @@ package mock_tnf
 
 import (
 	gomock "github.com/golang/mock/gomock"
+	identifier "github.com/redhat-nfvpe/test-network-function/pkg/tnf/identifier"
 	reflect "reflect"
 	time "time"
 )
@@ -45,6 +46,20 @@ func (m *MockTester) Args() []string {
 func (mr *MockTesterMockRecorder) Args() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Args", reflect.TypeOf((*MockTester)(nil).Args))
+}
+
+// GetIdentifier mocks base method
+func (m *MockTester) GetIdentifier() identifier.Identifier {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetIdentifier")
+	ret0, _ := ret[0].(identifier.Identifier)
+	return ret0
+}
+
+// GetIdentifier indicates an expected call of GetIdentifier
+func (mr *MockTesterMockRecorder) GetIdentifier() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIdentifier", reflect.TypeOf((*MockTester)(nil).GetIdentifier))
 }
 
 // Result mocks base method

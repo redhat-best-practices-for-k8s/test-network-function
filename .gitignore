@@ -1,4 +1,5 @@
 bin/
+catalog.json
 claim.json
 .idea
 vendor

@@ -23,6 +23,7 @@ import (
 
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/base/redhat"
+	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/identifier"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -35,6 +36,11 @@ func TestNewRelease(t *testing.T) {
 	assert.Equal(t, strings.Split(redhat.ReleaseCommand, " "), r.Args())
 	assert.Equal(t, testTimeoutDuration, r.Timeout())
 	assert.Equal(t, tnf.ERROR, r.Result())
+}
+
+func TestRelease_GetIdentifier(t *testing.T) {
+	r := redhat.NewRelease(testTimeoutDuration)
+	assert.Equal(t, identifier.VersionIdentifier, r.GetIdentifier())
 }
 
 func TestRelease_ReelFirst(t *testing.T) {

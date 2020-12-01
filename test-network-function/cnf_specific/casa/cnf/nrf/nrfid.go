@@ -22,6 +22,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/identifier"
+
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/reel"
 )
@@ -92,6 +94,11 @@ type Registration struct {
 // Args returns the command line args for the test.
 func (r *Registration) Args() []string {
 	return r.args
+}
+
+// GetIdentifier returns the tnf.Test specific identifier.
+func (r *Registration) GetIdentifier() identifier.Identifier {
+	return identifier.CasaNRFIDIdentifier
 }
 
 // Timeout returns the timeout in seconds for the test.

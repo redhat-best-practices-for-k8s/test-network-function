@@ -22,6 +22,7 @@ import (
 	"time"
 
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
+	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/identifier"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/reel"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/testcases"
 )
@@ -50,6 +51,11 @@ type Pod struct {
 // Args returns the command line args for the test.
 func (p *Pod) Args() []string {
 	return p.args
+}
+
+// GetIdentifier returns the tnf.Test specific identifier.
+func (p *Pod) GetIdentifier() identifier.Identifier {
+	return identifier.PodIdentifier
 }
 
 // Timeout return the timeout for the test.

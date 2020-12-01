@@ -25,6 +25,7 @@ import (
 	"time"
 
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
+	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/identifier"
 	"github.com/redhat-nfvpe/test-network-function/test-network-function/cnf_specific/casa/cnf/nrf"
 	"github.com/stretchr/testify/assert"
 )
@@ -125,6 +126,13 @@ func TestNewRegistration(t *testing.T) {
 		assert.NotNil(t, r)
 		assert.Equal(t, testCase.timeout, r.Timeout())
 		assert.Equal(t, strings.Split(fmt.Sprintf(nrf.CheckRegistrationCommand, testCase.namespace, testCase.namespace), " "), r.Args())
+	}
+}
+
+func TestRegistration_GetIdentifier(t *testing.T) {
+	for _, testCase := range genericRegistrationTestCases {
+		r := nrf.NewRegistration(testCase.timeout, testCase.namespace)
+		assert.Equal(t, identifier.CasaNRFIDIdentifier, r.GetIdentifier())
 	}
 }
 

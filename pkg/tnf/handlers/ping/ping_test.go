@@ -26,6 +26,7 @@ import (
 
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/ping"
+	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/identifier"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -122,6 +123,13 @@ func TestPing_Args(t *testing.T) {
 		assert.NotNil(t, request)
 		args := []string{"ping", "-c", strconv.Itoa(testCase.count), testCase.host}
 		assert.Equal(t, args, request.Args())
+	}
+}
+
+func TestPing_GetIdentifier(t *testing.T) {
+	for _, testCase := range testCases {
+		request := ping.NewPing(testTimeoutDuration, testCase.host, testCase.count)
+		assert.Equal(t, identifier.PingIdentifier, request.GetIdentifier())
 	}
 }
 

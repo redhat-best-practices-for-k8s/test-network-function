@@ -24,6 +24,7 @@ import (
 
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/container"
+	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/identifier"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/testcases"
 	"github.com/stretchr/testify/assert"
 )
@@ -48,6 +49,11 @@ var (
 func TestPod_Args(t *testing.T) {
 	c := container.NewPod(args, name, namespace, stringExpectedStatus, testcases.StringType, testcases.Allow, testTimeoutDuration)
 	assert.Equal(t, args, c.Args())
+}
+
+func TestPod_GetIdentifier(t *testing.T) {
+	c := container.NewPod(args, name, namespace, stringExpectedStatus, testcases.StringType, testcases.Allow, testTimeoutDuration)
+	assert.Equal(t, identifier.PodIdentifier, c.GetIdentifier())
 }
 
 func TestPod_ReelFirst(t *testing.T) {

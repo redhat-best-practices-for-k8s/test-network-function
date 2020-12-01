@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
+	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/identifier"
 	"github.com/redhat-nfvpe/test-network-function/test-network-function/cnf_specific/casa/cnf/nrf"
 	"github.com/stretchr/testify/assert"
 )
@@ -48,6 +49,12 @@ func TestCheckRegistration_Args(t *testing.T) {
 		"|", "jq", "'.nfStatus'"}
 	assert.Equal(t, expected, nrf.FormCheckRegistrationCmd(testNamespace, nrfID))
 	assert.Equal(t, expected, cr.Args())
+}
+
+func TestCheckRegistration_GetIdentifier(t *testing.T) {
+	nrfID := nrf.NewNRFID("nrf123", "AMF", "0a0a2ede-be2e-40f0-8145-5ea6c565296e", "REGISTERED")
+	cr := nrf.NewCheckRegistration(testNamespace, testTimeout, nrfID)
+	assert.Equal(t, identifier.CasaNRFRegistrationIdentifier, cr.GetIdentifier())
 }
 
 func TestCheckRegistration_ReelFirst(t *testing.T) {
