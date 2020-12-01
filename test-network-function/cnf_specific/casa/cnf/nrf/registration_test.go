@@ -42,7 +42,9 @@ func TestCheckRegistration_Args(t *testing.T) {
 	cr := nrf.NewCheckRegistration(testNamespace, testTimeout, nrfID)
 	assert.NotNil(t, cr)
 
-	expected := []string{"oc", "get", "-n", "default", "nfregistrations.mgmt.casa.io", "nrf123", "0a0a2ede-be2e-40f0-8145-5ea6c565296e", "-o", "jsonpath='{.items[*].spec.data}'", "|", "jq", "'.nfStatus'"}
+	expected := []string{"oc", "get", "-n", "default", "nfregistrations.mgmt.casa.io", "nrf123",
+						 "0a0a2ede-be2e-40f0-8145-5ea6c565296e", "-o", "jsonpath='{.items[*].spec.data}'",
+						 "|", "jq", "'.nfStatus'"}
 	assert.Equal(t, expected, nrf.FormCheckRegistrationCmd(testNamespace, nrfID))
 	assert.Equal(t, expected, cr.Args())
 }
