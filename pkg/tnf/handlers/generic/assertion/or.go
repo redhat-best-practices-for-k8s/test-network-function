@@ -39,7 +39,7 @@ func NewOrBooleanLogic() *OrBooleanLogic {
 }
 
 // Evaluate evaluates an arbitrarily sized array of Assertion and ensures at least one assertion passes.
-func (o OrBooleanLogic) Evaluate(assertions []Assertion, match string, regex regexp.Regexp) (bool, error) {
+func (o OrBooleanLogic) Evaluate(assertions []Assertion, match string, regex *regexp.Regexp) (bool, error) {
 	for _, assertion := range assertions {
 		assertionResult, err := (*assertion.Condition).Evaluate(match, regex, assertion.GroupIdx)
 		if err != nil {

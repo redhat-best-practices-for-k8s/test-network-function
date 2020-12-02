@@ -55,7 +55,7 @@ func NewIsIntCondition() *IsIntCondition {
 }
 
 // Evaluate evaluates whether a match string is an integer.
-func (i IsIntCondition) Evaluate(match string, regex regexp.Regexp, matchIdx int) (bool, error) {
+func (i IsIntCondition) Evaluate(match string, regex *regexp.Regexp, matchIdx int) (bool, error) {
 	matches := regex.FindStringSubmatch(match)
 	if len(matches) < matchIdx {
 		return false, fmt.Errorf("matches \"%s\" has no index: %d", matches, matchIdx)
@@ -80,7 +80,7 @@ func NewComparisonCondition(input int, comparison string) *ComparisonCondition {
 
 // Evaluate evaluates whether a match can be converted to an integer, then performs an integer equality test against
 // Input.
-func (i ComparisonCondition) Evaluate(match string, regex regexp.Regexp, matchIdx int) (bool, error) {
+func (i ComparisonCondition) Evaluate(match string, regex *regexp.Regexp, matchIdx int) (bool, error) {
 	matches := regex.FindStringSubmatch(match)
 	if len(matches) < matchIdx {
 		return false, fmt.Errorf("matches \"%s\" has no index: %d", matches, matchIdx)

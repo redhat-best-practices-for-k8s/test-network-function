@@ -139,7 +139,7 @@ func (g *Generic) ReelMatch(pattern, before, match string) *reel.Step {
 	if len(composedAssertions) > 0 {
 		for _, composedAssertion := range composedAssertions {
 			regex := regexp.MustCompile(pattern)
-			success, err := (*composedAssertion.Logic).Evaluate(composedAssertion.Assertions, match, *regex)
+			success, err := (*composedAssertion.Logic).Evaluate(composedAssertion.Assertions, match, regex)
 			if err != nil {
 				// exit immediately on a test error.
 				g.FailureReason = err.Error()

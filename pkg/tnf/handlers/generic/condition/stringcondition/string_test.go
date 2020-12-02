@@ -72,7 +72,7 @@ var equalsCondtionTestCases = map[string]equalsConditionTestCase{
 func TestEqualsCondition_Evaluate(t *testing.T) {
 	for _, testCase := range equalsCondtionTestCases {
 		c := stringcondition.NewEqualsCondition(testCase.expected)
-		actualResult, actualError := c.Evaluate(testCase.match, testCase.regex, testCase.matchIdx)
+		actualResult, actualError := c.Evaluate(testCase.match, &testCase.regex, testCase.matchIdx)
 		assert.Equal(t, testCase.expectedType, c.Type)
 		assert.Equal(t, testCase.expectedResult, actualResult)
 		assert.Equal(t, testCase.expectedError, actualError != nil)

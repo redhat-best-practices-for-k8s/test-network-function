@@ -29,5 +29,5 @@ const (
 type Condition interface {
 
 	// Evaluate evaluates a Condition implementation for groupIdx group of a matched expression.
-	Evaluate(match string, regex regexp.Regexp, groupIdx int) (bool, error)
+	Evaluate(match string, regex *regexp.Regexp, groupIdx int) (bool, error)
 }
