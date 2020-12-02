@@ -21,6 +21,7 @@ import (
 	expect "github.com/google/goexpect"
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
+	"github.com/redhat-nfvpe/test-network-function/internal/api"
 	"github.com/redhat-nfvpe/test-network-function/internal/reel"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
 	containerTestConfig "github.com/redhat-nfvpe/test-network-function/pkg/tnf/config"
@@ -60,7 +61,18 @@ var _ = ginkgo.Describe(testSpecName, func() {
 	cnfInTest, err = containerTestConfig.GetConfig()
 	gomega.Expect(err).To(gomega.BeNil())
 	gomega.Expect(cnfInTest).ToNot(gomega.BeNil())
+	//Test for CNF certificates
+	certAPIClient := api.NewHTTPClient()
 	for _, cnf := range cnfInTest.CNFs {
+		for _, certified := range cnf.CertifiedContainerRequestInfos {
+			ginkgo.When(fmt.Sprintf("cnf certification test for: %s/%s ", certified.Repository, certified.Name), func() {
+				ginkgo.It("tests for Container Certification Status", func() {
+					certified := certified //pin
+					isCertified := certAPIClient.IsContainerCertified(certified.Repository, certified.Name)
+					gomega.Expect(isCertified).To(gomega.BeTrue())
+				})
+			})
+		}
 		// Gather facts for containers
 		podFacts, err := testcases.LoadCnfTestCaseSpecs(testcases.GatherFacts)
 		gomega.Expect(err).To(gomega.BeNil())
@@ -89,7 +101,7 @@ var _ = ginkgo.Describe(testSpecName, func() {
 			gomega.Expect(renderedTestCase).ToNot(gomega.BeNil())
 			for _, testCase := range renderedTestCase.TestCase {
 				if !testCase.SkipTest {
-					if testCase.ExpectedType == "function" {
+					if testCase.ExpectedType == testcases.Function {
 						for _, val := range testCase.ExpectedStatus {
 							testCase.ExpectedStatusFn(testcases.StatusFunctionType(val))
 						}

@@ -26,12 +26,19 @@ operators:
           - PRIVILEGED_POD
     tests:
       - CSV_INSTALLED
+    certifiedoperatorrequestinfo:
+      - name: "etcd-operator"
+        organization: "redhat-marketplace"
 cnfs:
   - name: cnf_only
     namespace: test
     status: ""
     tests:
       - PRIVILEGED_POD
+  certifiedcontainerrequestinfo:
+    - name: "ubuntu"
+      repository: "rhel8"
+      certificatetype: "CONTAINER"
 cnfavailabletestcases:
   - PRIVILEGED_POD
   - CLUSTER_ROLE
