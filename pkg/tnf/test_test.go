@@ -37,7 +37,7 @@ const (
 
 var (
 	defaultTestCommand = []string{"ls"}
-	sendError          = errors.New("generic send error")
+	errSend            = errors.New("generic send error")
 	runnerError        = errors.New("runner run error")
 )
 
@@ -60,8 +60,8 @@ var newTestTestCases = map[string]newTestTestCase{
 	// Replicates the idea that the test was not successfully instantiated as the expect.Send(...) returned an error.
 	"send_error": {
 		testCommandArgs: defaultTestCommand,
-		sendReturnErr:   sendError,
-		newTestErr:      sendError,
+		sendReturnErr:   errSend,
+		newTestErr:      errSend,
 		newTestIsNil:    true,
 	},
 }

@@ -150,8 +150,8 @@ func TestRegistration_ReelMatch(t *testing.T) {
 		step := r.ReelMatch(testCase.reelMatchPattern, "", testCaseOutput)
 		assert.Nil(t, step)
 		assert.Equal(t, testCase.expectedResult, r.Result())
-		for _, expectedUuid := range testCase.expectedNRFUuids {
-			assert.NotNil(t, r.GetRegisteredNRFs()[expectedUuid])
+		for _, expectedUUID := range testCase.expectedNRFUuids {
+			assert.NotNil(t, r.GetRegisteredNRFs()[expectedUUID])
 		}
 	}
 }
