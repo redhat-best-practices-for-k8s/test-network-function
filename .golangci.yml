@@ -65,7 +65,6 @@ linters:
     - errcheck
     - exhaustive
     - funlen
-    - gochecknoinits
     - goconst
     - gocritic
     - gocyclo
@@ -96,6 +95,7 @@ linters:
   # don't enable:
   # - asciicheck
   # - gochecknoglobals
+  # - gochecknoinits
   # - gocognit
   # - godot
   # - godox
