@@ -123,15 +123,15 @@ func (a *Assertion) unmarshalConditionJSON(objMap map[string]*json.RawMessage) e
 		}
 		switch typ {
 		case stringcondition.EqualsConditionKey:
-			if err = a.unmarshalEqualsCondition(conditionJSONMessage); err != nil {
+			if err := a.unmarshalEqualsCondition(conditionJSONMessage); err != nil {
 				return err
 			}
 		case intcondition.IsIntConditionKey:
-			if err = a.unmarshalIsIntCondition(conditionJSONMessage); err != nil {
+			if err := a.unmarshalIsIntCondition(conditionJSONMessage); err != nil {
 				return err
 			}
 		case intcondition.ComparisonConditionKey:
-			if err = a.unmarshalIntComparisonCondition(conditionJSONMessage); err != nil {
+			if err := a.unmarshalIntComparisonCondition(conditionJSONMessage); err != nil {
 				return err
 			}
 		default:
@@ -149,11 +149,11 @@ func (a *Assertion) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	if err = a.unmarshalGroupIdxJSON(objMap); err != nil {
+	if err := a.unmarshalGroupIdxJSON(objMap); err != nil {
 		return err
 	}
 
-	if err = a.unmarshalConditionJSON(objMap); err != nil {
+	if err := a.unmarshalConditionJSON(objMap); err != nil {
 		return err
 	}
 

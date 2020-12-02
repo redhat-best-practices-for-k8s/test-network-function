@@ -198,10 +198,9 @@ func ValidateConfigPath(path string) error {
 // parseFlags will create and parse the CLI flags
 // and return the path to be used elsewhere
 func parseFlags() (string, error) {
-	var err error
 	flag.Parse()
 	// Validate the path first
-	if err = ValidateConfigPath(*configPath); err != nil {
+	if err := ValidateConfigPath(*configPath); err != nil {
 		return "", err
 	}
 	// Return the configuration path
