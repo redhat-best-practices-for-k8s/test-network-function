@@ -28,7 +28,7 @@ import (
 	"time"
 )
 
-func parseArgs() (*interactive.Oc, <-chan error, string, time.Duration, error) {
+func parseArgs() (*interactive.Oc, <-chan error, string, time.Duration, error) { //nolint:gocritic //permit unnamed return values
 	timeout := flag.Int("t", 2, "Timeout in seconds")
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "usage: %s [-t timeout] pod container targetIpAddress ?oc-exec-opt ... oc-exec-opt?\n", os.Args[0])

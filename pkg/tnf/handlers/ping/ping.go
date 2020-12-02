@@ -109,7 +109,7 @@ func (p *Ping) ReelEOF() {
 }
 
 // GetStats returns the transmitted, received and error counts.
-func (p *Ping) GetStats() (int, int, int) {
+func (p *Ping) GetStats() (transmitted, received, errors int) {
 	return p.transmitted, p.received, p.errors
 }
 
