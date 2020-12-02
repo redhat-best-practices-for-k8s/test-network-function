@@ -125,7 +125,7 @@ func (g *Generic) findResultContext(pattern string) *ResultContext {
 }
 
 // ReelMatch informs of a match event, returning the next step to perform.
-func (g *Generic) ReelMatch(pattern string, before string, match string) *reel.Step {
+func (g *Generic) ReelMatch(pattern, before, match string) *reel.Step {
 	m := &Match{Pattern: pattern, Before: before, Match: match}
 	g.Matches = append(g.Matches, *m)
 

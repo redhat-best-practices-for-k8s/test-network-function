@@ -63,7 +63,7 @@ func (h *Hostname) ReelFirst() *reel.Step {
 
 // ReelMatch parses the hostname output and set the test result on match.
 // Returns no step; the test is complete.
-func (h *Hostname) ReelMatch(_ string, _ string, match string) *reel.Step {
+func (h *Hostname) ReelMatch(_, _, match string) *reel.Step {
 	h.hostname = match
 	h.result = tnf.SUCCESS
 	return nil

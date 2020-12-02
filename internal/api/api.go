@@ -72,7 +72,7 @@ func (api CertAPIClient) GetImageByID(id string) (response string, err error) {
 }
 
 // GetImageIDByRepository get container image data for the given container Id
-func (api CertAPIClient) GetImageIDByRepository(repository string, imageName string) (imageID string, err error) {
+func (api CertAPIClient) GetImageIDByRepository(repository, imageName string) (imageID string, err error) {
 	var responseData []byte
 	url := fmt.Sprintf("%s/%s/%s/images?page_size=1", apiCatalogByRepositoriesBaseEndPoint, repository, imageName)
 	if responseData, err = api.getRequest(url); err == nil {
@@ -82,7 +82,7 @@ func (api CertAPIClient) GetImageIDByRepository(repository string, imageName str
 }
 
 // GetOperatorBundleIDByPackageName get published operator bundle Id by package name and organization
-func (api CertAPIClient) GetOperatorBundleIDByPackageName(name string, org string) (imageID string, err error) {
+func (api CertAPIClient) GetOperatorBundleIDByPackageName(name, org string) (imageID string, err error) {
 	var responseData []byte
 	url := fmt.Sprintf("%s/bundles?page_size=1&package=%s&organization=%s", apiOperatorCatalogExternalBaseEndPoint, name, org)
 	if responseData, err = api.getRequest(url); err == nil {

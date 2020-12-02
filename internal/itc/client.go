@@ -42,7 +42,7 @@ const (
 )
 
 // Create creates IPSEC tunnels through wrapping "itc" (ike-testctl alias) on the remote container.
-func Create(pod string, container string, namespace string, numTunnels, messagesPerSecond int) error {
+func Create(pod, container, namespace string, numTunnels, messagesPerSecond int) error {
 	remoteCommand := []string{itcCommand, itcCreateCommand, strconv.Itoa(numTunnels), strconv.Itoa(messagesPerSecond)}
 	// Ignore stdout, since "itc create" has no output.
 	_, err := oc.InvokeOCCommand(pod, container, namespace, remoteCommand)
@@ -50,7 +50,7 @@ func Create(pod string, container string, namespace string, numTunnels, messages
 }
 
 // Helper to count the number of matching tunnels from "itc summary" output.
-func countTunnelMatches(output string, regex string) int {
+func countTunnelMatches(output, regex string) int {
 	re := regexp.MustCompile(regex)
 	startIndex := -1
 	match := re.FindAllString(output, startIndex)
@@ -74,7 +74,7 @@ func parseItcSummaryOutput(output string) (int, int, error) {
 }
 
 // IkeSummary extracts the number of instantiated tunnels and the number of successfully connected tunnels.
-func IkeSummary(pod string, container string, namespace string) (int, int, error) {
+func IkeSummary(pod, container, namespace string) (int, int, error) {
 	remoteCommand := []string{itcCommand, itcIkeCommand}
 	stdout, err := oc.InvokeOCCommand(pod, container, namespace, remoteCommand)
 	if err != nil {
@@ -84,7 +84,7 @@ func IkeSummary(pod string, container string, namespace string) (int, int, error
 }
 
 // Summary extracts the result of running "itc summary" on a remote container.
-func Summary(pod string, container string, namespace string) (string, error) {
+func Summary(pod, container, namespace string) (string, error) {
 	remoteCommand := []string{itcCommand, itcSummaryCommand}
 	return oc.InvokeOCCommand(pod, container, namespace, remoteCommand)
 }
@@ -95,7 +95,7 @@ func getPacketTypeRegex(packetType string) string {
 }
 
 // GetPacketCount extracts packet count for a particular type from "itc summary".
-func GetPacketCount(pod string, container string, namespace string, packetType string) (int, error) {
+func GetPacketCount(pod, container, namespace, packetType string) (int, error) {
 	packetTypeRegex := getPacketTypeRegex(packetType)
 	re := regexp.MustCompile(packetTypeRegex)
 	summary, err := Summary(pod, container, namespace)
@@ -110,24 +110,24 @@ func GetPacketCount(pod string, container string, namespace string, packetType s
 }
 
 // GetItcIcmpReplyCount extracts ICMP Reply count.
-func GetItcIcmpReplyCount(pod string, container string, namespace string) (int, error) {
+func GetItcIcmpReplyCount(pod, container, namespace string) (int, error) {
 	return GetPacketCount(pod, container, namespace, itcIcmpRepliesRecieved)
 }
 
 // GetUDPReceivedCount extracts the number of UDP replies received.
-func GetUDPReceivedCount(pod string, container string, namespace string) (int, error) {
+func GetUDPReceivedCount(pod, container, namespace string) (int, error) {
 	return GetPacketCount(pod, container, namespace, udpReceivedCount)
 }
 
 // Ping is a wrapper for "itc ping".
-func Ping(pod string, container string, namespace string, tunnelIndex int, targetAddress string, messagesPerSecond int, packetCount int, dataLength int) (string, error) {
+func Ping(pod, container, namespace string, tunnelIndex int, targetAddress string, messagesPerSecond, packetCount, dataLength int) (string, error) {
 	remoteCommand := []string{itcCommand, itcPingCommand, strconv.Itoa(tunnelIndex), targetAddress,
 		strconv.Itoa(messagesPerSecond), strconv.Itoa(packetCount), strconv.Itoa(dataLength)}
 	return oc.InvokeOCCommand(pod, container, namespace, remoteCommand)
 }
 
 // SendData is a wrapper for "itc senddata".
-func SendData(pod string, container string, namespace string, tunnelIndex int, messagesPerSecond int, packetCount int, dataLength int) (string, error) {
+func SendData(pod, container, namespace string, tunnelIndex, messagesPerSecond, packetCount, dataLength int) (string, error) {
 	remoteCommand := []string{itcCommand, itcSendDataCommand, strconv.Itoa(tunnelIndex),
 		strconv.Itoa(messagesPerSecond), strconv.Itoa(packetCount), strconv.Itoa(dataLength)}
 	return oc.InvokeOCCommand(pod, container, namespace, remoteCommand)

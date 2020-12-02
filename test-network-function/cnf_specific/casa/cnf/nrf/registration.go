@@ -70,7 +70,7 @@ func (c *CheckRegistration) ReelFirst() *reel.Step {
 
 // ReelMatch determines whether a CNF was successfully registered.  The returned result is nil since no further action
 // is needed.
-func (c *CheckRegistration) ReelMatch(pattern string, _ string, _ string) *reel.Step {
+func (c *CheckRegistration) ReelMatch(pattern, _, _ string) *reel.Step {
 	if pattern == UnsuccessfulRegistrationOutputRegexString {
 		c.result = tnf.FAILURE
 	} else if pattern == SuccessfulRegistrationOutputRegexString {

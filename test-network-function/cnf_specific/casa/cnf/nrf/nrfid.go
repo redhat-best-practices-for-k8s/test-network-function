@@ -112,7 +112,7 @@ func (r *Registration) ReelFirst() *reel.Step {
 }
 
 // ReelMatch parses the Registration.  Returns no step; the test is complete.
-func (r *Registration) ReelMatch(pattern string, _ string, match string) *reel.Step {
+func (r *Registration) ReelMatch(pattern, _, match string) *reel.Step {
 	if pattern == CommandCompleteRegexString {
 		// Indicates that the command was successfully run, but there were no registered NRFs.
 		r.result = tnf.FAILURE

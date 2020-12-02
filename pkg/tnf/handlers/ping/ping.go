@@ -73,7 +73,7 @@ func (p *Ping) ReelFirst() *reel.Step {
 // unreachable), no requests were sent or there was some test execution error.
 // Otherwise the result is failure.
 // Returns no step; the test is complete.
-func (p *Ping) ReelMatch(_ string, _ string, match string) *reel.Step {
+func (p *Ping) ReelMatch(_, _, match string) *reel.Step {
 	re := regexp.MustCompile(ConnectInvalidArgumentRegex)
 	matched := re.FindStringSubmatch(match)
 	if matched != nil {
