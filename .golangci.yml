@@ -47,8 +47,6 @@ linters-settings:
     line-length: 200
   maligned:
     suggest-new: true
-  misspell:
-    locale: US
   nolintlint:
     allow-leading-space: false # disallow leading spaces. A space means the //nolint comment shows in `godoc` output.
     allow-unused: false # report any unused nolint directives

@@ -87,7 +87,7 @@ func (p *Pod) ReelMatch(_, _, match string) *reel.Step {
 	// based on the action type allow (default)|deny
 	p.facts = match
 	if p.ResultType == testcases.ArrayType {
-		re := regexp.MustCompile(testcases.GetOutRegExp(testcases.NullFalse)) // Single value matching null or false is considered postive
+		re := regexp.MustCompile(testcases.GetOutRegExp(testcases.NullFalse)) // Single value matching null or false is considered positive
 		matched := re.MatchString(match)
 		if matched {
 			p.result = tnf.SUCCESS
