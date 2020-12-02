@@ -36,7 +36,7 @@ const (
 type CNFType string
 
 const (
-	//ContainerType is a `Container Image` CNF type
+	// ContainerType is a `Container Image` CNF type
 	ContainerType = "CONTAINER"
 	// OperatorType is a `Operator` CNF type
 	OperatorType = "OPERATOR"

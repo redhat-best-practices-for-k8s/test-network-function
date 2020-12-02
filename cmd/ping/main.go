@@ -50,7 +50,7 @@ func parseArgs() (*ping.Ping, time.Duration) {
 // Optionally log dialogue with the controlled subprocess to file.
 func main() {
 	result := tnf.ERROR
-	ping, timeoutDuration := parseArgs()
+	pingReel, timeoutDuration := parseArgs()
 	goExpectSpawner := interactive.NewGoExpectSpawner()
 	var spawner interactive.Spawner = goExpectSpawner
 	context, err := interactive.SpawnShell(&spawner, timeoutDuration, expect.Verbose(true))
@@ -59,7 +59,7 @@ func main() {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(result)
 	}
-	tester, err := tnf.NewTest(context.GetExpecter(), ping, []reel.Handler{ping}, context.GetErrorChannel())
+	tester, err := tnf.NewTest(context.GetExpecter(), pingReel, []reel.Handler{pingReel}, context.GetErrorChannel())
 
 	if err == nil {
 		result, err = tester.Run()

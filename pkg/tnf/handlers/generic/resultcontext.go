@@ -47,7 +47,7 @@ type ResultContext struct {
 // custom MarshallJSON implementation is needed due to a recursive definition (type ResultContext has a property of type
 // ResultContext).
 func (r *ResultContext) MarshalJSON() ([]byte, error) {
-	if len(r.NextResultContexts) <= 0 {
+	if len(r.NextResultContexts) == 0 {
 		return json.Marshal(&struct {
 			Pattern            string                 `json:"pattern,omitempty"`
 			ComposedAssertions []assertion.Assertions `json:"composedAssertions,omitempty"`

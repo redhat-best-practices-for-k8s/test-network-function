@@ -188,7 +188,7 @@ func TestContainsConfiguredTest(t *testing.T) {
 	c := testcases.ContainsConfiguredTest(b.CnfTest, "PRIVILEGED_POD")
 	assert.NotNil(t, c.Name)
 	assert.Equal(t, "PRIVILEGED_POD", c.Name)
-	//Invalid Key
+	// Invalid Key
 	c = testcases.ContainsConfiguredTest(b.CnfTest, "PRIVILEGED_POD_INVALID")
 	assert.NotNil(t, c.Name)
 	assert.Equal(t, reflect.DeepEqual(c, testcases.ConfiguredTest{}), true)
@@ -200,7 +200,7 @@ func TestContainsConfiguredTestForInvalidKey(t *testing.T) {
 	b, e := testcases.LoadConfiguredTestFile(file.Name())
 	assert.Nil(t, e)
 	assert.NotNil(t, b)
-	//Invalid Key
+	// Invalid Key
 	c := testcases.ContainsConfiguredTest(b.CnfTest, "PRIVILEGED_POD_INVALID")
 	assert.NotNil(t, c.Name)
 	assert.Equal(t, reflect.DeepEqual(c, testcases.ConfiguredTest{}), true)

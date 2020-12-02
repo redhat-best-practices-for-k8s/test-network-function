@@ -16,7 +16,7 @@
 
 package operator
 
-//OperatorJSON test templates for collecting operator status
+// OperatorJSON test templates for collecting operator status
 var OperatorJSON = string(`{
   "testcase": [
     {

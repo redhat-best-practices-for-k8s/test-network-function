@@ -83,7 +83,7 @@ func TestNewReel(t *testing.T) {
 
 		testCommand := strings.Join(testCase.command, " ")
 		if !strings.HasSuffix(testCommand, "\n") {
-			testCommand = testCommand + "\n"
+			testCommand += "\n"
 		}
 		mockExpecter.EXPECT().Send(testCommand).AnyTimes().Return(testCase.sendCmdErr)
 
@@ -229,7 +229,7 @@ func TestReel_Step(t *testing.T) {
 	for _, testCase := range reelStepTestCases {
 		testCommand := strings.Join(testCase.command, " ")
 		if !strings.HasSuffix(testCommand, "\n") {
-			testCommand = testCommand + "\n"
+			testCommand += "\n"
 		}
 
 		mockExpecter := mock_interactive.NewMockExpecter(ctrl)

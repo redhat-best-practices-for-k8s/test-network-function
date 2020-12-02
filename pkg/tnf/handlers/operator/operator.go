@@ -83,11 +83,11 @@ func contains(arr []string, str string) (found bool) {
 // ReelMatch parses the status output and set the test result on match.
 // Returns no step; the test is complete.
 func (p *Operator) ReelMatch(_, _, match string) *reel.Step {
-	//for type: array ,should match for any expected status or fail on any expected status
-	//based on the action type allow (default)|deny
+	// for type: array ,should match for any expected status or fail on any expected status
+	// based on the action type allow (default)|deny
 	p.facts = match
 	if p.ResultType == testcases.ArrayType {
-		re := regexp.MustCompile(testcases.GetOutRegExp(testcases.NullFalse)) //Single value matching null or false is considered postive
+		re := regexp.MustCompile(testcases.GetOutRegExp(testcases.NullFalse)) // Single value matching null or false is considered postive
 		matched := re.MatchString(match)
 		if matched {
 			p.result = tnf.SUCCESS
@@ -101,11 +101,11 @@ func (p *Operator) ReelMatch(_, _, match string) *reel.Step {
 		matchSlice := strings.FieldsFunc(match, f)
 		for _, status := range matchSlice {
 			if contains(p.ExpectStatus, status) {
-				if p.Action == testcases.Deny { //Single deny match is failure.
+				if p.Action == testcases.Deny { // Single deny match is failure.
 					return nil
 				}
 			} else if p.Action == testcases.Allow {
-				return nil //should be in allowed list
+				return nil // should be in allowed list
 			}
 		}
 	} else {

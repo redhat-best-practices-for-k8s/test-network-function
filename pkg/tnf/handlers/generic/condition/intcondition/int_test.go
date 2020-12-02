@@ -41,7 +41,7 @@ type isIntEvaluationTestCase struct {
 var isIntConditionTestCases = map[string]isIntEvaluationTestCase{
 	"working": {
 		match:          "this is message 1",
-		regex:          *regexp.MustCompile(`[^\d]+(\d+)`),
+		regex:          *regexp.MustCompile(`\D+(\d+)`),
 		matchIdx:       1,
 		expectedType:   intcondition.IsIntConditionKey,
 		expectedResult: true,
