@@ -310,15 +310,10 @@ func GetOutRegExp(key RegExType) string {
 
 // ExpectedStatusFn checks for expectedStatus function in the test template and replaces with data from container facts
 func (b *BaseTestCase) ExpectedStatusFn(fnType StatusFunctionType) {
-	switch fnType {
-	case ServiceAccountFn:
-		{
-			for index, expectedStatus := range b.ExpectedStatus {
-				if fnType == StatusFunctionType(expectedStatus) {
-					b.ReplaceSAasExpectedStatus(index)
-					break
-				}
-			}
+	for index, expectedStatus := range b.ExpectedStatus {
+		if fnType == StatusFunctionType(expectedStatus) {
+			b.ReplaceSAasExpectedStatus(index)
+			break
 		}
 	}
 }

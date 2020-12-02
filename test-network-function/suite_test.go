@@ -89,7 +89,7 @@ func TestTest(t *testing.T) {
 	gomega.RegisterFailHandler(ginkgo.Fail)
 
 	// Extract the version, which should be placed by the build system.
-	version, err := version.GetVersion()
+	tnfVersion, err := version.GetVersion()
 	if err != nil {
 		log.Fatalf("Couldn't determine the version: %v", err)
 	}
@@ -107,7 +107,7 @@ func TestTest(t *testing.T) {
 	}
 	claimData.Hosts = equipmentMap
 	claimData.Versions = &claim.Versions{
-		Tnf: version.Tag,
+		Tnf: tnfVersion.Tag,
 	}
 
 	var ginkgoReporters []ginkgo.Reporter

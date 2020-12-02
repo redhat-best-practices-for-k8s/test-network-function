@@ -61,13 +61,13 @@ var _ = ginkgo.Describe(testSpecName, func() {
 	cnfInTest, err = containerTestConfig.GetConfig()
 	gomega.Expect(err).To(gomega.BeNil())
 	gomega.Expect(cnfInTest).ToNot(gomega.BeNil())
-	//Test for CNF certificates
+	// Test for CNF certificates
 	certAPIClient := api.NewHTTPClient()
 	for _, cnf := range cnfInTest.CNFs {
 		for _, certified := range cnf.CertifiedContainerRequestInfos {
 			ginkgo.When(fmt.Sprintf("cnf certification test for: %s/%s ", certified.Repository, certified.Name), func() {
 				ginkgo.It("tests for Container Certification Status", func() {
-					certified := certified //pin
+					certified := certified // pin
 					isCertified := certAPIClient.IsContainerCertified(certified.Repository, certified.Name)
 					gomega.Expect(isCertified).To(gomega.BeTrue())
 				})
@@ -83,7 +83,6 @@ var _ = ginkgo.Describe(testSpecName, func() {
 			gomega.Expect(err).To(gomega.BeNil())
 			_, err = test.Run()
 			gomega.Expect(err).To(gomega.BeNil())
-			//gomega.Expect(result).To(gomega.Equal(tnf.SUCCESS))
 			if factsTest.Name == string(testcases.ContainerCount) {
 				testcases.ContainerFacts[testcases.ContainerCount] = cnfInTest.Facts()
 			} else if factsTest.Name == string(testcases.ServiceAccountName) {

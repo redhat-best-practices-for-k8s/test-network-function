@@ -246,7 +246,7 @@ func TestValidateConfigPath(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.path, func(t *testing.T) {
-			tt := tt //pin
+			tt := tt // pin
 			err := config.ValidateConfigPath(tt.path)
 			if err == nil && tt.error != nil {
 				assert.Fail(t, err.Error())
@@ -272,7 +272,7 @@ func TestConfigLoadFunction(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(strings.Join(tt.args, " "), func(t *testing.T) {
-			tt := tt //pin
+			tt := tt // pin
 			os.Args = tt.args
 			if len(tt.args) > 2 {
 				configPath = &tt.args[2]

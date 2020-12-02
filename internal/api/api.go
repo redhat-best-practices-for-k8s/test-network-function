@@ -46,7 +46,7 @@ func NewHTTPClient() CertAPIClient {
 // IsContainerCertified get container image info by repo/name and checks if container details is present
 // If present then returns `true` as certified operators.
 func (api CertAPIClient) IsContainerCertified(repository, imageName string) bool {
-	if imageID, err := api.GetImageIDByRepository(repository, imageName); err != nil || len(imageID) == 0 {
+	if imageID, err := api.GetImageIDByRepository(repository, imageName); err != nil || imageID == "" {
 		return false
 	}
 	return true
@@ -55,7 +55,7 @@ func (api CertAPIClient) IsContainerCertified(repository, imageName string) bool
 // IsOperatorCertified get operator bundle by package name and check if package details is present
 // If present then returns `true` as certified operators.
 func (api CertAPIClient) IsOperatorCertified(packageName, org string) bool {
-	if imageID, err := api.GetOperatorBundleIDByPackageName(packageName, org); err != nil || len(imageID) == 0 {
+	if imageID, err := api.GetOperatorBundleIDByPackageName(packageName, org); err != nil || imageID == "" {
 		return false
 	}
 	return true
@@ -143,7 +143,7 @@ func (api CertAPIClient) getIDFromResponse(response []byte) (id string, err erro
 
 // Find key in interface (recursively) and return value as interface
 func (api CertAPIClient) Find(obj interface{}, key string) (interface{}, bool) {
-	//if the argument is not a map, ignore it
+	// if the argument is not a map, ignore it
 	mobj, ok := obj.(map[string]interface{})
 	if !ok {
 		return nil, false

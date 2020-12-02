@@ -67,7 +67,7 @@ var _ = ginkgo.Describe(testSpecName, func() {
 		for _, certified := range operator.CertifiedOperatorRequestInfos {
 			ginkgo.When(fmt.Sprintf("cnf certification test for: %s/%s ", certified.Organization, certified.Name), func() {
 				ginkgo.It("tests for Operator Certification Status", func() {
-					certified := certified //pin
+					certified := certified // pin
 					isCertified := certAPIClient.IsOperatorCertified(certified.Organization, certified.Name)
 					gomega.Expect(isCertified).To(gomega.BeTrue())
 				})
