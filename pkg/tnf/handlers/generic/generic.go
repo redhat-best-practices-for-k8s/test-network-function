@@ -131,7 +131,7 @@ func (g *Generic) ReelMatch(pattern, before, match string) *reel.Step {
 
 	resultContext := g.findResultContext(pattern)
 	if resultContext == nil {
-		g.FailureReason = "the pattern provided to ReelMatch is not defined in ReelFirst"
+		g.FailureReason = "the pattern provided to ReelMatch is not defined in ReelFirst" //nolint:goconst
 		g.TestResult = tnf.ERROR
 		return nil
 	}

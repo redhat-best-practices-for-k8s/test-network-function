@@ -7,7 +7,7 @@ linters-settings:
   gci:
     local-prefixes: github.com/golangci/golangci-lint
   goconst:
-    min-len: 2
+    min-len: 4
     min-occurrences: 1
   gocritic:
     enabled-tags:
@@ -110,10 +110,11 @@ linters:
 issues:
   # Excluding configuration per-path, per-linter, per-text and per-source
   exclude-rules:
-    # Ignore magic numbers in tests.
+    # Ignore magic numbers and inline strings in tests.
     - path: _test\.go
       linters:
         - gomnd
+        - goconst
     # Ignore line length for string assignments (don't try and wrap regex definitions)
     - linters:
         - lll
@@ -122,6 +123,7 @@ issues:
     - linters:
         - gocritic
       text: "unnecessaryDefer:"
+    # Ignore static strings in tests
 
 
 # golangci.com configuration
