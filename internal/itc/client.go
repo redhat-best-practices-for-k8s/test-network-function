@@ -62,7 +62,7 @@ func countTunnelMatches(output, regex string) int {
 
 // Parse the itc ike output and extract the number of instantiated tunnels and the number of successfully connected
 // tunnels.
-func parseItcSummaryOutput(output string) (int, int, error) {
+func parseItcSummaryOutput(output string) (numInstantiated, numCreated int, err error) {
 	successfulIkeOutput := regexp.MustCompile(itcIkeSuccessRegex)
 	successfulIkeOutputMatch := successfulIkeOutput.FindStringSubmatch(output)
 	if successfulIkeOutputMatch != nil {
@@ -74,7 +74,7 @@ func parseItcSummaryOutput(output string) (int, int, error) {
 }
 
 // IkeSummary extracts the number of instantiated tunnels and the number of successfully connected tunnels.
-func IkeSummary(pod, container, namespace string) (int, int, error) {
+func IkeSummary(pod, container, namespace string) (numInstantiated, numCreated int, err error) {
 	remoteCommand := []string{itcCommand, itcIkeCommand}
 	stdout, err := oc.InvokeOCCommand(pod, container, namespace, remoteCommand)
 	if err != nil {

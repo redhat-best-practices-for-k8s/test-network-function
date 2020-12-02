@@ -45,7 +45,7 @@ type Step struct {
 }
 
 // A utility method to return the important aspects of the Step container as a tuple.
-func (s *Step) unpack() (string, []string, time.Duration) {
+func (s *Step) unpack() (execute string, expect []string, timeout time.Duration) { //nolint:gocritic // Ignoring shadowed name `expect`; it makes sense
 	return s.Execute, s.Expect, s.Timeout
 }
 
