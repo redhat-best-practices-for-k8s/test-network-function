@@ -43,9 +43,9 @@ func init() {
 var (
 	defaultGoExpectArgs            = []expect.Option{expect.Verbose(true)}
 	defaultStdout, defaultStdin, _ = os.Pipe()
-	startError                     = errors.New("start failed")
-	stdinPipeError                 = errors.New("failed to access stdin")
-	stdoutPipeError                = errors.New("failed to access stdout")
+	errStart                       = errors.New("start failed")
+	errStdInPipe                   = errors.New("failed to access stdin")
+	errStdoutPipe                  = errors.New("failed to access stdout")
 )
 
 type goExpectSpawnerTestCase struct {
@@ -81,7 +81,7 @@ var goExpectSpawnerTestCases = map[string]goExpectSpawnerTestCase{
 		// Sets up a scenario in which the call to StdinPipe() returns an error.  This error should cascade out of Spawn().
 		stdinPipeShouldBeCalled: true,
 		stdinPipeReturnValue:    nil,
-		stdinPipeReturnErr:      stdinPipeError,
+		stdinPipeReturnErr:      errStdInPipe,
 
 		stdoutPipeShouldBeCalled: false,
 		stdoutPipeReturnValue:    nil,
@@ -91,7 +91,7 @@ var goExpectSpawnerTestCases = map[string]goExpectSpawnerTestCase{
 		startReturnErr:      nil,
 
 		goExpectSpawnerSpawnReturnContextIsNil: true,
-		goExpectSpawnerSpawnReturnErr:          stdinPipeError,
+		goExpectSpawnerSpawnReturnErr:          errStdInPipe,
 	},
 	// 2. Progressing past the creation of stdin, now cause stdout to fail.
 	"stdout_pipe_creation_failure": {
@@ -108,13 +108,13 @@ var goExpectSpawnerTestCases = map[string]goExpectSpawnerTestCase{
 		// cause StdoutPipe() call to fail and ensure the error cascades.
 		stdoutPipeShouldBeCalled: true,
 		stdoutPipeReturnValue:    nil,
-		stdoutPipeReturnErr:      stdoutPipeError,
+		stdoutPipeReturnErr:      errStdInPipe,
 
 		startShouldBeCalled: false,
 		startReturnErr:      nil,
 
 		goExpectSpawnerSpawnReturnContextIsNil: true,
-		goExpectSpawnerSpawnReturnErr:          stdoutPipeError,
+		goExpectSpawnerSpawnReturnErr:          errStdInPipe,
 	},
 	// 3. Progressing past the creation of stdin/stdout, now cause Start to fail.
 	"start_failure": {
@@ -134,10 +134,10 @@ var goExpectSpawnerTestCases = map[string]goExpectSpawnerTestCase{
 
 		// cause Start() call to fail and make sure the error cascades out of Spawn().
 		startShouldBeCalled: true,
-		startReturnErr:      startError,
+		startReturnErr:      errStart,
 
 		goExpectSpawnerSpawnReturnContextIsNil: true,
-		goExpectSpawnerSpawnReturnErr:          startError,
+		goExpectSpawnerSpawnReturnErr:          errStart,
 	},
 	// 4. Successful spawn.
 	"successful_spawn": {

@@ -26,7 +26,7 @@ import (
 	"testing"
 )
 
-var sshSomeSpawnError = errors.New("some error related to spawning SSH")
+var errSpawnSSH = errors.New("some error related to spawning SSH")
 
 type sshTestCase struct {
 	user               string
@@ -46,9 +46,9 @@ var sshTestCases = map[string]sshTestCase{
 	},
 	"error": {
 		options:            []expect.Option{expect.Verbose(true)},
-		errReturnValue:     sshSomeSpawnError,
+		errReturnValue:     errSpawnSSH,
 		contextReturnValue: &interactive.Context{},
-		expectedSpawnErr:   sshSomeSpawnError,
+		expectedSpawnErr:   errSpawnSSH,
 	},
 }
 

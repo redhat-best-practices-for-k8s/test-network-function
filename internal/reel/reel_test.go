@@ -35,8 +35,8 @@ import (
 
 var (
 	defaultCommand   = []string{"ls"}
-	reelError        = errors.New("some reel error")
-	sendCommandError = errors.New("send command error")
+	errReel          = errors.New("some reel error")
+	errSendCommand   = errors.New("send command error")
 )
 
 type newReelTestCase struct {
@@ -61,15 +61,15 @@ var newReelTestCases = map[string]newReelTestCase{
 	},
 	"fail_to_send": {
 		command:            defaultCommand,
-		newReelResultErr:   sendCommandError,
+		newReelResultErr:   errSendCommand,
 		newReelResultIsNil: true,
-		sendCmdErr:         sendCommandError,
+		sendCmdErr:         errSendCommand,
 	},
 	"empty_command": {
 		command:            []string{},
 		newReelResultErr:   nil,
 		newReelResultIsNil: false,
-		sendCmdErr:         sendCommandError,
+		sendCmdErr:         errSendCommand,
 	},
 }
 
@@ -127,8 +127,8 @@ var reelStepTestCases = map[string]reelStepTestCase{
 	"reel_err_not_nil": {
 		stepInput:                          &reel.Step{},
 		command:                            defaultCommand,
-		stepReturnErr:                      reelError,
-		reelErr:                            reelError,
+		stepReturnErr:                      errReel,
+		reelErr:                            errReel,
 		expectBatchExpectedInvocationCount: 0,
 		isTimeout:                          false,
 	},
@@ -155,11 +155,11 @@ var reelStepTestCases = map[string]reelStepTestCase{
 	"non_timeout_error": {
 		stepInput:                          &reel.Step{Expect: []string{"expect something"}},
 		command:                            defaultCommand,
-		stepReturnErr:                      reelError,
+		stepReturnErr:                      errReel,
 		reelErr:                            nil,
 		expectBatchExpectedInvocationCount: 1,
 		expectBatchResResult:               []expect.BatchRes{},
-		expectBatchErrResult:               reelError,
+		expectBatchErrResult:               errReel,
 		isTimeout:                          false,
 	},
 	"successful_reel": {

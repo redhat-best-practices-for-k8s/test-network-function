@@ -26,7 +26,7 @@ import (
 	"testing"
 )
 
-var shellSomeSpawnError = errors.New("some error related to spawning shell")
+var errSpawnShell = errors.New("some error related to spawning shell")
 
 type shellTestCase struct {
 	options            []expect.Option
@@ -44,9 +44,9 @@ var shellTestCases = map[string]shellTestCase{
 	},
 	"error": {
 		options:            []expect.Option{expect.Verbose(true)},
-		errReturnValue:     shellSomeSpawnError,
+		errReturnValue:     errSpawnShell,
 		contextReturnValue: &interactive.Context{},
-		expectedSpawnErr:   shellSomeSpawnError,
+		expectedSpawnErr:   errSpawnShell,
 	},
 }
 

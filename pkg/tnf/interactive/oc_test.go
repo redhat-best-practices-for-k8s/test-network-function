@@ -31,7 +31,7 @@ const (
 	ocTestTimeoutDuration = time.Second * 2
 )
 
-var ocSomeSpawnError = errors.New("some error related to spawning OC")
+var errSpawnOC = errors.New("some error related to spawning OC")
 
 type ocTestCase struct {
 	podName            string
@@ -58,9 +58,9 @@ var ocTestCases = map[string]ocTestCase{
 		podContainerName:   "testPod",
 		podNamespace:       "default",
 		options:            []expect.Option{expect.Verbose(true)},
-		errReturnValue:     ocSomeSpawnError,
+		errReturnValue:     errSpawnOC,
 		contextReturnValue: &interactive.Context{},
-		expectedSpawnErr:   ocSomeSpawnError,
+		expectedSpawnErr:   errSpawnOC,
 	},
 }
 
