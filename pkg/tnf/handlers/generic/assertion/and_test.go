@@ -40,7 +40,7 @@ func TestNewAndBooleanLogic(t *testing.T) {
 func TestAndBooleanLogic_Evaluate(t *testing.T) {
 	for _, testCase := range andBooleanLogicTestCases {
 		logic := assertion.NewAndBooleanLogic()
-		actualResult, actualError := logic.Evaluate(testCase.assertions, testCase.match, testCase.regex)
+		actualResult, actualError := logic.Evaluate(testCase.assertions, testCase.match, &testCase.regex)
 		assert.Equal(t, assertion.AndBooleanLogicKey, logic.Type)
 		assert.Equal(t, testCase.expectedAndBooleanLogicResult, actualResult)
 		assert.Equal(t, testCase.expectedAndBooleanLogicError, actualError != nil)

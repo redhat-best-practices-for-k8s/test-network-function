@@ -97,6 +97,7 @@ var _ = ginkgo.Describe(testSpecName, func() {
 	}
 })
 
+//nolint:gocritic // ignore hugeParam error. Pointers to loop iterator vars are bad and `testCmd` is likely to be such.  
 func runTestsOnOperator(args []interface{}, name, namespace string, testCmd testcases.BaseTestCase) {
 	ginkgo.When(fmt.Sprintf("operator under test is: %s/%s ", namespace, name), func() {
 		ginkgo.It(fmt.Sprintf("tests for: %s", testCmd.Name), func() {

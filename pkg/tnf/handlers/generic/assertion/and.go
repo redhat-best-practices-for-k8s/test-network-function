@@ -39,7 +39,7 @@ func NewAndBooleanLogic() *AndBooleanLogic {
 }
 
 // Evaluate evaluates an arbitrarily sized array of Assertion and ensures each assertion passes.
-func (a AndBooleanLogic) Evaluate(assertions []Assertion, match string, regex regexp.Regexp) (bool, error) {
+func (a AndBooleanLogic) Evaluate(assertions []Assertion, match string, regex *regexp.Regexp) (bool, error) {
 	// TODO This could be multi-threaded, but is unlikely worth doing from a risk-reward standpoint.
 	for _, assertion := range assertions {
 		assertionResult, err := (*assertion.Condition).Evaluate(match, regex, assertion.GroupIdx)

@@ -140,7 +140,7 @@ func TestAssertions_UnmarshalJSON(t *testing.T) {
 			assert.NotNil(t, err)
 			assert.Equal(t, testCase.expectedUnmarshalErrorString, err.Error())
 		} else {
-			result, err := (*assertions.Logic).Evaluate(assertions.Assertions, testCase.match, testCase.regex)
+			result, err := (*assertions.Logic).Evaluate(assertions.Assertions, testCase.match, &testCase.regex)
 			assert.Equal(t, testCase.expectedEvaluationError, err != nil)
 			assert.Equal(t, testCase.expectedEvaluationResult, result)
 		}

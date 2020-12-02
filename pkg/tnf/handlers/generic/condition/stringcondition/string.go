@@ -42,7 +42,7 @@ func NewEqualsCondition(expected string) *EqualsCondition {
 }
 
 // Evaluate evaluates string equality for a match against Expected.
-func (e EqualsCondition) Evaluate(match string, regex regexp.Regexp, matchIdx int) (bool, error) {
+func (e EqualsCondition) Evaluate(match string, regex *regexp.Regexp, matchIdx int) (bool, error) {
 	matches := regex.FindStringSubmatch(match)
 	if len(matches) < matchIdx {
 		return false, fmt.Errorf("matches \"%s\" has no index: %d", matches, matchIdx)

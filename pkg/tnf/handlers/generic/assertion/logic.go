@@ -34,5 +34,5 @@ type BooleanLogic interface {
 	// Evaluate evaluates assertions against a match using an implementation-dependent BooleanLogic.  Evaluate returns
 	// whether or not the expression evaluated to true, and an optional error if the expression could not be evaluated
 	// properly.  An example of an error case might be making an assertion for a match index that does not exist.
-	Evaluate(assertions []Assertion, match string, regex regexp.Regexp) (bool, error)
+	Evaluate(assertions []Assertion, match string, regex *regexp.Regexp) (bool, error)
 }
