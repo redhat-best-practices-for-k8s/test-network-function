@@ -64,6 +64,7 @@ linters:
     - dupl
     - errcheck
     - exhaustive
+    - exportloopref
     - funlen
     - goconst
     - gocritic
@@ -84,7 +85,6 @@ linters:
     - noctx
     - nolintlint
     - rowserrcheck
-    - scopelint
     - staticcheck
     - stylecheck
     - typecheck
@@ -103,6 +103,7 @@ linters:
   # - maligned
   # - nestif
   # - prealloc
+  # - scopelint
   # - structcheck
   # - testpackage
   # - unused
