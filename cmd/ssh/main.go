@@ -37,14 +37,14 @@ func parseArgs() (*interactive.Context, string, time.Duration, error) {
 	}
 	flag.Parse()
 	args := flag.Args()
-	if len(args) < 3 {
+	if len(args) < 3 { //nolint:gomnd
 		flag.Usage()
 	}
 
 	timeoutDuration := time.Duration(*timeout) * time.Second
 	goExpectSpawner := interactive.NewGoExpectSpawner()
 	var spawner interactive.Spawner = goExpectSpawner
-	context, err := interactive.SpawnSSH(&spawner, args[0], args[1], time.Duration(10), expect.Verbose(true))
+	context, err := interactive.SpawnSSH(&spawner, args[0], args[1], timeoutDuration, expect.Verbose(true))
 	return context, args[2], timeoutDuration, err
 }
 

@@ -104,7 +104,7 @@ func (c *ContainerIdentifier) UnmarshalText(text []byte) error {
 // unquoteBytes contains the logic for unquoting raw bytes for Unmarshall operations.
 func unquoteBytes(bytes []byte) ([]byte, error) {
 	sBytes := string(bytes)
-	if len(bytes) < 2 {
+	if len(bytes) < 2 {  //nolint:gomnd
 		return nil, fmt.Errorf("cannot decode bytes: %s", sBytes)
 	}
 	str := sBytes[1 : len(sBytes)-1]
