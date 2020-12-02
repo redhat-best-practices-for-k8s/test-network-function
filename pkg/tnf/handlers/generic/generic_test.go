@@ -27,6 +27,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var (
+	schemaPath = path.Join("..", "..", "..", "..", "schemas", generic.TestSchemaFileName)
+)
+
 // newGenericFromJSONFileTestCase defines input and expected values in order to exercise generic.Generic.
 type newGenericFromJSONFileTestCase struct {
 
@@ -217,7 +221,7 @@ func getTestFileLocation(testName string) string {
 func TestGeneric(t *testing.T) {
 	for testName, testCase := range newGenericFromJSONFileTestCases {
 		testFile := getTestFileLocation(testName)
-		tester, handlers, result, err := generic.NewGenericFromJSONFile(testFile)
+		tester, handlers, result, err := generic.NewGenericFromJSONFile(testFile, schemaPath)
 		// this assertion also prevents `tester` from being `nil` inside the following `if`
 		assert.Equal(t, testCase.expectedCreationErr, err != nil)
 		if !testCase.expectedCreationErr {

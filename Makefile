@@ -70,6 +70,9 @@ lint:
 	golint `go list ./... | grep -v vendor`
 	golangci-lint run
 
+jsontest-cli:
+	go build -o jsontest-cli -v cmd/generic/main.go
+
 clean:
 	go clean
 	rm -f ./test-network-function/test-network-function.test

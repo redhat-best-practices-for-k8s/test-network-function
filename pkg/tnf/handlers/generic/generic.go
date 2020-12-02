@@ -19,7 +19,6 @@ package generic
 import (
 	"encoding/json"
 	"io/ioutil"
-	"path"
 	"regexp"
 	"time"
 
@@ -29,11 +28,8 @@ import (
 )
 
 const (
-	genericTestSchemaFileName = "generic-test.schema.json"
-)
-
-var (
-	genericTestSchemaFileLocation = path.Join("..", "..", "..", "..", "schemas", genericTestSchemaFileName)
+	// TestSchemaFileName is the filename of the generic test JSON schema.
+	TestSchemaFileName = "generic-test.schema.json"
 )
 
 // Generic is a construct for defining an arbitrary simple test with prescriptive confines.  Essentially, the definition
@@ -180,8 +176,8 @@ func (g *Generic) ReelEOF() {
 }
 
 // NewGenericFromJSONFile instantiates and initializes a Generic from a JSON-serialized file.
-func NewGenericFromJSONFile(filename string) (*tnf.Tester, []reel.Handler, *gojsonschema.Result, error) {
-	g, result, err := createGeneric(filename)
+func NewGenericFromJSONFile(filename, schemaPath string) (*tnf.Tester, []reel.Handler, *gojsonschema.Result, error) {
+	g, result, err := createGeneric(filename, schemaPath)
 	if err != nil {
 		return nil, nil, result, err
 	}
@@ -192,8 +188,8 @@ func NewGenericFromJSONFile(filename string) (*tnf.Tester, []reel.Handler, *gojs
 }
 
 // validateJSONTestAgainstSchema validates an input schema against the generic-test.schema.json JSON schema.
-func validateJSONTestAgainstSchema(filename string) (*gojsonschema.Result, error) {
-	schemaBytes, err := ioutil.ReadFile(genericTestSchemaFileLocation)
+func validateJSONTestAgainstSchema(filename, schemaPath string) (*gojsonschema.Result, error) {
+	schemaBytes, err := ioutil.ReadFile(schemaPath)
 	if err != nil {
 		return nil, err
 	}
@@ -213,8 +209,8 @@ func validateJSONTestAgainstSchema(filename string) (*gojsonschema.Result, error
 }
 
 // createGeneric is a helper function for instantiating and initializing a Generic tnf.Test.
-func createGeneric(filename string) (*Generic, *gojsonschema.Result, error) {
-	result, err := validateJSONTestAgainstSchema(filename)
+func createGeneric(filename, schemaPath string) (*Generic, *gojsonschema.Result, error) {
+	result, err := validateJSONTestAgainstSchema(filename, schemaPath)
 	if err != nil {
 		return nil, result, err
 	}

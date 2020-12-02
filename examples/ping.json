@@ -1,0 +1,43 @@
+{
+  "description": "Pings www.redhat.com 5 times using the Unix ping executable.",
+  "testResult": 0,
+  "testTimeout": 10000000000,
+  "reelFirstStep": {
+    "execute": "ping -c 5 www.redhat.com\n",
+    "expect": [
+      "(?m)(\\d+) packets transmitted, (\\d+)( packets){0,1} received, (?:\\+(\\d+) errors)?.*$"
+    ],
+    "timeout": 10000000000
+  },
+  "resultContexts": [
+    {
+      "pattern": "(?m)(\\d+) packets transmitted, (\\d+)( packets){0,1} received, (?:\\+(\\d+) errors)?.*$",
+      "defaultResult": 1,
+      "composedAssertions": [
+        {
+          "assertions": [
+            {
+              "groupIdx": 1,
+              "condition": {
+                "type": "intComparison",
+                "input": 5,
+                "comparison": "=="
+              }
+            },
+            {
+              "groupIdx": 2,
+              "condition": {
+                "type": "intComparison",
+                "input": 5,
+                "comparison": "=="
+              }
+            }
+          ],
+          "logic": {
+            "type": "and"
+          }
+        }
+      ]
+    }
+  ]
+}
