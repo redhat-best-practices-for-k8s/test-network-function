@@ -73,7 +73,7 @@ func (t *Test) ReelFirst() *reel.Step {
 }
 
 // ReelMatch calls the current Handler's ReelMatch function.
-func (t *Test) ReelMatch(pattern string, before string, match string) *reel.Step {
+func (t *Test) ReelMatch(pattern, before, match string) *reel.Step {
 	fp := func(handler reel.Handler) *reel.Step {
 		return handler.ReelMatch(pattern, before, match)
 	}

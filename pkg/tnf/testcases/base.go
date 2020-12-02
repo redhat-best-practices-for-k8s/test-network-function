@@ -277,7 +277,7 @@ func LoadOperatorTestCaseSpecs(name string) (testCaseConfigSpec *BaseTestCaseCon
 }
 
 // LoadTestCaseSpecsFromFile loads base test template files into a struct
-func LoadTestCaseSpecsFromFile(name string, testCaseDir string, testSpecType TestSpecType) (*BaseTestCaseConfigSpec, error) {
+func LoadTestCaseSpecsFromFile(name, testCaseDir string, testSpecType TestSpecType) (*BaseTestCaseConfigSpec, error) {
 	var file *os.File
 	var err error
 	testCaseConfigSpec := &BaseTestCaseConfigSpec{}

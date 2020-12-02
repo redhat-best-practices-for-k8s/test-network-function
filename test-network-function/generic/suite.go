@@ -175,7 +175,7 @@ var _ = ginkgo.Describe(multusTestsKey, func() {
 })
 
 // Helper to test that a container can ping a target IP address, and report through Ginkgo.
-func testNetworkConnectivity(initiatingPodOc *interactive.Oc, targetPodOc *interactive.Oc, targetPodIPAddress string, count int) {
+func testNetworkConnectivity(initiatingPodOc, targetPodOc *interactive.Oc, targetPodIPAddress string, count int) {
 	ginkgo.When(fmt.Sprintf("a Ping is issued from %s(%s) to %s(%s) %s", initiatingPodOc.GetPodName(),
 		initiatingPodOc.GetPodContainerName(), targetPodOc.GetPodName(), targetPodOc.GetPodContainerName(),
 		targetPodIPAddress), func() {

@@ -56,7 +56,7 @@ var _ = ginkgo.Describe("cisco_kiknos", func() {
 })
 
 // Tests Kiknos IPSEC tunnel creation.
-func testTunnel(partnerPodName string, partnerPodContainerName string, partnerPodNamespace string) {
+func testTunnel(partnerPodName, partnerPodContainerName, partnerPodNamespace string) {
 	ginkgo.When(fmt.Sprintf("%s(%s) creates an IPSEC tunnel", partnerPodName, partnerPodContainerName), func() {
 		var newTunnelIndex int
 		ginkgo.It("should report the tunnel was created through the CLI", func() {
@@ -72,7 +72,7 @@ func testTunnel(partnerPodName string, partnerPodContainerName string, partnerPo
 }
 
 // Verify UDP traffic
-func verifyUDPTraffic(partnerPodName string, partnerPodContainerName string, partnerPodNamespace string, newTunnelIndex int) {
+func verifyUDPTraffic(partnerPodName, partnerPodContainerName, partnerPodNamespace string, newTunnelIndex int) {
 	// Take an initial snapshot of the ICMP received count.
 	initialUDPCount, err := itc.GetUDPReceivedCount(partnerPodName, partnerPodContainerName, partnerPodNamespace)
 	expectNil(err)
@@ -90,7 +90,7 @@ func verifyUDPTraffic(partnerPodName string, partnerPodContainerName string, par
 }
 
 // Verify ICMP traffic
-func verifyICMPTraffic(partnerPodName string, partnerPodContainerName string, partnerPodNamespace string, newTunnelIndex int) {
+func verifyICMPTraffic(partnerPodName, partnerPodContainerName, partnerPodNamespace string, newTunnelIndex int) {
 	// Take an initial snapshot of the ICMP received count.
 	initialIcmpCount, err := itc.GetItcIcmpReplyCount(partnerPodName, partnerPodContainerName, partnerPodNamespace)
 	expectNil(err)
@@ -108,7 +108,7 @@ func verifyICMPTraffic(partnerPodName string, partnerPodContainerName string, pa
 }
 
 // Create an IPSEC tunnel and verify it was successfully established.
-func createAndVerifyTunnel(partnerPodName string, partnerPodContainerName string, partnerPodNamespace string) int {
+func createAndVerifyTunnel(partnerPodName, partnerPodContainerName, partnerPodNamespace string) int {
 	var newTunnelIndex int
 
 	// Take a snapshot of the original number of tunnels that were created, and the number that successfully connected.
@@ -130,18 +130,18 @@ func createAndVerifyTunnel(partnerPodName string, partnerPodContainerName string
 }
 
 // make sure the number of tunnels is incremented
-func checkTunnelCountUpdated(actual int, expected int) {
+func checkTunnelCountUpdated(actual, expected int) {
 	gomega.Expect(actual).To(gomega.Equal(expected))
 }
 
 // creates an IPSEC tunnel using ike-testctl
-func createTunnel(partnerPodName string, partnerPodContainerName string, partnerPodNamespace string, numTunnels int, messagesPerSecond int) {
+func createTunnel(partnerPodName, partnerPodContainerName, partnerPodNamespace string, numTunnels, messagesPerSecond int) {
 	err := itc.Create(partnerPodName, partnerPodContainerName, partnerPodNamespace, numTunnels, messagesPerSecond)
 	expectNil(err)
 }
 
 // extract the number of tunnels broadcast by kiknos
-func extractNumTunnels(partnerPodName string, partnerPodContainerName string, partnerPodNamespace string) (int, int) {
+func extractNumTunnels(partnerPodName, partnerPodContainerName, partnerPodNamespace string) (numInstantiated, numConnected int) {
 	numInstantiatedTunnels := 0
 	numConnectedTunnels := 0
 	var err error
