@@ -64,7 +64,7 @@ func NewNRFID(nrf, typ, instID, status string) *ID {
 func fromString(nrf string) (*ID, error) {
 	match := SingleEntryRegex.FindStringSubmatch(nrf)
 	if match != nil {
-		nrf := match[1]
+		nrf := match[1] //nolint:govet // acceptable shadowing, uses outside `if` are unreachable.
 		typ := match[2]
 		instID := match[3]
 		status := match[4]
