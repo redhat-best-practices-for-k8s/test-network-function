@@ -18,9 +18,10 @@ package config_test
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/redhat-nfvpe/test-network-function/pkg/config"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestGetInstance(t *testing.T) {

@@ -18,11 +18,12 @@ package testcases
 
 import (
 	"encoding/json"
+	"io/ioutil"
+	"os"
+
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/testcases/data/cnf"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/testcases/data/operator"
 	"gopkg.in/yaml.v2"
-	"io/ioutil"
-	"os"
 )
 
 // StatusFunctionType type for holding function name for expected status in the test template

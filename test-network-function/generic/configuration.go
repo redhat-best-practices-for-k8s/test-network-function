@@ -19,12 +19,13 @@ package generic
 import (
 	"encoding/json"
 	"fmt"
-	configpool "github.com/redhat-nfvpe/test-network-function/pkg/config"
-	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"os"
 	"strconv"
 	"strings"
+
+	configpool "github.com/redhat-nfvpe/test-network-function/pkg/config"
+	"gopkg.in/yaml.v2"
 )
 
 const (
@@ -75,6 +76,12 @@ func GetConfiguration(filepath string) (*TestConfiguration, error) {
 		err = json.Unmarshal(contents, config)
 	}
 
+	if err != nil {
+		return nil, err
+	}
+
+	//nolint:errcheck // Even if not run, each of the suites attempts to initialise the config. This results in
+	// RegisterConfigurations erroring due to duplicate keys.
 	(*configpool.GetInstance()).RegisterConfiguration(configurationKey, config)
 
 	return config, err
@@ -104,7 +111,7 @@ func (c *ContainerIdentifier) UnmarshalText(text []byte) error {
 // unquoteBytes contains the logic for unquoting raw bytes for Unmarshall operations.
 func unquoteBytes(bytes []byte) ([]byte, error) {
 	sBytes := string(bytes)
-	if len(bytes) < 2 {  //nolint:gomnd
+	if len(bytes) < 2 { //nolint:gomnd
 		return nil, fmt.Errorf("cannot decode bytes: %s", sBytes)
 	}
 	str := sBytes[1 : len(sBytes)-1]

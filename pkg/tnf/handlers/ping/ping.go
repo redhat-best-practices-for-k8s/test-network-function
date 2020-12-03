@@ -17,11 +17,12 @@
 package ping
 
 import (
-	"github.com/redhat-nfvpe/test-network-function/internal/reel"
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
 	"regexp"
 	"strconv"
 	"time"
+
+	"github.com/redhat-nfvpe/test-network-function/internal/reel"
+	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
 )
 
 // Ping provides a ping test implemented using command line tool `ping`.

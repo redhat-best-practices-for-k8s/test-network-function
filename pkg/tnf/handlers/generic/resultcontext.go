@@ -18,6 +18,7 @@ package generic
 
 import (
 	"encoding/json"
+
 	"github.com/redhat-nfvpe/test-network-function/internal/reel"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/generic/assertion"
 )

@@ -18,9 +18,10 @@ package itc
 
 import (
 	"errors"
-	"github.com/redhat-nfvpe/test-network-function/internal/oc"
 	"regexp"
 	"strconv"
+
+	"github.com/redhat-nfvpe/test-network-function/internal/oc"
 )
 
 const (

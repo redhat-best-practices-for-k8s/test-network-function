@@ -18,6 +18,8 @@ package cnf
 
 import (
 	"fmt"
+	"time"
+
 	expect "github.com/google/goexpect"
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
@@ -27,7 +29,6 @@ import (
 	"github.com/redhat-nfvpe/test-network-function/test-network-function/cnf_specific/casa/cnf/nrf"
 	"github.com/redhat-nfvpe/test-network-function/test-network-function/cnf_specific/casa/configuration"
 	log "github.com/sirupsen/logrus"
-	"time"
 )
 
 const (

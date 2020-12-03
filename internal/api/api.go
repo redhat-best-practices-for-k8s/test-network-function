@@ -3,9 +3,10 @@ package api
 import (
 	"encoding/json"
 	"fmt"
-	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"net/http"
+
+	log "github.com/sirupsen/logrus"
 )
 
 // Endpoints document can be found here
@@ -135,7 +136,6 @@ func (api CertAPIClient) getIDFromResponse(response []byte) (id string, err erro
 				}
 			}
 		}
-
 	}
 
 	return

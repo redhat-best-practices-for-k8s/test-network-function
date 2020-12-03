@@ -17,11 +17,12 @@
 package hostname_test
 
 import (
+	"testing"
+	"time"
+
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/hostname"
 	"github.com/stretchr/testify/assert"
-	"testing"
-	"time"
 )
 
 const (

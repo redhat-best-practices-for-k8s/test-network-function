@@ -17,11 +17,12 @@
 package reel
 
 import (
-	expect "github.com/google/goexpect"
-	"google.golang.org/grpc/codes"
 	"regexp"
 	"strings"
 	"time"
+
+	expect "github.com/google/goexpect"
+	"google.golang.org/grpc/codes"
 )
 
 const (

@@ -18,6 +18,8 @@ package generic
 
 import (
 	"fmt"
+	"time"
+
 	expect "github.com/google/goexpect"
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
@@ -28,7 +30,6 @@ import (
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/ping"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/interactive"
 	log "github.com/sirupsen/logrus"
-	"time"
 )
 
 const (

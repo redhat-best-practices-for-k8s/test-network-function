@@ -17,10 +17,11 @@
 package intcondition_test
 
 import (
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/generic/condition/intcondition"
-	"github.com/stretchr/testify/assert"
 	"regexp"
 	"testing"
+
+	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/generic/condition/intcondition"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestNewIsIntCondtion(t *testing.T) {

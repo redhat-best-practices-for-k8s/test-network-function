@@ -18,12 +18,13 @@ package assertion_test
 
 import (
 	"encoding/json"
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/generic/assertion"
-	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"path"
 	"regexp"
 	"testing"
+
+	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/generic/assertion"
+	"github.com/stretchr/testify/assert"
 )
 
 type assertionsTestCase struct {

@@ -17,9 +17,10 @@
 package hostname
 
 import (
+	"time"
+
 	"github.com/redhat-nfvpe/test-network-function/internal/reel"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
-	"time"
 )
 
 // Hostname provides a hostname test implemented using command line tool "hostname".

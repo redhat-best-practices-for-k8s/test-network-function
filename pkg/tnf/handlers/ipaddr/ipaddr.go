@@ -18,11 +18,12 @@ package ipaddr
 
 import (
 	"fmt"
-	"github.com/redhat-nfvpe/test-network-function/internal/reel"
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/redhat-nfvpe/test-network-function/internal/reel"
+	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
 )
 
 // IPAddr provides an ip addr test implemented using command line tool `ip addr`.

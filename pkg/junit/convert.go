@@ -19,8 +19,9 @@ package junit
 import (
 	"bytes"
 	j "encoding/json"
-	xj "github.com/basgys/goxml2json"
 	"os"
+
+	xj "github.com/basgys/goxml2json"
 )
 
 // ExportJUnitAsJSON attempts to read a JUnit XML file and converts it to a generic JSON map.

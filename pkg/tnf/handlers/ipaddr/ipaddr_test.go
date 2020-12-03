@@ -18,13 +18,14 @@ package ipaddr_test
 
 import (
 	"fmt"
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/ipaddr"
-	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"path"
 	"testing"
 	"time"
+
+	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
+	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/ipaddr"
+	"github.com/stretchr/testify/assert"
 )
 
 const (

@@ -17,11 +17,12 @@
 package assertion_test
 
 import (
+	"testing"
+
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/generic/assertion"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/generic/condition"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/generic/condition/stringcondition"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 var (

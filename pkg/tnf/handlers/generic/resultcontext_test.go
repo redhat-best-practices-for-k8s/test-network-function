@@ -18,15 +18,16 @@ package generic_test
 
 import (
 	"encoding/json"
+	"io/ioutil"
+	"path"
+	"testing"
+
 	"github.com/redhat-nfvpe/test-network-function/internal/reel"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/generic"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/generic/assertion"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/generic/condition"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/generic/condition/intcondition"
 	"github.com/stretchr/testify/assert"
-	"io/ioutil"
-	"path"
-	"testing"
 )
 
 var testFileName = path.Join("testdata", "nested-result-context-marshal-expected.json")

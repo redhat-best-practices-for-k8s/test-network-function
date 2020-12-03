@@ -5,11 +5,12 @@
 package mock_interactive
 
 import (
-	gomock "github.com/golang/mock/gomock"
-	goexpect "github.com/google/goexpect"
 	reflect "reflect"
 	regexp "regexp"
 	time "time"
+
+	gomock "github.com/golang/mock/gomock"
+	goexpect "github.com/google/goexpect"
 )
 
 // MockExpecter is a mocks of Expecter interface

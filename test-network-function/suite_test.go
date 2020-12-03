@@ -19,6 +19,11 @@ package suite
 import (
 	j "encoding/json"
 	"flag"
+	"io/ioutil"
+	"path"
+	"testing"
+	"time"
+
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/ginkgo/reporters"
 	"github.com/onsi/gomega"
@@ -33,11 +38,7 @@ import (
 	_ "github.com/redhat-nfvpe/test-network-function/test-network-function/operator"
 	"github.com/redhat-nfvpe/test-network-function/test-network-function/version"
 	log "github.com/sirupsen/logrus"
-	"io/ioutil"
 	ginkgoreporters "kubevirt.io/qe-tools/pkg/ginkgo-reporters"
-	"path"
-	"testing"
-	"time"
 )
 
 const (

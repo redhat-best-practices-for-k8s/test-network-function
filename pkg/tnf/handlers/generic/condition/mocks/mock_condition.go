@@ -5,9 +5,10 @@
 package mock_condition
 
 import (
-	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 	regexp "regexp"
+
+	gomock "github.com/golang/mock/gomock"
 )
 
 // MockCondition is a mock of Condition interface
