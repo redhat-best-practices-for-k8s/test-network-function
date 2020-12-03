@@ -38,9 +38,6 @@ const (
 	testsKey              = "generic"
 )
 
-// The default expect.Expecter arguments;  for our purposes just enabling verbosity is enough.
-var defaultExpectArgs = expect.Verbose(true)
-
 // The default test timeout.
 var defaultTimeout = time.Duration(defaultTimeoutSeconds) * time.Second
 

@@ -45,7 +45,6 @@ var (
 	defaultStdout, defaultStdin, _ = os.Pipe()
 	errStart                       = errors.New("start failed")
 	errStdInPipe                   = errors.New("failed to access stdin")
-	errStdoutPipe                  = errors.New("failed to access stdout")
 )
 
 type goExpectSpawnerTestCase struct {
