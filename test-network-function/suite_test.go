@@ -125,7 +125,7 @@ func TestTest(t *testing.T) {
 
 	junitMap, err := junit.ExportJUnitAsJSON(JunitXMLFileName)
 	if err != nil {
-		log.Fatalf("Error converting JUnit results in %s to JSON", JunitXMLFileName)
+		log.Fatalf("error reading JUnit XML file into JSON: %v", err)
 	}
 
 	endTime := time.Now()
@@ -136,6 +136,9 @@ func TestTest(t *testing.T) {
 		log.Fatalf("error converting configurations to JSON: %v", err)
 	}
 	err = j.Unmarshal(configurations, &claimData.Configurations)
+	if err != nil {
+		log.Fatalf("error unmarshalling configurations: %v", err)
+	}
 	claimData.Metadata.EndTime = endTime.String()
 
 	payload, err := j.MarshalIndent(claimRoot, "", "  ")
