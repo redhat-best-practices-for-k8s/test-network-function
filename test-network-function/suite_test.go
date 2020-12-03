@@ -84,6 +84,7 @@ func createClaimRoot() *claim.Root {
 }
 
 // Invokes the CNF Certification Tests.
+//nolint:funlen // Function is long but core entrypoint and linear. Consider revisiting later.
 func TestTest(t *testing.T) {
 	flag.Parse()
 
