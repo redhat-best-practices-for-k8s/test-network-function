@@ -218,10 +218,12 @@ func TestGeneric(t *testing.T) {
 	for testName, testCase := range newGenericFromJSONFileTestCases {
 		testFile := getTestFileLocation(testName)
 		tester, handlers, result, err := generic.NewGenericFromJSONFile(testFile)
+		// this assertion also prevents `tester` from being `nil` inside the following `if`
 		assert.Equal(t, testCase.expectedCreationErr, err != nil)
 		if !testCase.expectedCreationErr {
 			assert.Equal(t, testCase.expectedTester, tester != nil)
-			assert.Equal(t, testCase.expectedTimeout, (*tester).Timeout())
+			assert.Equal(t, testCase.expectedTimeout, (*tester).Timeout()) //nolint:staticcheck
+
 			assert.Equal(t, testCase.expectedHandlers, handlers != nil)
 			if testCase.expectedHandlers {
 				assert.Equal(t, testCase.expectedHandlersLen, len(handlers))
