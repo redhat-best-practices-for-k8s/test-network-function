@@ -17,11 +17,12 @@
 package interactive
 
 import (
-	expect "github.com/google/goexpect"
-	log "github.com/sirupsen/logrus"
 	"io"
 	"os/exec"
 	"time"
+
+	expect "github.com/google/goexpect"
+	log "github.com/sirupsen/logrus"
 )
 
 // UnitTestMode is used to determine if the context is unit test oriented v.s. an actual CNF test run, so appropriate

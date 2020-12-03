@@ -18,13 +18,14 @@ package operator_test
 
 import (
 	"fmt"
+	"strings"
+	"testing"
+	"time"
+
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/operator"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/testcases"
 	"github.com/stretchr/testify/assert"
-	"strings"
-	"testing"
-	"time"
 )
 
 const (

@@ -18,15 +18,16 @@ package interactive_test
 
 import (
 	"errors"
+	"io"
+	"os"
+	"testing"
+	"time"
+
 	"github.com/golang/mock/gomock"
 	expect "github.com/google/goexpect"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/interactive"
 	mock_interactive "github.com/redhat-nfvpe/test-network-function/pkg/tnf/interactive/mocks"
 	"github.com/stretchr/testify/assert"
-	"io"
-	"os"
-	"testing"
-	"time"
 )
 
 // Note: Test coverage for this file is as high as possible short of attempting to perform multi-threaded unit tests.

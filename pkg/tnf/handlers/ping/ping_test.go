@@ -18,14 +18,15 @@ package ping_test
 
 import (
 	"fmt"
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/ping"
-	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"path"
 	"strconv"
 	"testing"
 	"time"
+
+	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
+	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/ping"
+	"github.com/stretchr/testify/assert"
 )
 
 const (

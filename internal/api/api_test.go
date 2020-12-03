@@ -3,11 +3,12 @@ package api_test
 import (
 	"bytes"
 	"fmt"
-	"github.com/redhat-nfvpe/test-network-function/internal/api"
-	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"net/http"
 	"testing"
+
+	"github.com/redhat-nfvpe/test-network-function/internal/api"
+	"github.com/stretchr/testify/assert"
 )
 
 const (

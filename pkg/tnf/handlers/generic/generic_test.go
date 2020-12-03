@@ -17,13 +17,14 @@
 package generic_test
 
 import (
+	"path"
+	"testing"
+	"time"
+
 	"github.com/redhat-nfvpe/test-network-function/internal/reel"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/generic"
 	"github.com/stretchr/testify/assert"
-	"path"
-	"testing"
-	"time"
 )
 
 // newGenericFromJSONFileTestCase defines input and expected values in order to exercise generic.Generic.

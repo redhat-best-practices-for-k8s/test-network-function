@@ -18,6 +18,10 @@ package tnf_test
 
 import (
 	"errors"
+	"strings"
+	"testing"
+	"time"
+
 	"github.com/golang/mock/gomock"
 	expect "github.com/google/goexpect"
 	"github.com/redhat-nfvpe/test-network-function/internal/reel"
@@ -26,9 +30,6 @@ import (
 	mock_interactive "github.com/redhat-nfvpe/test-network-function/pkg/tnf/interactive/mocks"
 	mock_tnf "github.com/redhat-nfvpe/test-network-function/pkg/tnf/mocks"
 	"github.com/stretchr/testify/assert"
-	"strings"
-	"testing"
-	"time"
 )
 
 const (

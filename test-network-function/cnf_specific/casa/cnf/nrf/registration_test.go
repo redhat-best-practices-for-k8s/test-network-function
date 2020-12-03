@@ -17,11 +17,12 @@
 package nrf_test
 
 import (
+	"testing"
+	"time"
+
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
 	"github.com/redhat-nfvpe/test-network-function/test-network-function/cnf_specific/casa/cnf/nrf"
 	"github.com/stretchr/testify/assert"
-	"testing"
-	"time"
 )
 
 const (
@@ -43,8 +44,8 @@ func TestCheckRegistration_Args(t *testing.T) {
 	assert.NotNil(t, cr)
 
 	expected := []string{"oc", "get", "-n", "default", "nfregistrations.mgmt.casa.io", "nrf123",
-						 "0a0a2ede-be2e-40f0-8145-5ea6c565296e", "-o", "jsonpath='{.items[*].spec.data}'",
-						 "|", "jq", "'.nfStatus'"}
+		"0a0a2ede-be2e-40f0-8145-5ea6c565296e", "-o", "jsonpath='{.items[*].spec.data}'",
+		"|", "jq", "'.nfStatus'"}
 	assert.Equal(t, expected, nrf.FormCheckRegistrationCmd(testNamespace, nrfID))
 	assert.Equal(t, expected, cr.Args())
 }

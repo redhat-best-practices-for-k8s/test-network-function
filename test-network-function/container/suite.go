@@ -18,6 +18,10 @@ package container
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
+	"time"
+
 	expect "github.com/google/goexpect"
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
@@ -28,9 +32,6 @@ import (
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/container"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/interactive"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/testcases"
-	"strconv"
-	"strings"
-	"time"
 )
 
 const (
@@ -124,7 +125,7 @@ var _ = ginkgo.Describe(testSpecName, func() {
 	}
 })
 
-//nolint:gocritic // ignore hugeParam error. Pointers to loop iterator vars are bad and `testCmd` is likely to be such.  
+//nolint:gocritic // ignore hugeParam error. Pointers to loop iterator vars are bad and `testCmd` is likely to be such.
 func runTestsOnCNF(args []interface{}, name, namespace string, containerCount int, testCmd testcases.BaseTestCase) {
 	ginkgo.When(fmt.Sprintf("cnf under test is: %s/%s ", namespace, name), func() {
 		ginkgo.It(fmt.Sprintf("tests for: %s", testCmd.Name), func() {
@@ -154,7 +155,6 @@ func runTestsOnCNF(args []interface{}, name, namespace string, containerCount in
 				gomega.Expect(err).To(gomega.BeNil())
 				gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
 			}
-
 		})
 	})
 }

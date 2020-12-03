@@ -18,13 +18,14 @@ package generic
 
 import (
 	"encoding/json"
-	"github.com/redhat-nfvpe/test-network-function/internal/reel"
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
-	"github.com/xeipuuv/gojsonschema"
 	"io/ioutil"
 	"path"
 	"regexp"
 	"time"
+
+	"github.com/redhat-nfvpe/test-network-function/internal/reel"
+	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
+	"github.com/xeipuuv/gojsonschema"
 )
 
 const (

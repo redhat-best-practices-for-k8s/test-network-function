@@ -17,14 +17,15 @@
 package testcases_test
 
 import (
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/testcases"
-	"github.com/stretchr/testify/assert"
-	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"log"
 	"os"
 	"reflect"
 	"testing"
+
+	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/testcases"
+	"github.com/stretchr/testify/assert"
+	"gopkg.in/yaml.v2"
 )
 
 var (
@@ -147,7 +148,6 @@ func TestConfiguredTest_Operator_RenderTestCaseSpec(t *testing.T) {
 	b, err = c.RenderTestCaseSpec(testcases.Cnf, InValidKey)
 	assert.NotNil(t, err)
 	assert.Nil(t, b)
-
 }
 
 func TestConfiguredTest_CNF_RenderTestCaseSpec(t *testing.T) {
@@ -158,7 +158,6 @@ func TestConfiguredTest_CNF_RenderTestCaseSpec(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, b)
 	assert.Equal(t, "HOST_NETWORK_CHECK", b.TestCase[0].Name)
-
 }
 
 func TestGetOutRegExp(t *testing.T) {

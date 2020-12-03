@@ -18,14 +18,15 @@ package config_test
 
 import (
 	"fmt"
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/config"
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/testcases"
-	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"log"
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/config"
+	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/testcases"
+	"github.com/stretchr/testify/assert"
 )
 
 var (

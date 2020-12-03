@@ -18,15 +18,16 @@ package reel_test
 
 import (
 	"errors"
+	"strings"
+	"testing"
+	"time"
+
 	"github.com/golang/mock/gomock"
 	expect "github.com/google/goexpect"
 	"github.com/redhat-nfvpe/test-network-function/internal/reel"
 	mock_reel "github.com/redhat-nfvpe/test-network-function/internal/reel/mocks"
 	mock_interactive "github.com/redhat-nfvpe/test-network-function/pkg/tnf/interactive/mocks"
 	"github.com/stretchr/testify/assert"
-	"strings"
-	"testing"
-	"time"
 )
 
 // Tests all aspects of reel.  The few lines that are not tested include a function definition that is passed as a
@@ -34,9 +35,9 @@ import (
 // (generateCase()).
 
 var (
-	defaultCommand   = []string{"ls"}
-	errReel          = errors.New("some reel error")
-	errSendCommand   = errors.New("send command error")
+	defaultCommand = []string{"ls"}
+	errReel        = errors.New("some reel error")
+	errSendCommand = errors.New("send command error")
 )
 
 type newReelTestCase struct {

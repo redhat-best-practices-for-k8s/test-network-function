@@ -17,10 +17,11 @@
 package configuration
 
 import (
-	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"os"
 	"path"
+
+	"gopkg.in/yaml.v2"
 )
 
 const (

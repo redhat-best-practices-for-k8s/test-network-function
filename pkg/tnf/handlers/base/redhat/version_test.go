@@ -17,12 +17,13 @@
 package redhat_test
 
 import (
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/base/redhat"
-	"github.com/stretchr/testify/assert"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
+	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/base/redhat"
+	"github.com/stretchr/testify/assert"
 )
 
 var testTimeoutDuration = time.Second * 2

@@ -17,10 +17,11 @@
 package stringcondition_test
 
 import (
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/generic/condition/stringcondition"
-	"github.com/stretchr/testify/assert"
 	"regexp"
 	"testing"
+
+	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/generic/condition/stringcondition"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestNewEqualsCondition(t *testing.T) {

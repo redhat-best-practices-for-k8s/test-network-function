@@ -18,11 +18,12 @@ package kiknos
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
 	"github.com/redhat-nfvpe/test-network-function/internal/itc"
 	"github.com/redhat-nfvpe/test-network-function/test-network-function/generic"
-	"time"
 )
 
 const (

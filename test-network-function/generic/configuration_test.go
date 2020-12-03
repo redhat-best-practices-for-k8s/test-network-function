@@ -18,10 +18,11 @@ package generic_test
 
 import (
 	"fmt"
-	"github.com/redhat-nfvpe/test-network-function/test-network-function/generic"
-	"github.com/stretchr/testify/assert"
 	"path"
 	"testing"
+
+	"github.com/redhat-nfvpe/test-network-function/test-network-function/generic"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestContainerIdentifier_MarshalText(t *testing.T) {

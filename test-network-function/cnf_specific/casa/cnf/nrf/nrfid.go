@@ -18,11 +18,12 @@ package nrf
 
 import (
 	"fmt"
-	"github.com/redhat-nfvpe/test-network-function/internal/reel"
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/redhat-nfvpe/test-network-function/internal/reel"
+	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
 )
 
 const (

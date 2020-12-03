@@ -5,9 +5,10 @@
 package mock_reel
 
 import (
+	reflect "reflect"
+
 	gomock "github.com/golang/mock/gomock"
 	reel "github.com/redhat-nfvpe/test-network-function/internal/reel"
-	reflect "reflect"
 )
 
 // MockHandler is a mock of Handler interface

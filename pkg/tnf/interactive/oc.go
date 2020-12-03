@@ -17,8 +17,9 @@
 package interactive
 
 import (
-	expect "github.com/google/goexpect"
 	"time"
+
+	expect "github.com/google/goexpect"
 )
 
 const (
