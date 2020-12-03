@@ -94,7 +94,7 @@ func (api CertAPIClient) GetOperatorBundleIDByPackageName(name, org string) (ima
 
 // getRequest a http call to rest api, returns byte array or error
 func (api CertAPIClient) getRequest(url string) (response []byte, err error) {
-	req, err := http.NewRequest(http.MethodGet, url, nil) // nolint:noctx
+	req, err := http.NewRequest(http.MethodGet, url, nil) //nolint:noctx
 	if err != nil {
 		return nil, err
 	}

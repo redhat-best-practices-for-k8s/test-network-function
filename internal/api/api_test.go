@@ -59,7 +59,7 @@ type MockClient struct {
 	DoFunc func(req *http.Request) (*http.Response, error)
 }
 
-// nolint:gochecknoinits
+//nolint:gochecknoinits
 func init() {
 	client.Client = &MockClient{}
 }
@@ -113,7 +113,7 @@ func getDoFunc(data string, status int) func(req *http.Request) (*http.Response,
 }
 func TestApiClient_IsContainerCertified(t *testing.T) {
 	for _, c := range containerTestCases {
-		GetDoFunc = getDoFunc(c.responseData, c.responseStatus) // nolint:bodyclose
+		GetDoFunc = getDoFunc(c.responseData, c.responseStatus) //nolint:bodyclose
 		result := client.IsContainerCertified(c.repository, c.name)
 		assert.Equal(t, c.expectedResult, result)
 	}
@@ -121,7 +121,7 @@ func TestApiClient_IsContainerCertified(t *testing.T) {
 
 func TestApiClient_IsOperatorCertified(t *testing.T) {
 	for _, c := range operatorTestCases {
-		GetDoFunc = getDoFunc(c.responseData, c.responseStatus) // nolint:bodyclose
+		GetDoFunc = getDoFunc(c.responseData, c.responseStatus) //nolint:bodyclose
 		result := client.IsOperatorCertified(c.packageName, c.org)
 		assert.Equal(t, c.expectedResult, result)
 	}
@@ -130,7 +130,7 @@ func TestApiClient_IsOperatorCertified(t *testing.T) {
 func TestApiClient_GetImageById(t *testing.T) {
 	containerTestCases[0].id = id
 	for _, c := range containerTestCases {
-		GetDoFunc = getDoFunc(c.responseData, c.responseStatus) // nolint:bodyclose
+		GetDoFunc = getDoFunc(c.responseData, c.responseStatus) //nolint:bodyclose
 		result, err := client.GetImageByID(c.id)
 		assert.Equal(t, c.expectedError, err)
 		if err == nil {
