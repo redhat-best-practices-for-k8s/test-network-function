@@ -102,6 +102,7 @@ func loadCnfConfig() {
 	}
 }
 
+//nolint:funlen
 func loadOperatorConfig() {
 	operator := config.Operator{}
 	operator.Name = operatorName
