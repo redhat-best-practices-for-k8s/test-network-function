@@ -123,6 +123,9 @@ func TestTest(t *testing.T) {
 	ginkgo.RunSpecsWithDefaultAndCustomReporters(t, CnfCertificationTestSuiteName, ginkgoReporters)
 
 	junitMap, err := junit.ExportJUnitAsJSON(JunitXMLFileName)
+	if err != nil {
+		log.Fatalf("Error converting JUnit results in %s to JSON", JunitXMLFileName)
+	}
 
 	endTime := time.Now()
 	claimData.Results = junitMap
