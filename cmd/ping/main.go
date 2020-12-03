@@ -63,7 +63,7 @@ func main() {
 	tester, err := tnf.NewTest(context.GetExpecter(), pingReel, []reel.Handler{pingReel}, context.GetErrorChannel())
 
 	if err == nil {
-		result, err = tester.Run()
+		result, _ = tester.Run()
 	} else {
 		fmt.Fprintln(os.Stderr, err)
 	}
