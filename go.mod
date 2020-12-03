@@ -11,7 +11,7 @@ require (
 	github.com/kr/pretty v0.2.1 // indirect
 	github.com/onsi/ginkgo v1.14.2
 	github.com/onsi/gomega v1.10.3
-	github.com/redhat-nfvpe/test-network-function-claim v0.0.4
+	github.com/redhat-nfvpe/test-network-function-claim v0.0.6
 	github.com/sirupsen/logrus v1.6.0
 	github.com/stretchr/testify v1.6.1
 	github.com/xeipuuv/gojsonschema v1.2.0

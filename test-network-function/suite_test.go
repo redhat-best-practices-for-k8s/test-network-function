@@ -73,7 +73,9 @@ func createClaimRoot() *claim.Root {
 	// Initialize the claim with the start time.
 	startTime := time.Now()
 	c := &claim.Claim{
-		StartTime: startTime.String(),
+		Metadata: &claim.Metadata{
+			StartTime: startTime.String(),
+		},
 	}
 	return &claim.Root{
 		Claim: c,
@@ -96,15 +98,17 @@ func TestTest(t *testing.T) {
 	claimRoot := createClaimRoot()
 	claimData := claimRoot.Claim
 
-	claimData.TestConfigurations = make(map[string]interface{})
+	claimData.Configurations = make(map[string]interface{})
 
 	equipmentMap := make(map[string]interface{})
 	for _, key := range generic.GetTestConfiguration().Hosts {
 		// For now, just initialize the payload as empty.
 		equipmentMap[key] = make(map[string]interface{})
 	}
-	claimData.Hosts = &claim.Hosts{LshwOutput: equipmentMap}
-	claimData.TnfVersion = version.Tag
+	claimData.Hosts = equipmentMap
+	claimData.Versions = &claim.Versions{
+		Tnf: version.Tag,
+	}
 
 	var ginkgoReporters []ginkgo.Reporter
 	if ginkgoreporters.Polarion.Run {
@@ -119,16 +123,19 @@ func TestTest(t *testing.T) {
 	ginkgo.RunSpecsWithDefaultAndCustomReporters(t, CnfCertificationTestSuiteName, ginkgoReporters)
 
 	junitMap, err := junit.ExportJUnitAsJSON(JunitXMLFileName)
+	if err != nil {
+		log.Fatalf("Error converting JUnit results in %s to JSON", JunitXMLFileName)
+	}
 
 	endTime := time.Now()
-	claimData.JunitResults = junitMap
+	claimData.Results = junitMap
 
 	configurations, err := j.Marshal(config.GetInstance().GetConfigurations())
 	if err != nil {
 		log.Fatalf("error converting configurations to JSON: %v", err)
 	}
-	err = j.Unmarshal(configurations, &claimData.TestConfigurations)
-	claimData.EndTime = endTime.String()
+	err = j.Unmarshal(configurations, &claimData.Configurations)
+	claimData.Metadata.EndTime = endTime.String()
 
 	payload, err := j.MarshalIndent(claimRoot, "", "  ")
 	if err != nil {
