@@ -23,6 +23,7 @@ linters-settings:
       - whyNoLint
       - wrapperFunc
       - ptrToRefParam
+      - sloppyReassign
   gocyclo:
     min-complexity: 15
   goimports:

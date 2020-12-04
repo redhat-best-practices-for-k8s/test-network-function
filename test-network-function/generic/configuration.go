@@ -135,7 +135,7 @@ func (c *ContainerIdentifier) UnmarshalJSON(bytes []byte) error {
 	if err != nil {
 		return err
 	}
-	if err = json.Unmarshal(convertedBytes, &data); err != nil { //nolint:gocritic // ignoring sloppyReassign on err or the linters argue.
+	if err = json.Unmarshal(convertedBytes, &data); err != nil {
 		return err
 	}
 

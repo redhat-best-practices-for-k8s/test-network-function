@@ -22,6 +22,7 @@ export COMMON_GO_ARGS=-race
 
 build: mocks
 	go fmt ./...
+	make lint
 	go build ${COMMON_GO_ARGS} ./...
 	make unit-tests
 
