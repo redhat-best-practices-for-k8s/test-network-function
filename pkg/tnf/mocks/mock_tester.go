@@ -5,10 +5,9 @@
 package mock_tnf
 
 import (
+	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 	time "time"
-
-	gomock "github.com/golang/mock/gomock"
 )
 
 // MockTester is a mock of Tester interface

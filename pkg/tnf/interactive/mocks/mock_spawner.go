@@ -5,13 +5,12 @@
 package mock_interactive
 
 import (
-	io "io"
-	reflect "reflect"
-	time "time"
-
 	gomock "github.com/golang/mock/gomock"
 	expect "github.com/google/goexpect"
 	interactive "github.com/redhat-nfvpe/test-network-function/pkg/tnf/interactive"
+	io "io"
+	reflect "reflect"
+	time "time"
 )
 
 // MockSpawnFunc is a mock of SpawnFunc interface
