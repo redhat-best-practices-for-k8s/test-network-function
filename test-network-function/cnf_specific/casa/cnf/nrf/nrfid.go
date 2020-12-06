@@ -22,8 +22,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/redhat-nfvpe/test-network-function/internal/reel"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
+	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/reel"
 )
 
 const (

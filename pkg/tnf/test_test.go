@@ -24,11 +24,11 @@ import (
 
 	"github.com/golang/mock/gomock"
 	expect "github.com/google/goexpect"
-	"github.com/redhat-nfvpe/test-network-function/internal/reel"
-	mock_reel "github.com/redhat-nfvpe/test-network-function/internal/reel/mocks"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
 	mock_interactive "github.com/redhat-nfvpe/test-network-function/pkg/tnf/interactive/mocks"
 	mock_tnf "github.com/redhat-nfvpe/test-network-function/pkg/tnf/mocks"
+	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/reel"
+	mock_reel "github.com/redhat-nfvpe/test-network-function/pkg/tnf/reel/mocks"
 	"github.com/stretchr/testify/assert"
 )
 
