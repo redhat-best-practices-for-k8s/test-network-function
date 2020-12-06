@@ -5,12 +5,12 @@ import (
 	expect "github.com/google/goexpect"
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
-	"github.com/redhat-nfvpe/test-network-function/internal/reel"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/base/redhat"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/ipaddr"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/ping"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/interactive"
+	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/reel"
 	log "github.com/sirupsen/logrus"
 	"time"
 )

@@ -2,7 +2,7 @@ package tnf
 
 import (
 	expect "github.com/google/goexpect"
-	"github.com/redhat-nfvpe/test-network-function/internal/reel"
+	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/reel"
 	"time"
 )
 

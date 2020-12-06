@@ -4,11 +4,11 @@ import (
 	"errors"
 	"github.com/golang/mock/gomock"
 	expect "github.com/google/goexpect"
-	"github.com/redhat-nfvpe/test-network-function/internal/reel"
-	mock_reel "github.com/redhat-nfvpe/test-network-function/internal/reel/mocks"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
 	mock_interactive "github.com/redhat-nfvpe/test-network-function/pkg/tnf/interactive/mocks"
 	mock_tnf "github.com/redhat-nfvpe/test-network-function/pkg/tnf/mocks"
+	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/reel"
+	mock_reel "github.com/redhat-nfvpe/test-network-function/pkg/tnf/reel/mocks"
 	"github.com/stretchr/testify/assert"
 	"strings"
 	"testing"
@@ -203,7 +203,7 @@ func TestTest_ReelEof(t *testing.T) {
 	mockTester.EXPECT().Args().Return(defaultTestCommand)
 
 	mockHandler := mock_reel.NewMockHandler(ctrl)
-	mockHandler.EXPECT().ReelEof().Times(1)
+	mockHandler.EXPECT().ReelEOF().Times(1)
 	var expecter expect.Expecter = mockExpecter
 	var errorChannel <-chan error
 

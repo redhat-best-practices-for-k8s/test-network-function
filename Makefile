@@ -60,7 +60,7 @@ deps-update:
 mocks:
 	mockgen -source=pkg/tnf/interactive/spawner.go -destination=pkg/tnf/interactive/mocks/mock_spawner.go
 	mockgen -source=pkg/tnf/test.go -destination=pkg/tnf/mocks/mock_tester.go
-	mockgen -source=./internal/reel/reel.go -destination=./internal/reel/mocks/mock_reel.go
+	mockgen -source=./pkg/tnf/reel/reel.go -destination=./pkg/tnf/reel/mocks/mock_reel.go
 
 unit-tests:
 	go test -coverprofile=cover.out `go list ./... | grep -v "github.com/redhat-nfvpe/test-network-function/test-network-function" | grep -v mock`
