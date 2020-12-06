@@ -17,7 +17,329 @@ on specific prompts, the framework handles the context transparently.
 
 ## Language options for writing test implementations
 
-Currently, test implementations can only be written in Go.
+There are two options for writing test implementations:
+1) JSON
+2) Go
+
+The JSON approach is significantly quicker to implement, and should be preferred when possible.
+
+## Writing a simple CLI-oriented test in JSON
+
+Most tests just involve sending commands and validating output within a single shell context.  For example, open an
+interactive shell to a container and ping a target host.  On the command line, this might be done similar to the
+following:
+
+```shell script
+oc exec -it <podName> -c <containerName> -- sh
+ping -c <count> <destination>
+```
+
+We would expect the ping command to take approximately 5 seconds, as most implementations of `ping` default to 1 second
+for inter-packet gap.  After the command completes, we would expect a summary to be output.  Thus, the whole
+interaction would be similar to the following:
+
+```shell script
+% oc exec -it test -c test -- sh
+sh-4.2# ping -c 5 www.redhat.com
+PING e3396.dscx.akamaiedge.net (23.34.95.235) 56(84) bytes of data.
+64 bytes from a23-34-95-235.deploy.static.akamaitechnologies.com (23.34.95.235): icmp_seq=1 ttl=61 time=16.1 ms
+64 bytes from a23-34-95-235.deploy.static.akamaitechnologies.com (23.34.95.235): icmp_seq=2 ttl=61 time=22.8 ms
+64 bytes from a23-34-95-235.deploy.static.akamaitechnologies.com (23.34.95.235): icmp_seq=3 ttl=61 time=24.5 ms
+64 bytes from a23-34-95-235.deploy.static.akamaitechnologies.com (23.34.95.235): icmp_seq=4 ttl=61 time=23.6 ms
+64 bytes from a23-34-95-235.deploy.static.akamaitechnologies.com (23.34.95.235): icmp_seq=5 ttl=61 time=18.3 ms
+
+--- e3396.dscx.akamaiedge.net ping statistics ---
+5 packets transmitted, 5 received, 0% packet loss, time 4007ms
+rtt min/avg/max/mdev = 16.163/21.128/24.579/3.276 ms
+sh-4.2#
+```
+
+We have now established the needed commands for a basic test.  We have established that:
+1) The test should use an `oc` based context to connect to pod `test` container `test` interactively.
+2) The test should issue a `ping` command with a count of `5` against `www.redhat.com`.
+3) After the `ping` command completes, we should inspect the summary to ensure that we received the expected number of
+packets.
+
+### Writing the test
+
+Generic tests *must* abide by the [generic-test.schema.json](schemas/generic-test.schema.json) JSON Schema.  Let's
+consider the simple `ping` example from above.  An example implementation for such a test is located in
+[examples/ping.json](examples/ping.json):
+
+```json
+{
+  "description": "Pings www.redhat.com 5 times using the Unix ping executable.",
+  "testResult": 0,
+  "testTimeout": 10000000000,
+  "reelFirstStep": {
+    "execute": "ping -c 5 www.redhat.com\n",
+    "expect": [
+      "(?m)(\\d+) packets transmitted, (\\d+)( packets){0,1} received, (?:\\+(\\d+) errors)?.*$"
+    ],
+    "timeout": 10000000000
+  },
+  "resultContexts": [
+    {
+      "pattern": "(?m)(\\d+) packets transmitted, (\\d+)( packets){0,1} received, (?:\\+(\\d+) errors)?.*$",
+      "defaultResult": 1,
+      "composedAssertions": [
+        {
+          "assertions": [
+            {
+              "groupIdx": 1,
+              "condition": {
+                "type": "intComparison",
+                "input": 5,
+                "comparison": "=="
+              }
+            },
+            {
+              "groupIdx": 2,
+              "condition": {
+                "type": "intComparison",
+                "input": 5,
+                "comparison": "=="
+              }
+            }
+          ],
+          "logic": {
+            "type": "and"
+          }
+        }
+      ]
+    }
+  ]
+}
+```
+
+Let's walk through each JSON key one at a time.
+
+#### description
+
+A human-readable description is required for every test.  This documentation proves invaluable for later reuse.
+
+#### testResult
+
+`testResult` is initialized as 0.  As of now, `tnf.Tester` mandates `Result()` returns an `int` value.  `0` corresponds
+to `tnf.ERROR`.  In fact, all tests should start report `tnf.ERROR` as good practice, and only progress to
+`tnf.SUCCESS` or `tnf.FAILURE` after inspecting a given match.
+
+#### testTimeout
+
+```testTimeout``` is the timeout for the test in nanoseconds.  For this example, we chose a duration of `10s` to perform
+the ping test.
+
+#### reelFirstStep
+
+```reelFirstStep``` is the first `reel.Step` in the `REEL` finite state machine (FSM).  A `reel.Step` contains a
+mandatory `timeout` and optional `execute` and `expect`.  *Note*: Remember to append `\n` to commands specified in
+`execute`.  In this case, `execute` is exactly what you might suspect;  the ping command to www.redhat.com.
+
+The `expect` field deserves further explanation.  `expect` is an array of regular expressions that might match from
+issuing a `ping` command.  In this case, only one regular expression is expected, the ping summary.  However, if more
+than one `expect` element exists, the matches are determined *in-order*.
+
+Development of regular expressions falls outside of this tutorial.  [regex101.com](https://regex101.com/) provides a
+useful interface to help design regular expressions for Go.
+
+#### resultContexts
+
+`resultContexts` is self describing;  if a regular expression in `reelFirstStep.expect` is matched, then we will want to
+provide further logic to progressively determine whether the test is a `tnf.SUCCESS` or `tnf.FAILURE`.  Importantly,
+these concepts are dependent on your own business logic.  In this example, we require a response to every ICMP request
+packet sent.  A different implementation may be more lenient, and require only `numRequests - 1` ICMP responses.  The
+implementation is completely up to the test writer.
+
+Each `reelFirst.expect` must have a `resultContext`.  In this case, we only have one pattern, which is represented by
+the ICMP summary regular expression:
+
+```json
+{
+  "pattern": "(?m)(\\d+) packets transmitted, (\\d+)( packets){0,1} received, (?:\\+(\\d+) errors)?.*$",
+  "defaultResult": 1,
+  "composedAssertions": [
+    {
+      "assertions": [
+        {
+          "groupIdx": 1,
+          "condition": {
+            "type": "intComparison",
+            "input": 5,
+            "comparison": "=="
+          }
+        },
+        {
+          "groupIdx": 2,
+          "condition": {
+            "type": "intComparison",
+            "input": 5,
+            "comparison": "=="
+          }
+        }
+      ],
+      "logic": {
+        "type": "and"
+      }
+    }
+  ]
+}
+```
+
+`defaultResult` is the test result returned if no `composedAssertion`s exist.  For example, if we omitted
+`composedAssertions` above, then the mere fact that the ping summary matched would result in `tnf.SUCCESS`.  However,
+since `composedAssertions` is provided, we must do further inspection.
+
+In this case, only one `composedAssertion` is provided.  In other cases, all `composedAssertion` instances must evaluate
+as `true`.  Here is the single `composedAssertion` that we make in the test:
+
+```json
+{
+  "assertions": [
+    {
+      "groupIdx": 1,
+      "condition": {
+        "type": "intComparison",
+        "input": 5,
+        "comparison": "=="
+      }
+    },
+    {
+      "groupIdx": 2,
+      "condition": {
+        "type": "intComparison",
+        "input": 5,
+        "comparison": "=="
+      }
+    }
+  ],
+  "logic": {
+    "type": "and"
+  }
+}
+```
+
+Essentially, a `composedAssertion` allows us to make several sub-assertions using `logic`.  In this case, `and` is used,
+meaning each `assertion` must evaluate as true.
+
+There are two assertions in this example.  The first assertion is as follows:
+
+```json
+{
+  "groupIdx": 1,
+  "condition": {
+    "type": "intComparison",
+    "input": 5,
+    "comparison": "=="
+  }
+}
+```
+
+This means that group 1 of the regular expression match for the ping summary pattern must equal `5`.  In this case,
+group 1 is the number of ICMP requests transmitted.
+
+The second assertion is as follows:
+
+```json
+{
+  "groupIdx": 2,
+  "condition": {
+    "type": "intComparison",
+    "input": 5,
+    "comparison": "=="
+  }
+}
+```
+
+This means that group 2 of the regular expression match for the ping summary pattern must equal `5`.  IN this case,
+group 2 is the number of ICMP requests received.
+
+All together, this means that we are asserting the number of ICMP requests transmitted and received should equal the
+request count, which is `5` in this case.
+
+### Running your JSON test
+
+Now that you have a sample JSON test defined, you can go ahead and run your JSON test in your development environment.
+In order to run the test, you must first make the jsontest CLI.  Issue the following command:
+
+```shell script
+make jsontest-cli
+```
+
+After that completes, issue the following command:
+
+```shell script
+./jsontest run shell examples/ping.json
+```
+
+You will get something similar to the following:
+
+```shell script
+% ./jsontest-cli run shell examples/ping.json
+INFO[0000] Running examples/ping.json from a local shell context
+2020/12/06 13:32:53 Sent: "ping -c 5 www.redhat.com\n"
+2020/12/06 13:32:57 Match for RE: "(?m)(\\d+) packets transmitted, (\\d+)( packets){0,1} received, (?:\\+(\\d+) errors)?.*$" found: ["5 packets transmitted, 5 packets received, 0.0% packet loss" "5" "5" " packets" ""] Buffer: "PING e3396.dscx.akamaiedge.net (23.34.95.235): 56 data bytes\n64 bytes from 23.34.95.235: icmp_seq=0 ttl=59 time=17.661 ms\n64 bytes from 23.34.95.235: icmp_seq=1 ttl=59 time=25.993 ms\n64 bytes from 23.34.95.235: icmp_seq=2 ttl=59 time=26.353 ms\n64 bytes from 23.34.95.235: icmp_seq=3 ttl=59 time=25.725 ms\n64 bytes from 23.34.95.235: icmp_seq=4 ttl=59 time=22.403 ms\n\n--- e3396.dscx.akamaiedge.net ping statistics ---\n5 packets transmitted, 5 packets received, 0.0% packet loss\nround-trip min/avg/max/stddev = 17.661/23.627/26.353/3.302 ms\n"
+INFO[0004] Test Result: 1
+INFO[0004] Test Payload:
+INFO[0004] {
+    "description": "Pings www.redhat.com 5 times using the Unix ping executable.",
+    "matches": [
+        {
+            "pattern": "(?m)(\\d+) packets transmitted, (\\d+)( packets){0,1} received, (?:\\+(\\d+) errors)?.*$",
+            "before": "PING e3396.dscx.akamaiedge.net (23.34.95.235): 56 data bytes\n64 bytes from 23.34.95.235: icmp_seq=0 ttl=59 time=17.661 ms\n64 bytes from 23.34.95.235: icmp_seq=1 ttl=59 time=25.993 ms\n64 bytes from 23.34.95.235: icmp_seq=2 ttl=59 time=26.353 ms\n64 bytes from 23.34.95.235: icmp_seq=3 ttl=59 time=25.725 ms\n64 bytes from 23.34.95.235: icmp_seq=4 ttl=59 time=22.403 ms\n\n--- e3396.dscx.akamaiedge.net ping statistics ---",
+            "match": "5 packets transmitted, 5 packets received, 0.0% packet loss"
+        }
+    ],
+    "reelFirstStep": {
+        "execute": "ping -c 5 www.redhat.com\n",
+        "expect": [
+            "(?m)(\\d+) packets transmitted, (\\d+)( packets){0,1} received, (?:\\+(\\d+) errors)?.*$"
+        ],
+        "timeout": 10000000000
+    },
+    "resultContexts": [
+        {
+            "pattern": "(?m)(\\d+) packets transmitted, (\\d+)( packets){0,1} received, (?:\\+(\\d+) errors)?.*$",
+            "composedAssertions": [
+                {
+                    "assertions": [
+                        {
+                            "groupIdx": 1,
+                            "condition": {
+                                "type": "intComparison",
+                                "input": 5,
+                                "comparison": "=="
+                            }
+                        },
+                        {
+                            "groupIdx": 2,
+                            "condition": {
+                                "type": "intComparison",
+                                "input": 5,
+                                "comparison": "=="
+                            }
+                        }
+                    ],
+                    "logic": {
+                        "type": "and"
+                    }
+                }
+            ],
+            "defaultResult": 1
+        }
+    ],
+    "testResult": 1,
+    "testTimeout": 10000000000
+}
+```
+
+Note that `testResult` is 1, indicating `tnf.SUCCESS`.
+
+If you wish to explore the `oc` and `ssh` variants of `jsontest-cli`, please consult the following:
+
+```shell script
+./jsontest-cli run -h
+```
+
 
 ## Writing a simple CLI-oriented test in Go
 
