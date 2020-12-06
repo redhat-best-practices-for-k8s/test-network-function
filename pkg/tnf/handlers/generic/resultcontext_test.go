@@ -22,11 +22,11 @@ import (
 	"path"
 	"testing"
 
-	"github.com/redhat-nfvpe/test-network-function/internal/reel"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/generic"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/generic/assertion"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/generic/condition"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/generic/condition/intcondition"
+	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/reel"
 	"github.com/stretchr/testify/assert"
 )
 

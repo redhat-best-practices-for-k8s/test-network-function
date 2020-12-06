@@ -25,11 +25,11 @@ import (
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
 	"github.com/redhat-nfvpe/test-network-function/internal/api"
-	"github.com/redhat-nfvpe/test-network-function/internal/reel"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
 	operatorTestConfig "github.com/redhat-nfvpe/test-network-function/pkg/tnf/config"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/operator"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/interactive"
+	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/reel"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/testcases"
 )
 

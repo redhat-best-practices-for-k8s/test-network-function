@@ -19,8 +19,8 @@ package generic
 import (
 	"encoding/json"
 
-	"github.com/redhat-nfvpe/test-network-function/internal/reel"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/generic/assertion"
+	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/reel"
 )
 
 // ResultContext evaluates the Result for a given Match.  If ComposedAssertions is not supplied, then Result is assigned

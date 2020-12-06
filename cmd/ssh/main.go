@@ -23,10 +23,10 @@ import (
 	"time"
 
 	expect "github.com/google/goexpect"
-	"github.com/redhat-nfvpe/test-network-function/internal/reel"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/ping"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/interactive"
+	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/reel"
 )
 
 func parseArgs() (*interactive.Context, string, time.Duration, error) {

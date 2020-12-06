@@ -412,7 +412,7 @@ That completes our `ping.go` `tnf.Tester` implementation!  Next, implement the l
 ### Implementing `ping.go` `reel.Handler`
 
 The easy part is out of the way.  Implementing `reel.Handler` is slightly more involved, but should make sense after
-completing this part of the tutorial.  [reel.go](internal/reel/reel.go) defines the `reel.Handler` interface:
+completing this part of the tutorial.  [reel.go](pkg/tnf/reel/reel.go) defines the `reel.Handler` interface:
 
 ```go
 // A Handler implements desired programmatic control.
