@@ -23,11 +23,15 @@ export COMMON_GO_ARGS=-race
 build: mocks
 	go fmt ./...
 	make lint
+	make markdown-catalog
 	go build ${COMMON_GO_ARGS} ./...
 	make unit-tests
 
-catalog:
-	go run cmd/catalog/main.go > catalog.json
+json-catalog:
+	go run cmd/catalog/main.go generate json > catalog.json
+
+markdown-catalog:
+	go run cmd/catalog/main.go generate markdown > CATALOG.md
 
 cnf-tests: build build-cnf-tests run-cnf-tests
 

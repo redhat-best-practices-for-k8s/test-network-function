@@ -14,28 +14,5 @@
 // with this program; if not, write to the Free Software Foundation, Inc.,
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-package main
-
-import (
-	"fmt"
-	"os"
-
-	"github.com/redhat-nfvpe/test-network-function/cmd/catalog/cmd"
-)
-
-const (
-	// fatalErrorExitCode is the Unix return code used when there is a fatal error generating the catalog.
-	fatalErrorExitCode = 1
-)
-
-func fatalError(err error) {
-	fmt.Fprintln(os.Stderr, fmt.Errorf("could not generate the test catalog: %s", err))
-	os.Exit(fatalErrorExitCode)
-}
-
-// main generates a JSON formatted version of the test catalog.
-func main() {
-	if err := cmd.Execute(); err != nil {
-		fatalError(err)
-	}
-}
+// Package cmd provides a CLI implementation for generating the test catalog in JSON or markdown.
+package cmd
