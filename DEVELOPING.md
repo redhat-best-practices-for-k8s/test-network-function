@@ -15,6 +15,64 @@ on specific prompts, the framework handles the context transparently.
 * Tests must implement the `reel.Handler` interface.
 * Tests adhere to the strict quality and style guidelines set forth in [CONTRIBUTING.md](CONTRIBUTING.md).
 
+## Test Identifiers
+
+### Example of creating an Identifier
+
+Each `tnf.Tester` implementation *must* have a unique identifier.  In practice, `tnf.Tester` implementations are the
+building blocks of larger test suites, and each implementation ought to have a means of identification.
+
+An [`identifier.Identifier`](pkg/tnf/identifier/identifier.go) is the mechanism used to hold this meta information.
+Identifier is defined as follows:
+
+```go
+// Identifier is a per tnf.Test unique identifier.
+type Identifier struct {
+	// URL stores the unique identifier for a test.
+	URL string `json:"url" yaml:"url"`
+	// SemanticVersion stores the version of the test.
+	SemanticVersion string `json:"version" yaml:"version"`
+}
+```
+
+Essentially, an Identifier is just a URL and a Semantic Version.
+
+To create an identifier for your test, go to  [`identifiers.go`](pkg/tnf/identifier/identifiers.go).  Create a constant
+for the URL, and add the `TestCatalogEntry` to the `Catalog` map such as:
+
+```go
+listRootDirectoryFilesURL = "http://test-network-function.com/tests/listRootDirectoryFiles"
+
+...
+var Catalog = map[string]TestCatalogEntry{
+...
+    listRootDirectoryFilesURL: {
+        URL: listRootDirectoryFilesURL,
+        Description: "A test to list the files at the root of the file system.",
+        Type: Normative,
+    }
+...
+}
+```
+
+Make reference to the exported URL constant in your `tnf.Handler` `GetIdentifier()` implementation.
+
+*Note*: JSON tests should also involve creation of an identifier using the same Go-based methodology for `1.0`.
+
+### Identifier Re-use
+
+Identifiers can be reused, but they should follow the rules of [semantic versioning](https://semver.org/).  Namely, the
+following versioning should be utilized:
+
+Version Level|Description
+---|---
+Major|API incompatible changes.
+Minor|Add functionality that is backwards compatible.
+Patch|Backwards compatible bug fixes.
+
+*Note*: If the premise of the test changes drastically, consider creating a new identifier instead of bumping the major
+version of an existing one.
+
 ## Language options for writing test implementations
 
 There are two options for writing test implementations:
