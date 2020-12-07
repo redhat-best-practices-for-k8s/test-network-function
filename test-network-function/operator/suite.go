@@ -25,6 +25,7 @@ import (
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
 	"github.com/redhat-nfvpe/test-network-function/internal/api"
+	configpool "github.com/redhat-nfvpe/test-network-function/pkg/config"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
 	operatorTestConfig "github.com/redhat-nfvpe/test-network-function/pkg/tnf/config"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/operator"
@@ -77,6 +78,9 @@ var _ = ginkgo.Describe(testSpecName, func() {
 		// TODO: Gather facts for operator
 		for _, testType := range operator.Tests {
 			testFile, err := testcases.LoadConfiguredTestFile(configuredTestFile)
+			//nolint:errcheck // Even if not run, each of the suites attempts to initialise the config. This results in
+			// RegisterConfigurations erroring due to duplicate keys.
+			(*configpool.GetInstance()).RegisterConfiguration(testSpecName, testFile)
 			gomega.Expect(testFile).ToNot(gomega.BeNil())
 			gomega.Expect(err).To(gomega.BeNil())
 			testConfigure := testcases.ContainsConfiguredTest(testFile.OperatorTest, testType)

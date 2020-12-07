@@ -26,6 +26,7 @@ import (
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
 	"github.com/redhat-nfvpe/test-network-function/internal/api"
+	configpool "github.com/redhat-nfvpe/test-network-function/pkg/config"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
 	containerTestConfig "github.com/redhat-nfvpe/test-network-function/pkg/tnf/config"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/container"
@@ -76,6 +77,9 @@ var _ = ginkgo.Describe(testSpecName, func() {
 		}
 		// Gather facts for containers
 		podFacts, err := testcases.LoadCnfTestCaseSpecs(testcases.GatherFacts)
+		//nolint:errcheck // Even if not run, each of the suites attempts to initialise the config. This results in
+		// RegisterConfigurations erroring due to duplicate keys.
+		(*configpool.GetInstance()).RegisterConfiguration(testSpecName, podFacts)
 		gomega.Expect(err).To(gomega.BeNil())
 		for _, factsTest := range podFacts.TestCase {
 			args := strings.Split(fmt.Sprintf(factsTest.Command, cnf.Name, cnf.Namespace), " ")

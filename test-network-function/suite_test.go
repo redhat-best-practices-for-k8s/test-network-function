@@ -48,6 +48,8 @@ const (
 	junitFlagKey                  = "junit"
 	JunitXMLFileName              = "cnf-certification-tests_junit.xml"
 	reportFlagKey                 = "report"
+	// dateTimeFormatDirective is the directive used to format date/time according to ISO 8601.
+	dateTimeFormatDirective       = "2006-01-02T15:04:05+00:00"
 )
 
 var (
@@ -75,7 +77,7 @@ func createClaimRoot() *claim.Root {
 	startTime := time.Now()
 	c := &claim.Claim{
 		Metadata: &claim.Metadata{
-			StartTime: startTime.String(),
+			StartTime: startTime.UTC().Format(dateTimeFormatDirective),
 		},
 	}
 	return &claim.Root{
@@ -140,7 +142,7 @@ func TestTest(t *testing.T) {
 	if err != nil {
 		log.Fatalf("error unmarshalling configurations: %v", err)
 	}
-	claimData.Metadata.EndTime = endTime.String()
+	claimData.Metadata.EndTime = endTime.UTC().Format(dateTimeFormatDirective)
 
 	payload, err := j.MarshalIndent(claimRoot, "", "  ")
 	if err != nil {
