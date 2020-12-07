@@ -49,7 +49,7 @@ const (
 	JunitXMLFileName              = "cnf-certification-tests_junit.xml"
 	reportFlagKey                 = "report"
 	// dateTimeFormatDirective is the directive used to format date/time according to ISO 8601.
-	dateTimeFormatDirective       = "2006-01-02T15:04:05+00:00"
+	dateTimeFormatDirective = "2006-01-02T15:04:05+00:00"
 )
 
 var (

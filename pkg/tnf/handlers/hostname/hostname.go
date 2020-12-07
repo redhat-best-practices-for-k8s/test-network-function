@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
+	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/dependencies"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/identifier"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/reel"
 )
@@ -35,7 +36,7 @@ type Hostname struct {
 
 const (
 	// Command is the command name for the unix "hostname" command.
-	Command = "hostname"
+	Command = dependencies.HostnameBinaryName
 	// SuccessfulOutputRegex is the regular expression match for hostname output.
 	SuccessfulOutputRegex = `.+`
 )

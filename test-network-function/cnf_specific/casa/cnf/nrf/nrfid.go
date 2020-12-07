@@ -22,15 +22,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/identifier"
-
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
+	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/dependencies"
+	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/identifier"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/reel"
 )
 
 const (
 	// CheckRegistrationCommand is the Unix command for checking NRF registrations.
-	CheckRegistrationCommand = "oc -n %s get nfregistrations.mgmt.casa.io $(oc -n %s get nfregistrations.mgmt.casa.io | awk {\"print $2\"} | xargs -n 1)"
+	CheckRegistrationCommand = "%s -n %s get nfregistrations.mgmt.casa.io $(%s -n %s get nfregistrations.mgmt.casa.io | %s {\"print $2\"} | %s -n 1)"
 	// CommandCompleteRegexString is the regular expression indicating the command has completed.
 	CommandCompleteRegexString = `(?m)NRF\s+TYPE\s+INSTID\s+STATUS\s+`
 	// OutputRegexString is the regular expression capturing all CNFs in the NRF registration output.
@@ -39,11 +39,13 @@ const (
 	SingleEntryRegexString = `(\w+)\s+(\w+)\s+([0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12})\s+(\w+)`
 )
 
-// OutputRegex matches the output from inspecting ID registrations.
-var OutputRegex = regexp.MustCompile(OutputRegexString)
+var (
+	// OutputRegex matches the output from inspecting ID registrations.
+	OutputRegex = regexp.MustCompile(OutputRegexString)
 
-// SingleEntryRegex matches a single matching ID.
-var SingleEntryRegex = regexp.MustCompile(SingleEntryRegexString)
+	// SingleEntryRegex matches a single matching ID.
+	SingleEntryRegex = regexp.MustCompile(SingleEntryRegexString)
+)
 
 // ID follows the container design pattern, and stores Network Registration information.
 type ID struct {
@@ -161,7 +163,7 @@ func (r *Registration) GetRegisteredNRFs() map[string]*ID {
 
 // registrationCommand creates the Unix command to check for registration.
 func registrationCommand(namespace string) []string {
-	command := fmt.Sprintf(CheckRegistrationCommand, namespace, namespace)
+	command := fmt.Sprintf(CheckRegistrationCommand, dependencies.OcBinaryName, namespace, dependencies.OcBinaryName, namespace, dependencies.AwkBinaryName, dependencies.XargsBinaryName)
 	return strings.Split(command, " ")
 }
 

@@ -7,7 +7,6 @@ require (
 	github.com/basgys/goxml2json v1.1.0
 	github.com/bitly/go-simplejson v0.5.0 // indirect
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869 // indirect
-	github.com/coreos/go-semver v0.3.0 // indirect
 	github.com/golang/mock v1.4.4
 	github.com/google/goexpect v0.0.0-20200816234442-b5b77125c2c5
 	github.com/google/goterm v0.0.0-20190703233501-fc88cf888a3f
