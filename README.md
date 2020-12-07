@@ -37,6 +37,14 @@ multus|The multus test suite is used to test SR-IOV network connectivity between
 operator|The operator test suite is designed basic Kubernetes Operator functionality.|4.4.3
 container|The container test suite is designed to test container functionality and configuration|4.4.3
 
+#### Generic Test Network Function Runtime Dependencies
+
+The generic test suite requires that the NF has the following binary dependencies:
+* `ping`
+* `ip`
+
+If you do not provide these dependencies in your NF, please add them manually using your platform-dependent package
+manager.  Automated installation of missing dependencies is considered future work.
 
 ### CNF Specific
 
