@@ -22,6 +22,7 @@ import (
 	"time"
 
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
+	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/dependencies"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/identifier"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/reel"
 )
@@ -124,9 +125,9 @@ func (p *Ping) GetStats() (transmitted, received, errors int) {
 // positive.
 func Command(host string, count int) []string {
 	if count > 0 {
-		return []string{"ping", "-c", strconv.Itoa(count), host}
+		return []string{dependencies.PingBinaryName, "-c", strconv.Itoa(count), host}
 	}
-	return []string{"ping", host}
+	return []string{dependencies.PingBinaryName, host}
 }
 
 // NewPing creates a new `Ping` test which pings `hosts` with `count` requests, or indefinitely if `count` is not

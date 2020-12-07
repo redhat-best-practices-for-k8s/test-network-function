@@ -16,6 +16,8 @@
 
 package identifier
 
+import "github.com/redhat-nfvpe/test-network-function/pkg/tnf/dependencies"
+
 const (
 	casaNRFCheckRegistrationIdentifierURL = "http://test-network-function.com/tests/casa/nrf/checkregistration"
 	casaNRFIDIdentifierURL                = "http://test-network-function.com/tests/casa/nrf/id"
@@ -25,7 +27,8 @@ const (
 	pingIdentifierURL                     = "http://test-network-function.com/tests/ping"
 	podIdentifierURL                      = "http://test-network-function.com/tests/container/pod"
 	versionIdentifierURL                  = "http://test-network-function.com/tests/generic/version"
-	versionOne                            = "v1.0.0"
+
+	versionOne = "v1.0.0"
 )
 
 const (
@@ -38,13 +41,30 @@ const (
 type TestCatalogEntry struct {
 
 	// Identifier is the unique test identifier.
-	Identifier Identifier
+	Identifier Identifier `json:"identifier" yaml:"identifier"`
 
 	// Description is a helpful description of the purpose of the test.
-	Description string
+	Description string `json:"description" yaml:"description"`
 
 	// Type is the type of the test (i.e., normative).
-	Type string
+	Type string `json:"type" yaml:"type"`
+
+	// IntrusionSettings is used to specify test intrusion behavior into a target system.
+	IntrusionSettings IntrusionSettings `json:"intrusionSettings" yaml:"intrusionSettings"`
+
+	// BinaryDependencies tracks the needed binaries to complete tests, such as `ping`.
+	BinaryDependencies []string `json:"binaryDependencies" yaml:"binaryDependencies"`
+}
+
+// IntrusionSettings is used to specify test intrusion behavior into a target system.
+type IntrusionSettings struct {
+	// ModifiesSystem records whether the test makes changes to target systems.
+	ModifiesSystem bool `json:"modifiesSystem" yaml:"modifiesSystem"`
+
+	// ModificationIsPersistent records whether the test makes a modification to the system that persists after the test
+	// completes.  This is not always negative, and could involve something like setting up a tunnel that is used in
+	// future tests.
+	ModificationIsPersistent bool `json:"modificationIsPersistent" yaml:"modificationIsPersistent"`
 }
 
 // Catalog is the test catalog.
@@ -53,41 +73,102 @@ var Catalog = map[string]TestCatalogEntry{
 		Identifier:  CasaNRFIDIdentifier,
 		Description: "A Casa cnf-specific test which checks for the existence of the AMF and SMF CNFs.  The UUIDs are gathered and stored by introspecting the \"nfregistrations.mgmt.casa.io\" Custom Resource.",
 		Type:        Normative,
+		IntrusionSettings: IntrusionSettings{
+			ModifiesSystem:           false,
+			ModificationIsPersistent: false,
+		},
+		BinaryDependencies: []string{
+			dependencies.AwkBinaryName,
+			dependencies.OcBinaryName,
+			dependencies.XargsBinaryName,
+		},
 	},
 	casaNRFCheckRegistrationIdentifierURL: {
 		Identifier:  CasaNRFRegistrationIdentifier,
 		Description: "A Casa cnf-specific test which checks the Registration status of the AMF and SMF from the NRF.  This is done by making sure the \"nfStatus\" field in the \"nfregistrations.mgmt.casa.io\" Custom Resource reports as \"REGISTERED\"",
 		Type:        Normative,
+		IntrusionSettings: IntrusionSettings{
+			ModifiesSystem:           false,
+			ModificationIsPersistent: false,
+		},
+		BinaryDependencies: []string{
+			dependencies.JqBinaryName,
+			dependencies.OcBinaryName,
+		},
 	},
 	hostnameIdentifierURL: {
 		Identifier:  HostnameIdentifier,
 		Description: "A generic test used to check the hostname of a target machine/container.",
 		Type:        Normative,
+		IntrusionSettings: IntrusionSettings{
+			ModifiesSystem:           false,
+			ModificationIsPersistent: false,
+		},
+		BinaryDependencies: []string{
+			dependencies.HostnameBinaryName,
+		},
 	},
 	ipAddrIdentifierURL: {
 		Identifier:  IPAddrIdentifier,
 		Description: "A generic test used to derive the default network interface IP address of a target container.",
 		Type:        Normative,
+		IntrusionSettings: IntrusionSettings{
+			ModifiesSystem:           false,
+			ModificationIsPersistent: false,
+		},
+		BinaryDependencies: []string{
+			dependencies.IPBinaryName,
+		},
 	},
 	operatorIdentifierURL: {
 		Identifier:  OperatorIdentifier,
 		Description: "An operator-specific test used to exercise the behavior of a given operator.  Currently, this test just checks that the Custom Resource Definition (CRD) of a resource is properly installed.",
 		Type:        Normative,
+		IntrusionSettings: IntrusionSettings{
+			ModifiesSystem:           false,
+			ModificationIsPersistent: false,
+		},
+		BinaryDependencies: []string{
+			dependencies.JqBinaryName,
+			dependencies.OcBinaryName,
+		},
 	},
 	pingIdentifierURL: {
 		Identifier:  PingIdentifier,
 		Description: "A generic test used to test ICMP connectivity from a source machine/container to a target destination.",
 		Type:        Normative,
+		IntrusionSettings: IntrusionSettings{
+			ModifiesSystem:           false,
+			ModificationIsPersistent: false,
+		},
+		BinaryDependencies: []string{
+			dependencies.PingBinaryName,
+		},
 	},
 	podIdentifierURL: {
 		Identifier:  PodIdentifier,
 		Description: "A container-specific test suite used to verify various aspects of the underlying container.",
 		Type:        Normative,
+		IntrusionSettings: IntrusionSettings{
+			ModifiesSystem:           false,
+			ModificationIsPersistent: false,
+		},
+		BinaryDependencies: []string{
+			dependencies.JqBinaryName,
+			dependencies.OcBinaryName,
+		},
 	},
 	versionIdentifierURL: {
 		Identifier:  VersionIdentifier,
 		Description: "A generic test used to determine if a target container/machine is based on RHEL.",
 		Type:        Normative,
+		IntrusionSettings: IntrusionSettings{
+			ModifiesSystem:           false,
+			ModificationIsPersistent: false,
+		},
+		BinaryDependencies: []string{
+			dependencies.CatBinaryName,
+		},
 	},
 }
 

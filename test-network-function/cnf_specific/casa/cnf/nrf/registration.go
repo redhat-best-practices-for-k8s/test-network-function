@@ -21,15 +21,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/identifier"
-
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
+	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/dependencies"
+	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/identifier"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/reel"
 )
 
 const (
 	// GetRegistrationNFStatusCmd gets the "nfStatus" for a particular CNF.
-	GetRegistrationNFStatusCmd = "oc get -n %s nfregistrations.mgmt.casa.io %s %s -o jsonpath='{.items[*].spec.data}' | jq '.nfStatus'"
+	GetRegistrationNFStatusCmd = "%s get -n %s nfregistrations.mgmt.casa.io %s %s -o jsonpath='{.items[*].spec.data}' | %s '.nfStatus'"
 	// SuccessfulRegistrationOutputRegexString is the output regular expression expected when a CNF has successfully registered.
 	SuccessfulRegistrationOutputRegexString = "(?m)\"REGISTERED\""
 	// UnsuccessfulRegistrationOutputRegexString is the output regular expression expected when a CNF has not successfully registered.
@@ -101,7 +101,7 @@ func (c *CheckRegistration) ReelEOF() {
 
 // FormCheckRegistrationCmd forms the command to check that a CNF is registered.
 func FormCheckRegistrationCmd(namespace string, nrfID *ID) []string {
-	command := fmt.Sprintf(GetRegistrationNFStatusCmd, namespace, nrfID.nrf, nrfID.instID)
+	command := fmt.Sprintf(GetRegistrationNFStatusCmd, dependencies.OcBinaryName, namespace, nrfID.nrf, nrfID.instID, dependencies.JqBinaryName)
 	return strings.Split(command, " ")
 }
 

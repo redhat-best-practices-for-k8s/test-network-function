@@ -23,6 +23,7 @@ import (
 	"time"
 
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
+	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/dependencies"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/identifier"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/reel"
 )
@@ -37,11 +38,15 @@ type IPAddr struct {
 }
 
 const (
-	ipAddrCommand = "ip addr show dev"
 	// DeviceDoesNotExistRegex matches `ip addr` output when the given device does not exist.
 	DeviceDoesNotExistRegex = `(?m)Device \"(\w+)\" does not exist.$`
 	// SuccessfulOutputRegex matches `ip addr` output for a given device, and provides grouping to extract the associated Ipv4 address.
 	SuccessfulOutputRegex = `(?m)^\s+inet ((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?))`
+)
+
+var (
+	// ipAddrCommand is the skeleton command used to get ip address information for a device.
+	ipAddrCommand = fmt.Sprintf("%s addr show dev", dependencies.IPBinaryName)
 )
 
 // Args returns the command line args for the test.

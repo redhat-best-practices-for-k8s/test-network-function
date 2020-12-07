@@ -17,21 +17,26 @@
 package redhat
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
+	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/dependencies"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/identifier"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/reel"
 )
 
 const (
-	// ReleaseCommand is the Unix command used to check whether a container is based on Red Hat technologies.
-	ReleaseCommand = "if [ -e /etc/redhat-release ]; then cat /etc/redhat-release; else echo \"Unknown Base Image\"; fi"
 	// NotRedHatBasedRegex is the expected output for a container that is not based on Red Hat technologies.
 	NotRedHatBasedRegex = `(?m)Unknown Base Image`
 	// VersionRegex is regular expression expected for a container based on Red Hat technologies.
 	VersionRegex = `(?m)Red Hat Enterprise Linux Server release (\d+\.\d+) \(\w+\)`
+)
+
+var (
+	// ReleaseCommand is the Unix command used to check whether a container is based on Red Hat technologies.
+	ReleaseCommand = fmt.Sprintf("if [ -e /etc/redhat-release ]; then %s /etc/redhat-release; else echo \"Unknown Base Image\"; fi", dependencies.CatBinaryName)
 )
 
 // Release is an implementation of tnf.Test used to determine whether a container is based on Red Hat technologies.
