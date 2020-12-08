@@ -1,5 +1,0 @@
-namespace: default
-nrfName: nrf1
-cnfTypes:
-  - AMF
-  - SMF

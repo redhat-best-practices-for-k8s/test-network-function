@@ -1,16 +1,6 @@
 # `tnf.Test` Catalog
 
 A number of `tnf.Test` implementations are included out of the box.  This is a summary of the available implementations:
-## http://test-network-function.com/tests/casa/nrf/checkregistration
-Property|Description
----|---
-Version|v1.0.0
-Description|A Casa cnf-specific test which checks the Registration status of the AMF and SMF from the NRF.  This is done by making sure the "nfStatus" field in the "nfregistrations.mgmt.casa.io" Custom Resource reports as "REGISTERED"
-Result Type|normative
-Intrusive|false
-Modifications Persist After Test|false
-Runtime Binaries Required|`jq`, `oc`
-
 ## http://test-network-function.com/tests/hostname
 Property|Description
 ---|---
@@ -70,14 +60,4 @@ Result Type|normative
 Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`cat`
-
-## http://test-network-function.com/tests/casa/nrf/id
-Property|Description
----|---
-Version|v1.0.0
-Description|A Casa cnf-specific test which checks for the existence of the AMF and SMF CNFs.  The UUIDs are gathered and stored by introspecting the "nfregistrations.mgmt.casa.io" Custom Resource.
-Result Type|normative
-Intrusive|false
-Modifications Persist After Test|false
-Runtime Binaries Required|`awk`, `oc`, `xargs`
 
