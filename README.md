@@ -46,13 +46,6 @@ The generic test suite requires that the NF has the following binary dependencie
 If you do not provide these dependencies in your NF, please add them manually using your platform-dependent package
 manager.  Automated installation of missing dependencies is considered future work.
 
-### CNF Specific
-
-Suite|Test Spec Description|Minimum OpenShift Version
----|---|---
-cisco_kiknos|Cisco Kiknos specific tests include establishing an IPSEC tunnel between Kiknos and test pod `ikester`, and then passing a minimum amount of `ICMP` and `UDP` traffic across the tunnel.|4.4.3
-casa_cnf|Casa 5G Core specific tests include ensuring proper registration of AMF/SMF CNFs with the NRF.|4.4.3
-
 ## Performing Tests
 
 Currently, all available tests are part of the "CNF Certification Test Suite" test suite, which serves as the entrypoint
@@ -96,11 +89,11 @@ make cnf-tests
 
 ### Run a Specific Test Suite
 
-In order to run a specific test suite, `cisco_kiknos` for example, issue the following command:
+In order to run a specific test suite, `generic` for example, issue the following command:
 
 ```shell script
 make build build-cnf-tests
-cd ./test-network-function && ./test-network-function.test -ginkgo.v -ginkgo.focus="cisco_kiknos" -junit . -report .
+cd ./test-network-function && ./test-network-function.test -ginkgo.v -ginkgo.focus="generic" -junit . -report .
 ```
 
 ### Run the Operator Test Suite
