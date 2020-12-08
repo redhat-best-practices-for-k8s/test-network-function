@@ -20,6 +20,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"os"
+	"regexp"
 
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/testcases/data/cnf"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/testcases/data/operator"
@@ -104,13 +105,20 @@ const (
 	ContainerCount ContainerFactType = "CONTAINER_COUNT"
 )
 
-// ContainerFacts map to hold container facts
-var ContainerFacts = map[ContainerFactType]string{
-	Name:               "",
-	NameSpace:          "",
-	ServiceAccountName: "",
-	ClusterRole:        "false",
-	ContainerCount:     "0",
+// ContainerFact struct to store pod facts
+type ContainerFact struct {
+	// Name of the pod under test
+	Name string
+	// Namespace of the pod under test
+	Namespace string
+	// ServiceAccount name used by the pod
+	ServiceAccount string
+	// HasClusterRole if pod has cluster role
+	HasClusterRole bool
+	// ContainerCount is the count of containers inside the pod
+	ContainerCount int
+	// Exists if the pod is found in the cluster
+	Exists bool
 }
 
 // CnfTestTemplateDataMap  is map of available json data test case templates
@@ -310,16 +318,29 @@ func GetOutRegExp(key RegExType) string {
 }
 
 // ExpectedStatusFn checks for expectedStatus function in the test template and replaces with data from container facts
-func (b *BaseTestCase) ExpectedStatusFn(fnType StatusFunctionType) {
+func (b *BaseTestCase) ExpectedStatusFn(val string, fnType StatusFunctionType) {
 	for index, expectedStatus := range b.ExpectedStatus {
 		if fnType == StatusFunctionType(expectedStatus) {
-			b.ReplaceSAasExpectedStatus(index)
+			b.ReplaceSAasExpectedStatus(index, val)
 			break
 		}
 	}
 }
 
 // ReplaceSAasExpectedStatus replaces dynamic expected status defined in test template via function name
-func (b *BaseTestCase) ReplaceSAasExpectedStatus(index int) {
-	b.ExpectedStatus[index] = ContainerFacts[ServiceAccountName]
+func (b *BaseTestCase) ReplaceSAasExpectedStatus(index int, val string) {
+	b.ExpectedStatus[index] = val
+}
+
+// IsInFocus matches gingkgo focus string to description key
+func IsInFocus(focus, desc string) bool {
+	matchesFocus := true
+	var focusFilter *regexp.Regexp
+	if focus != "" {
+		focusFilter = regexp.MustCompile(focus)
+	}
+	if focusFilter != nil {
+		matchesFocus = focusFilter.Match([]byte(desc))
+	}
+	return matchesFocus
 }

@@ -15,12 +15,6 @@ cnfs:
     tests:
       - PRIVILEGED_POD
       - PRIVILEGED_ROLE
-  - name: nginx
-    namespace: default
-    status: Running
-    tests:
-      - PRIVILEGED_POD
-      - PRIVILEGED_ROLE
     certifiedcontainerrequestinfo:
       - name: nginx-116  # working example
         repository: rhel8

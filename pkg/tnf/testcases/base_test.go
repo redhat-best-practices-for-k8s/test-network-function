@@ -41,6 +41,7 @@ const (
 	InValidKey       = "INVALID_KEY"
 	cnfFilePath      = "./files/cnf"
 	operatorFilePath = "./files/operator"
+	name             = "testpod"
 	invalidFilePath  = "./invalid"
 	inValidFile      = "dummy.yaml"
 	allowAll         = `.+`
@@ -121,12 +122,14 @@ func TestLoadInvalidPathCNFTestCaseSpecsFromFile(t *testing.T) {
 }
 
 func TestBaseTestCase_CNFExpectedStatusFn(t *testing.T) {
-	testcases.ContainerFacts[testcases.ServiceAccountName] = "TEST_SERVICE_ACCOUNT_NAME"
+	var facts = testcases.ContainerFact{}
+	facts.Name = name
+	facts.ServiceAccount = "TEST_SERVICE_ACCOUNT_NAME"
 	testCase, err := testcases.LoadTestCaseSpecsFromFile(testcases.PrivilegedRoles, cnfFilePath, testcases.Cnf)
 	assert.Nil(t, err)
 	assert.NotNil(t, testCase)
-	testCase.TestCase[0].ExpectedStatusFn(testcases.ServiceAccountFn)
-	assert.Equal(t, testcases.ContainerFacts[testcases.ServiceAccountName], testCase.TestCase[0].ExpectedStatus[0])
+	testCase.TestCase[0].ExpectedStatusFn(facts.ServiceAccount, testcases.ServiceAccountFn)
+	assert.Equal(t, facts.ServiceAccount, testCase.TestCase[0].ExpectedStatus[0])
 }
 
 func TestConfiguredTest_Operator_RenderTestCaseSpec(t *testing.T) {
