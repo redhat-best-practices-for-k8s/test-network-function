@@ -1,6 +1,26 @@
 # `tnf.Test` Catalog
 
 A number of `tnf.Test` implementations are included out of the box.  This is a summary of the available implementations:
+## http://test-network-function.com/tests/casa/nrf/checkregistration
+Property|Description
+---|---
+Version|v1.0.0
+Description|A Casa cnf-specific test which checks the Registration status of the AMF and SMF from the NRF.  This is done by making sure the "nfStatus" field in the "nfregistrations.mgmt.casa.io" Custom Resource reports as "REGISTERED"
+Result Type|normative
+Intrusive|false
+Modifications Persist After Test|false
+Runtime Binaries Required|`jq`, `oc`
+
+## http://test-network-function.com/tests/hostname
+Property|Description
+---|---
+Version|v1.0.0
+Description|A generic test used to check the hostname of a target machine/container.
+Result Type|normative
+Intrusive|false
+Modifications Persist After Test|false
+Runtime Binaries Required|`hostname`
+
 ## http://test-network-function.com/tests/ipaddr
 Property|Description
 ---|---
@@ -15,7 +35,7 @@ Runtime Binaries Required|`ip`
 Property|Description
 ---|---
 Version|v1.0.0
-Description|An operator-specific test used to exercise the behavior of a given operator.  Currently, this test just checks that the Custom Resource Definition (CRD) of a resource is properly installed.
+Description|An operator-specific test used to exercise the behavior of a given operator.  In the current offering, we check if the operator ClusterServiceVersion (CSV) is installed properly.  A CSV is a YAML manifest created from Operator metadata that assists the Operator Lifecycle Manager (OLM) in running the Operator.
 Result Type|normative
 Intrusive|false
 Modifications Persist After Test|false
@@ -60,24 +80,4 @@ Result Type|normative
 Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`awk`, `oc`, `xargs`
-
-## http://test-network-function.com/tests/casa/nrf/checkregistration
-Property|Description
----|---
-Version|v1.0.0
-Description|A Casa cnf-specific test which checks the Registration status of the AMF and SMF from the NRF.  This is done by making sure the "nfStatus" field in the "nfregistrations.mgmt.casa.io" Custom Resource reports as "REGISTERED"
-Result Type|normative
-Intrusive|false
-Modifications Persist After Test|false
-Runtime Binaries Required|`jq`, `oc`
-
-## http://test-network-function.com/tests/hostname
-Property|Description
----|---
-Version|v1.0.0
-Description|A generic test used to check the hostname of a target machine/container.
-Result Type|normative
-Intrusive|false
-Modifications Persist After Test|false
-Runtime Binaries Required|`hostname`
 

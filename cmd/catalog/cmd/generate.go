@@ -27,8 +27,8 @@ import (
 )
 
 const (
-	// fatalErrorExitCode is the Unix return code used when there is a fatal error generating the catalog.
-	fatalErrorExitCode = 1
+	// backtickOffset is the number of extra characters required to enclose output in backticks.
+	backtickOffset = 2
 )
 
 var (
@@ -48,14 +48,14 @@ var (
 	jsonGenerateCmd = &cobra.Command{
 		Use:   "json",
 		Short: "Generates the test catalog in JSON format.",
-		Run:   runGenerateJSONCmd,
+		RunE:  runGenerateJSONCmd,
 	}
 
 	// markdownGenerateCmd is used to generate a markdown formatted catalog to stdout.
 	markdownGenerateCmd = &cobra.Command{
 		Use:   "markdown",
 		Short: "Generates the test catalog in markdown format.",
-		Run:   runGenerateMarkdownCmd,
+		RunE:  runGenerateMarkdownCmd,
 	}
 )
 
@@ -69,7 +69,8 @@ func cmdJoin(elems []string, sep string) string {
 	}
 	n := len(sep) * (len(elems) - 1)
 	for i := 0; i < len(elems); i++ {
-		n += len(elems[i])
+		// backtickOffset is used to track the extra length required by enclosing output commands in backticks.
+		n += len(elems[i]) + backtickOffset
 	}
 
 	var b strings.Builder
@@ -83,7 +84,7 @@ func cmdJoin(elems []string, sep string) string {
 }
 
 // runGenerateMarkdownCmd generates a markdown test catalog.
-func runGenerateMarkdownCmd(_ *cobra.Command, _ []string) {
+func runGenerateMarkdownCmd(_ *cobra.Command, _ []string) error {
 	fmt.Println("# `tnf.Test` Catalog")
 	fmt.Println()
 	fmt.Println("A number of `tnf.Test` implementations are included out of the box.  This is a summary of the available implementations:")
@@ -100,16 +101,17 @@ func runGenerateMarkdownCmd(_ *cobra.Command, _ []string) {
 		fmt.Fprintf(os.Stdout, "Runtime Binaries Required|%s\n", cmdJoin(catalogEntry.BinaryDependencies, ", "))
 		fmt.Println()
 	}
+	return nil
 }
 
 // runGenerateJSONCmd generates a JSON test catalog.
-func runGenerateJSONCmd(_ *cobra.Command, _ []string) {
+func runGenerateJSONCmd(_ *cobra.Command, _ []string) error {
 	contents, err := json.MarshalIndent(identifier.Catalog, "", "  ")
 	if err != nil {
-		fmt.Fprintln(os.Stderr, fmt.Errorf("could not generate the test catalog: %s", err))
-		os.Exit(fatalErrorExitCode)
+		return err
 	}
 	fmt.Print(string(contents))
+	return nil
 }
 
 // Execute executes the "catalog" CLI.

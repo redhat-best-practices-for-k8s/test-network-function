@@ -121,9 +121,12 @@ var Catalog = map[string]TestCatalogEntry{
 		},
 	},
 	operatorIdentifierURL: {
-		Identifier:  OperatorIdentifier,
-		Description: "An operator-specific test used to exercise the behavior of a given operator.  Currently, this test just checks that the Custom Resource Definition (CRD) of a resource is properly installed.",
-		Type:        Normative,
+		Identifier: OperatorIdentifier,
+		Description: "An operator-specific test used to exercise the behavior of a given operator.  In the current " +
+			"offering, we check if the operator ClusterServiceVersion (CSV) is installed properly.  A CSV is a YAML " +
+			"manifest created from Operator metadata that assists the Operator Lifecycle Manager (OLM) in running " +
+			"the Operator.",
+		Type: Normative,
 		IntrusionSettings: IntrusionSettings{
 			ModifiesSystem:           false,
 			ModificationIsPersistent: false,
