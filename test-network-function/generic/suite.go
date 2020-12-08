@@ -29,6 +29,7 @@ import (
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/ping"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/interactive"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/reel"
+	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/testcases"
 	log "github.com/sirupsen/logrus"
 
 	"time"
@@ -114,8 +115,7 @@ func createPartnerContainers(config *TestConfiguration) map[ContainerIdentifier]
 
 // Runs the "generic" CNF test cases.
 var _ = ginkgo.Describe(testsKey, func() {
-	// TODO: able to check comma separated focus and skips
-	if ginkgoconfig.GinkgoConfig.FocusString == testsKey || ginkgoconfig.GinkgoConfig.FocusString == "" {
+	if testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusString, testsKey) {
 
 		config := GetTestConfiguration()
 		log.Infof("Test Configuration: %s", config)
@@ -123,7 +123,6 @@ var _ = ginkgo.Describe(testsKey, func() {
 		containersUnderTest := createContainersUnderTest(config)
 		partnerContainers := createPartnerContainers(config)
 		testOrchestrator := partnerContainers[config.TestOrchestrator]
-
 		log.Info(testOrchestrator)
 		log.Info(containersUnderTest)
 
@@ -161,8 +160,7 @@ func testIsRedHatRelease(oc *interactive.Oc) {
 // TODO: Multus is not applicable to every CNF, so in some regards it is CNF-specific.  On the other hand, it is likely
 // a useful test across most CNFs.  Should "multus" be considered generic, cnf_specific, or somewhere in between.
 var _ = ginkgo.Describe(multusTestsKey, func() {
-	// TODO: able to check comma separated focus and skips
-	if ginkgoconfig.GinkgoConfig.FocusString == multusTestsKey || ginkgoconfig.GinkgoConfig.FocusString == "" {
+	if testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusString, multusTestsKey) {
 		config := GetTestConfiguration()
 		log.Infof("Test Configuration: %s", config)
 

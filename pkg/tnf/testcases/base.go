@@ -20,6 +20,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"os"
+	"regexp"
 
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/testcases/data/cnf"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/testcases/data/operator"
@@ -114,10 +115,10 @@ type ContainerFact struct {
 	ServiceAccount string
 	// HasClusterRole if pod has cluster role
 	HasClusterRole bool
-	// ContainerCount is the count of container inside the pod
+	// ContainerCount is the count of containers inside the pod
 	ContainerCount int
-	// IsExists if the pod is found in the cluser
-	IsExists bool
+	// Exists if the pod is found in the cluster
+	Exists bool
 }
 
 // CnfTestTemplateDataMap  is map of available json data test case templates
@@ -329,4 +330,17 @@ func (b *BaseTestCase) ExpectedStatusFn(val string, fnType StatusFunctionType) {
 // ReplaceSAasExpectedStatus replaces dynamic expected status defined in test template via function name
 func (b *BaseTestCase) ReplaceSAasExpectedStatus(index int, val string) {
 	b.ExpectedStatus[index] = val
+}
+
+// IsInFocus matches gingkgo focus string to description key
+func IsInFocus(focus, desc string) bool {
+	matchesFocus := true
+	var focusFilter *regexp.Regexp
+	if focus != "" {
+		focusFilter = regexp.MustCompile(focus)
+	}
+	if focusFilter != nil {
+		matchesFocus = focusFilter.Match([]byte(desc))
+	}
+	return matchesFocus
 }

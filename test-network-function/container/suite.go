@@ -56,8 +56,7 @@ var (
 )
 
 var _ = ginkgo.Describe(testSpecName, func() {
-	// TODO: able to check comma separated focus and skips
-	if ginkgoconfig.GinkgoConfig.FocusString == testSpecName || ginkgoconfig.GinkgoConfig.FocusString == "" {
+	if testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusString, testSpecName) {
 		defer ginkgo.GinkgoRecover()
 		ginkgo.When("a local shell is spawned", func() {
 			goExpectSpawner := interactive.NewGoExpectSpawner()
@@ -78,7 +77,7 @@ var _ = ginkgo.Describe(testSpecName, func() {
 			certAPIClient = api.NewHTTPClient()
 			for _, cnf := range cnfInTest.CNFs {
 				cnf := cnf
-				var containerFact = testcases.ContainerFact{Namespace: cnf.Namespace, Name: cnf.Name, ContainerCount: 0, HasClusterRole: false, IsExists: true}
+				var containerFact = testcases.ContainerFact{Namespace: cnf.Namespace, Name: cnf.Name, ContainerCount: 0, HasClusterRole: false, Exists: true}
 				for _, certified := range cnf.CertifiedContainerRequestInfos {
 					ginkgo.It(fmt.Sprintf("tests for Container Certification Status for %s/%s", certified.Repository, certified.Name), func() {
 						certified := certified // pin
@@ -108,14 +107,14 @@ var _ = ginkgo.Describe(testSpecName, func() {
 						containerFact.Name = cnfInTest.Facts()
 						gomega.Expect(containerFact.Name).To(gomega.Equal(cnf.Name))
 						if strings.Compare(containerFact.Name, cnf.Name) > 0 {
-							containerFact.IsExists = true
+							containerFact.Exists = true
 						}
 					}
 				}
 				// loop through various cnfs test
-				if !containerFact.IsExists {
+				if !containerFact.Exists {
 					ginkgo.It(fmt.Sprintf("is running test pod exists : %s/%s for test command :  %s", containerFact.Namespace, containerFact.Name, "POD EXISTS"), func() {
-						gomega.Expect(containerFact.IsExists).To(gomega.BeTrue())
+						gomega.Expect(containerFact.Exists).To(gomega.BeTrue())
 					})
 					continue
 				}

@@ -56,8 +56,7 @@ var (
 )
 
 var _ = ginkgo.Describe(testSpecName, func() {
-	// TODO: able to check comma separated focus and skips
-	if ginkgoconfig.GinkgoConfig.FocusString == testSpecName || ginkgoconfig.GinkgoConfig.FocusString == "" {
+	if testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusString, testSpecName) {
 		defer ginkgo.GinkgoRecover()
 		ginkgo.When("a local shell is spawned", func() {
 			goExpectSpawner := interactive.NewGoExpectSpawner()
