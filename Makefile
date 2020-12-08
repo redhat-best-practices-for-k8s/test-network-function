@@ -23,7 +23,6 @@ export COMMON_GO_ARGS=-race
 build: mocks
 	go fmt ./...
 	make lint
-	make markdown-catalog
 	go build ${COMMON_GO_ARGS} ./...
 	make unit-tests
 
