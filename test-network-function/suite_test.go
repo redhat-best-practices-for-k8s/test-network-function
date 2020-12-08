@@ -109,7 +109,7 @@ func TestTest(t *testing.T) {
 		// For now, just initialize the payload as empty.
 		equipmentMap[key] = make(map[string]interface{})
 	}
-	claimData.Hosts = equipmentMap
+	claimData.Nodes = equipmentMap
 	claimData.Versions = &claim.Versions{
 		Tnf: tnfVersion.Tag,
 	}
