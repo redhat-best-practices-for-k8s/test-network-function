@@ -18,27 +18,34 @@ package operator
 
 import (
 	"fmt"
-	"strings"
-	"time"
+
+	configpool "github.com/redhat-nfvpe/test-network-function/pkg/config"
 
 	expect "github.com/google/goexpect"
 	"github.com/onsi/ginkgo"
+	ginkgoconfig "github.com/onsi/ginkgo/config"
 	"github.com/onsi/gomega"
 	"github.com/redhat-nfvpe/test-network-function/internal/api"
-	configpool "github.com/redhat-nfvpe/test-network-function/pkg/config"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
 	operatorTestConfig "github.com/redhat-nfvpe/test-network-function/pkg/tnf/config"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/operator"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/interactive"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/reel"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/testcases"
+
+	"strings"
+	"time"
 )
 
 const (
+	configuredTestFile = "testconfigure.yml"
 	// The default test timeout.
 	defaultTimeoutSeconds = 10
-	configuredTestFile    = "testconfigure.yml"
-	testSpecName          = "operator"
+	// timeout for eventually call
+	eventuallyTimeoutSeconds = 30
+	// interval of time
+	interval     = 1
+	testSpecName = "operator"
 )
 
 var (
@@ -49,38 +56,46 @@ var (
 )
 
 var _ = ginkgo.Describe(testSpecName, func() {
-
-	ginkgo.When("a local shell is spawned", func() {
-		goExpectSpawner := interactive.NewGoExpectSpawner()
-		var spawner interactive.Spawner = goExpectSpawner
-		context, err = interactive.SpawnShell(&spawner, defaultTimeout, expect.Verbose(true))
-		ginkgo.It("should be created without error", func() {
-			gomega.Expect(err).To(gomega.BeNil())
-			gomega.Expect(context).ToNot(gomega.BeNil())
-			gomega.Expect(context.GetExpecter()).ToNot(gomega.BeNil())
+	// TODO: able to check comma separated focus and skips
+	if ginkgoconfig.GinkgoConfig.FocusString == testSpecName || ginkgoconfig.GinkgoConfig.FocusString == "" {
+		defer ginkgo.GinkgoRecover()
+		ginkgo.When("a local shell is spawned", func() {
+			goExpectSpawner := interactive.NewGoExpectSpawner()
+			var spawner interactive.Spawner = goExpectSpawner
+			context, err = interactive.SpawnShell(&spawner, defaultTimeout, expect.Verbose(true))
+			ginkgo.It("should be created without error", func() {
+				gomega.Expect(err).To(gomega.BeNil())
+				gomega.Expect(context).ToNot(gomega.BeNil())
+				gomega.Expect(context.GetExpecter()).ToNot(gomega.BeNil())
+			})
 		})
-	})
-	defer ginkgo.GinkgoRecover()
+		ginkgo.Context("Runs test on operators", func() {
+			itRunsTestsOnOperator()
+		})
+	}
+})
+
+func itRunsTestsOnOperator() {
 	operatorInTest, err = operatorTestConfig.GetConfig()
 	gomega.Expect(err).To(gomega.BeNil())
 	gomega.Expect(operatorInTest).ToNot(gomega.BeNil())
+	//nolint:errcheck // Even if not run, each of the suites attempts to initialise the config. This results in
+	// RegisterConfigurations erroring due to duplicate keys.
+	(*configpool.GetInstance()).RegisterConfiguration(testSpecName, operatorInTest)
 	certAPIClient := api.NewHTTPClient()
-	for _, operator := range operatorInTest.Operator {
-		for _, certified := range operator.CertifiedOperatorRequestInfos {
-			ginkgo.When(fmt.Sprintf("cnf certification test for: %s/%s ", certified.Organization, certified.Name), func() {
-				ginkgo.It("tests for Operator Certification Status", func() {
-					certified := certified // pin
+	for index := range operatorInTest.Operator {
+		for _, certified := range operatorInTest.Operator[index].CertifiedOperatorRequestInfos {
+			ginkgo.It(fmt.Sprintf("cnf certification test for: %s/%s ", certified.Organization, certified.Name), func() {
+				certified := certified // pin
+				gomega.Eventually(func() bool {
 					isCertified := certAPIClient.IsOperatorCertified(certified.Organization, certified.Name)
-					gomega.Expect(isCertified).To(gomega.BeTrue())
-				})
+					return isCertified
+				}, eventuallyTimeoutSeconds, interval).Should(gomega.BeTrue())
 			})
 		}
 		// TODO: Gather facts for operator
-		for _, testType := range operator.Tests {
+		for _, testType := range operatorInTest.Operator[index].Tests {
 			testFile, err := testcases.LoadConfiguredTestFile(configuredTestFile)
-			//nolint:errcheck // Even if not run, each of the suites attempts to initialise the config. This results in
-			// RegisterConfigurations erroring due to duplicate keys.
-			(*configpool.GetInstance()).RegisterConfiguration(testSpecName, testFile)
 			gomega.Expect(testFile).ToNot(gomega.BeNil())
 			gomega.Expect(err).To(gomega.BeNil())
 			testConfigure := testcases.ContainsConfiguredTest(testFile.OperatorTest, testType)
@@ -91,20 +106,20 @@ var _ = ginkgo.Describe(testSpecName, func() {
 				if !testCase.SkipTest {
 					if testCase.ExpectedType == testcases.Function {
 						for _, val := range testCase.ExpectedStatus {
-							testCase.ExpectedStatusFn(testcases.StatusFunctionType(val))
+							testCase.ExpectedStatusFn(operatorInTest.Operator[index].Name, testcases.StatusFunctionType(val))
 						}
 					}
-					args := []interface{}{operator.Name, operator.Namespace}
-					runTestsOnOperator(args, operator.Name, operator.Namespace, testCase)
+					args := []interface{}{operatorInTest.Operator[index].Name, operatorInTest.Operator[index].Namespace}
+					runTestsOnOperator(args, operatorInTest.Operator[index].Name, operatorInTest.Operator[index].Namespace, testCase)
 				}
 			}
 		}
 	}
-})
+}
 
 //nolint:gocritic // ignore hugeParam error. Pointers to loop iterator vars are bad and `testCmd` is likely to be such.
 func runTestsOnOperator(args []interface{}, name, namespace string, testCmd testcases.BaseTestCase) {
-	ginkgo.When(fmt.Sprintf("operator under test is: %s/%s ", namespace, name), func() {
+	ginkgo.When(fmt.Sprintf("under test is: %s/%s ", namespace, name), func() {
 		ginkgo.It(fmt.Sprintf("tests for: %s", testCmd.Name), func() {
 			cmdArgs := strings.Split(fmt.Sprintf(testCmd.Command, args...), " ")
 			opInTest := operator.NewOperator(cmdArgs, name, namespace, testCmd.ExpectedStatus, testCmd.ResultType, testCmd.Action, defaultTimeout)

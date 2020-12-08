@@ -20,6 +20,17 @@ package cnf
 var GatherPodFactsJSON = string(`{
   "testcase": [
     {
+      "name": "NAME",
+      "skiptest": false,
+      "command": "oc get pod %s -n %s -o json | jq -r '.metadata.name'",
+      "action": "allow",
+      "resulttype": "string",
+      "expectedtype": "regex",
+      "expectedstatus": [
+        "ALLOW_ALL"
+      ]
+    },
+    {
       "name": "CONTAINER_COUNT",
       "skiptest": false,
       "command": "oc get pod %s -n %s -o json | jq -r '.spec.containers | length'",

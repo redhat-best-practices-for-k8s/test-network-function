@@ -18,10 +18,10 @@ package generic
 
 import (
 	"fmt"
-	"time"
 
 	expect "github.com/google/goexpect"
 	"github.com/onsi/ginkgo"
+	ginkgoconfig "github.com/onsi/ginkgo/config"
 	"github.com/onsi/gomega"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/base/redhat"
@@ -30,6 +30,8 @@ import (
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/interactive"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/reel"
 	log "github.com/sirupsen/logrus"
+
+	"time"
 )
 
 const (
@@ -112,28 +114,32 @@ func createPartnerContainers(config *TestConfiguration) map[ContainerIdentifier]
 
 // Runs the "generic" CNF test cases.
 var _ = ginkgo.Describe(testsKey, func() {
-	config := GetTestConfiguration()
-	log.Infof("Test Configuration: %s", config)
+	// TODO: able to check comma separated focus and skips
+	if ginkgoconfig.GinkgoConfig.FocusString == testsKey || ginkgoconfig.GinkgoConfig.FocusString == "" {
 
-	containersUnderTest := createContainersUnderTest(config)
-	partnerContainers := createPartnerContainers(config)
-	testOrchestrator := partnerContainers[config.TestOrchestrator]
+		config := GetTestConfiguration()
+		log.Infof("Test Configuration: %s", config)
 
-	log.Info(testOrchestrator)
-	log.Info(containersUnderTest)
+		containersUnderTest := createContainersUnderTest(config)
+		partnerContainers := createPartnerContainers(config)
+		testOrchestrator := partnerContainers[config.TestOrchestrator]
 
-	ginkgo.Context("Both Pods are on the Default network", func() {
-		// for each container under test, ensure bidirectional ICMP traffic between the container and the orchestrator.
-		for _, containerUnderTest := range containersUnderTest {
-			testNetworkConnectivity(containerUnderTest.oc, testOrchestrator.oc, testOrchestrator.defaultNetworkIPAddress, defaultNumPings)
-			testNetworkConnectivity(testOrchestrator.oc, containerUnderTest.oc, containerUnderTest.defaultNetworkIPAddress, defaultNumPings)
+		log.Info(testOrchestrator)
+		log.Info(containersUnderTest)
+
+		ginkgo.Context("Both Pods are on the Default network", func() {
+			// for each container under test, ensure bidirectional ICMP traffic between the container and the orchestrator.
+			for _, containerUnderTest := range containersUnderTest {
+				testNetworkConnectivity(containerUnderTest.oc, testOrchestrator.oc, testOrchestrator.defaultNetworkIPAddress, defaultNumPings)
+				testNetworkConnectivity(testOrchestrator.oc, containerUnderTest.oc, containerUnderTest.defaultNetworkIPAddress, defaultNumPings)
+			}
+		})
+
+		for _, containersUnderTest := range containersUnderTest {
+			testIsRedHatRelease(containersUnderTest.oc)
 		}
-	})
-
-	for _, containersUnderTest := range containersUnderTest {
-		testIsRedHatRelease(containersUnderTest.oc)
+		testIsRedHatRelease(testOrchestrator.oc)
 	}
-	testIsRedHatRelease(testOrchestrator.oc)
 })
 
 // testIsRedHatRelease tests whether the container attached to oc is Red Hat based.
@@ -155,21 +161,24 @@ func testIsRedHatRelease(oc *interactive.Oc) {
 // TODO: Multus is not applicable to every CNF, so in some regards it is CNF-specific.  On the other hand, it is likely
 // a useful test across most CNFs.  Should "multus" be considered generic, cnf_specific, or somewhere in between.
 var _ = ginkgo.Describe(multusTestsKey, func() {
-	config := GetTestConfiguration()
-	log.Infof("Test Configuration: %s", config)
+	// TODO: able to check comma separated focus and skips
+	if ginkgoconfig.GinkgoConfig.FocusString == multusTestsKey || ginkgoconfig.GinkgoConfig.FocusString == "" {
+		config := GetTestConfiguration()
+		log.Infof("Test Configuration: %s", config)
 
-	containersUnderTest := createContainersUnderTest(config)
-	partnerContainers := createPartnerContainers(config)
-	testOrchestrator := partnerContainers[config.TestOrchestrator]
+		containersUnderTest := createContainersUnderTest(config)
+		partnerContainers := createPartnerContainers(config)
+		testOrchestrator := partnerContainers[config.TestOrchestrator]
 
-	ginkgo.Context("Both Pods are connected via a Multus Overlay Network", func() {
-		// Unidirectional test;  for each container under test, attempt to ping the target Multus IP addresses.
-		for _, containerUnderTest := range containersUnderTest {
-			for _, multusIPAddress := range containerUnderTest.containerConfiguration.MultusIPAddresses {
-				testNetworkConnectivity(testOrchestrator.oc, containerUnderTest.oc, multusIPAddress, defaultNumPings)
+		ginkgo.Context("Both Pods are connected via a Multus Overlay Network", func() {
+			// Unidirectional test;  for each container under test, attempt to ping the target Multus IP addresses.
+			for _, containerUnderTest := range containersUnderTest {
+				for _, multusIPAddress := range containerUnderTest.containerConfiguration.MultusIPAddresses {
+					testNetworkConnectivity(testOrchestrator.oc, containerUnderTest.oc, multusIPAddress, defaultNumPings)
+				}
 			}
-		}
-	})
+		})
+	}
 })
 
 // Helper to test that a container can ping a target IP address, and report through Ginkgo.
