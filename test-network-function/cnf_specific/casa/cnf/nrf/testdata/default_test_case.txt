@@ -1,6 +1,0 @@
-NRF    TYPE   INSTID                                 STATUS
-nrf1   SMF    77647705-bf24-4b0d-a754-4cb7df86d169   REGISTERED
-nrf1   SMF    315889b0-4640-4de3-b41f-4b77643d1a9d   SUSPENDED
-nrf1   AMF    549328de-4ead-4dac-90ca-4d8d09af3938   REGISTERED
-nrf1   NSSF   f3d51461-83f4-4bfc-b20e-43297dd4404d   REGISTERED
-nrf1   SMF    0a0a2ede-be2e-40f0-8145-5ea6c565296e   REGISTERED

@@ -19,14 +19,12 @@ package identifier
 import "github.com/redhat-nfvpe/test-network-function/pkg/tnf/dependencies"
 
 const (
-	casaNRFCheckRegistrationIdentifierURL = "http://test-network-function.com/tests/casa/nrf/checkregistration"
-	casaNRFIDIdentifierURL                = "http://test-network-function.com/tests/casa/nrf/id"
-	hostnameIdentifierURL                 = "http://test-network-function.com/tests/hostname"
-	ipAddrIdentifierURL                   = "http://test-network-function.com/tests/ipaddr"
-	operatorIdentifierURL                 = "http://test-network-function.com/tests/operator"
-	pingIdentifierURL                     = "http://test-network-function.com/tests/ping"
-	podIdentifierURL                      = "http://test-network-function.com/tests/container/pod"
-	versionIdentifierURL                  = "http://test-network-function.com/tests/generic/version"
+	hostnameIdentifierURL = "http://test-network-function.com/tests/hostname"
+	ipAddrIdentifierURL   = "http://test-network-function.com/tests/ipaddr"
+	operatorIdentifierURL = "http://test-network-function.com/tests/operator"
+	pingIdentifierURL     = "http://test-network-function.com/tests/ping"
+	podIdentifierURL      = "http://test-network-function.com/tests/container/pod"
+	versionIdentifierURL  = "http://test-network-function.com/tests/generic/version"
 
 	versionOne = "v1.0.0"
 )
@@ -69,33 +67,6 @@ type IntrusionSettings struct {
 
 // Catalog is the test catalog.
 var Catalog = map[string]TestCatalogEntry{
-	casaNRFIDIdentifierURL: {
-		Identifier:  CasaNRFIDIdentifier,
-		Description: "A Casa cnf-specific test which checks for the existence of the AMF and SMF CNFs.  The UUIDs are gathered and stored by introspecting the \"nfregistrations.mgmt.casa.io\" Custom Resource.",
-		Type:        Normative,
-		IntrusionSettings: IntrusionSettings{
-			ModifiesSystem:           false,
-			ModificationIsPersistent: false,
-		},
-		BinaryDependencies: []string{
-			dependencies.AwkBinaryName,
-			dependencies.OcBinaryName,
-			dependencies.XargsBinaryName,
-		},
-	},
-	casaNRFCheckRegistrationIdentifierURL: {
-		Identifier:  CasaNRFRegistrationIdentifier,
-		Description: "A Casa cnf-specific test which checks the Registration status of the AMF and SMF from the NRF.  This is done by making sure the \"nfStatus\" field in the \"nfregistrations.mgmt.casa.io\" Custom Resource reports as \"REGISTERED\"",
-		Type:        Normative,
-		IntrusionSettings: IntrusionSettings{
-			ModifiesSystem:           false,
-			ModificationIsPersistent: false,
-		},
-		BinaryDependencies: []string{
-			dependencies.JqBinaryName,
-			dependencies.OcBinaryName,
-		},
-	},
 	hostnameIdentifierURL: {
 		Identifier:  HostnameIdentifier,
 		Description: "A generic test used to check the hostname of a target machine/container.",
@@ -173,18 +144,6 @@ var Catalog = map[string]TestCatalogEntry{
 			dependencies.CatBinaryName,
 		},
 	},
-}
-
-// CasaNRFIDIdentifier is the Identifier used to represent the Casa CNF-specific test case which checks AMF/SMF uuids.
-var CasaNRFIDIdentifier = Identifier{
-	URL:             casaNRFIDIdentifierURL,
-	SemanticVersion: versionOne,
-}
-
-// CasaNRFRegistrationIdentifier is the Identifier used to represent the CASA CNF-specific registration test case.
-var CasaNRFRegistrationIdentifier = Identifier{
-	URL:             casaNRFCheckRegistrationIdentifierURL,
-	SemanticVersion: versionOne,
 }
 
 // HostnameIdentifier is the Identifier used to represent the generic hostname test case.
