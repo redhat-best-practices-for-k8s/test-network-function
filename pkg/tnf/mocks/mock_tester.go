@@ -5,36 +5,37 @@
 package mock_tnf
 
 import (
-	gomock "github.com/golang/mock/gomock"
-	identifier "github.com/redhat-nfvpe/test-network-function/pkg/tnf/identifier"
 	reflect "reflect"
 	time "time"
+
+	gomock "github.com/golang/mock/gomock"
+	identifier "github.com/redhat-nfvpe/test-network-function/pkg/tnf/identifier"
 )
 
-// MockTester is a mock of Tester interface
+// MockTester is a mock of Tester interface.
 type MockTester struct {
 	ctrl     *gomock.Controller
 	recorder *MockTesterMockRecorder
 }
 
-// MockTesterMockRecorder is the mock recorder for MockTester
+// MockTesterMockRecorder is the mock recorder for MockTester.
 type MockTesterMockRecorder struct {
 	mock *MockTester
 }
 
-// NewMockTester creates a new mock instance
+// NewMockTester creates a new mock instance.
 func NewMockTester(ctrl *gomock.Controller) *MockTester {
 	mock := &MockTester{ctrl: ctrl}
 	mock.recorder = &MockTesterMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockTester) EXPECT() *MockTesterMockRecorder {
 	return m.recorder
 }
 
-// Args mocks base method
+// Args mocks base method.
 func (m *MockTester) Args() []string {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Args")
@@ -42,13 +43,13 @@ func (m *MockTester) Args() []string {
 	return ret0
 }
 
-// Args indicates an expected call of Args
+// Args indicates an expected call of Args.
 func (mr *MockTesterMockRecorder) Args() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Args", reflect.TypeOf((*MockTester)(nil).Args))
 }
 
-// GetIdentifier mocks base method
+// GetIdentifier mocks base method.
 func (m *MockTester) GetIdentifier() identifier.Identifier {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetIdentifier")
@@ -56,13 +57,13 @@ func (m *MockTester) GetIdentifier() identifier.Identifier {
 	return ret0
 }
 
-// GetIdentifier indicates an expected call of GetIdentifier
+// GetIdentifier indicates an expected call of GetIdentifier.
 func (mr *MockTesterMockRecorder) GetIdentifier() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIdentifier", reflect.TypeOf((*MockTester)(nil).GetIdentifier))
 }
 
-// Result mocks base method
+// Result mocks base method.
 func (m *MockTester) Result() int {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Result")
@@ -70,13 +71,13 @@ func (m *MockTester) Result() int {
 	return ret0
 }
 
-// Result indicates an expected call of Result
+// Result indicates an expected call of Result.
 func (mr *MockTesterMockRecorder) Result() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Result", reflect.TypeOf((*MockTester)(nil).Result))
 }
 
-// Timeout mocks base method
+// Timeout mocks base method.
 func (m *MockTester) Timeout() time.Duration {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Timeout")
@@ -84,7 +85,7 @@ func (m *MockTester) Timeout() time.Duration {
 	return ret0
 }
 
-// Timeout indicates an expected call of Timeout
+// Timeout indicates an expected call of Timeout.
 func (mr *MockTesterMockRecorder) Timeout() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Timeout", reflect.TypeOf((*MockTester)(nil).Timeout))

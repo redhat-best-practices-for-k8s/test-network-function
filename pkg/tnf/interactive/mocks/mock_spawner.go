@@ -5,38 +5,39 @@
 package mock_interactive
 
 import (
-	gomock "github.com/golang/mock/gomock"
-	expect "github.com/google/goexpect"
-	interactive "github.com/redhat-nfvpe/test-network-function/pkg/tnf/interactive"
 	io "io"
 	reflect "reflect"
 	time "time"
+
+	gomock "github.com/golang/mock/gomock"
+	expect "github.com/google/goexpect"
+	interactive "github.com/redhat-nfvpe/test-network-function/pkg/tnf/interactive"
 )
 
-// MockSpawnFunc is a mock of SpawnFunc interface
+// MockSpawnFunc is a mock of SpawnFunc interface.
 type MockSpawnFunc struct {
 	ctrl     *gomock.Controller
 	recorder *MockSpawnFuncMockRecorder
 }
 
-// MockSpawnFuncMockRecorder is the mock recorder for MockSpawnFunc
+// MockSpawnFuncMockRecorder is the mock recorder for MockSpawnFunc.
 type MockSpawnFuncMockRecorder struct {
 	mock *MockSpawnFunc
 }
 
-// NewMockSpawnFunc creates a new mock instance
+// NewMockSpawnFunc creates a new mock instance.
 func NewMockSpawnFunc(ctrl *gomock.Controller) *MockSpawnFunc {
 	mock := &MockSpawnFunc{ctrl: ctrl}
 	mock.recorder = &MockSpawnFuncMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockSpawnFunc) EXPECT() *MockSpawnFuncMockRecorder {
 	return m.recorder
 }
 
-// Command mocks base method
+// Command mocks base method.
 func (m *MockSpawnFunc) Command(name string, arg ...string) *interactive.SpawnFunc {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{name}
@@ -48,14 +49,14 @@ func (m *MockSpawnFunc) Command(name string, arg ...string) *interactive.SpawnFu
 	return ret0
 }
 
-// Command indicates an expected call of Command
+// Command indicates an expected call of Command.
 func (mr *MockSpawnFuncMockRecorder) Command(name interface{}, arg ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{name}, arg...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Command", reflect.TypeOf((*MockSpawnFunc)(nil).Command), varargs...)
 }
 
-// Start mocks base method
+// Start mocks base method.
 func (m *MockSpawnFunc) Start() error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Start")
@@ -63,13 +64,13 @@ func (m *MockSpawnFunc) Start() error {
 	return ret0
 }
 
-// Start indicates an expected call of Start
+// Start indicates an expected call of Start.
 func (mr *MockSpawnFuncMockRecorder) Start() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Start", reflect.TypeOf((*MockSpawnFunc)(nil).Start))
 }
 
-// StdinPipe mocks base method
+// StdinPipe mocks base method.
 func (m *MockSpawnFunc) StdinPipe() (io.WriteCloser, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "StdinPipe")
@@ -78,13 +79,13 @@ func (m *MockSpawnFunc) StdinPipe() (io.WriteCloser, error) {
 	return ret0, ret1
 }
 
-// StdinPipe indicates an expected call of StdinPipe
+// StdinPipe indicates an expected call of StdinPipe.
 func (mr *MockSpawnFuncMockRecorder) StdinPipe() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StdinPipe", reflect.TypeOf((*MockSpawnFunc)(nil).StdinPipe))
 }
 
-// StdoutPipe mocks base method
+// StdoutPipe mocks base method.
 func (m *MockSpawnFunc) StdoutPipe() (io.Reader, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "StdoutPipe")
@@ -93,13 +94,13 @@ func (m *MockSpawnFunc) StdoutPipe() (io.Reader, error) {
 	return ret0, ret1
 }
 
-// StdoutPipe indicates an expected call of StdoutPipe
+// StdoutPipe indicates an expected call of StdoutPipe.
 func (mr *MockSpawnFuncMockRecorder) StdoutPipe() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StdoutPipe", reflect.TypeOf((*MockSpawnFunc)(nil).StdoutPipe))
 }
 
-// Wait mocks base method
+// Wait mocks base method.
 func (m *MockSpawnFunc) Wait() error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Wait")
@@ -107,36 +108,36 @@ func (m *MockSpawnFunc) Wait() error {
 	return ret0
 }
 
-// Wait indicates an expected call of Wait
+// Wait indicates an expected call of Wait.
 func (mr *MockSpawnFuncMockRecorder) Wait() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Wait", reflect.TypeOf((*MockSpawnFunc)(nil).Wait))
 }
 
-// MockSpawner is a mock of Spawner interface
+// MockSpawner is a mock of Spawner interface.
 type MockSpawner struct {
 	ctrl     *gomock.Controller
 	recorder *MockSpawnerMockRecorder
 }
 
-// MockSpawnerMockRecorder is the mock recorder for MockSpawner
+// MockSpawnerMockRecorder is the mock recorder for MockSpawner.
 type MockSpawnerMockRecorder struct {
 	mock *MockSpawner
 }
 
-// NewMockSpawner creates a new mock instance
+// NewMockSpawner creates a new mock instance.
 func NewMockSpawner(ctrl *gomock.Controller) *MockSpawner {
 	mock := &MockSpawner{ctrl: ctrl}
 	mock.recorder = &MockSpawnerMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockSpawner) EXPECT() *MockSpawnerMockRecorder {
 	return m.recorder
 }
 
-// Spawn mocks base method
+// Spawn mocks base method.
 func (m *MockSpawner) Spawn(command string, args []string, timeout time.Duration, opts ...expect.Option) (*interactive.Context, error) {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{command, args, timeout}
@@ -149,7 +150,7 @@ func (m *MockSpawner) Spawn(command string, args []string, timeout time.Duration
 	return ret0, ret1
 }
 
-// Spawn indicates an expected call of Spawn
+// Spawn indicates an expected call of Spawn.
 func (mr *MockSpawnerMockRecorder) Spawn(command, args, timeout interface{}, opts ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{command, args, timeout}, opts...)

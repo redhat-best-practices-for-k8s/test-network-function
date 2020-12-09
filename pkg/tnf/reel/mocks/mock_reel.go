@@ -5,35 +5,36 @@
 package mock_reel
 
 import (
+	reflect "reflect"
+
 	gomock "github.com/golang/mock/gomock"
 	reel "github.com/redhat-nfvpe/test-network-function/pkg/tnf/reel"
-	reflect "reflect"
 )
 
-// MockHandler is a mock of Handler interface
+// MockHandler is a mock of Handler interface.
 type MockHandler struct {
 	ctrl     *gomock.Controller
 	recorder *MockHandlerMockRecorder
 }
 
-// MockHandlerMockRecorder is the mock recorder for MockHandler
+// MockHandlerMockRecorder is the mock recorder for MockHandler.
 type MockHandlerMockRecorder struct {
 	mock *MockHandler
 }
 
-// NewMockHandler creates a new mock instance
+// NewMockHandler creates a new mock instance.
 func NewMockHandler(ctrl *gomock.Controller) *MockHandler {
 	mock := &MockHandler{ctrl: ctrl}
 	mock.recorder = &MockHandlerMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockHandler) EXPECT() *MockHandlerMockRecorder {
 	return m.recorder
 }
 
-// ReelFirst mocks base method
+// ReelFirst mocks base method.
 func (m *MockHandler) ReelFirst() *reel.Step {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ReelFirst")
@@ -41,13 +42,13 @@ func (m *MockHandler) ReelFirst() *reel.Step {
 	return ret0
 }
 
-// ReelFirst indicates an expected call of ReelFirst
+// ReelFirst indicates an expected call of ReelFirst.
 func (mr *MockHandlerMockRecorder) ReelFirst() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReelFirst", reflect.TypeOf((*MockHandler)(nil).ReelFirst))
 }
 
-// ReelMatch mocks base method
+// ReelMatch mocks base method.
 func (m *MockHandler) ReelMatch(pattern, before, match string) *reel.Step {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ReelMatch", pattern, before, match)
@@ -55,13 +56,13 @@ func (m *MockHandler) ReelMatch(pattern, before, match string) *reel.Step {
 	return ret0
 }
 
-// ReelMatch indicates an expected call of ReelMatch
+// ReelMatch indicates an expected call of ReelMatch.
 func (mr *MockHandlerMockRecorder) ReelMatch(pattern, before, match interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReelMatch", reflect.TypeOf((*MockHandler)(nil).ReelMatch), pattern, before, match)
 }
 
-// ReelTimeout mocks base method
+// ReelTimeout mocks base method.
 func (m *MockHandler) ReelTimeout() *reel.Step {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ReelTimeout")
@@ -69,19 +70,19 @@ func (m *MockHandler) ReelTimeout() *reel.Step {
 	return ret0
 }
 
-// ReelTimeout indicates an expected call of ReelTimeout
+// ReelTimeout indicates an expected call of ReelTimeout.
 func (mr *MockHandlerMockRecorder) ReelTimeout() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReelTimeout", reflect.TypeOf((*MockHandler)(nil).ReelTimeout))
 }
 
-// ReelEOF mocks base method
+// ReelEOF mocks base method.
 func (m *MockHandler) ReelEOF() {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "ReelEOF")
 }
 
-// ReelEOF indicates an expected call of ReelEOF
+// ReelEOF indicates an expected call of ReelEOF.
 func (mr *MockHandlerMockRecorder) ReelEOF() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReelEOF", reflect.TypeOf((*MockHandler)(nil).ReelEOF))
