@@ -2,7 +2,7 @@
 	cnf-tests \
 	dependencies \
 	deps-update \
-	mocks \
+	mocks-clean \
 	run-cnf-tests \
 	run-generic-cnf-tests \
 	run-container-tests \
@@ -20,7 +20,8 @@ endif
 export COMMON_GINKGO_ARGS=-ginkgo.v -junit . -report .
 export COMMON_GO_ARGS=-race
 
-build: mocks
+build:
+	make mocks
 	go fmt ./...
 	make lint
 	go build ${COMMON_GO_ARGS} ./...
@@ -65,9 +66,20 @@ deps-update:
 	go mod vendor
 
 mocks:
+	make mocks-clean
+	mkdir -p pkg/tnf/interactive/mocks
 	mockgen -source=pkg/tnf/interactive/spawner.go -destination=pkg/tnf/interactive/mocks/mock_spawner.go
+	mkdir -p pkg/tnf/mocks
 	mockgen -source=pkg/tnf/test.go -destination=pkg/tnf/mocks/mock_tester.go
-	mockgen -source=./pkg/tnf/reel/reel.go -destination=./pkg/tnf/reel/mocks/mock_reel.go
+	mkdir -p pkg/tnf/reel/mocks
+	mockgen -source=pkg/tnf/reel/reel.go -destination=pkg/tnf/reel/mocks/mock_reel.go
+
+.PHONY: mocks-clean
+mocks-clean:
+	rm -f pkg/tnf/interactive/mocks/mock_spawner.go
+	rm -f pkg/tnf/mocks/mock_tester.go
+	rm -f pkg/tnf/reel/mocks/mock_reel.go
+
 
 unit-tests:
 	go test -coverprofile=cover.out `go list ./... | grep -v "github.com/redhat-nfvpe/test-network-function/test-network-function" | grep -v mock`
@@ -81,6 +93,7 @@ jsontest-cli:
 
 clean:
 	go clean
+	make mocks-clean
 	rm -f ./test-network-function/test-network-function.test
 	rm -f ./test-network-function/cnf-certification-tests_junit.xml
 
