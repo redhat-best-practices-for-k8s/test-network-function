@@ -32,7 +32,7 @@ import (
 	"github.com/redhat-nfvpe/test-network-function/pkg/junit"
 	containerTestConfig "github.com/redhat-nfvpe/test-network-function/pkg/tnf/config"
 	_ "github.com/redhat-nfvpe/test-network-function/test-network-function/container"
-	"github.com/redhat-nfvpe/test-network-function/test-network-function/generic"
+	_ "github.com/redhat-nfvpe/test-network-function/test-network-function/generic"
 	_ "github.com/redhat-nfvpe/test-network-function/test-network-function/operator"
 	"github.com/redhat-nfvpe/test-network-function/test-network-function/version"
 	log "github.com/sirupsen/logrus"
@@ -103,10 +103,7 @@ func TestTest(t *testing.T) {
 	claimData.Configurations = make(map[string]interface{})
 
 	equipmentMap := make(map[string]interface{})
-	for _, key := range generic.GetTestConfiguration().Hosts {
-		// For now, just initialize the payload as empty.
-		equipmentMap[key] = make(map[string]interface{})
-	}
+
 	claimData.Nodes = equipmentMap
 	claimData.Versions = &claim.Versions{
 		Tnf: tnfVersion.Tag,
