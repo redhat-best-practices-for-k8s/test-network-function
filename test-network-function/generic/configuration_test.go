@@ -80,13 +80,10 @@ var expectedTestOrchestrator = generic.ContainerIdentifier{
 	ContainerName: "partner",
 }
 
-var expectedHosts = []string{"192.168.1.1"}
-
 var goodExpectedConfiguration = &generic.TestConfiguration{
 	ContainersUnderTest: expectedContainersUnderTest,
 	PartnerContainers:   expectedPartnerContainers,
 	TestOrchestrator:    expectedTestOrchestrator,
-	Hosts:               expectedHosts,
 }
 
 var testConfigurationTestCases = map[string]*testConfigurationTestCase{
@@ -111,7 +108,6 @@ var testConfigurationTestCases = map[string]*testConfigurationTestCase{
 			ContainersUnderTest: nil,
 			PartnerContainers:   nil,
 			TestOrchestrator:    generic.ContainerIdentifier{},
-			Hosts:               nil,
 		},
 		expectedMarshalErr: nil,
 	},

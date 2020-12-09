@@ -172,5 +172,4 @@ type TestConfiguration struct {
 	ContainersUnderTest map[ContainerIdentifier]Container `yaml:"containersUnderTest" json:"containersUnderTest"`
 	PartnerContainers   map[ContainerIdentifier]Container `yaml:"partnerContainers" json:"partnerContainers"`
 	TestOrchestrator    ContainerIdentifier               `yaml:"testOrchestrator" json:"testOrchestrator"`
-	Hosts               []string                          `yaml:"hosts" json:"hosts"`
 }
