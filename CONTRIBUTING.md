@@ -98,13 +98,44 @@ mock implementation is provided in `mock_interactive.MockSpawnFunc`.
 Mocks for `test-network-function` interfaces should be auto-generated when possible.  Please add any necessary `mockgen`
 implementations to the `mocks` Makefile target.
 
-To make mocks, issue the following command:
+### Do not store mock implementations in source
+
+Mocks generate Go source files.  As such, different versions of `mockgen` compiled for various platforms are known to
+output drastically different code.  `test-network-function` takes the stance that the node compiling the code should
+also compile the mocks just before they are needed.  Thus, `make mocks` is part of the default `make build` target.
+
+As such, if you decide to add a `mockgen` invocation to the `mocks` target in [Makefile](Makefile), then please ensure
+you also add the `-destination` to [.gitignore](.gitignore) so it is ignored by `git`.
+
+If you decide you want to test a given generated mock without building the code, issue the following command:
 
 ```bash
 make mocks
 ```
 
-For some interfaces, such as `expect.Expecter`, generate the mock using `mockgen` externally and add it to source.
+### Externally generated mocks
+
+Although `test-network-function` attempts to limit the use of third party libraries, sometimes they cannot be avoided.
+For example `go-expect` is used in the implementation for the `tnf.Test` type.  The issue comes when third party
+libraries fail to provide mock implementations for Go `interface`s.  In this case, you should:
+
+1) Clone the appropriate source version.
+2) Manually invoke `mockgen` on the source file containing the interface to an appropriate destination in the
+`test-network-function` source tree.
+3) Commit the implementation to source.
+4) Add the exception to "Known manually generated mocks" table below.
+
+An example implementation is the
+[`go-expect` `expect.Expecter` interface mock](pkg/tnf/interactive/mocks/mock_expect.go).
+
+If you need to upgrade the dependency in the future, make sure to re-apply this procedure in order to pick up any
+API changes that might have occurred between versions.
+
+#### Known manually generated mocks
+
+Interface|Implementation
+---|---
+`expect.Expecter`|[mock_expect.go](pkg/tnf/interactive/mocks/mock_expect.go)
 
 ## Test guidelines
 
