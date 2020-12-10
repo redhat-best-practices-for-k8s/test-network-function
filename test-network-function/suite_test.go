@@ -21,6 +21,7 @@ import (
 	"flag"
 	"io/ioutil"
 	"path"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -120,8 +121,10 @@ func TestTest(t *testing.T) {
 	}
 
 	ginkgo.RunSpecsWithDefaultAndCustomReporters(t, CnfCertificationTestSuiteName, ginkgoReporters)
-
-	junitMap, err := junit.ExportJUnitAsJSON(JunitXMLFileName)
+	junitMap := make(map[string]interface{})
+	var extension = filepath.Ext(JunitXMLFileName)
+	reportKeyName := JunitXMLFileName[0 : len(JunitXMLFileName)-len(extension)]
+	junitMap[reportKeyName], err = junit.ExportJUnitAsJSON(JunitXMLFileName)
 	if err != nil {
 		log.Fatalf("error reading JUnit XML file into JSON: %v", err)
 	}
