@@ -33,6 +33,7 @@ import (
 	"github.com/redhat-nfvpe/test-network-function/pkg/junit"
 	containerTestConfig "github.com/redhat-nfvpe/test-network-function/pkg/tnf/config"
 	_ "github.com/redhat-nfvpe/test-network-function/test-network-function/container"
+	"github.com/redhat-nfvpe/test-network-function/test-network-function/diagnostic"
 	_ "github.com/redhat-nfvpe/test-network-function/test-network-function/generic"
 	_ "github.com/redhat-nfvpe/test-network-function/test-network-function/operator"
 	"github.com/redhat-nfvpe/test-network-function/test-network-function/version"
@@ -136,6 +137,9 @@ func TestTest(t *testing.T) {
 	if err != nil {
 		log.Fatalf("error converting configurations to JSON: %v", err)
 	}
+
+	claimData.Nodes = diagnostic.GetNodeSummary()
+
 	err = j.Unmarshal(configurations, &claimData.Configurations)
 	if err != nil {
 		log.Fatalf("error unmarshalling configurations: %v", err)

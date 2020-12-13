@@ -1,0 +1,22 @@
+{
+  "identifier": {
+    "url": "http://test-network-function.com/tests/nodes",
+    "version": "v1.0.0"
+  },
+  "description": "Runs `oc get nodes -o json` on a target machine.",
+  "testResult": 0,
+  "testTimeout": 10000000000,
+  "reelFirstStep": {
+    "execute": "oc get nodes -o json\n",
+    "expect": [
+      "(?m)(.|\n)+"
+    ],
+    "timeout": 10000000000
+  },
+  "resultContexts": [
+    {
+      "pattern": "(?m)(.|\n)+",
+      "defaultResult": 1
+    }
+  ]
+}

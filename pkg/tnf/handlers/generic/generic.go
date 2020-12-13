@@ -104,6 +104,11 @@ func (g *Generic) GetIdentifier() identifier.Identifier {
 	return g.Identifier
 }
 
+// GetMatches extracts all Matches.
+func (g *Generic) GetMatches() []Match {
+	return g.Matches
+}
+
 // Timeout returns the test timeout.
 func (g *Generic) Timeout() time.Duration {
 	return g.TestTimeout

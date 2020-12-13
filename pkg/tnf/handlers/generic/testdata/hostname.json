@@ -1,4 +1,8 @@
 {
+  "identifier": {
+    "url": "http://test-network-function.com/tests/unit/hostname",
+    "version": "v1.0.0"
+  },
   "arguments": [
     "cat",
     "/etc/redhat-release"
