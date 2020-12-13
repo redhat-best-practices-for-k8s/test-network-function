@@ -398,6 +398,9 @@ If you wish to explore the `oc` and `ssh` variants of `jsontest-cli`, please con
 ./jsontest-cli run -h
 ```
 
+### Including a JSON-based test in a Ginkgo Test Suite
+
+See the [diagnostic](test-network-function/diagnostic/suite.go) test suite.
 
 ## Writing a simple CLI-oriented test in Go
 
@@ -591,6 +594,29 @@ output to determine the result.
 * `tnf.ERROR` if there were PING transmit errors
 * `tnf.SUCCESS` if a maximum of a single packet was lost
 * `tnf.FAILURE` for any other case.
+
+### Including `ping.go` in a Ginkgo Test Suite
+
+An example of using `ping.go` from within a Ginkgo test spec is included in
+[suite.go](test-network-function/generic/suite.go)'s `testPing` method.  Roughly, the code should resemble the
+following:
+
+```go
+// 1. Create the Test.
+pingTester := ping.NewPing(defaultTimeout, targetPodIPAddress, count)
+test, err := tnf.NewTest(oc.GetExpecter(), pingTester, []reel.Handler{pingTester}, oc.GetErrorChannel())
+gomega.Expect(err).To(gomega.BeNil())
+
+// 2. Run the Test.
+testResult, err := test.Run()
+gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
+gomega.Expect(err).To(gomega.BeNil())
+
+// 3. Inspect the Results.
+transmitted, received, errors := pingTester.GetStats()
+gomega.Expect(received).To(gomega.Equal(transmitted))
+gomega.Expect(errors).To(gomega.BeZero())
+```
 
 ## Writing `ping.go` test Summary
 
