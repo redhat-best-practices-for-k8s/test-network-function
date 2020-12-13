@@ -3,6 +3,25 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "version": "0.0.1",
   "definitions": {
+    "identifier": {
+      "$id": "#identifier",
+      "description": "identifier is a per tnf.Test unique identifier.  For more information, consult https://github.com/redhat-nfvpe/test-network-function/blob/master/DEVELOPING.md#test-identifiers.",
+      "properties": {
+        "url": {
+          "type": "string",
+          "description": "url stores the unique identifier for a test."
+        },
+        "version": {
+          "type": "string",
+          "description": "version stores the semantic version of the test."
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "url",
+        "version"
+      ]
+    },
     "step": {
       "$id": "#step",
       "type": "object",
@@ -223,6 +242,10 @@
   "type": "object",
   "description": "generic-test is a construct for defining an arbitrary simple test with prescriptive confines.  Essentially, the definition of the state machine for a Generic reel.Handler is restricted in this facade implementation, since most common use cases do not require too much heavy lifting.",
   "properties": {
+    "identifier": {
+      "$ref": "#identifier",
+      "description": "identifier is a per tnf.Test unique identifier.  For more information, consult https://github.com/redhat-nfvpe/test-network-function/blob/master/DEVELOPING.md#test-identifiers."
+    },
     "arguments": {
       "description": "arguments is the Unix command array.",
       "type": "array",
@@ -273,6 +296,7 @@
   "additionalProperties": false,
   "required": [
     "description",
+    "identifier",
     "reelFirstStep",
     "resultContexts",
     "testResult",

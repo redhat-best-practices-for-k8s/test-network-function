@@ -21,6 +21,7 @@ import "github.com/redhat-nfvpe/test-network-function/pkg/tnf/dependencies"
 const (
 	hostnameIdentifierURL = "http://test-network-function.com/tests/hostname"
 	ipAddrIdentifierURL   = "http://test-network-function.com/tests/ipaddr"
+	nodesIdentifierURL    = "http://test-network-function.com/tests/nodes"
 	operatorIdentifierURL = "http://test-network-function.com/tests/operator"
 	pingIdentifierURL     = "http://test-network-function.com/tests/ping"
 	podIdentifierURL      = "http://test-network-function.com/tests/container/pod"
@@ -91,6 +92,17 @@ var Catalog = map[string]TestCatalogEntry{
 			dependencies.IPBinaryName,
 		},
 	},
+	nodesIdentifierURL: {
+		Identifier:  NodesIdentifier,
+		Description: "Polls the state of the OpenShift cluster nodes using \"oc get nodes -o json\".",
+		IntrusionSettings: IntrusionSettings{
+			ModifiesSystem:           false,
+			ModificationIsPersistent: false,
+		},
+		BinaryDependencies: []string{
+			dependencies.OcBinaryName,
+		},
+	},
 	operatorIdentifierURL: {
 		Identifier: OperatorIdentifier,
 		Description: "An operator-specific test used to exercise the behavior of a given operator.  In the current " +
@@ -155,6 +167,12 @@ var HostnameIdentifier = Identifier{
 // IPAddrIdentifier is the Identifier used to represent the generic IP Addr test case.
 var IPAddrIdentifier = Identifier{
 	URL:             ipAddrIdentifierURL,
+	SemanticVersion: versionOne,
+}
+
+// NodesIdentifier is the Identifier used to represent the nodes test case.
+var NodesIdentifier = Identifier{
+	URL:             nodesIdentifierURL,
 	SemanticVersion: versionOne,
 }
 

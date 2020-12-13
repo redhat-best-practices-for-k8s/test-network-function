@@ -1,4 +1,8 @@
 {
+  "identifier": {
+    "url": "http://test-network-function.com/tests/unit/assertion_error",
+    "version": "v1.0.0"
+  },
   "description": "checks for RHEL version.",
   "reelFirstStep": {
     "execute": "if [ -e /etc/redhat-release ]; then cat /etc/redhat-release; else echo \"Unknown Base Image\"; fi\n",

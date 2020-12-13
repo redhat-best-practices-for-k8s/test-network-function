@@ -209,3 +209,11 @@ func (g *GoExpectSpawner) extractStdoutPipe(spawnFunc *SpawnFunc) (io.Reader, er
 	}
 	return stdout, err
 }
+
+// CreateGoExpectSpawner creates a GoExpectSpawner implementation and returns it as a *Spawner for type compatibility
+// reasons.
+func CreateGoExpectSpawner() *Spawner {
+	goExpectSpawner := NewGoExpectSpawner()
+	var spawner Spawner = goExpectSpawner
+	return &spawner
+}

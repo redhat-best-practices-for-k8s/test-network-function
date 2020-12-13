@@ -47,7 +47,7 @@ build-cnf-tests:
 
 .PHONY: run-generic-cnf-tests
 run-generic-cnf-tests:
-	cd ./test-network-function && ./test-network-function.test -ginkgo.focus="generic" ${COMMON_GINKGO_ARGS}
+	cd ./test-network-function && ./test-network-function.test -ginkgo.focus="(diagnostic|generic)" ${COMMON_GINKGO_ARGS}
 
 .PHONY: run-cnf-tests
 run-cnf-tests:
@@ -55,11 +55,11 @@ run-cnf-tests:
 
 .PHONY: run-operator-tests
 run-operator-tests:
-	cd ./test-network-function && ./test-network-function.test -ginkgo.focus="operator" ${COMMON_GINKGO_ARGS}
+	cd ./test-network-function && ./test-network-function.test -ginkgo.focus="(diagnostic|operator)" ${COMMON_GINKGO_ARGS}
 
 .PHONY: run-container-tests
 run-container-tests:
-	cd ./test-network-function && ./test-network-function.test -ginkgo.focus="container" ${COMMON_GINKGO_ARGS}
+	cd ./test-network-function && ./test-network-function.test -ginkgo.focus="(diagnostic|container)" ${COMMON_GINKGO_ARGS}
 
 deps-update:
 	go mod tidy && \
