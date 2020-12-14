@@ -38,6 +38,7 @@ appropriate for the CNF(s) under test:
 
 Suite|Test Spec Description|Minimum OpenShift Version
 ---|---|---
+diagnostic|The diagnostic test suite is used to gather node information from an OpenShift cluster.  The diagnostic test suite should be run whenever generating a claim.json file.|4.4.3
 generic|The generic test suite is used to test `Default` network connectivity between containers.  It also checks that the base container image is based on `RHEL`.|4.4.3
 multus|The multus test suite is used to test SR-IOV network connectivity between containers.|4.4.3
 operator|The operator test suite is designed basic Kubernetes Operator functionality.|4.4.3
@@ -85,10 +86,11 @@ script.
 Any combintation of the suites listed above can be run, e.g.
 
 ```shell-script
-./run-cnf-suites.sh generic
-./run-cnf-suites.sh generic multus
-./run-cnf-suites.sh operator
-./run-cnf-suites.sh generic multus container operator
+./run-cnf-suites.sh diagnostic
+./run-cnf-suites.sh diagnostic generic
+./run-cnf-suites.sh diagnostic generic multus
+./run-cnf-suites.sh diagnostic operator
+./run-cnf-suites.sh diagnostic generic multus container operator
 ```
 
 *Gotcha:* The generic test suite requires that the CNF has both `ping` and `ip` binaries installed. Please add them
