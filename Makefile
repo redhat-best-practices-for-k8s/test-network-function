@@ -17,7 +17,6 @@ else
   GOBIN=$(shell go env GOBIN)
 endif
 
-export COMMON_GINKGO_ARGS=-ginkgo.v -junit . -report .
 export COMMON_GO_ARGS=-race
 
 build:
@@ -48,18 +47,19 @@ build-cnf-tests:
 .PHONY: run-generic-cnf-tests
 run-generic-cnf-tests:
 	cd ./test-network-function && ./test-network-function.test -ginkgo.focus="(diagnostic|generic)" ${COMMON_GINKGO_ARGS}
+	./run-cnf-suites.sh diagnostic generic
 
 .PHONY: run-cnf-tests
 run-cnf-tests:
-	cd ./test-network-function && ./test-network-function.test ${COMMON_GINKGO_ARGS}
+	./run-cnf-suites.sh diagnostic generic multus operator container
 
 .PHONY: run-operator-tests
 run-operator-tests:
-	cd ./test-network-function && ./test-network-function.test -ginkgo.focus="(diagnostic|operator)" ${COMMON_GINKGO_ARGS}
+	./run-cnf-suites.sh diagnostic operator
 
 .PHONY: run-container-tests
 run-container-tests:
-	cd ./test-network-function && ./test-network-function.test -ginkgo.focus="(diagnostic|container)" ${COMMON_GINKGO_ARGS}
+	./run-cnf-suites.sh diagnostic container
 
 deps-update:
 	go mod tidy && \
