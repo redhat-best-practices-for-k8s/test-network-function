@@ -4,7 +4,7 @@ This repository contains a set of network function test cases.
 
 ## Dependencies
 
-At a minimum, the following dependencies must be installed prior to running `make dependencies`.
+At a minimum, the following dependencies must be installed *prior* to running `make dependencies`.
 
 Dependency|Minimum Version
 ---|---
@@ -13,9 +13,9 @@ Dependency|Minimum Version
 [jq](https://stedolan.github.io/jq/)|1.6
 [OpenShift Client](https://docs.openshift.com/container-platform/4.4/welcome/index.html)|4.4
 
-All other dependencies required to run tests should be installed using the following command:
+All other dependencies required to run tests can be installed using the following command:
 
-```shell script
+```shell-script
 make dependencies
 ```
 
@@ -23,12 +23,18 @@ make dependencies
 
 ## Available Test Specs
 
-There are two categories for CNF tests;  `generic` and `CNF-specific`.  `generic` tests are designed to test any
-commodity CNF running on OpenShift, and include specifications such as `Default` network connectivity.  `CNF-specific`
-tests are designed to test unique aspects of the CNF under test.  This could include specifications such as issuing a
-`GET` request to a web server, or passing traffic through an IPSEC tunnel.
+There are two categories for CNF tests;  'General' and 'CNF-specific'.
 
-### Generic
+The 'General' tests are designed to test any commodity CNF running on OpenShift, and include specifications such as
+'Default' network connectivity.
+
+'CNF-specific' tests are designed to test some unique aspects of the CNF under test are behaving correctly.  This could
+include specifications such as issuing a `GET` request to a web server, or passing traffic through an IPSEC tunnel.
+
+### General
+
+The general-purpose category covers most tests. It consists of multiple suites that can be run in any combination as is
+appropriate for the CNF(s) under test:
 
 Suite|Test Spec Description|Minimum OpenShift Version
 ---|---|---
@@ -37,26 +43,23 @@ multus|The multus test suite is used to test SR-IOV network connectivity between
 operator|The operator test suite is designed basic Kubernetes Operator functionality.|4.4.3
 container|The container test suite is designed to test container functionality and configuration|4.4.3
 
-#### Generic Test Network Function Runtime Dependencies
-
-The generic test suite requires that the NF has the following binary dependencies:
-* `ping`
-* `ip`
-
-If you do not provide these dependencies in your NF, please add them manually using your platform-dependent package
-manager.  Automated installation of missing dependencies is considered future work.
-
 ## Performing Tests
 
 Currently, all available tests are part of the "CNF Certification Test Suite" test suite, which serves as the entrypoint
 to run all test specs.  `CNF Certification 1.0` is not containerized, and involves pulling, building, then running the
-tests.  By default, `test-network-function` emits results to `test-network-function/cnf-certification-tests_junit.xml`.
+tests.
+
+By default, `test-network-function` emits results to `test-network-function/cnf-certification-tests_junit.xml`.
+
+The included default configuration is for running `generic` and `multus` suites on the trivial example at
+[cnf-certification-test-partner](https://github.com/redhat-nfvpe/cnf-certification-test-partner). To configure for your
+own environment, please see the Test Configuration section, below.
 
 ### Pulling The Code
 
 In order to pull the code, issue the following command:
 
-```shell script
+```shell-script
 mkdir ~/workspace
 cd ~/workspace
 git clone git@github.com:redhat-nfvpe/test-network-function.git
@@ -65,68 +68,100 @@ cd test-network-function
 
 ### Building the Tests
 
-In order to build the code, first make sure you have satisfied the [dependencies](#dependencies).
+In order to build the test executable, first make sure you have satisfied the [dependencies](#dependencies).
 
-```shell script
+```shell-script
 make build-cnf-tests
 ```
 
-### Run Generic Tests Only
+If build fails after `go get github.com/onsi/ginkgo/ginkgo` Add ginkgo location to the PATH: `export PATH=$PATH:~/go/bin`
 
-In order to run the Generic CNF tests only, issue the following command:
+*Gotcha:* The `make build` command runs the unit tests for the framework, it does NOT test the CNF.
 
-```shell script
-make generic-cnf-tests
+### Testing a CNF
+
+Once the executable is built, a CNF can be tested by specifying which suites to run using the `run-cnf-suites.sh` helper
+script.
+Any combintation of the suites listed above can be run, e.g.
+
+```shell-script
+./run-cnf-suites.sh generic
+./run-cnf-suites.sh generic multus
+./run-cnf-suites.sh operator
+./run-cnf-suites.sh generic multus container operator
 ```
 
-### Run All CNF Certification Tests
+*Gotcha:* The generic test suite requires that the CNF has both `ping` and `ip` binaries installed. Please add them
+manually if the CNF under test does not include these. Automated installation of missing dependencies is targetted
+for a future version.
 
-In order to run all CNF tests, issue the following command:
+## Test Configuration
 
-```shell script
-make cnf-tests
-```
+There are a few pieces of configuration required to allow the test framework to access and test the CNF:
 
-### Run a Specific Test Suite
+Config File|Purpose
+---|---
+test-configuration.yaml|Describes the CNF or CNFs that are to be tested, the container that will run the tests, and the test orchestrator.
+config.yml|Defines which operators are to be tested.
+testconfigure.yml|Defines operator tests are appropriate for which roles.
 
-In order to run a specific test suite, `generic` for example, issue the following command:
+Combining these configuration files is a near-term goal.
 
-```shell script
-make build build-cnf-tests
-cd ./test-network-function && ./test-network-function.test -ginkgo.v -ginkgo.focus="generic" -junit . -report .
-```
+### test-configuration.yaml
 
-### Run the Operator Test Suite
-In order to run the Operator test suite, issue the following command:
+The config file `test-configuration.yaml` contains three sections:
 
-```shell script
-make build build-cnf-tests
-cd ./test-network-function && ./test-network-function.test -config=config.yml -ginkgo.v -ginkgo.focus="operator" -junit . -report .
-```
+* `containersUnderTest:` describes the CNFs that will be tested. Each container is defined by the combination of its
+`namespace`, `podName`, and `containerName`, which are also used to connect to the container when required.
 
-#### Operator Test Configuration
- 
-You can either edit the provided config `config.yml` or pass a different config by using the `-config` flag.
+  * Each entry for `containersUnderTest` must also define the `defaultNetworkDevice` of that container. There is also an
+  optional `multusIpAddresses` that can be omitted if the multus tests are not run.
+
+* `partnerContainers:` describes the containers that support the testing. Multiple `partnerContainers` allows
+for more complex testing scenarios. At the time of writing, only one is used, which will also be the test
+orchestrator.
+
+* `testOrchestrator:` references a partner containers that is used for the generic test suite. The test partner is used to send various types of traffic to each container under test. For example the orchestrator is used to ping a container under test, and to be the ping target of a container under test.
+
+The [included example](test-network-function/test-configuration.yaml) defines a single container to be tested, and a
+single partner to do the testing.
+
+### Operator Test Configuration
+
+Testing operators is currently configured separately from the generic tests.
+
+#### config.yml
+
+You can either edit the provided config `config.yml` TODO: or pass a different config by using the `-config` flag.
 
 Sample config.yml
-```
-operators:
-  - name: etcdoperator.v0.9.4
-    namespace: my-etcd
-    status: Succeeded
-    autogenerate: "false"
-    tests:
-      - "OPERATOR_STATUS"
+
+```yaml
 cnfs:
+  - name: "crole-test-pod"
+    namespace: "default"
+    status: "Running"
+    tests:
+      - "PRIVILEGED_POD"
+      - "PRIVILEGED_ROLE"
+  - name: "nginx"
+    namespace: "default"
+    status: "Running"
+    tests:
+      - "PRIVILEGED_POD"
+      - "PRIVILEGED_ROLE"
 ```
 
-Configuring tests
+This example config is set to run the `"PRIVILEGED_POD"` and `"PRIVILEGED_ROLE"` tests on two operators: `nginx` and
+`crole-test-pod`
+
+#### testconfigure.yml
 
 By default, the test suite will run all the default test cases defined by `testconfigure.yml` file.  You can change
-which tests run by modifying `testconfigure.yml`.  The contents should match as shown below.
+which tests run by modifying `testconfigure.yml`.
+Example testconfigure.yml:
 
-Example:
-```
+```yaml
  operatortest:
    - name: "OPERATOR_STATUS"
      tests:
@@ -147,22 +182,14 @@ Example:
      - "CLUSTER_ROLE_BINDING_BY_SA"
  ```
 
-### Run the Container Test Suite
-
-In order to run the container test suite, issue the following command:
-
-```shell script
-make build build-cnf-tests
-cd ./test-network-function && ./test-network-function.test -config=config.yml -ginkgo.v -ginkgo.focus="container" -junit . -report .
-```
-
 #### Container Test Configuration
- 
+
 You can either edit the provided config `config.yml`  or pass a different config by using the `-config` flag to the
 test suite.
 
 Sample config.yml
-```
+
+```yaml
 cnfs:
   - name: "crole-test-pod"
     namespace: "default"
@@ -178,26 +205,11 @@ cnfs:
       - "PRIVILEGED_ROLE"
 ```
 
-Configuring test cases
+## Test Output
 
-By default, the test suite will run all the default test cases defined by `testconfigure.yml` file.  You can change
-which tests run by modifying `testconfigure.yml`.  The contents should match as shown below.
-
-Example:
-```
- cnftest:
-   - name: "PRIVILEGED_POD"
-     tests:
-     - "HOST_NETWORK_CHECK"
-     - "HOST_PORT_CHECK"
-     - "HOST_PATH_CHECK"
-     - "HOST_IPC_CHECK"
-     - "HOST_PID_CHECK"
-     - "CAPABILITY_CHECK"
-     - "ROOT_CHECK"
-     - "PRIVILEGE_ESCALATION"
-   - name: "PRIVILEGED_ROLE"
-     tests:
-     - "CLUSTER_ROLE_BINDING_BY_SA"
- 
-```
+The test suite generates a "claim" file, which describes the system(s) under test, the tests that were run, and the
+outcome of all of the tests. This claim file is the proof of the test run that is evaluated by Red Hat when
+certified status is being granted. For more information about the contents of the claim file please see the
+[schema](https://github.com/redhat-nfvpe/test-network-function-claim/blob/master/claim.schema.json). For more
+information about the purpose of the claim file see the docs.
+!!! TODO: link to docs when published.
