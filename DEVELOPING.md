@@ -23,7 +23,7 @@ Each `tnf.Tester` implementation *must* have a unique identifier.  In practice, 
 building blocks of larger test suites, and each implementation ought to have a means of identification.
 
 An [`identifier.Identifier`](pkg/tnf/identifier/identifier.go) is the mechanism used to hold this meta information.
-Please see the implementation for details. Essentially, an Identifier is just a URL and a Semantic Version.
+Please see the implementation for details.  Essentially, an Identifier is just a URL and a Semantic Version.
 
 To create an identifier for your test, go to  [`identifiers.go`](pkg/tnf/identifier/identifiers.go).  Create a constant
 for the URL, and add the `TestCatalogEntry` to the `Catalog` map such as:
@@ -552,5 +552,5 @@ gomega.Expect(errors).To(gomega.BeZero())
 You should now have the appropriate knowledge to write your own test implementation.  There are a variety of
 implementations included out of the box in the [handlers](pkg/tnf/handlers) directory.
 
-This guide does not cover unit testing the Test, nor does it cover managing test-specific configuration. Please see the
+This guide does not cover unit testing the Test, nor does it cover managing test-specific configuration.  Please see the
 examples of existing tests in the codebase for how to do these things.
