@@ -23,19 +23,7 @@ Each `tnf.Tester` implementation *must* have a unique identifier.  In practice, 
 building blocks of larger test suites, and each implementation ought to have a means of identification.
 
 An [`identifier.Identifier`](pkg/tnf/identifier/identifier.go) is the mechanism used to hold this meta information.
-Identifier is defined as follows:
-
-```go
-// Identifier is a per tnf.Test unique identifier.
-type Identifier struct {
-	// URL stores the unique identifier for a test.
-	URL string `json:"url" yaml:"url"`
-	// SemanticVersion stores the version of the test.
-	SemanticVersion string `json:"version" yaml:"version"`
-}
-```
-
-Essentially, an Identifier is just a URL and a Semantic Version.
+Please see the implementation for details.  Essentially, an Identifier is just a URL and a Semantic Version.
 
 To create an identifier for your test, go to  [`identifiers.go`](pkg/tnf/identifier/identifiers.go).  Create a constant
 for the URL, and add the `TestCatalogEntry` to the `Catalog` map such as:
@@ -55,7 +43,7 @@ var Catalog = map[string]TestCatalogEntry{
 }
 ```
 
-Make reference to the exported URL constant in your `tnf.Handler` `GetIdentifier()` implementation.
+Reference the exported URL constant in your `tnf.Handler` `GetIdentifier()` implementation.
 
 *Note*: JSON tests should also involve creation of an identifier using the same Go-based methodology for `1.0`.
 
@@ -87,7 +75,7 @@ Most tests just involve sending commands and validating output within a single s
 interactive shell to a container and ping a target host.  On the command line, this might be done similar to the
 following:
 
-```shell script
+```shell-script
 oc exec -it <podName> -c <containerName> -- sh
 ping -c <count> <destination>
 ```
@@ -96,7 +84,7 @@ We would expect the ping command to take approximately 5 seconds, as most implem
 for inter-packet gap.  After the command completes, we would expect a summary to be output.  Thus, the whole
 interaction would be similar to the following:
 
-```shell script
+```shell-script
 % oc exec -it test -c test -- sh
 sh-4.2# ping -c 5 www.redhat.com
 PING e3396.dscx.akamaiedge.net (23.34.95.235) 56(84) bytes of data.
@@ -121,56 +109,10 @@ packets.
 ### Writing the test
 
 Generic tests *must* abide by the [generic-test.schema.json](schemas/generic-test.schema.json) JSON Schema.  Let's
-consider the simple `ping` example from above.  An example implementation for such a test is located in
-[examples/ping.json](examples/ping.json):
+consider the simple [`ping`](examples/ping.json) example.  It describes a test that pings "www.redhat.com" 5 times,
+and gives a `tnf.SUCCESS` only if all 5 pings receive a response.
 
-```json
-{
-  "description": "Pings www.redhat.com 5 times using the Unix ping executable.",
-  "testResult": 0,
-  "testTimeout": 10000000000,
-  "reelFirstStep": {
-    "execute": "ping -c 5 www.redhat.com\n",
-    "expect": [
-      "(?m)(\\d+) packets transmitted, (\\d+)( packets){0,1} received, (?:\\+(\\d+) errors)?.*$"
-    ],
-    "timeout": 10000000000
-  },
-  "resultContexts": [
-    {
-      "pattern": "(?m)(\\d+) packets transmitted, (\\d+)( packets){0,1} received, (?:\\+(\\d+) errors)?.*$",
-      "defaultResult": 1,
-      "composedAssertions": [
-        {
-          "assertions": [
-            {
-              "groupIdx": 1,
-              "condition": {
-                "type": "intComparison",
-                "input": 5,
-                "comparison": "=="
-              }
-            },
-            {
-              "groupIdx": 2,
-              "condition": {
-                "type": "intComparison",
-                "input": 5,
-                "comparison": "=="
-              }
-            }
-          ],
-          "logic": {
-            "type": "and"
-          }
-        }
-      ]
-    }
-  ]
-}
-```
-
-Let's walk through each JSON key one at a time.
+Let's walk through [`ping.json`](examples/ping.json) one key one at a time.
 
 #### description
 
@@ -195,7 +137,7 @@ mandatory `timeout` and optional `execute` and `expect`.  *Note*: Remember to ap
 
 The `expect` field deserves further explanation.  `expect` is an array of regular expressions that might match from
 issuing a `ping` command.  In this case, only one regular expression is expected, the ping summary.  However, if more
-than one `expect` element exists, the matches are determined *in-order*.
+than one `expect` element exists, the matches are determined *in-order* and the first match found will complete the step.
 
 Development of regular expressions falls outside of this tutorial.  [regex101.com](https://regex101.com/) provides a
 useful interface to help design regular expressions for Go.
@@ -218,22 +160,7 @@ the ICMP summary regular expression:
   "composedAssertions": [
     {
       "assertions": [
-        {
-          "groupIdx": 1,
-          "condition": {
-            "type": "intComparison",
-            "input": 5,
-            "comparison": "=="
-          }
-        },
-        {
-          "groupIdx": 2,
-          "condition": {
-            "type": "intComparison",
-            "input": 5,
-            "comparison": "=="
-          }
-        }
+        ...
       ],
       "logic": {
         "type": "and"
@@ -311,27 +238,29 @@ The second assertion is as follows:
 This means that group 2 of the regular expression match for the ping summary pattern must equal `5`.  IN this case,
 group 2 is the number of ICMP requests received.
 
-All together, this means that we are asserting the number of ICMP requests transmitted and received should equal the
-request count, which is `5` in this case.
+The whole of the JSON `pattern` and `composedAssertions` means the test will pass ONLY if:
+
+* exactly 5 pings were sent
+* exactly 5 responses were received
 
 ### Running your JSON test
 
 Now that you have a sample JSON test defined, you can go ahead and run your JSON test in your development environment.
 In order to run the test, you must first make the jsontest CLI.  Issue the following command:
 
-```shell script
+```shell-script
 make jsontest-cli
 ```
 
 After that completes, issue the following command:
 
-```shell script
+```shell-script
 ./jsontest run shell examples/ping.json
 ```
 
 You will get something similar to the following:
 
-```shell script
+```shell-script
 % ./jsontest-cli run shell examples/ping.json
 INFO[0000] Running examples/ping.json from a local shell context
 2020/12/06 13:32:53 Sent: "ping -c 5 www.redhat.com\n"
@@ -394,13 +323,13 @@ Note that `testResult` is 1, indicating `tnf.SUCCESS`.
 
 If you wish to explore the `oc` and `ssh` variants of `jsontest-cli`, please consult the following:
 
-```shell script
+```shell-script
 ./jsontest-cli run -h
 ```
 
 ### Including a JSON-based test in a Ginkgo Test Suite
 
-See the [diagnostic](test-network-function/diagnostic/suite.go) test suite.
+See the [diagnostic](test-network-function/diagnostic/suite.go) test suite for an example of this.
 
 ## Writing a simple CLI-oriented test in Go
 
@@ -622,3 +551,6 @@ gomega.Expect(errors).To(gomega.BeZero())
 
 You should now have the appropriate knowledge to write your own test implementation.  There are a variety of
 implementations included out of the box in the [handlers](pkg/tnf/handlers) directory.
+
+This guide does not cover unit testing the Test, nor does it cover managing test-specific configuration.  Please see the
+examples of existing tests in the codebase for how to do these things.

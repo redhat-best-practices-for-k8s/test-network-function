@@ -1,6 +1,12 @@
 # Test Network Function
 
-This repository contains a set of network function test cases.
+This repository contains a set of network function test cases and the framework to build more.  It also generates reports
+(claim.json) on the result of a test run.
+The tests and framework are intended to verify the correct functioning of Cloud-Native Network Functions (CNFs) running
+on an OpenShift installation.
+
+The suite is provided here in part so that CNF Developers can use the suite to test their CNFs readiness for
+certification.  Please see "CNF Developers" below for more information.
 
 ## Dependencies
 
@@ -33,7 +39,7 @@ include specifications such as issuing a `GET` request to a web server, or passi
 
 ### General
 
-The general-purpose category covers most tests. It consists of multiple suites that can be run in any combination as is
+The general-purpose category covers most tests.  It consists of multiple suites that can be run in any combination as is
 appropriate for the CNF(s) under test:
 
 Suite|Test Spec Description|Minimum OpenShift Version
@@ -53,7 +59,7 @@ tests.
 By default, `test-network-function` emits results to `test-network-function/cnf-certification-tests_junit.xml`.
 
 The included default configuration is for running `generic` and `multus` suites on the trivial example at
-[cnf-certification-test-partner](https://github.com/redhat-nfvpe/cnf-certification-test-partner). To configure for your
+[cnf-certification-test-partner](https://github.com/redhat-nfvpe/cnf-certification-test-partner).  To configure for your
 own environment, please see the Test Configuration section, below.
 
 ### Pulling The Code
@@ -93,8 +99,8 @@ Any combintation of the suites listed above can be run, e.g.
 ./run-cnf-suites.sh diagnostic generic multus container operator
 ```
 
-*Gotcha:* The generic test suite requires that the CNF has both `ping` and `ip` binaries installed. Please add them
-manually if the CNF under test does not include these. Automated installation of missing dependencies is targetted
+*Gotcha:* The generic test suite requires that the CNF has both `ping` and `ip` binaries installed.  Please add them
+manually if the CNF under test does not include these.  Automated installation of missing dependencies is targetted
 for a future version.
 
 ## Test Configuration
@@ -113,17 +119,19 @@ Combining these configuration files is a near-term goal.
 
 The config file `test-configuration.yaml` contains three sections:
 
-* `containersUnderTest:` describes the CNFs that will be tested. Each container is defined by the combination of its
+* `containersUnderTest:` describes the CNFs that will be tested.  Each container is defined by the combination of its
 `namespace`, `podName`, and `containerName`, which are also used to connect to the container when required.
 
-  * Each entry for `containersUnderTest` must also define the `defaultNetworkDevice` of that container. There is also an
-  optional `multusIpAddresses` that can be omitted if the multus tests are not run.
+  * Each entry for `containersUnderTest` must also define the `defaultNetworkDevice` of that container.  There is also
+  an optional `multusIpAddresses` that can be omitted if the multus tests are not run.
 
-* `partnerContainers:` describes the containers that support the testing. Multiple `partnerContainers` allows
-for more complex testing scenarios. At the time of writing, only one is used, which will also be the test
+* `partnerContainers:` describes the containers that support the testing.  Multiple `partnerContainers` allows
+for more complex testing scenarios.  At the time of writing, only one is used, which will also be the test
 orchestrator.
 
-* `testOrchestrator:` references a partner containers that is used for the generic test suite. The test partner is used to send various types of traffic to each container under test. For example the orchestrator is used to ping a container under test, and to be the ping target of a container under test.
+* `testOrchestrator:` references a partner containers that is used for the generic test suite.  The test partner is used
+to send various types of traffic to each container under test.  For example the orchestrator is used to ping a container
+under test, and to be the ping target of a container under test.
 
 The [included example](test-network-function/test-configuration.yaml) defines a single container to be tested, and a
 single partner to do the testing.
@@ -209,9 +217,73 @@ cnfs:
 
 ## Test Output
 
+### Claim File
+
 The test suite generates a "claim" file, which describes the system(s) under test, the tests that were run, and the
-outcome of all of the tests. This claim file is the proof of the test run that is evaluated by Red Hat when
-certified status is being granted. For more information about the contents of the claim file please see the
-[schema](https://github.com/redhat-nfvpe/test-network-function-claim/blob/master/claim.schema.json). For more
+outcome of all of the tests.  This claim file is the proof of the test run that is evaluated by Red Hat when
+"certified" status is being considered.  For more information about the contents of the claim file please see the
+[schema](https://github.com/redhat-nfvpe/test-network-function-claim/blob/master/claim.schema.json).  For more
 information about the purpose of the claim file see the docs.
 !!! TODO: link to docs when published.
+
+### Command Line Output
+
+When run the CNF test suite will output a report to the terminal that is primarily useful for Developers to evaluate and
+address problems.  This output is similar to many testing tools.
+
+Here's an example of a Test pass.  It shows the Test running a command to extract the contents of `/etc/redhat-release`
+and using a regular expression to match allowed strings.  It also prints out the string that matched.:
+
+```shell
+------------------------------
+generic when test(test) is checked for Red Hat version 
+  Should report a proper Red Hat version
+  /Users/$USER/cnf-cert/test-network-function/test-network-function/generic/suite.go:149
+2020/12/15 15:27:49 Sent: "if [ -e /etc/redhat-release ]; then cat /etc/redhat-release; else echo \"Unknown Base Image\"; fi\n"
+2020/12/15 15:27:49 Match for RE: "(?m)Red Hat Enterprise Linux Server release (\\d+\\.\\d+) \\(\\w+\\)" found: ["Red Hat Enterprise Linux Server release 7.9 (Maipo)" "7.9"] Buffer: "Red Hat Enterprise Linux Server release 7.9 (Maipo)\n"
+•
+```
+
+The following is the output from a Test failure.  In this case, the test is checking that a CSV (ClusterServiceVersion)
+is installed correctly, but does not find it (the operator was not present on the cluster under test):
+
+```shell
+------------------------------
+operator Runs test on operators when under test is: my-etcd/etcdoperator.v0.9.4  
+  tests for: CSV_INSTALLED
+  /Users/$USER/cnf-cert/test-network-function/test-network-function/operator/suite.go:122
+2020/12/15 15:28:19 Sent: "oc get csv etcdoperator.v0.9.4 -n my-etcd -o json | jq -r '.status.phase'\n"
+
+• Failure [10.002 seconds]
+operator
+/Users/$USER/cnf-cert/test-network-function/test-network-function/operator/suite.go:58
+  Runs test on operators
+  /Users/$USER/cnf-cert/test-network-function/test-network-function/operator/suite.go:71
+    when under test is: my-etcd/etcdoperator.v0.9.4 
+    /Users/$USER/cnf-cert/test-network-function/test-network-function/operator/suite.go:121
+      tests for: CSV_INSTALLED [It]
+      /Users/$USER/cnf-cert/test-network-function/test-network-function/operator/suite.go:122
+
+      Expected
+          <int>: 0
+      to equal
+          <int>: 1
+
+```
+
+## CNF Developers
+
+Developers of CNFs, particularly those intended to get their CNFs
+[Certified by Red Hat](!!! TODO link to appropriate doc) for use on OpenShift can use this suite to check their CNF is
+working correctly, and to give them the best chance of being certified quickly.
+
+Please refer to the rest of the documentation in this file to see how to install and run the tests as well as how to
+interpret the results.
+
+You will need an [OpenShift 4.4 installation](https://docs.openshift.com/container-platform/4.4/welcome/index.html)
+running your CNF, and hosting at least one machine that can be used to control the test suite.  The
+[cnf-certification-test-partner](https://github.com/redhat-nfvpe/cnf-certification-test-partner) repository has a very
+simple example of this you can model your setup on.
+
+If you are interested in the formal certification process please [contact Red Hat](!!! TODO: email address).  Red
+Hat cannot offer support for users outside the formal certification setup but may be able to assist in certain cases.
