@@ -226,7 +226,7 @@ outcome of all of the tests.  This claim file is the proof of the test run that 
 information about the purpose of the claim file see the docs.
 !!! TODO: link to docs when published.
 
-### Adding a Test Results to Claim File 
+### Adding Test Results for the CNF Validation Test Suite to a Claim File 
 e.g. Adding a cnf platform test results to your existing claim file.
 
 You can use the claim cli tool to append other related test suite results to your existing claim.json file.
@@ -236,7 +236,7 @@ go run cmd/tools/cmd/main.go claim-add --claimfile=claim.json --reportdir=/home/
 ```
  Args:  
 `
---claimfile is existing claim.json `
+--claimfile is an existing claim.json file`
 `
 --repordir :path to test results that you want to include.
 `
@@ -252,10 +252,6 @@ go run cmd/tools/cmd/main.go claim-add --claimfile=claim.json --reportdir=/home/
  "-name": "CNF Certification Test Suite",
  "-tests": "14",
 ```
-
-
-
-
 
 ### Command Line Output
 
