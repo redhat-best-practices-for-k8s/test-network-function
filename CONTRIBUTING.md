@@ -1,5 +1,7 @@
 # Contributing
 
+All contributions are valued and welcomed, whether they come in the form of code, documentation, ideas or discussion.
+
 ## Peer review
 
 Although this is an open source project, a review is required from one of the following committers prior to merging a
@@ -32,7 +34,13 @@ How to create and update your own fork is outside the scope of this document but
 [instructions](https://reflectoring.io/github-fork-and-pull/) explaining how to go about this.
 
 Once a change is implemented, tested, documented, and passing all the checks then submit a Pull Request for it to be
-reviewed by the maintainers listed above. A good Pull Request will be focussed on a single change and broken into multiple small commits where possible. 
+reviewed by the maintainers listed above. A good Pull Request will be focussed on a single change and broken into
+multiple small commits where possible. As always, you should ensure that tests should pass prior to submitting a Pull
+Request.  To run the unit tests issue the following command:
+
+```bash
+make unit-tests
+```
 
 Changes are more likely to be accepted if they are made up of small and self-contained commits, which leads on to
 the next section.
@@ -48,12 +56,50 @@ here.
 Contributors should follow [these seven rules](https://chris.beams.io/posts/git-commit/#seven-rules) and keep individual
 commits focussed (`git add -p` will help with this).
 
+## Test Implementation guidelines
+
+Each contributed test is expected to implement the `reel.Handler` and `tnf.Tester` interfaces.  Additionally, each test
+must be based on CLI commands.  No tests should utilize OpenShift client libraries.  The choice to avoid OpenShift
+client is deliberate, and was decided to aid in support of all versions of OpenShift despite the API(s) changing.
+Generally speaking, the CLI API changes much less quickly.
+
+For more details on how to add a new Test either as a JSON definition, or in code, please see [DEVELOPING.md](DEVELOPING.md)
+
+For some examples of existing tests, consult:
+
+* pkg/tnf/handlers/base/version_test.go
+* pkg/tnf/handlers/hostname/hostname_test.go
+* pkg/tnf/handlers/ipaddr/ipaddr_test.go
+* pkg/tnf/handlers/ping/ping_test.go
+
+## Configuration guidelines
+
+Many Tests will require some form of extra configuration. To maintain reproducibility and auditability outcomes this
+configuration must be included in a claim file.
+
+To support this each configuration type must be registered with `pkg/config/pool`.  In order to register with the
+configuration pool, use code similar to the following:
+
+```
+(*configpool.GetInstance()).RegisterConfiguration(configurationKey, config)
+```
+
+Additionally the `config` structure for the Test must implement or inherit a working `MarshalJSON` and `UnmarshalJSON`
+interface so it can be automatically included in a
+[test-network-function-claim](https://github.com/redhat-nfvpe/test-network-function-claim) JSON file.
+
+Any configuration that adheres to these two requirements will automatically be included in the claim.
+
 ## Documentation guidelines
 
 Each exported API, global variable or constant must have proper documentation which adheres to `gofmt`.
 
 Each non-test `package` must have a package comment. Package comments must be block comments (`/* */`), unless they are
 short enough to fit on a single line when a line comment is allowed.
+
+Changes must also include updates to affected documentation. This means both in-code documentation and the accompanying
+files such as this one. If a change introduces a new behaviour, interface or capability then it is even more important
+that the accompanying documentation and guides are updated to include that information.
 
 ## Style guidelines
 
@@ -66,23 +112,6 @@ your PR. Disabled linting must be justified.
 Finally, all contributions should follow the guidance of [Effective Go](https://golang.org/doc/effective_go.html)
 unless there is a clear and considered reason not to. Contribution are more likely to be accepted quickly if any
 divergence from the guidelines is justified before someone has to ask about it.
-
-## Test guidelines
-
-Each `tnf.Tester` implementation must have unit tests.  Ideally, each `tnf.Tester` implementation should strive for 100%
-line coverage when possible.  For some examples of existing tests, consult:
-
-* pkg/tnf/handlers/base/version_test.go
-* pkg/tnf/handlers/hostname/hostname_test.go
-* pkg/tnf/handlers/ipaddr/ipaddr_test.go
-* pkg/tnf/handlers/ping/ping_test.go
-
-As always, you should ensure that tests should pass prior to submitting a Pull Request.  To run the unit tests issue the
-following command:
-
-```bash
-make unit-tests
-```
 
 ## Mock guidelines
 
@@ -136,25 +165,3 @@ API changes that might have occurred between versions.
 Interface|Implementation
 ---|---
 `expect.Expecter`|[mock_expect.go](pkg/tnf/interactive/mocks/mock_expect.go)
-
-## Test guidelines
-
-Each contributed test is expected to implement the `reel.Handler` and `tnf.Tester` interfaces.  Additionally, each test
-must be based on CLI commands.  No tests should utilize OpenShift client.  The choice to avoid OpenShift client is
-deliberate, and was decided to aid in support of all versions of OpenShift despite the API(s) changing.  Generally
-speaking, the CLI API changes much less quickly.
-
-## Configuration guidelines
-
-Most tests will require some form of configuration.  All configuration must implement or inherit a working `MarshalJSON`
-and `UnmarshalJSON` interface.  This is due to the fact that a
-[test-network-function-claim](https://github.com/redhat-nfvpe/test-network-function-claim) is output as JSON.
-
-Additionally, each configuration type must be registered with `pkg/config/pool`.  In order to register with the
-configuration pool, use code similar to the following:
-
-```
-(*configpool.GetInstance()).RegisterConfiguration(configurationKey, config)
-```
-
-Any configuration that adheres to these two requirements will automatically be included in the claim.
