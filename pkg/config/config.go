@@ -14,10 +14,14 @@
 // with this program; if not, write to the Free Software Foundation, Inc.,
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-/*
-Package config provides test-network-function configuration along with a config pool for aggregating configuration.
-Configurations registered with the pool are automatically included in the claim.  Go structs used for configuration
-should each be defined in their own files, such as `cnf.go` and `generic.go`.  The corresponding configuration yaml/json
-files should be prefixed with `<filename>_test_configuration`, such as `generic_test_configuration.yaml`.
-*/
 package config
+
+import "fmt"
+
+const (
+	filenameSuffix = "_test_configuration"
+)
+
+func getConfigurationFileNameWithoutExtension(configurationName string) string {
+	return fmt.Sprintf("%s%s", configurationName, filenameSuffix)
+}

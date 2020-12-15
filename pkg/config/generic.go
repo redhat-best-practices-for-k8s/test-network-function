@@ -14,7 +14,7 @@
 // with this program; if not, write to the Free Software Foundation, Inc.,
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-package generic
+package config
 
 import (
 	"encoding/json"
@@ -24,7 +24,6 @@ import (
 	"strconv"
 	"strings"
 
-	configpool "github.com/redhat-nfvpe/test-network-function/pkg/config"
 	"gopkg.in/yaml.v2"
 )
 
@@ -32,14 +31,17 @@ const (
 	configurationFilePathEnvironmentVariableKey = "TEST_CONFIGURATION_PATH"
 	configurationKey                            = "generic"
 	containerNameJSONKey                        = "containerName"
-	defaultConfigurationFilePath                = "./test-configuration.yaml"
 	namespaceJSONKey                            = "namespace"
 	podNameJSONKey                              = "podName"
 	// UseDefaultConfigurationFilePath is the sentinel used to indicate extracting the config filepath from the
 	// environment.
 	UseDefaultConfigurationFilePath = ""
-	yamlExtension                   = ".yaml"
-	ymlExtension                    = ".yml"
+	yamlSuffix                      = ".yaml"
+	ymlSuffix                       = ".yml"
+)
+
+var (
+	defaultConfigurationFilePath = getConfigurationFileNameWithoutExtension(configurationKey) + ymlSuffix
 )
 
 // getConfigurationFilePathFromEnvironment returns the test configuration file.
@@ -54,7 +56,7 @@ func getConfigurationFilePathFromEnvironment() string {
 // isYAMLFile is an heuristic to determine whether a file is likely a YAML file (i.e., has a `.yaml` or `.yml`
 // extension).
 func isYAMLFile(filepath string) bool {
-	return strings.HasSuffix(filepath, yamlExtension) || strings.HasSuffix(filepath, ymlExtension)
+	return strings.HasSuffix(filepath, yamlSuffix) || strings.HasSuffix(filepath, ymlSuffix)
 }
 
 // GetConfiguration returns the cnf-certification-generic-tests test configuration.  GetConfiguration supports reading
@@ -82,7 +84,7 @@ func GetConfiguration(filepath string) (*TestConfiguration, error) {
 
 	//nolint:errcheck // Even if not run, each of the suites attempts to initialise the config. This results in
 	// RegisterConfigurations erroring due to duplicate keys.
-	(*configpool.GetInstance()).RegisterConfiguration(configurationKey, config)
+	(*GetInstance()).RegisterConfiguration(configurationKey, config)
 
 	return config, err
 }

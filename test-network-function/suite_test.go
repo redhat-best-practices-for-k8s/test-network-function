@@ -31,7 +31,6 @@ import (
 	"github.com/redhat-nfvpe/test-network-function-claim/pkg/claim"
 	"github.com/redhat-nfvpe/test-network-function/pkg/config"
 	"github.com/redhat-nfvpe/test-network-function/pkg/junit"
-	containerTestConfig "github.com/redhat-nfvpe/test-network-function/pkg/tnf/config"
 	_ "github.com/redhat-nfvpe/test-network-function/test-network-function/container"
 	"github.com/redhat-nfvpe/test-network-function/test-network-function/diagnostic"
 	_ "github.com/redhat-nfvpe/test-network-function/test-network-function/generic"
@@ -66,7 +65,7 @@ func init() {
 }
 
 var _ = ginkgo.BeforeSuite(func() {
-	tnfConfig, cfgError := containerTestConfig.GetConfig()
+	tnfConfig, cfgError := config.GetConfig()
 	if cfgError != nil || tnfConfig.CNFs == nil {
 		ginkgo.Fail("Unable to load the configuration required for the test. Test aborted")
 	}

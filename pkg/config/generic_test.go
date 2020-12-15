@@ -14,19 +14,19 @@
 // with this program; if not, write to the Free Software Foundation, Inc.,
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-package generic_test
+package config_test
 
 import (
 	"fmt"
 	"path"
 	"testing"
 
-	"github.com/redhat-nfvpe/test-network-function/test-network-function/generic"
+	"github.com/redhat-nfvpe/test-network-function/pkg/config"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestContainerIdentifier_MarshalText(t *testing.T) {
-	c := &generic.ContainerIdentifier{
+	c := &config.ContainerIdentifier{
 		Namespace:     "default",
 		PodName:       "test",
 		ContainerName: "test",
@@ -38,7 +38,7 @@ func TestContainerIdentifier_MarshalText(t *testing.T) {
 
 func TestContainerIdentifier_UnmarshalText(t *testing.T) {
 	bytes := []byte("{\"namespace\":\"default\",\"podName\":\"test\",\"containerName\":\"test\"}")
-	c := &generic.ContainerIdentifier{}
+	c := &config.ContainerIdentifier{}
 	err := c.UnmarshalText(bytes)
 	assert.Nil(t, err)
 	assert.Equal(t, "default", c.Namespace)
@@ -48,11 +48,11 @@ func TestContainerIdentifier_UnmarshalText(t *testing.T) {
 
 type testConfigurationTestCase struct {
 	configurationType     string
-	expectedConfiguration *generic.TestConfiguration
+	expectedConfiguration *config.TestConfiguration
 	expectedMarshalErr    error
 }
 
-var expectedContainersUnderTest = map[generic.ContainerIdentifier]generic.Container{
+var expectedContainersUnderTest = map[config.ContainerIdentifier]config.Container{
 	{
 		Namespace:     "default",
 		PodName:       "test",
@@ -63,7 +63,7 @@ var expectedContainersUnderTest = map[generic.ContainerIdentifier]generic.Contai
 	},
 }
 
-var expectedPartnerContainers = map[generic.ContainerIdentifier]generic.Container{
+var expectedPartnerContainers = map[config.ContainerIdentifier]config.Container{
 	{
 		Namespace:     "default",
 		PodName:       "partner",
@@ -74,13 +74,13 @@ var expectedPartnerContainers = map[generic.ContainerIdentifier]generic.Containe
 	},
 }
 
-var expectedTestOrchestrator = generic.ContainerIdentifier{
+var expectedTestOrchestrator = config.ContainerIdentifier{
 	Namespace:     "default",
 	PodName:       "partner",
 	ContainerName: "partner",
 }
 
-var goodExpectedConfiguration = &generic.TestConfiguration{
+var goodExpectedConfiguration = &config.TestConfiguration{
 	ContainersUnderTest: expectedContainersUnderTest,
 	PartnerContainers:   expectedPartnerContainers,
 	TestOrchestrator:    expectedTestOrchestrator,
@@ -104,10 +104,10 @@ var testConfigurationTestCases = map[string]*testConfigurationTestCase{
 	},
 	"empty-json": {
 		configurationType: "json",
-		expectedConfiguration: &generic.TestConfiguration{
+		expectedConfiguration: &config.TestConfiguration{
 			ContainersUnderTest: nil,
 			PartnerContainers:   nil,
-			TestOrchestrator:    generic.ContainerIdentifier{},
+			TestOrchestrator:    config.ContainerIdentifier{},
 		},
 		expectedMarshalErr: nil,
 	},
@@ -125,7 +125,7 @@ func formTestFileName(name, configurationType string) string {
 func TestGetConfiguration(t *testing.T) {
 	for testName, testConfiguration := range testConfigurationTestCases {
 		testFileName := formTestFileName(testName, testConfiguration.configurationType)
-		tc, err := generic.GetConfiguration(testFileName)
+		tc, err := config.GetConfiguration(testFileName)
 		if testConfiguration.expectedMarshalErr == nil {
 			assert.Nil(t, err)
 			assert.NotNil(t, tc)

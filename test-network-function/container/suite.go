@@ -28,7 +28,6 @@ import (
 	"github.com/redhat-nfvpe/test-network-function/internal/api"
 	configpool "github.com/redhat-nfvpe/test-network-function/pkg/config"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
-	containerTestConfig "github.com/redhat-nfvpe/test-network-function/pkg/tnf/config"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/container"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/interactive"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/reel"
@@ -51,7 +50,7 @@ var (
 	defaultTimeout = time.Duration(defaultTimeoutSeconds) * time.Second
 	context        *interactive.Context
 	err            error
-	cnfInTest      *containerTestConfig.TnfContainerOperatorTestConfig
+	cnfInTest      *configpool.TnfContainerOperatorTestConfig
 	certAPIClient  api.CertAPIClient
 )
 
@@ -68,12 +67,12 @@ var _ = ginkgo.Describe(testSpecName, func() {
 		})
 		// Test for CNF certificates
 		ginkgo.When("under test", func() {
-			cnfInTest, err = containerTestConfig.GetConfig()
+			cnfInTest, err = configpool.GetConfig()
 			gomega.Expect(err).To(gomega.BeNil())
 			gomega.Expect(cnfInTest).ToNot(gomega.BeNil())
 			//nolint:errcheck // Even if not run, each of the suites attempts to initialise the config. This results in
 			// RegisterConfigurations erroring due to duplicate keys.
-			(*configpool.GetInstance()).RegisterConfiguration(testSpecName, cnfInTest)
+			(*configpool.GetInstance()).RegisterConfiguration(configpool.CNFConfigName, cnfInTest)
 			certAPIClient = api.NewHTTPClient()
 			for _, cnf := range cnfInTest.CNFs {
 				cnf := cnf

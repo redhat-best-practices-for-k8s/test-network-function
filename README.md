@@ -109,15 +109,15 @@ There are a few pieces of configuration required to allow the test framework to 
 
 Config File|Purpose
 ---|---
-test-configuration.yaml|Describes the CNF or CNFs that are to be tested, the container that will run the tests, and the test orchestrator.
-config.yml|Defines which operators are to be tested.
+generic_test_configuration.yml|Describes the CNF or CNFs that are to be tested, the container that will run the tests, and the test orchestrator.
+cnf_test_configuration.yml|Defines which containers and operators are to be tested.
 testconfigure.yml|Defines operator tests are appropriate for which roles.
 
 Combining these configuration files is a near-term goal.
 
-### test-configuration.yaml
+### generic_test_configuration.yml
 
-The config file `test-configuration.yaml` contains three sections:
+The config file `generic_test_configuration.yml` contains three sections:
 
 * `containersUnderTest:` describes the CNFs that will be tested.  Each container is defined by the combination of its
 `namespace`, `podName`, and `containerName`, which are also used to connect to the container when required.
@@ -133,18 +133,18 @@ orchestrator.
 to send various types of traffic to each container under test.  For example the orchestrator is used to ping a container
 under test, and to be the ping target of a container under test.
 
-The [included example](test-network-function/test-configuration.yaml) defines a single container to be tested, and a
+The [included example](test-network-function/generic_test_configuration.yml) defines a single container to be tested, and a
 single partner to do the testing.
 
 ### Operator Test Configuration
 
 Testing operators is currently configured separately from the generic tests.
 
-#### config.yml
+#### cnf_test_configuration.yml
 
-You can either edit the provided config `config.yml` TODO: or pass a different config by using the `-config` flag.
+You can either edit the provided config `cnf_test_configuration.yml` TODO: or pass a different config by using the `-config` flag.
 
-Sample config.yml
+Sample cnf_test_configuration.yml
 
 ```yaml
 cnfs:
@@ -194,10 +194,10 @@ Example testconfigure.yml:
 
 #### Container Test Configuration
 
-You can either edit the provided config `config.yml`  or pass a different config by using the `-config` flag to the
+You can either edit the provided config `cnf_test_configuration.yml`  or pass a different config by using the `-config` flag to the
 test suite.
 
-Sample config.yml
+Sample cnf_test_configuration.yml
 
 ```yaml
 cnfs:
