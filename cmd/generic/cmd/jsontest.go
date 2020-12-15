@@ -23,12 +23,12 @@ import (
 	"os"
 	"path"
 
-	expect "github.com/google/goexpect"
 	"github.com/google/goterm/term"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/generic"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/interactive"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/reel"
+	expect "github.com/ryandgoulding/goexpect"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )

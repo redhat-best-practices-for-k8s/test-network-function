@@ -19,7 +19,6 @@ package generic
 import (
 	"fmt"
 
-	expect "github.com/google/goexpect"
 	"github.com/onsi/ginkgo"
 	ginkgoconfig "github.com/onsi/ginkgo/config"
 	"github.com/onsi/gomega"
@@ -30,6 +29,7 @@ import (
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/interactive"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/reel"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/testcases"
+	expect "github.com/ryandgoulding/goexpect"
 	log "github.com/sirupsen/logrus"
 
 	"time"

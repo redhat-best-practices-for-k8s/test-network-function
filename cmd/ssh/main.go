@@ -22,11 +22,11 @@ import (
 	"os"
 	"time"
 
-	expect "github.com/google/goexpect"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/ping"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/interactive"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/reel"
+	expect "github.com/ryandgoulding/goexpect"
 )
 
 func parseArgs() (*interactive.Context, string, time.Duration, error) {

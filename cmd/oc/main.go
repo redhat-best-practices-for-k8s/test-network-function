@@ -22,11 +22,11 @@ import (
 	"os"
 	"time"
 
-	expect "github.com/google/goexpect"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/ping"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/interactive"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/reel"
+	expect "github.com/ryandgoulding/goexpect"
 )
 
 func parseArgs() (*interactive.Oc, <-chan error, string, time.Duration, error) { //nolint:gocritic //permit unnamed return values

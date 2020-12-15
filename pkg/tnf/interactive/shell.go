@@ -20,7 +20,7 @@ import (
 	"os"
 	"time"
 
-	expect "github.com/google/goexpect"
+	expect "github.com/ryandgoulding/goexpect"
 )
 
 const (

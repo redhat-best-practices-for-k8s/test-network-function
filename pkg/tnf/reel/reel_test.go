@@ -23,10 +23,10 @@ import (
 	"time"
 
 	"github.com/golang/mock/gomock"
-	expect "github.com/google/goexpect"
 	mock_interactive "github.com/redhat-nfvpe/test-network-function/pkg/tnf/interactive/mocks"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/reel"
 	mock_reel "github.com/redhat-nfvpe/test-network-function/pkg/tnf/reel/mocks"
+	expect "github.com/ryandgoulding/goexpect"
 	"github.com/stretchr/testify/assert"
 )
 
