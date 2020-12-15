@@ -18,10 +18,12 @@ package generic
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/onsi/ginkgo"
 	ginkgoconfig "github.com/onsi/ginkgo/config"
 	"github.com/onsi/gomega"
+	tnfConfig "github.com/redhat-nfvpe/test-network-function/pkg/config"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/base/redhat"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/ipaddr"
@@ -31,8 +33,6 @@ import (
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/testcases"
 	expect "github.com/ryandgoulding/goexpect"
 	log "github.com/sirupsen/logrus"
-
-	"time"
 )
 
 const (
@@ -82,15 +82,15 @@ func getOcSession(pod, container, namespace string, timeout time.Duration, optio
 // as the reference to the interactive.Oc instance, the reference to the test configuration, and the default network
 // IP address.
 type container struct {
-	containerConfiguration  Container
+	containerConfiguration  tnfConfig.Container
 	oc                      *interactive.Oc
 	defaultNetworkIPAddress string
 }
 
 // createContainers contains the general steps involved in creating "oc" sessions and other configuration. A map of the
 // aggregate information is returned.
-func createContainers(containerDefinitions map[ContainerIdentifier]Container) map[ContainerIdentifier]*container {
-	createdContainers := map[ContainerIdentifier]*container{}
+func createContainers(containerDefinitions map[tnfConfig.ContainerIdentifier]tnfConfig.Container) map[tnfConfig.ContainerIdentifier]*container {
+	createdContainers := map[tnfConfig.ContainerIdentifier]*container{}
 	for containerID, containerConfig := range containerDefinitions {
 		oc := getOcSession(containerID.PodName, containerID.ContainerName, containerID.Namespace, defaultTimeout, expect.Verbose(true))
 		defaultIPAddress := getContainerDefaultNetworkIPAddress(oc, containerConfig.DefaultNetworkDevice)
@@ -100,12 +100,12 @@ func createContainers(containerDefinitions map[ContainerIdentifier]Container) ma
 }
 
 // createContainersUnderTest sets up the test containers.
-func createContainersUnderTest(config *TestConfiguration) map[ContainerIdentifier]*container {
+func createContainersUnderTest(config *tnfConfig.TestConfiguration) map[tnfConfig.ContainerIdentifier]*container {
 	return createContainers(config.ContainersUnderTest)
 }
 
 // createPartnerContainers sets up the partner containers.
-func createPartnerContainers(config *TestConfiguration) map[ContainerIdentifier]*container {
+func createPartnerContainers(config *tnfConfig.TestConfiguration) map[tnfConfig.ContainerIdentifier]*container {
 	return createContainers(config.PartnerContainers)
 }
 
@@ -218,8 +218,8 @@ func getContainerDefaultNetworkIPAddress(oc *interactive.Oc, dev string) string 
 }
 
 // GetTestConfiguration returns the cnf-certification-generic-tests test configuration.
-func GetTestConfiguration() *TestConfiguration {
-	config, err := GetConfiguration(UseDefaultConfigurationFilePath)
+func GetTestConfiguration() *tnfConfig.TestConfiguration {
+	config, err := tnfConfig.GetConfiguration(tnfConfig.UseDefaultConfigurationFilePath)
 	gomega.Expect(err).To(gomega.BeNil())
 	gomega.Expect(config).ToNot(gomega.BeNil())
 	return config

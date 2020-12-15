@@ -18,23 +18,20 @@ package operator
 
 import (
 	"fmt"
-
-	configpool "github.com/redhat-nfvpe/test-network-function/pkg/config"
+	"strings"
+	"time"
 
 	"github.com/onsi/ginkgo"
 	ginkgoconfig "github.com/onsi/ginkgo/config"
 	"github.com/onsi/gomega"
 	"github.com/redhat-nfvpe/test-network-function/internal/api"
+	configpool "github.com/redhat-nfvpe/test-network-function/pkg/config"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
-	operatorTestConfig "github.com/redhat-nfvpe/test-network-function/pkg/tnf/config"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/operator"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/interactive"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/reel"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/testcases"
 	expect "github.com/ryandgoulding/goexpect"
-
-	"strings"
-	"time"
 )
 
 const (
@@ -52,7 +49,7 @@ var (
 	defaultTimeout = time.Duration(defaultTimeoutSeconds) * time.Second
 	context        *interactive.Context
 	err            error
-	operatorInTest *operatorTestConfig.TnfContainerOperatorTestConfig
+	operatorInTest *configpool.TnfContainerOperatorTestConfig
 )
 
 var _ = ginkgo.Describe(testSpecName, func() {
@@ -75,12 +72,12 @@ var _ = ginkgo.Describe(testSpecName, func() {
 })
 
 func itRunsTestsOnOperator() {
-	operatorInTest, err = operatorTestConfig.GetConfig()
+	operatorInTest, err = configpool.GetConfig()
 	gomega.Expect(err).To(gomega.BeNil())
 	gomega.Expect(operatorInTest).ToNot(gomega.BeNil())
 	//nolint:errcheck // Even if not run, each of the suites attempts to initialise the config. This results in
 	// RegisterConfigurations erroring due to duplicate keys.
-	(*configpool.GetInstance()).RegisterConfiguration(testSpecName, operatorInTest)
+	(*configpool.GetInstance()).RegisterConfiguration(configpool.CNFConfigName, operatorInTest)
 	certAPIClient := api.NewHTTPClient()
 	for index := range operatorInTest.Operator {
 		for _, certified := range operatorInTest.Operator[index].CertifiedOperatorRequestInfos {

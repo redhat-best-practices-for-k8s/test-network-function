@@ -88,7 +88,8 @@ Additionally the `config` structure for the Test must implement or inherit a wor
 interface so it can be automatically included in a
 [test-network-function-claim](https://github.com/redhat-nfvpe/test-network-function-claim) JSON file.
 
-Any configuration that adheres to these two requirements will automatically be included in the claim.
+Any configuration that adheres to these two requirements will automatically be included in the claim.  Any configuration
+needed to reproduce a claim must be added to the pool.
 
 ## Documentation guidelines
 

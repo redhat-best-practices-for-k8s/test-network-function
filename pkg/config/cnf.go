@@ -26,27 +26,29 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-// String that contains the configuration path for tnf
-var configPath = flag.String("config", "config.yml", "path to config file")
-
 const (
-	filePerm = 0644
+	cnfConfigCLIKey = "config"
+	// CNFConfigName is the configuration sentinel used to represent container and operator CNF configuration.
+	CNFConfigName = "cnf"
+	filePerm      = 0644
+	ymlExtension  = "yml"
+)
+
+var (
+	cnfConfigInputFile = getConfigurationFileNameWithoutExtension(CNFConfigName)
+	cnfConfigFileName  = fmt.Sprintf("%s.%s", cnfConfigInputFile, ymlExtension)
+	configPath         = flag.String(cnfConfigCLIKey, cnfConfigFileName, "path to config file")
 )
 
 // CNFType defines a type to be either Operator or Container
 type CNFType string
 
-const (
-	// ContainerType is a `Container Image` CNF type
-	ContainerType = "CONTAINER"
-	// OperatorType is a `Operator` CNF type
-	OperatorType = "OPERATOR"
-)
-
 // CertifiedContainerRequestInfo contains all certified images request info
 type CertifiedContainerRequestInfo struct {
+
 	// Name is the name of the `operator bundle package name` or `image-version` that you want to check if exists in the RedHat catalog
 	Name string `yaml:"name" json:"name"`
+
 	// Repository is the name of the repository `rhel8` of the container
 	// This is valid for container only and required field
 	Repository string `yaml:"repository" json:"repository"`
@@ -54,33 +56,45 @@ type CertifiedContainerRequestInfo struct {
 
 // CertifiedOperatorRequestInfo contains all certified operator request info
 type CertifiedOperatorRequestInfo struct {
+
 	// Name is the name of the `operator bundle package name` that you want to check if exists in the RedHat catalog
 	Name string `yaml:"name" json:"name"`
+
 	// Organization as understood by the operator publisher , e.g. `redhat-marketplace`
 	Organization string `yaml:"organization" json:"organization"`
 }
 
 // Operator struct defines operator manifest for testing
 type Operator struct {
+
 	// Name is a required field, Name of the csv .
 	Name string `yaml:"name" json:"name"`
+
 	// Namespace is a required field , namespace is where the csv is installed.
 	// If its all namespace then you can replace it with ALL_NAMESPACE TODO: add check for ALL_NAMESPACE
 	Namespace string `yaml:"namespace" json:"namespace"`
+
 	// Status is a required field , specified what status of the csv to be checked.
 	Status string `yaml:"status" json:"status"`
+
 	// AutoGenerate if set to true will generate the config with operator related artifacts.
 	AutoGenerate string `yaml:"autogenerate,omitempty" json:"autogenerate"`
+
 	// CRDs If AutoGenerate is set to true, then the program will populate the CRD data from the CSV file.
 	CRDs []Crd `yaml:"crds" json:"crds"`
+
 	// Deployments If AutoGenerate is set to true, then the program will populate the Deployment data from the CSV file.
 	Deployments []Deployment `yaml:"deployments" json:"deployments"`
+
 	// CNFs If AutoGenerate is set to true, then the program will populate the CNFs data from the CSV file.
 	CNFs []Cnf `yaml:"cnfs" json:"cnfs"`
+
 	// Permissions If AutoGenerate is set to true, then the program will populate the Permission data from the CSV file.
 	Permissions []Permission `yaml:"permissions" json:"permissions"`
+
 	// Tests this is list of test that need to run against the operator.
 	Tests []string `yaml:"tests" json:"tests"`
+
 	// CertifiedOperatorRequestInfos  is list of  operator bundle names (`package-name`)
 	// that are queried for certificate status
 	CertifiedOperatorRequestInfos []CertifiedOperatorRequestInfo `yaml:"certifiedoperatorrequestinfo,omitempty" json:"certifiedoperatorrequestinfo,omitempty"`
@@ -90,8 +104,10 @@ type Operator struct {
 type Crd struct {
 	// Name is the name of the CRD populated by the operator config generator
 	Name string `yaml:"name" json:"name"`
+
 	// Namespace is the namespace where above CRD is installed(For all namespace this will be ALL_NAMESPACE)
 	Namespace string `yaml:"namespace" json:"namespace"`
+
 	// Instances is the instance of CR matching for the above CRD KIND
 	Instances []Instance `yaml:"instances" json:"instances"`
 }
@@ -100,6 +116,7 @@ type Crd struct {
 type Deployment struct {
 	// Name is the name of the deployment specified in the CSV
 	Name string `yaml:"name" json:"name"`
+
 	// Replicas is no of replicas that are expected for this deployment as specified in the CSV
 	Replicas string `yaml:"replicas" json:"replicas"`
 }
@@ -108,6 +125,7 @@ type Deployment struct {
 type Permission struct {
 	// Name is the name of Roles and Cluster Roles that is specified in the CSV
 	Name string `yaml:"name" json:"name"`
+
 	// Role is the role type either CLUSTER_ROLE or ROLE
 	Role string `yaml:"role" json:"role"`
 }
@@ -116,12 +134,16 @@ type Permission struct {
 type Cnf struct {
 	// Name is the name of the CNF (TODO: This should also take cnf labels in case name is dynamically created)
 	Name string `yaml:"name" json:"name"`
+
 	// Namespace where the CNF is deployed
 	Namespace string `yaml:"namespace" json:"namespace"`
+
 	// Status is the status of the CNF
 	Status string `yaml:"status" json:"status"`
+
 	// Tests this is list of test that need to run against the CNF.
 	Tests []string `yaml:"tests" json:"tests"`
+
 	// CertifiedContainerRequestInfos  is list of images (`repo/image-version`)
 	// that are queried for certificate status
 	CertifiedContainerRequestInfos []CertifiedContainerRequestInfo `yaml:"certifiedcontainerrequestinfo,omitempty" json:"certifiedcontainerrequestinfo,omitempty"`
@@ -137,8 +159,10 @@ type Instance struct {
 type TnfContainerOperatorTestConfig struct {
 	// Operator is the lis of operator objects that needs to be tested.
 	Operator []Operator `yaml:"operators,omitempty"  json:"operators,omitempty"`
+
 	// CNFs is the list of the CNFs that needs to be tested.
 	CNFs []Cnf `yaml:"cnfs,omitempty" json:"cnfs,omitempty"`
+
 	// CnfAvailableTestCases list the available test cases for  reference.
 	CnfAvailableTestCases []string `yaml:"cnfavailabletestcases,omitempty" json:"cnfavailabletestcases,omitempty"`
 }
