@@ -46,7 +46,6 @@ build-cnf-tests:
 
 .PHONY: run-generic-cnf-tests
 run-generic-cnf-tests:
-	cd ./test-network-function && ./test-network-function.test -ginkgo.focus="(diagnostic|generic)" ${COMMON_GINKGO_ARGS}
 	./run-cnf-suites.sh diagnostic generic
 
 .PHONY: run-cnf-tests

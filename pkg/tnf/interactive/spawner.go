@@ -21,7 +21,7 @@ import (
 	"os/exec"
 	"time"
 
-	expect "github.com/google/goexpect"
+	expect "github.com/ryandgoulding/goexpect"
 	log "github.com/sirupsen/logrus"
 )
 

@@ -5,12 +5,12 @@ import (
 	"path"
 	"time"
 
-	expect "github.com/google/goexpect"
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/generic"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/interactive"
+	expect "github.com/ryandgoulding/goexpect"
 )
 
 const (
