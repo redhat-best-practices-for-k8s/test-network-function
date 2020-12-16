@@ -1,6 +1,8 @@
 # Contributing
 
 All contributions are valued and welcomed, whether they come in the form of code, documentation, ideas or discussion.
+While we have not applied a formal Code of Conduct to this, and related, repositories, we require that all contributors
+conduct themselves in a professional and respectful manner.
 
 ## Peer review
 
