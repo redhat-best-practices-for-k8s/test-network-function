@@ -237,7 +237,7 @@ operator
 Developers of CNFs, particularly those targeting 
 [CNF Certification with Red Hat on OpenShift](https://redhat-connect.gitbook.io/openshift-badges/badges/cloud-native-network-functions-cnf),
 can use this suite to test the interaction of their CNF with OpenShift.  If you are interested in CNF Certification
-please contact [Red Hat](mailto:cnf-certification@redhat.com).
+please contact [Red Hat](https://redhat-connect.gitbook.io/red-hat-partner-connect-general-guide/managing-your-account/getting-help/technology-partner-success-desk).
 
 Refer to the rest of the documentation in this file to see how to install and run the tests as well as how to
 interpret the results.
