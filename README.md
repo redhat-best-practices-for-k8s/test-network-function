@@ -2,8 +2,8 @@
 
 This repository contains a set of network function test cases and the framework to build more.  It also generates reports
 (claim.json) on the result of a test run.
-The tests and framework are intended to verify the correct functioning of Cloud-Native Network Functions (CNFs) running
-on an OpenShift installation.
+The tests and framework are intended to test the interaction of Cloud-Native Network Functions (CNFs) with OpenShift
+Container Platform.
 
 The suite is provided here in part so that CNF Developers can use the suite to test their CNFs readiness for
 certification.  Please see "CNF Developers" below for more information.
@@ -81,7 +81,7 @@ In order to build the test executable, first make sure you have satisfied the [d
 make build-cnf-tests
 ```
 
-If build fails after `go get github.com/onsi/ginkgo/ginkgo` Add ginkgo location to the PATH: `export PATH=$PATH:~/go/bin`
+If a build fails after `go get github.com/onsi/ginkgo/ginkgo`, add ginkgo location to the PATH: `export PATH=$PATH:~/go/bin`
 
 *Gotcha:* The `make build` command runs the unit tests for the framework, it does NOT test the CNF.
 
@@ -110,8 +110,8 @@ There are a few pieces of configuration required to allow the test framework to 
 Config File|Purpose
 ---|---
 generic_test_configuration.yml|Describes the CNF or CNFs that are to be tested, the container that will run the tests, and the test orchestrator.
-cnf_test_configuration.yml|Defines which containers and operators are to be tested.
-testconfigure.yml|Defines operator tests are appropriate for which roles.
+cnf_test_configuration.yml|Defines which containers and operators are to be tested, and in which roles.
+testconfigure.yml|Defines roles, and which tests are appropriate for which roles. It should not be necessary to modify this.
 
 Combining these configuration files is a near-term goal.
 
@@ -133,87 +133,21 @@ orchestrator.
 to send various types of traffic to each container under test.  For example the orchestrator is used to ping a container
 under test, and to be the ping target of a container under test.
 
-The [included example](test-network-function/generic_test_configuration.yml) defines a single container to be tested, and a
-single partner to do the testing.
+The [included example](test-network-function/generic_test_configuration.yml) defines a single container to be tested,
+and a single partner to do the testing.
 
-### Operator Test Configuration
+### cnf_test_configuration.yml - Operator and Container Test Configuration
 
-Testing operators is currently configured separately from the generic tests.
+Testing operator and containers in specific roles is currently configured separately from the generic tests. This is
+configured using `cnf_test_configuration.yml`.
 
-#### cnf_test_configuration.yml
+`cnf_test_configuration.yml` defines the roles under which operators and containers are to be tested.
 
-You can either edit the provided config `cnf_test_configuration.yml` TODO: or pass a different config by using the `-config` flag.
+[The included example config](test-network-function/cnf_test_configuration.yml) is set up with some examples of this:
+It will run the `"OPERATOR_STATUS"` tests (as defined in `testconfigure.yml`) against an etcd operator, and the
+`"PRIVILEGED_POD"` and `"PRIVILEGED_ROLE"` tests against an nginx container.
 
-Sample cnf_test_configuration.yml
-
-```yaml
-cnfs:
-  - name: "crole-test-pod"
-    namespace: "default"
-    status: "Running"
-    tests:
-      - "PRIVILEGED_POD"
-      - "PRIVILEGED_ROLE"
-  - name: "nginx"
-    namespace: "default"
-    status: "Running"
-    tests:
-      - "PRIVILEGED_POD"
-      - "PRIVILEGED_ROLE"
-```
-
-This example config is set to run the `"PRIVILEGED_POD"` and `"PRIVILEGED_ROLE"` tests on two operators: `nginx` and
-`crole-test-pod`
-
-#### testconfigure.yml
-
-By default, the test suite will run all the default test cases defined by `testconfigure.yml` file.  You can change
-which tests run by modifying `testconfigure.yml`.
-Example testconfigure.yml:
-
-```yaml
- operatortest:
-   - name: "OPERATOR_STATUS"
-     tests:
-       - "CSV_INSTALLED"
- cnftest:
-   - name: "PRIVILEGED_POD"
-     tests:
-     - "HOST_NETWORK_CHECK"
-     - "HOST_PORT_CHECK"
-     - "HOST_PATH_CHECK"
-     - "HOST_IPC_CHECK"
-     - "HOST_PID_CHECK"
-     - "CAPABILITY_CHECK"
-     - "ROOT_CHECK"
-     - "PRIVILEGE_ESCALATION"
-   - name: "PRIVILEGED_ROLE"
-     tests:
-     - "CLUSTER_ROLE_BINDING_BY_SA"
- ```
-
-#### Container Test Configuration
-
-You can either edit the provided config `cnf_test_configuration.yml`  or pass a different config by using the `-config` flag to the
-test suite.
-
-Sample cnf_test_configuration.yml
-
-```yaml
-cnfs:
-  - name: "crole-test-pod"
-    namespace: "default"
-    status: "Running"
-    tests:
-      - "PRIVILEGED_POD"
-      - "PRIVILEGED_ROLE"
-  - name: "nginx"
-    namespace: "default"
-    status: "Running"
-    tests:
-      - "PRIVILEGED_POD"
-      - "PRIVILEGED_ROLE"
-```
+A more extensive example is provided in [pkg/config/example.yaml](pkg/config/example.yaml)
 
 ## Test Output
 

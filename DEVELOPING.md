@@ -17,13 +17,13 @@ on specific prompts, the framework handles the context transparently.
 
 ## Test Identifiers
 
-### Example of creating an Identifier
-
 Each `tnf.Tester` implementation *must* have a unique identifier.  In practice, `tnf.Tester` implementations are the
 building blocks of larger test suites, and each implementation ought to have a means of identification.
 
 An [`identifier.Identifier`](pkg/tnf/identifier/identifier.go) is the mechanism used to hold this meta information.
 Please see the implementation for details.  Essentially, an Identifier is just a URL and a Semantic Version.
+
+### Example of creating an Identifier
 
 To create an identifier for your test, go to  [`identifiers.go`](pkg/tnf/identifier/identifiers.go).  Create a constant
 for the URL, and add the `TestCatalogEntry` to the `Catalog` map such as:
@@ -109,7 +109,7 @@ packets.
 ### Writing the test
 
 Generic tests *must* abide by the [generic-test.schema.json](schemas/generic-test.schema.json) JSON Schema.  Let's
-consider the simple [`ping`](examples/ping.json) example.  It describes a test that pings "www.redhat.com" 5 times,
+consider the simple [`ping` example](examples/ping.json).  It describes a test that pings "www.redhat.com" 5 times,
 and gives a `tnf.SUCCESS` only if all 5 pings receive a response.
 
 Let's walk through [`ping.json`](examples/ping.json) one key one at a time.
