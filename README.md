@@ -300,17 +300,15 @@ operator
 
 ## CNF Developers
 
-Developers of CNFs, particularly those intended to get their CNFs
-[Certified by Red Hat](!!! TODO link to appropriate doc) for use on OpenShift can use this suite to check their CNF is
-working correctly, and to give them the best chance of being certified quickly.
+Developers of CNFs, particularly those targeting 
+[CNF Certification with Red Hat on OpenShift](!!! TODO link to appropriate doc), can use this suite to test the
+interaction of their CNF with OpenShift.  If you are interested in CNF Certification please contact
+[Red Hat](mailto:cnf-certification@redhat.com).
 
-Please refer to the rest of the documentation in this file to see how to install and run the tests as well as how to
+Refer to the rest of the documentation in this file to see how to install and run the tests as well as how to
 interpret the results.
 
 You will need an [OpenShift 4.4 installation](https://docs.openshift.com/container-platform/4.4/welcome/index.html)
-running your CNF, and hosting at least one machine that can be used to control the test suite.  The
+running your CNF, and at least one other machine available to host the test suite.  The
 [cnf-certification-test-partner](https://github.com/redhat-nfvpe/cnf-certification-test-partner) repository has a very
 simple example of this you can model your setup on.
-
-If you are interested in the formal certification process please [contact Red Hat](!!! TODO: email address).  Red
-Hat cannot offer support for users outside the formal certification setup but may be able to assist in certain cases.
