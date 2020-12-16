@@ -222,9 +222,9 @@ cnfs:
 The test suite generates a "claim" file, which describes the system(s) under test, the tests that were run, and the
 outcome of all of the tests.  This claim file is the proof of the test run that is evaluated by Red Hat when
 "certified" status is being considered.  For more information about the contents of the claim file please see the
-[schema](https://github.com/redhat-nfvpe/test-network-function-claim/blob/master/claim.schema.json).  For more
-information about the purpose of the claim file see the docs.
-!!! TODO: link to docs when published.
+[schema](https://github.com/redhat-nfvpe/test-network-function-claim/blob/master/claim.schema.json).  You can read more
+about the purpose of the claim file and CNF Certification in the
+[Guide](https://redhat-connect.gitbook.io/openshift-badges/badges/cloud-native-network-functions-cnf).
 
 ### Adding Test Results for the CNF Validation Test Suite to a Claim File 
 e.g. Adding a cnf platform test results to your existing claim file.
@@ -301,9 +301,9 @@ operator
 ## CNF Developers
 
 Developers of CNFs, particularly those targeting 
-[CNF Certification with Red Hat on OpenShift](!!! TODO link to appropriate doc), can use this suite to test the
-interaction of their CNF with OpenShift.  If you are interested in CNF Certification please contact
-[Red Hat](mailto:cnf-certification@redhat.com).
+[CNF Certification with Red Hat on OpenShift](https://redhat-connect.gitbook.io/openshift-badges/badges/cloud-native-network-functions-cnf),
+can use this suite to test the interaction of their CNF with OpenShift.  If you are interested in CNF Certification
+please contact [Red Hat](mailto:cnf-certification@redhat.com).
 
 Refer to the rest of the documentation in this file to see how to install and run the tests as well as how to
 interpret the results.
