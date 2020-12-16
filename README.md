@@ -2,8 +2,8 @@
 
 This repository contains a set of network function test cases and the framework to build more.  It also generates reports
 (claim.json) on the result of a test run.
-The tests and framework are intended to verify the correct functioning of Cloud-Native Network Functions (CNFs) running
-on an OpenShift installation.
+The tests and framework are intended to test the interaction of Cloud-Native Network Functions (CNFs) with OpenShift
+Container Platform.
 
 The suite is provided here in part so that CNF Developers can use the suite to test their CNFs readiness for
 certification.  Please see "CNF Developers" below for more information.
@@ -81,7 +81,7 @@ In order to build the test executable, first make sure you have satisfied the [d
 make build-cnf-tests
 ```
 
-If build fails after `go get github.com/onsi/ginkgo/ginkgo` Add ginkgo location to the PATH: `export PATH=$PATH:~/go/bin`
+If a build fails after `go get github.com/onsi/ginkgo/ginkgo`, add ginkgo location to the PATH: `export PATH=$PATH:~/go/bin`
 
 *Gotcha:* The `make build` command runs the unit tests for the framework, it does NOT test the CNF.
 
@@ -194,8 +194,8 @@ Example testconfigure.yml:
 
 #### Container Test Configuration
 
-You can either edit the provided config `cnf_test_configuration.yml`  or pass a different config by using the `-config` flag to the
-test suite.
+You can either edit the provided config `cnf_test_configuration.yml`  TODO: or pass a different config to the tool by
+using the `-config` flag to the test suite.
 
 Sample cnf_test_configuration.yml
 
