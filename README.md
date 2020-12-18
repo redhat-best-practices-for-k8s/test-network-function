@@ -156,8 +156,8 @@ A more extensive example is provided in [pkg/config/example.yaml](pkg/config/exa
 The test suite generates a "claim" file, which describes the system(s) under test, the tests that were run, and the
 outcome of all of the tests.  This claim file is the proof of the test run that is evaluated by Red Hat when
 "certified" status is being considered.  For more information about the contents of the claim file please see the
-[schema](https://github.com/redhat-nfvpe/test-network-function-claim/blob/master/claim.schema.json).  You can read more
-about the purpose of the claim file and CNF Certification in the
+[schema](https://github.com/redhat-nfvpe/test-network-function-claim/blob/master/schemas/claim.schema.json).  You can
+read more about the purpose of the claim file and CNF Certification in the
 [Guide](https://redhat-connect.gitbook.io/openshift-badges/badges/cloud-native-network-functions-cnf).
 
 ### Adding Test Results for the CNF Validation Test Suite to a Claim File 
