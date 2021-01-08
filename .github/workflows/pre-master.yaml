@@ -45,4 +45,4 @@ jobs:
       run: go get github.com/golang/mock/mockgen && make mocks
 
     - name: Run Tests
-      run: make unit-tests
+      run: make test

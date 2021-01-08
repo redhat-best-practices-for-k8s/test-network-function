@@ -1,13 +1,40 @@
-.PHONY: build-cnf-tests \
-	cnf-tests \
-	dependencies \
-	deps-update \
-	mocks-clean \
+# There are four main groups of operations provided by this Makefile: build,
+# clean, run and tasks.
+
+# Build operations will create artefacts from code. This includes things such as
+# binaries, mock files, or catalogs of CNF tests.
+
+# Clean operations remove the results of the build tasks, or other files not
+# considered permanent.
+
+# Run operations provide shortcuts to execute built binaries in common
+# configurations or with default options. They are part convenience and part
+# documentation.
+
+# Tasks provide shortcuts to common operations that occur frequently during
+# development. This includes running configured linters and executing unit tests
+
+.PHONY:	build \
+	mocks \
+	clean \
+	lint \
+	test \
+	build-jsontest-cli \
+	build-catalog-json \
+	build-catalog-md \
+	build-cnf-tests \
 	run-cnf-tests \
 	run-generic-cnf-tests \
 	run-container-tests \
-	run-operator-tests
+	run-operator-tests \
+	run-generic-cnf-tests \
+	run-operator-tests \
+	run-container-tests \
+	deps-update \
+	deps-install \
+	clean-mocks
 
+# Get default value of $GOBIN if not explicitly set
 ifeq (,$(shell go env GOBIN))
   GOBIN=$(shell go env GOPATH)/bin
 else
@@ -16,84 +43,92 @@ endif
 
 COMMON_GO_ARGS=-race
 
+# Run the unit tests and build all binaries
 build:
-	make mocks
-	go fmt ./...
-	make lint
-	go build ${COMMON_GO_ARGS} ./...
-	make unit-tests
+	make test
+	make build-cnf-tests
+	make build-jsontest-cli
 
-json-catalog:
+# (Re)generate mock files as needed
+mocks: pkg/tnf/interactive/mocks/mock_spawner.go \
+    pkg/tnf/mocks/mock_tester.go \
+    pkg/tnf/reel/mocks/mock_reel.go
+
+# Cleans up auto-generated and report files
+clean:
+	go clean
+	make clean-mocks
+	rm -f ./test-network-function/test-network-function.test
+	rm -f ./test-network-function/cnf-certification-tests_junit.xml
+
+# Run configured linters
+lint:
+	golint `go list ./... | grep -v vendor`
+	golangci-lint run
+
+# Build and run unit tests
+test: mocks
+	go build ${COMMON_GO_ARGS} ./...
+	go test -coverprofile=cover.out `go list ./... | grep -v "github.com/redhat-nfvpe/test-network-function/test-network-function" | grep -v mock`
+
+
+# build the binary that can be used to run JSON-defined tests.
+build-jsontest-cli:
+	go build -o jsontest-cli -v cmd/generic/main.go
+
+# generate the test catalog in JSON
+build-catalog-json:
 	go run cmd/catalog/main.go generate json > catalog.json
 
-markdown-catalog:
+# generate the test catalog in Markdown
+build-catalog-md:
 	go run cmd/catalog/main.go generate markdown > CATALOG.md
 
-cnf-tests: build build-cnf-tests run-cnf-tests
-
-generic-cnf-tests: build build-cnf-tests run-generic-cnf-tests
-
-operator-cnf-tests: build build-cnf-tests run-operator-tests
-
-container-cnf-tests: build build-cnf-tests run-container-tests
-
-.PHONY: build-cnf-tests
+# build the CNF test binary
 build-cnf-tests:
 	PATH=${PATH}:${GOBIN} ginkgo build ./test-network-function
 
-.PHONY: run-generic-cnf-tests
-run-generic-cnf-tests:
-	./run-cnf-suites.sh diagnostic generic
 
-.PHONY: run-cnf-tests
-run-cnf-tests:
+# run all CNF tests
+run-cnf-tests: build-cnf-tests
 	./run-cnf-suites.sh diagnostic generic multus operator container
 
-.PHONY: run-operator-tests
-run-operator-tests:
+# run only the generic CNF tests
+run-generic-cnf-tests: build-cnf-tests
+	./run-cnf-suites.sh diagnostic generic
+
+# Run operator CNF tests
+run-operator-tests: build-cnf-tests
 	./run-cnf-suites.sh diagnostic operator
 
-.PHONY: run-container-tests
-run-container-tests:
+# Run container CNF tests
+run-container-tests: build-cnf-tests
 	./run-cnf-suites.sh diagnostic container
 
-deps-update:
-	go mod tidy && \
-	go mod vendor
-
-mocks:
-	make mocks-clean
-	mkdir -p pkg/tnf/interactive/mocks
+# Each mock depends on one source file
+pkg/tnf/interactive/mocks/mock_spawner.go: pkg/tnf/interactive/spawner.go
 	mockgen -source=pkg/tnf/interactive/spawner.go -destination=pkg/tnf/interactive/mocks/mock_spawner.go
-	mkdir -p pkg/tnf/mocks
+
+pkg/tnf/mocks/mock_tester.go: pkg/tnf/test.go
 	mockgen -source=pkg/tnf/test.go -destination=pkg/tnf/mocks/mock_tester.go
-	mkdir -p pkg/tnf/reel/mocks
+
+pkg/tnf/reel/mocks/mock_reel.go: pkg/tnf/reel/reel.go
 	mockgen -source=pkg/tnf/reel/reel.go -destination=pkg/tnf/reel/mocks/mock_reel.go
 
-.PHONY: mocks-clean
-mocks-clean:
+# Remove generated mock files
+clean-mocks:
 	rm -f pkg/tnf/interactive/mocks/mock_spawner.go
 	rm -f pkg/tnf/mocks/mock_tester.go
 	rm -f pkg/tnf/reel/mocks/mock_reel.go
 
 
-unit-tests:
-	go test -coverprofile=cover.out `go list ./... | grep -v "github.com/redhat-nfvpe/test-network-function/test-network-function" | grep -v mock`
+# Update source dependencies and fix versions
+update-deps:
+	go mod tidy && \
+	go mod vendor
 
-lint:
-	golint `go list ./... | grep -v vendor`
-	golangci-lint run
-
-jsontest-cli:
-	go build -o jsontest-cli -v cmd/generic/main.go
-
-clean:
-	go clean
-	make mocks-clean
-	rm -f ./test-network-function/test-network-function.test
-	rm -f ./test-network-function/cnf-certification-tests_junit.xml
-
-dependencies:
+# Install build tools and other required software.
+install-tools:
 	go get github.com/onsi/ginkgo/ginkgo
 	go get github.com/onsi/gomega/...
 	go get golang.org/x/lint/golint
