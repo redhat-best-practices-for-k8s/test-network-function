@@ -96,7 +96,7 @@ var _ = ginkgo.Describe(testSpecName, func() {
 					test, err := tnf.NewTest(context.GetExpecter(), cnfInTest, []reel.Handler{cnfInTest}, context.GetErrorChannel())
 					gomega.Expect(err).To(gomega.BeNil())
 					gomega.Expect(test).ToNot(gomega.BeNil())
-					_, err = test.Run() //nolint:ineffassign  //ignore the result, as it is not required here.
+					_, err = test.Run()
 					gomega.Expect(err).To(gomega.BeNil())
 					if factsTest.Name == string(testcases.ContainerCount) {
 						containerFact.ContainerCount, _ = strconv.Atoi(cnfInTest.Facts())
