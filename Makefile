@@ -14,7 +14,7 @@ else
   GOBIN=$(shell go env GOBIN)
 endif
 
-export COMMON_GO_ARGS=-race
+COMMON_GO_ARGS=-race
 
 build:
 	make mocks
