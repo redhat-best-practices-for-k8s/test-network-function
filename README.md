@@ -10,7 +10,7 @@ certification.  Please see "CNF Developers" below for more information.
 
 ## Dependencies
 
-At a minimum, the following dependencies must be installed *prior* to running `make dependencies`.
+At a minimum, the following dependencies must be installed *prior* to running `make deps-install`.
 
 Dependency|Minimum Version
 ---|---
@@ -22,8 +22,10 @@ Dependency|Minimum Version
 All other dependencies required to run tests can be installed using the following command:
 
 ```shell-script
-make dependencies
+make deps-install
 ```
+
+*Note*: You must also make sure that `$GOBIN` (default `$GOPATH/bin`) is on your `$PATH`.
 
 *Note*:  Efforts to containerize this offering are considered a work in progress.
 
@@ -81,9 +83,7 @@ In order to build the test executable, first make sure you have satisfied the [d
 make build-cnf-tests
 ```
 
-If a build fails after `go get github.com/onsi/ginkgo/ginkgo`, add ginkgo location to the PATH: `export PATH=$PATH:~/go/bin`
-
-*Gotcha:* The `make build` command runs the unit tests for the framework, it does NOT test the CNF.
+*Gotcha:* The `make build*` commands run unit tests where appropriate. They do NOT test the CNF.
 
 ### Testing a CNF
 
