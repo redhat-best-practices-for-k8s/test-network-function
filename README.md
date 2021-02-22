@@ -52,6 +52,60 @@ multus|The multus test suite is used to test SR-IOV network connectivity between
 operator|The operator test suite is designed basic Kubernetes Operator functionality.|4.4.3
 container|The container test suite is designed to test container functionality and configuration|4.4.3
 
+Further information about the current offering for each test spec is included below.
+
+### diagnostic tests
+
+The `diagnostic` test spec issues commands to poll environment information which can be appended to the claim file.
+This information is necessary to ensure a properly spec'd environment is used, and allows the claim to be reproduced.
+As of today, the `diagnostic` test suite just polls `Node` information for all `Node`s in the cluster.  Future
+iterations may consider running `lshw` or similar types of diagnostic tests.
+
+### generic tests
+
+The `generic` test spec tests:
+1) `Default` network connectivity between containers.
+2) That CNF container images are RHEL based.
+
+To test `Default` network connectivity, a [test partner pod](https://github.com/redhat-nfvpe/cnf-certification-test-partner)
+is installed on the network.  The test partner pod is instructed to issue ICMPv4 requests to each container listed in
+the [test configuration](./test-network-function/generic_test_configuration.yml), and vice versa.  The test asserts that
+the test partner pod receives the correct number of replies, and vice versa.
+
+In the future, other networking protocols aside from ICMPv4 should be tested.
+
+### multus tests
+
+Similar to the `generic` test spec, the `multus` test spec is utilized for CNFs that utilize multiple network
+interfaces.  As of today, the `multus` test suite just tests that
+a [test partner pod](https://github.com/redhat-nfvpe/cnf-certification-test-partner) can successfully ping the secondary
+interface of the CNF containers.  Since SR-IOV is often utilized, and the secondary interface of a CNF cannot be
+accessed in user space, the test is unidirectional.
+
+### operator tests
+
+Currently, the `operator` test spec is limited to a single test case called `OPERATOR_STATUS`.  `OPERATOR_STATUS` just
+checks that the `CSV` corresponding to the CNF Operator is properly installed.
+
+In the future, tests surrounding `Operational Lifecycle Management` will be added.
+
+### container tests
+
+The `container` test spec has the following test cases:
+
+Test Name|Description
+---|---
+`HOST_NETWORK_CHECK`|Ensures that the CNF pods do not utilize host networking.  Note:  This test can be disabled for infrastructure CNFs that should utilize host networking.
+`HOST_PORT_CHECK`|Ensures that the CNF pods do not utilize host ports.
+`HOST_PATH_CHECK`|Ensures that the CNF pods do not utilize the host filesystem.
+`HOST_IPC_CHECK`|Ensures that the CNF pods do not utilize host IPC namespace to access or control host processes.
+`HOST_PID_CHECK`|Ensures that the CNF pods do not utilize host PID namespace to access or control host processes.
+`CAPABILITY_CHECK`|Ensures that the CNF SCC is not configured to allow `NET_ADMIN` or `SYS_ADMIN`.
+`ROOT_CHECK`|Ensure that the CNF pods are not run as `root`.
+`PRIVILEGE_ESCALATION`|Ensure that the CNF SCC is not configured to allow privileged escalation.
+
+In the future, we are considering additional tests to ensure aspects such as un-alteration of the container image.
+
 ## Performing Tests
 
 Currently, all available tests are part of the "CNF Certification Test Suite" test suite, which serves as the entrypoint
