@@ -159,6 +159,14 @@ Any combintation of the suites listed above can be run, e.g.
 ./run-cnf-suites.sh diagnostic generic multus container operator
 ```
 
+By default the claim file will be output into the same location as the test executable. The `-o` argument for
+`run-cnf-suites.sh` can be used to provide a new location that the output files will be saved to. For more detailed
+control over the outputs, see the output of `test-network-function.test --help`.
+
+```shell-script
+cd test-network-function && ./test-network-function.test --help
+```
+
 *Gotcha:* The generic test suite requires that the CNF has both `ping` and `ip` binaries installed.  Please add them
 manually if the CNF under test does not include these.  Automated installation of missing dependencies is targetted
 for a future version.

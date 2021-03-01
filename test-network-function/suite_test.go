@@ -41,8 +41,11 @@ import (
 )
 
 const (
+	claimFileName                 = "claim.json"
 	claimFilePermissions          = 0644
+	claimPathFlagKey              = "claimloc"
 	CnfCertificationTestSuiteName = "CNF Certification Test Suite"
+	defaultClaimPath              = ".."
 	defaultCliArgValue            = ""
 	junitFlagKey                  = "junit"
 	JunitXMLFileName              = "cnf-certification-tests_junit.xml"
@@ -52,12 +55,14 @@ const (
 )
 
 var (
-	claimDefaultOutputFile = path.Join("..", "claim.json")
-	junitPath              *string
-	reportPath             *string
+	claimPath  *string
+	junitPath  *string
+	reportPath *string
 )
 
 func init() {
+	claimPath = flag.String(claimPathFlagKey, defaultClaimPath,
+		"the path where the claimfile will be output")
 	junitPath = flag.String(junitFlagKey, defaultCliArgValue,
 		"the path for the junit format report")
 	reportPath = flag.String(reportFlagKey, defaultCliArgValue,
@@ -88,6 +93,7 @@ func createClaimRoot() *claim.Root {
 //nolint:funlen // Function is long but core entrypoint and linear. Consider revisiting later.
 func TestTest(t *testing.T) {
 	flag.Parse()
+	claimOutputFile := path.Join(*claimPath, claimFileName)
 
 	gomega.RegisterFailHandler(ginkgo.Fail)
 
@@ -149,7 +155,7 @@ func TestTest(t *testing.T) {
 	if err != nil {
 		log.Fatalf("Failed to generate the claim: %v", err)
 	}
-	err = ioutil.WriteFile(claimDefaultOutputFile, payload, claimFilePermissions)
+	err = ioutil.WriteFile(claimOutputFile, payload, claimFilePermissions)
 	if err != nil {
 		log.Fatalf("Error writing claim data:\n%s", string(payload))
 	}
