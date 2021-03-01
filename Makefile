@@ -30,9 +30,9 @@
 	run-generic-cnf-tests \
 	run-operator-tests \
 	run-container-tests \
-	deps-update \
-	deps-install \
-	clean-mocks
+	clean-mocks \
+	update-deps \
+	install-tools
 
 # Get default value of $GOBIN if not explicitly set
 ifeq (,$(shell go env GOBIN))

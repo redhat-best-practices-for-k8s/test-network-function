@@ -10,7 +10,7 @@ certification.  Please see "CNF Developers" below for more information.
 
 ## Dependencies
 
-At a minimum, the following dependencies must be installed *prior* to running `make deps-install`.
+At a minimum, the following dependencies must be installed *prior* to running `make install-tools`.
 
 Dependency|Minimum Version
 ---|---
@@ -19,10 +19,16 @@ Dependency|Minimum Version
 [jq](https://stedolan.github.io/jq/)|1.6
 [OpenShift Client](https://docs.openshift.com/container-platform/4.4/welcome/index.html)|4.4
 
-All other dependencies required to run tests can be installed using the following command:
+Other binary dependencies required to run tests can be installed using the following command:
 
 ```shell-script
-make deps-install
+make install-tools
+```
+
+Finally the source dependencies can be installed with
+
+```shell-script
+make update-deps
 ```
 
 *Note*: You must also make sure that `$GOBIN` (default `$GOPATH/bin`) is on your `$PATH`.
