@@ -138,17 +138,17 @@ func isTimeout(err error) bool {
 
 // Step performs `step`, then, in response to events, consequent steps fed by `handler`.
 // Return on first error, or when there is no next step to perform.
-func (reel *Reel) Step(step *Step, handler Handler) error {
+func (r *Reel) Step(step *Step, handler Handler) error {
 	for step != nil {
-		if reel.Err != nil {
-			return reel.Err
+		if r.Err != nil {
+			return r.Err
 		}
 		exec, exp, timeout := step.unpack()
 		var batcher []expect.Batcher
 		batcher = generateBatcher(exec)
 		var firstMatch string
 		batcher = batchExpectations(exp, batcher, &firstMatch)
-		results, err := (*reel.expecter).ExpectBatch(batcher, timeout)
+		results, err := (*r.expecter).ExpectBatch(batcher, timeout)
 
 		if !step.hasExpectations() {
 			return nil
@@ -182,8 +182,8 @@ func (reel *Reel) Step(step *Step, handler Handler) error {
 
 // Run the target subprocess to completion.  The first step to take is supplied by handler.  Consequent steps are
 // determined by handler in response to events.  Return on first error, or when there is no next step to execute.
-func (reel *Reel) Run(handler Handler) error {
-	return reel.Step(handler.ReelFirst(), handler)
+func (r *Reel) Run(handler Handler) error {
+	return r.Step(handler.ReelFirst(), handler)
 }
 
 // Appends a new line to a command, if necessary.
