@@ -17,6 +17,7 @@
 package redhat_test
 
 import (
+	"regexp"
 	"strings"
 	"testing"
 	"time"
@@ -79,8 +80,17 @@ func TestRelease_ReelTimeout(t *testing.T) {
 	assert.Nil(t, step)
 }
 
-func TestRelease_ReelEof(t *testing.T) {
+func TestRelease_ReelEOF(t *testing.T) {
 	// just ensures no panics
 	r := redhat.NewRelease(testTimeoutDuration)
 	r.ReelEOF()
+}
+
+func TestRelease_VersionRegex(t *testing.T) {
+	r := regexp.MustCompile(redhat.VersionRegex)
+	// As we encounter more (and more) variations of /etc/redhat-release contents, do a quick compile time check to make
+	// sure the VersionRegex should still match.
+	assert.True(t, r.MatchString("Red Hat Enterprise Linux Server release 7.8 (Maipo)"))
+	assert.True(t, r.MatchString("Red Hat Enterprise Linux release 8.2 (Ootpa)"))
+	assert.False(t, r.MatchString("Won't match."))
 }
