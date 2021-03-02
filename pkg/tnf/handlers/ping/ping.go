@@ -109,7 +109,7 @@ func (p *Ping) ReelMatch(_, _, match string) *reel.Step {
 
 // ReelTimeout returns a step which kills the ping test by sending it ^C.
 func (p *Ping) ReelTimeout() *reel.Step {
-	return &reel.Step{Execute: reel.CtrlC}
+	return nil
 }
 
 // ReelEOF does nothing;  ping requires no intervention on eof.
