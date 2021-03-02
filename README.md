@@ -8,6 +8,30 @@ Container Platform.
 The suite is provided here in part so that CNF Developers can use the suite to test their CNFs readiness for
 certification.  Please see "CNF Developers" below for more information.
 
+## Container
+
+### Running
+
+To run the tests in the container, use the following command. There are several required arguments:
+
+* `-k` gives a path to the kube config file to be used by the container to authenticate with the cluster.
+* `-t` gives the local directory that contains tnf config files set up for the test.
+* `-o` gives the local directory that the test results will be available in once the container exits.
+* Finally, the specs to be run must be specified.
+
+```shell-script
+./run-container.sh -k ~/.kube/config -t ~/tnf/config -o ~/tnf/output diagnostic generic
+```
+
+### Building
+
+The container can be built using the command below. Use the value of `TNF_VERSION` to set a branch or tag that will be
+installed into the container.
+
+```shell-script
+docker build -t tnf --build-arg TNF_VERSION=1.0.3 .
+```
+
 ## Dependencies
 
 At a minimum, the following dependencies must be installed *prior* to running `make install-tools`.
