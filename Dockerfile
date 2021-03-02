@@ -44,7 +44,7 @@ RUN make install-tools && \
 	make update-deps && \
 	make build-cnf-tests
 
-#  Extract what's needed to run to a seperate location
+#  Extract what's needed to run at a seperate location
 RUN mkdir ${TNF_BIN_DIR} && \
 	cp run-cnf-suites.sh ${TNF_DIR} && \
 	cp version.json ${TNF_DIR} && \
@@ -75,4 +75,4 @@ FROM scratch
 COPY --from=build / /
 ENV KUBECONFIG=/usr/tnf/kubeconfig/config
 WORKDIR /usr/tnf
-CMD ["./run-cnf-suites.sh", "-o", "claim", "generic"]
+CMD ["./run-cnf-suites.sh", "-o", "claim", "diagnostic", "generic"]
