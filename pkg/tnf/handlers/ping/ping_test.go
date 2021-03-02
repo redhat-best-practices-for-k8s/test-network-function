@@ -172,10 +172,7 @@ func TestPing_ReelMatch(t *testing.T) {
 func TestPing_ReelTimeout(t *testing.T) {
 	request := ping.NewPing(testTimeoutDuration, "192.168.1.2", 1)
 	step := request.ReelTimeout()
-	assert.NotNil(t, step)
-	assert.NotNil(t, step.Execute)
-	var expect []string
-	assert.Equal(t, expect, step.Expect)
+	assert.Nil(t, step)
 }
 
 func TestPing_Timeout(t *testing.T) {
