@@ -7,7 +7,7 @@ usage() {
 	echo "$0 [-o OUTPUT_LOC] SUITE [... SUITE]"
 	echo "Call the script and list the test suites to run"
 	echo "  e.g."
-	echo "    $0 generic container"
+	echo "    $0 [ARGS] generic container"
 	echo "  will run the generic and container suites"
 	echo ""
 	echo "Allowed suites are listed in the README."
@@ -33,7 +33,7 @@ while [[ $1 == -* ]]; do
 	esac
 done
 
-GINKGO_ARGS="-ginkgo.v -junit $OUTPUT_LOC -report $OUTPUT_LOC -claimloc $OUTPUT_LOC"
+GINKGO_ARGS="-ginkgo.v -junit . -report $OUTPUT_LOC -claimloc $OUTPUT_LOC"
 FOCUS=""
 
 for var in "$@"
