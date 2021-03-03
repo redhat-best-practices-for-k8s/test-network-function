@@ -55,7 +55,7 @@ var (
 )
 
 var _ = ginkgo.Describe(testSpecName, func() {
-	if testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusString, testSpecName) {
+	if testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusStrings, testSpecName) {
 		defer ginkgo.GinkgoRecover()
 		ginkgo.When("a local shell is spawned", func() {
 			goExpectSpawner := interactive.NewGoExpectSpawner()
