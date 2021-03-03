@@ -124,6 +124,7 @@ clean-mocks:
 
 # Update source dependencies and fix versions
 update-deps:
+	make mocks
 	go mod tidy && \
 	go mod vendor
 
