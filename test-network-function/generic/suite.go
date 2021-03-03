@@ -45,6 +45,10 @@ const (
 // The default test timeout.
 var defaultTimeout = time.Duration(defaultTimeoutSeconds) * time.Second
 
+// containersToExcludeFromConnectivityTests is a set used for storing the containers that should be excluded from
+// connectivity testing.
+var containersToExcludeFromConnectivityTests = make(map[tnfConfig.ContainerIdentifier]interface{})
+
 // Helper used to instantiate an OpenShift Client Session.
 func getOcSession(pod, container, namespace string, timeout time.Duration, options ...expect.Option) *interactive.Oc {
 	// Spawn an interactive OC shell using a goroutine (needed to avoid cross expect.Expecter interaction).  Extract the
@@ -85,6 +89,7 @@ type container struct {
 	containerConfiguration  tnfConfig.Container
 	oc                      *interactive.Oc
 	defaultNetworkIPAddress string
+	containerIdentifier     tnfConfig.ContainerIdentifier
 }
 
 // createContainers contains the general steps involved in creating "oc" sessions and other configuration. A map of the
@@ -93,8 +98,16 @@ func createContainers(containerDefinitions map[tnfConfig.ContainerIdentifier]tnf
 	createdContainers := map[tnfConfig.ContainerIdentifier]*container{}
 	for containerID, containerConfig := range containerDefinitions {
 		oc := getOcSession(containerID.PodName, containerID.ContainerName, containerID.Namespace, defaultTimeout, expect.Verbose(true))
-		defaultIPAddress := getContainerDefaultNetworkIPAddress(oc, containerConfig.DefaultNetworkDevice)
-		createdContainers[containerID] = &container{containerConfiguration: containerConfig, oc: oc, defaultNetworkIPAddress: defaultIPAddress}
+		var defaultIPAddress = "UNKNOWN"
+		if _, ok := containersToExcludeFromConnectivityTests[containerID]; !ok {
+			defaultIPAddress = getContainerDefaultNetworkIPAddress(oc, containerConfig.DefaultNetworkDevice)
+		}
+		createdContainers[containerID] = &container{
+			containerConfiguration:  containerConfig,
+			oc:                      oc,
+			defaultNetworkIPAddress: defaultIPAddress,
+			containerIdentifier:     containerID,
+		}
 	}
 	return createdContainers
 }
@@ -120,6 +133,9 @@ var _ = ginkgo.Describe(testsKey, func() {
 		config := GetTestConfiguration()
 		log.Infof("Test Configuration: %s", config)
 
+		for _, cid := range config.ExcludeContainersFromConnectivityTests {
+			containersToExcludeFromConnectivityTests[cid] = ""
+		}
 		containersUnderTest := createContainersUnderTest(config)
 		partnerContainers := createPartnerContainers(config)
 		testOrchestrator := partnerContainers[config.TestOrchestrator]
@@ -129,8 +145,10 @@ var _ = ginkgo.Describe(testsKey, func() {
 		ginkgo.Context("Both Pods are on the Default network", func() {
 			// for each container under test, ensure bidirectional ICMP traffic between the container and the orchestrator.
 			for _, containerUnderTest := range containersUnderTest {
-				testNetworkConnectivity(containerUnderTest.oc, testOrchestrator.oc, testOrchestrator.defaultNetworkIPAddress, defaultNumPings)
-				testNetworkConnectivity(testOrchestrator.oc, containerUnderTest.oc, containerUnderTest.defaultNetworkIPAddress, defaultNumPings)
+				if _, ok := containersToExcludeFromConnectivityTests[containerUnderTest.containerIdentifier]; !ok {
+					testNetworkConnectivity(containerUnderTest.oc, testOrchestrator.oc, testOrchestrator.defaultNetworkIPAddress, defaultNumPings)
+					testNetworkConnectivity(testOrchestrator.oc, containerUnderTest.oc, containerUnderTest.defaultNetworkIPAddress, defaultNumPings)
+				}
 			}
 		})
 
