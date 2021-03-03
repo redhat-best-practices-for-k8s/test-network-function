@@ -21,6 +21,7 @@ import (
 	"io/ioutil"
 	"os"
 	"regexp"
+	"strings"
 
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/testcases/data/cnf"
 	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/testcases/data/operator"
@@ -332,12 +333,12 @@ func (b *BaseTestCase) ReplaceSAasExpectedStatus(index int, val string) {
 	b.ExpectedStatus[index] = val
 }
 
-// IsInFocus matches gingkgo focus string to description key
-func IsInFocus(focus, desc string) bool {
+// IsInFocus matches ginkgo focus strings to description key
+func IsInFocus(focus []string, desc string) bool {
 	matchesFocus := true
 	var focusFilter *regexp.Regexp
-	if focus != "" {
-		focusFilter = regexp.MustCompile(focus)
+	if len(focus) > 0 {
+		focusFilter = regexp.MustCompile(strings.Join(focus, "|"))
 	}
 	if focusFilter != nil {
 		matchesFocus = focusFilter.Match([]byte(desc))

@@ -115,7 +115,7 @@ func createPartnerContainers(config *tnfConfig.TestConfiguration) map[tnfConfig.
 
 // Runs the "generic" CNF test cases.
 var _ = ginkgo.Describe(testsKey, func() {
-	if testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusString, testsKey) {
+	if testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusStrings, testsKey) {
 
 		config := GetTestConfiguration()
 		log.Infof("Test Configuration: %s", config)
@@ -160,7 +160,7 @@ func testIsRedHatRelease(oc *interactive.Oc) {
 // TODO: Multus is not applicable to every CNF, so in some regards it is CNF-specific.  On the other hand, it is likely
 // a useful test across most CNFs.  Should "multus" be considered generic, cnf_specific, or somewhere in between.
 var _ = ginkgo.Describe(multusTestsKey, func() {
-	if testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusString, multusTestsKey) {
+	if testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusStrings, multusTestsKey) {
 		config := GetTestConfiguration()
 		log.Infof("Test Configuration: %s", config)
 
