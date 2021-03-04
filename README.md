@@ -12,12 +12,14 @@ certification.  Please see "CNF Developers" below for more information.
 
 ### Running
 
-To run the tests in the container, use the following command. There are several required arguments:
+A container that can be used to run the tests is available from [quay.io](https://quay.io/repository/testnetworkfunction/test-network-function)
+
+To pull the latest container and run the tests you use the following command. There are several required arguments:
 
 * `-k` gives a path to the kube config file to be used by the container to authenticate with the cluster.
 * `-t` gives the local directory that contains tnf config files set up for the test.
 * `-o` gives the local directory that the test results will be available in once the container exits.
-* Finally, the specs to be run must be specified.
+* Finally, list the specs to be run must be specified, space-separated.
 
 ```shell-script
 ./run-container.sh -k ~/.kube/config -t ~/tnf/config -o ~/tnf/output diagnostic generic
@@ -25,11 +27,11 @@ To run the tests in the container, use the following command. There are several 
 
 ### Building
 
-The container can be built using the command below. Use the value of `TNF_VERSION` to set a branch or tag that will be
-installed into the container.
+You can build an image locally by using the command below. Use the value of `TNF_VERSION` to set a branch or tag that will be
+installed into the image. Note that this image will not be run by the script above.
 
 ```shell-script
-docker build -t tnf --build-arg TNF_VERSION=1.0.3 .
+docker build -t test-network-function --build-arg TNF_VERSION=v1.0.4 .
 ```
 
 ## Dependencies

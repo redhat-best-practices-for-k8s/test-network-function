@@ -12,7 +12,7 @@ usage() {
 	echo "  e.g."
 	echo "    $0 -k ~/.kube/config -t ~/tnf/config -o ~/tnf/output diagnostic generic"
 	echo "  will run the diagnostic and generic tests, and output the result into"
-	echo "  ~/tnf/output"
+	echo "  ~/tnf/output on the host."
 	echo ""
 	echo "Allowed tests are listed in the README."
 	echo "Note: Tests muse be specified after all other arguments"
@@ -59,4 +59,4 @@ while [[ $1 == -* ]]; do
 done
 
 set -x
-docker run --rm -v $LOCAL_TNF_CONFIG:$CONTAINER_TNF_DIR/config -v $LOCAL_KUBECONFIG:$CONTAINER_TNF_DIR/kubeconfig/config -v $OUTPUT_LOC:$CONTAINER_TNF_DIR/claim tnf ./run-cnf-suites.sh -o $CONTAINER_TNF_DIR/claim $@
+docker run --rm -v $LOCAL_TNF_CONFIG:$CONTAINER_TNF_DIR/config -v $LOCAL_KUBECONFIG:$CONTAINER_TNF_DIR/kubeconfig/config -v $OUTPUT_LOC:$CONTAINER_TNF_DIR/claim quay.io/testnetworkfunction/test-network-function:latest ./run-cnf-suites.sh -o $CONTAINER_TNF_DIR/claim $@
