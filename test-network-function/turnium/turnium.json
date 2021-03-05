@@ -1,0 +1,59 @@
+{
+	"identifier": {
+	  "url": "http://test-network-function.com/tests/turnium",
+	  "version": "v1.0.0"
+	},
+	"description": "Check `legids -v` reports state as up.",
+	"testResult": 0,
+	"testTimeout": 10000000000,
+	"reelFirstStep": {
+	  "execute": "legids -v | sed 's/\\x1b\\[[0-9;]*m//g' \n",
+	  "expect": [
+		"state: (up|down)"
+	  ],
+	  "timeout": 10000000000
+	},
+	"resultContexts": [
+		{
+			"pattern": "state: (up|down)",
+			"defaultResult": 1,
+			"composedAssertions": [
+				{
+					"assertions": [
+						{
+							"groupIdx": 1,
+							"condition": {
+								"type": "equals",
+								"expected": "up"
+							}
+						}
+					],
+					"logic": {
+						"type": "and"
+					}
+				}
+			]
+		},
+		{
+			"pattern": "state: (up|down)",
+			"defaultResult": 2,
+			"composedAssertions": [
+				{
+					"assertions": [
+						{
+							"groupIdx": 1,
+							"condition": {
+								"type": "equals",
+								"expected": "down"
+							}
+						}
+					],
+					"logic": {
+						"type": "and"
+					}
+				}
+			]
+		}
+	]
+  }
+  

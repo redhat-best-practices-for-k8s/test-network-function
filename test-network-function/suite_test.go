@@ -35,6 +35,7 @@ import (
 	"github.com/redhat-nfvpe/test-network-function/test-network-function/diagnostic"
 	_ "github.com/redhat-nfvpe/test-network-function/test-network-function/generic"
 	_ "github.com/redhat-nfvpe/test-network-function/test-network-function/operator"
+	_ "github.com/redhat-nfvpe/test-network-function/test-network-function/turnium"
 	"github.com/redhat-nfvpe/test-network-function/test-network-function/version"
 	log "github.com/sirupsen/logrus"
 	ginkgoreporters "kubevirt.io/qe-tools/pkg/ginkgo-reporters"

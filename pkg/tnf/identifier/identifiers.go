@@ -26,6 +26,7 @@ const (
 	pingIdentifierURL     = "http://test-network-function.com/tests/ping"
 	podIdentifierURL      = "http://test-network-function.com/tests/container/pod"
 	versionIdentifierURL  = "http://test-network-function.com/tests/generic/version"
+	turniumIdentifierURL  = "http://test-network-function.com/tests/generic/turnium"
 
 	versionOne = "v1.0.0"
 )
@@ -156,6 +157,18 @@ var Catalog = map[string]TestCatalogEntry{
 			dependencies.CatBinaryName,
 		},
 	},
+	turniumIdentifierURL: {
+		Identifier:  TurniumIdentifier,
+		Description: "Test that Turniums links state is `up`.",
+		Type:        Normative,
+		IntrusionSettings: IntrusionSettings{
+			ModifiesSystem:           false,
+			ModificationIsPersistent: false,
+		},
+		BinaryDependencies: []string{
+			dependencies.LegIdsBinaryName,
+		},
+	},
 }
 
 // HostnameIdentifier is the Identifier used to represent the generic hostname test case.
@@ -197,5 +210,11 @@ var PodIdentifier = Identifier{
 // VersionIdentifier is the Identifier used to represent the generic container base image test.
 var VersionIdentifier = Identifier{
 	URL:             versionIdentifierURL,
+	SemanticVersion: versionOne,
+}
+
+// TurniumIdentifier is the Identifier used to represent the Turnium tests.
+var TurniumIdentifier = Identifier{
+	URL:             turniumIdentifierURL,
 	SemanticVersion: versionOne,
 }

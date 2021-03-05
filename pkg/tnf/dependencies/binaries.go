@@ -32,6 +32,9 @@ const (
 	// JqBinaryName is the name of the Unix `jq` command.
 	JqBinaryName = "jq"
 
+	// LegIdsBinaryName is the name of Turniums `legids` command.
+	LegIdsBinaryName = "legids"
+
 	// OcBinaryName is the name of the OpenShift CLI client command.
 	OcBinaryName = "oc"
 

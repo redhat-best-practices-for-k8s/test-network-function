@@ -1,0 +1,4 @@
+turniumBonder:
+  namespace: default
+  podName: bonder
+  containerName: bonder
