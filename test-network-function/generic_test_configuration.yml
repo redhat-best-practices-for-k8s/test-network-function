@@ -16,3 +16,7 @@ testOrchestrator:
   namespace: default
   podName: partner
   containerName: partner
+turniumBonder:
+  namespace: default
+  podName: bonder
+  containerName: bonder

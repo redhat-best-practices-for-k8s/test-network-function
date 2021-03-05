@@ -171,6 +171,7 @@ type Container struct {
 
 // TestConfiguration provides generic test related configuration
 type TestConfiguration struct {
+	TurniumBonder       ContainerIdentifier               `yaml:"turniumBonder" json:"turniumBonder"`
 	ContainersUnderTest map[ContainerIdentifier]Container `yaml:"containersUnderTest" json:"containersUnderTest"`
 	PartnerContainers   map[ContainerIdentifier]Container `yaml:"partnerContainers" json:"partnerContainers"`
 	TestOrchestrator    ContainerIdentifier               `yaml:"testOrchestrator" json:"testOrchestrator"`

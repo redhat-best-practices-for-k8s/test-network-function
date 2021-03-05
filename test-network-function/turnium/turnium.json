@@ -1,0 +1,23 @@
+{
+	"identifier": {
+	  "url": "http://test-network-function.com/tests/turnium",
+	  "version": "v1.0.0"
+	},
+	"description": "Check `legids -v` reports state as up.",
+	"testResult": 0,
+	"testTimeout": 10000000000,
+	"reelFirstStep": {
+	  "execute": "legids -v\n",
+	  "expect": [
+		"state: up"
+	  ],
+	  "timeout": 10000000000
+	},
+	"resultContexts": [
+	  {
+		"pattern": "state: up",
+		"defaultResult": 1
+	  }
+	]
+  }
+  
