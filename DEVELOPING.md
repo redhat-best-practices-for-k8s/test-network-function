@@ -120,9 +120,9 @@ A human-readable description is required for every test.  This documentation pro
 
 #### testResult
 
-`testResult` is initialized as 0.  As of now, `tnf.Tester` mandates `Result()` returns an `int` value.  `0` corresponds
+`testResult` is initialized as 2.  As of now, `tnf.Tester` mandates `Result()` returns an `int` value.  `2` corresponds
 to `tnf.ERROR`.  In fact, all tests should start report `tnf.ERROR` as good practice, and only progress to
-`tnf.SUCCESS` or `tnf.FAILURE` after inspecting a given match.
+`tnf.SUCCESS` (`0`) or `tnf.FAILURE` (`1`) after inspecting a given match.
 
 #### testTimeout
 
@@ -265,7 +265,7 @@ You will get something similar to the following:
 INFO[0000] Running examples/ping.json from a local shell context
 2020/12/06 13:32:53 Sent: "ping -c 5 www.redhat.com\n"
 2020/12/06 13:32:57 Match for RE: "(?m)(\\d+) packets transmitted, (\\d+)( packets){0,1} received, (?:\\+(\\d+) errors)?.*$" found: ["5 packets transmitted, 5 packets received, 0.0% packet loss" "5" "5" " packets" ""] Buffer: "PING e3396.dscx.akamaiedge.net (23.34.95.235): 56 data bytes\n64 bytes from 23.34.95.235: icmp_seq=0 ttl=59 time=17.661 ms\n64 bytes from 23.34.95.235: icmp_seq=1 ttl=59 time=25.993 ms\n64 bytes from 23.34.95.235: icmp_seq=2 ttl=59 time=26.353 ms\n64 bytes from 23.34.95.235: icmp_seq=3 ttl=59 time=25.725 ms\n64 bytes from 23.34.95.235: icmp_seq=4 ttl=59 time=22.403 ms\n\n--- e3396.dscx.akamaiedge.net ping statistics ---\n5 packets transmitted, 5 packets received, 0.0% packet loss\nround-trip min/avg/max/stddev = 17.661/23.627/26.353/3.302 ms\n"
-INFO[0004] Test Result: 1
+INFO[0004] Test Result: 0
 INFO[0004] Test Payload:
 INFO[0004] {
     "description": "Pings www.redhat.com 5 times using the Unix ping executable.",
@@ -311,15 +311,15 @@ INFO[0004] {
                     }
                 }
             ],
-            "defaultResult": 1
+            "defaultResult": 0
         }
     ],
-    "testResult": 1,
+    "testResult": 2,
     "testTimeout": 10000000000
 }
 ```
 
-Note that `testResult` is 1, indicating `tnf.SUCCESS`.
+Note that `testResult` is 0, indicating `tnf.SUCCESS`.
 
 If you wish to explore the `oc` and `ssh` variants of `jsontest-cli`, please consult the following:
 
@@ -520,9 +520,9 @@ The logic for determining the test result is up to the test writer.  This partic
 output to determine the result.
 1) If the provided `destination` results in an `Indvalid Argument`, then `tnf.ERROR` is returned.
 2) If the ping summary regular expression matched, then:
-* `tnf.ERROR` if there were PING transmit errors
 * `tnf.SUCCESS` if a maximum of a single packet was lost
 * `tnf.FAILURE` for any other case.
+* `tnf.ERROR` if there were PING transmit errors
 
 ### Including `ping.go` in a Ginkgo Test Suite
 

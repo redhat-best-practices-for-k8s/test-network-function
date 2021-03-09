@@ -24,14 +24,14 @@ import (
 	expect "github.com/ryandgoulding/goexpect"
 )
 
-const (
-	// ERROR represents an errored test.
-	ERROR = iota
-	// SUCCESS represents a successful test.
-	SUCCESS
-	// FAILURE represents a failed test.
-	FAILURE
-)
+// SUCCESS represents a successful test.
+const SUCCESS = 0
+
+// FAILURE represents a failed test.
+const FAILURE = 1
+
+// ERROR represents an errored test.
+const ERROR = 2
 
 // Tester provides the interface for a Test.
 type Tester interface {

@@ -4,7 +4,7 @@
     "version": "v1.0.0"
   },
   "description": "Runs `oc get nodes -o json` on a target machine.",
-  "testResult": 0,
+  "testResult": 2,
   "testTimeout": 10000000000,
   "reelFirstStep": {
     "execute": "oc get nodes -o json\n",
@@ -16,7 +16,7 @@
   "resultContexts": [
     {
       "pattern": "(?m)(.|\n)+",
-      "defaultResult": 1
+      "defaultResult": 0
     }
   ]
 }

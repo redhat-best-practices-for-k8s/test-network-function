@@ -14,7 +14,7 @@
   "resultContexts": [
     {
       "pattern": "(?m)Red Hat Enterprise Linux Server release (\\d+\\.\\d+) \\((\\w+)\\)",
-      "defaultResult": 1,
+      "defaultResult": 0,
       "composedAssertions": [
         {
           "assertions": [
@@ -32,6 +32,6 @@
       ]
     }
   ],
-  "testResult": 0,
+  "testResult": 2,
   "testTimeout": 2000000000
 }

@@ -16,11 +16,11 @@
   "resultContexts": [
     {
       "pattern": "(?m)Unknown Base Image",
-      "defaultResult": 2
+      "defaultResult": 1
     },
     {
       "pattern": "(?m)Red Hat Enterprise Linux Server release (\\d+\\.\\d+) \\((\\w+)\\)",
-      "defaultResult": 1,
+      "defaultResult": 0,
       "composedAssertions": [
         {
           "assertions": [
@@ -47,7 +47,7 @@
     },
     {
       "pattern": "(?m)contrived match",
-      "defaultResult": 0,
+      "defaultResult": 2,
       "nextStep": {
         "execute": "ls -al\n",
         "expect": ["(?m).+"],
@@ -55,6 +55,6 @@
       }
     }
   ],
-  "testResult": 0,
+  "testResult": 2,
   "testTimeout": 2000000000
 }
