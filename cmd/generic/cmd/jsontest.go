@@ -105,7 +105,7 @@ var (
 
 	// ocCmd is the entrypoint for running a test case in an interactive oc shell.
 	ocCmd = &cobra.Command{
-		Use:   "oc [namespace] [pod] [container] [jsonTestFile]",
+		Use:   "oc [pod] [container] [namespace] [jsonTestFile]",
 		Short: "run in an oc context",
 		Args:  cobra.ExactValidArgs(ocCmdMandatoryNumArgs),
 		Run:   runOcCmd,
@@ -211,7 +211,7 @@ func runOcCmd(_ *cobra.Command, args []string) {
 	}
 
 	// Report what is being run to the user.
-	namespace, pod, container, file := args[0], args[1], args[2], args[3]
+	pod, container, namespace, file := args[0], args[1], args[2], args[3]
 	log.Info(term.Bluef("Running %s from oc interactive shell [namespace=\"%s\" pod=\"%s\" container=\"%s\"]", file, namespace, pod, container))
 
 	// setup / parse the input test.  Must be done prior to creating the Expecter to derive the test timeout.
