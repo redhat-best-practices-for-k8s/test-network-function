@@ -29,16 +29,24 @@ import (
 	expect "github.com/ryandgoulding/goexpect"
 )
 
+const (
+	// incorrectUsageExitCode is the Unix return code used when the supplied arguments are inappropriate.
+	incorrectUsageExitCode = 2
+
+	// mandatoryNumArgs is the number of positional arguments required.
+	mandatoryNumArgs = 3
+)
+
 func parseArgs() (*interactive.Context, string, time.Duration, error) {
 	timeout := flag.Int("t", 2, "Timeout in seconds")
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "usage: %s [-t timeout] user host targetIpAddress\n", os.Args[0])
 		flag.PrintDefaults()
-		os.Exit(tnf.ERROR)
+		os.Exit(incorrectUsageExitCode)
 	}
 	flag.Parse()
 	args := flag.Args()
-	if len(args) < 3 { //nolint:gomnd
+	if len(args) < mandatoryNumArgs {
 		flag.Usage()
 	}
 
@@ -57,7 +65,7 @@ func main() {
 
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
-		os.Exit(result)
+		os.Exit(tnf.ExitCodeMap[result])
 	}
 
 	request := ping.NewPing(timeoutDuration, targetIPAddress, 5)
@@ -71,5 +79,5 @@ func main() {
 		fmt.Fprintln(os.Stderr, err)
 	}
 
-	os.Exit(result)
+	os.Exit(tnf.ExitCodeMap[result])
 }
