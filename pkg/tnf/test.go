@@ -33,6 +33,13 @@ const (
 	FAILURE
 )
 
+// ExitCodeMap maps a test result value to a more appropriate Unix return code.
+var ExitCodeMap = map[int]int{
+	SUCCESS: 0,
+	FAILURE: 1,
+	ERROR:   2,
+}
+
 // Tester provides the interface for a Test.
 type Tester interface {
 	// Args returns the CLI command as a string array.
