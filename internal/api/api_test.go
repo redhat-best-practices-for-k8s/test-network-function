@@ -122,7 +122,7 @@ func TestApiClient_IsContainerCertified(t *testing.T) {
 func TestApiClient_IsOperatorCertified(t *testing.T) {
 	for _, c := range operatorTestCases {
 		GetDoFunc = getDoFunc(c.responseData, c.responseStatus) //nolint:bodyclose
-		result := client.IsOperatorCertified(c.packageName, c.org)
+		result := client.IsOperatorCertified(c.org, c.packageName)
 		assert.Equal(t, c.expectedResult, result)
 	}
 }
