@@ -84,7 +84,7 @@ func itRunsTestsOnOperator() {
 			ginkgo.It(fmt.Sprintf("cnf certification test for: %s/%s ", certified.Organization, certified.Name), func() {
 				certified := certified // pin
 				gomega.Eventually(func() bool {
-					isCertified := certAPIClient.IsOperatorCertified(certified.Organization, certified.Name)
+					isCertified := certAPIClient.IsOperatorCertified(certified.Name, certified.Organization)
 					return isCertified
 				}, eventuallyTimeoutSeconds, interval).Should(gomega.BeTrue())
 			})
