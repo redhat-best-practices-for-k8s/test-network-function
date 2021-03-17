@@ -23,11 +23,11 @@ import (
 	"time"
 
 	"github.com/golang/mock/gomock"
-	mock_interactive "github.com/redhat-nfvpe/test-network-function/pkg/tnf/interactive/mocks"
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/reel"
-	mock_reel "github.com/redhat-nfvpe/test-network-function/pkg/tnf/reel/mocks"
 	expect "github.com/ryandgoulding/goexpect"
 	"github.com/stretchr/testify/assert"
+	mock_interactive "github.com/test-network-function/test-network-function/pkg/tnf/interactive/mocks"
+	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
+	mock_reel "github.com/test-network-function/test-network-function/pkg/tnf/reel/mocks"
 )
 
 // Tests all aspects of reel.  The few lines that are not tested include a function definition that is passed as a

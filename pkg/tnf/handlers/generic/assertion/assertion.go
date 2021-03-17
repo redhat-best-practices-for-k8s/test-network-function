@@ -20,9 +20,9 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/generic/condition"
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/generic/condition/intcondition"
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/generic/condition/stringcondition"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/generic/condition"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/generic/condition/intcondition"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/generic/condition/stringcondition"
 )
 
 const (

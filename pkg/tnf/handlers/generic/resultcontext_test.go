@@ -22,12 +22,12 @@ import (
 	"path"
 	"testing"
 
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/generic"
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/generic/assertion"
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/generic/condition"
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/generic/condition/intcondition"
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/reel"
 	"github.com/stretchr/testify/assert"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/generic"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/generic/assertion"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/generic/condition"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/generic/condition/intcondition"
+	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
 )
 
 var testFileName = path.Join("testdata", "nested-result-context-marshal-expected.json")

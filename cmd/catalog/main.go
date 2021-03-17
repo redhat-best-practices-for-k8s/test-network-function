@@ -19,7 +19,7 @@ package main
 import (
 	"log"
 
-	"github.com/redhat-nfvpe/test-network-function/cmd/catalog/cmd"
+	"github.com/test-network-function/test-network-function/cmd/catalog/cmd"
 )
 
 // main generates a JSON formatted version of the test catalog.

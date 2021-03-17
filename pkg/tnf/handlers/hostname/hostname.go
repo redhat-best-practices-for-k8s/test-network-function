@@ -19,10 +19,10 @@ package hostname
 import (
 	"time"
 
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/dependencies"
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/identifier"
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/reel"
+	"github.com/test-network-function/test-network-function/pkg/tnf"
+	"github.com/test-network-function/test-network-function/pkg/tnf/dependencies"
+	"github.com/test-network-function/test-network-function/pkg/tnf/identifier"
+	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
 )
 
 // Hostname provides a hostname test implemented using command line tool "hostname".

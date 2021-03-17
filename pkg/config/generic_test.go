@@ -21,8 +21,8 @@ import (
 	"path"
 	"testing"
 
-	"github.com/redhat-nfvpe/test-network-function/pkg/config"
 	"github.com/stretchr/testify/assert"
+	"github.com/test-network-function/test-network-function/pkg/config"
 )
 
 func TestContainerIdentifier_MarshalText(t *testing.T) {

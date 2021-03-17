@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/redhat-nfvpe/test-network-function/internal/api"
 	"github.com/stretchr/testify/assert"
+	"github.com/test-network-function/test-network-function/internal/api"
 )
 
 const (

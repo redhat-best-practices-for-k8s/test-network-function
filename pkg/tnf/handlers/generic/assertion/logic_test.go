@@ -19,7 +19,7 @@ package assertion_test
 import (
 	"regexp"
 
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/generic/assertion"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/generic/assertion"
 )
 
 type booleanLogicTestCase struct {

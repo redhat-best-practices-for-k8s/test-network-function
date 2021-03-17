@@ -99,7 +99,7 @@ The `generic` test spec tests:
 1) `Default` network connectivity between containers.
 2) That CNF container images are RHEL based.
 
-To test `Default` network connectivity, a [test partner pod](https://github.com/redhat-nfvpe/cnf-certification-test-partner)
+To test `Default` network connectivity, a [test partner pod](https://github.com/test-network-function/cnf-certification-test-partner)
 is installed on the network.  The test partner pod is instructed to issue ICMPv4 requests to each container listed in
 the [test configuration](./test-network-function/generic_test_configuration.yml), and vice versa.  The test asserts that
 the test partner pod receives the correct number of replies, and vice versa.
@@ -110,7 +110,7 @@ In the future, other networking protocols aside from ICMPv4 should be tested.
 
 Similar to the `generic` test spec, the `multus` test spec is utilized for CNFs that utilize multiple network
 interfaces.  As of today, the `multus` test suite just tests that
-a [test partner pod](https://github.com/redhat-nfvpe/cnf-certification-test-partner) can successfully ping the secondary
+a [test partner pod](https://github.com/test-network-function/cnf-certification-test-partner) can successfully ping the secondary
 interface of the CNF containers.  Since SR-IOV is often utilized, and the secondary interface of a CNF cannot be
 accessed in user space, the test is unidirectional.
 
@@ -147,7 +147,7 @@ tests.
 By default, `test-network-function` emits results to `test-network-function/cnf-certification-tests_junit.xml`.
 
 The included default configuration is for running `generic` and `multus` suites on the trivial example at
-[cnf-certification-test-partner](https://github.com/redhat-nfvpe/cnf-certification-test-partner).  To configure for your
+[cnf-certification-test-partner](https://github.com/test-network-function/cnf-certification-test-partner).  To configure for your
 own environment, please see the Test Configuration section, below.
 
 ### Pulling The Code
@@ -157,7 +157,7 @@ In order to pull the code, issue the following command:
 ```shell-script
 mkdir ~/workspace
 cd ~/workspace
-git clone git@github.com:redhat-nfvpe/test-network-function.git
+git clone git@github.com:test-network-function/test-network-function.git
 cd test-network-function
 ```
 
@@ -250,7 +250,7 @@ A more extensive example is provided in [pkg/config/example.yaml](pkg/config/exa
 The test suite generates a "claim" file, which describes the system(s) under test, the tests that were run, and the
 outcome of all of the tests.  This claim file is the proof of the test run that is evaluated by Red Hat when
 "certified" status is being considered.  For more information about the contents of the claim file please see the
-[schema](https://github.com/redhat-nfvpe/test-network-function-claim/blob/main/schemas/claim.schema.json).  You can
+[schema](https://github.com/test-network-function/test-network-function-claim/blob/main/schemas/claim.schema.json).  You can
 read more about the purpose of the claim file and CNF Certification in the
 [Guide](https://redhat-connect.gitbook.io/openshift-badges/badges/cloud-native-network-functions-cnf).
 
@@ -338,5 +338,5 @@ interpret the results.
 
 You will need an [OpenShift 4.4 installation](https://docs.openshift.com/container-platform/4.4/welcome/index.html)
 running your CNF, and at least one other machine available to host the test suite.  The
-[cnf-certification-test-partner](https://github.com/redhat-nfvpe/cnf-certification-test-partner) repository has a very
+[cnf-certification-test-partner](https://github.com/test-network-function/cnf-certification-test-partner) repository has a very
 simple example of this you can model your setup on.

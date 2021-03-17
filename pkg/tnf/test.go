@@ -19,9 +19,9 @@ package tnf
 import (
 	"time"
 
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/identifier"
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/reel"
 	expect "github.com/ryandgoulding/goexpect"
+	"github.com/test-network-function/test-network-function/pkg/tnf/identifier"
+	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
 )
 
 const (

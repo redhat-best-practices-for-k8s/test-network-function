@@ -34,7 +34,7 @@ ENV PATH="/root/go/bin:${PATH}"
 # Git identifier to checkout
 ARG TNF_VERSION
 # Pull the required version of TNF
-RUN git clone --depth=1 --branch=${TNF_VERSION} https://github.com/redhat-nfvpe/test-network-function ${TNF_SRC_DIR}
+RUN git clone --depth=1 --branch=${TNF_VERSION} https://github.com/test-network-function/test-network-function ${TNF_SRC_DIR}
 
 # Build TNF binary
 WORKDIR ${TNF_SRC_DIR}
