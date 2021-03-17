@@ -22,11 +22,11 @@ import (
 	"os"
 	"time"
 
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/ping"
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/interactive"
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/reel"
 	expect "github.com/ryandgoulding/goexpect"
+	"github.com/test-network-function/test-network-function/pkg/tnf"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/ping"
+	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
+	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
 )
 
 const (

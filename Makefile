@@ -69,7 +69,7 @@ lint:
 # Build and run unit tests
 test: mocks
 	go build ${COMMON_GO_ARGS} ./...
-	go test -coverprofile=cover.out `go list ./... | grep -v "github.com/redhat-nfvpe/test-network-function/test-network-function" | grep -v mock`
+	go test -coverprofile=cover.out `go list ./... | grep -v "github.com/test-network-function/test-network-function/test-network-function" | grep -v mock`
 
 
 # build the binary that can be used to run JSON-defined tests.

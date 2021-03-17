@@ -24,13 +24,13 @@ import (
 	"path"
 
 	"github.com/google/goterm/term"
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/generic"
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/interactive"
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/reel"
 	expect "github.com/ryandgoulding/goexpect"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/test-network-function/test-network-function/pkg/tnf"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/generic"
+	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
+	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
 )
 
 const (

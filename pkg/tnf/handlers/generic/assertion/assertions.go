@@ -20,7 +20,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/generic/condition"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/generic/condition"
 )
 
 // Assertions provides the ability to compose BooleanLogic claims across any number of Assertion instances.

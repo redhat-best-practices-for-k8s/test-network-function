@@ -25,14 +25,14 @@ import (
 	"github.com/onsi/ginkgo"
 	ginkgoconfig "github.com/onsi/ginkgo/config"
 	"github.com/onsi/gomega"
-	"github.com/redhat-nfvpe/test-network-function/internal/api"
-	configpool "github.com/redhat-nfvpe/test-network-function/pkg/config"
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/container"
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/interactive"
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/reel"
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/testcases"
 	expect "github.com/ryandgoulding/goexpect"
+	"github.com/test-network-function/test-network-function/internal/api"
+	configpool "github.com/test-network-function/test-network-function/pkg/config"
+	"github.com/test-network-function/test-network-function/pkg/tnf"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/container"
+	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
+	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
+	"github.com/test-network-function/test-network-function/pkg/tnf/testcases"
 )
 
 const (

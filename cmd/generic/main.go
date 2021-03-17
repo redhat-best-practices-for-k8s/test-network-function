@@ -19,7 +19,7 @@ package main
 import (
 	"log"
 
-	"github.com/redhat-nfvpe/test-network-function/cmd/generic/cmd"
+	"github.com/test-network-function/test-network-function/cmd/generic/cmd"
 )
 
 func main() {

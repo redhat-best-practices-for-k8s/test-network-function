@@ -22,10 +22,10 @@ import (
 	"time"
 
 	"github.com/golang/mock/gomock"
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/interactive"
-	mock_interactive "github.com/redhat-nfvpe/test-network-function/pkg/tnf/interactive/mocks"
 	expect "github.com/ryandgoulding/goexpect"
 	"github.com/stretchr/testify/assert"
+	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
+	mock_interactive "github.com/test-network-function/test-network-function/pkg/tnf/interactive/mocks"
 )
 
 const (

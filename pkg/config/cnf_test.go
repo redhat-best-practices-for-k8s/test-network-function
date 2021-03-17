@@ -24,9 +24,9 @@ import (
 	"strings"
 	"testing"
 
-	tnfConfig "github.com/redhat-nfvpe/test-network-function/pkg/config"
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/testcases"
 	"github.com/stretchr/testify/assert"
+	tnfConfig "github.com/test-network-function/test-network-function/pkg/config"
+	"github.com/test-network-function/test-network-function/pkg/tnf/testcases"
 )
 
 var (

@@ -21,10 +21,10 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/dependencies"
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/identifier"
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/reel"
+	"github.com/test-network-function/test-network-function/pkg/tnf"
+	"github.com/test-network-function/test-network-function/pkg/tnf/dependencies"
+	"github.com/test-network-function/test-network-function/pkg/tnf/identifier"
+	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
 )
 
 // Ping provides a ping test implemented using command line tool `ping`.

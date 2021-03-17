@@ -22,10 +22,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/base/redhat"
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/identifier"
 	"github.com/stretchr/testify/assert"
+	"github.com/test-network-function/test-network-function/pkg/tnf"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/base/redhat"
+	"github.com/test-network-function/test-network-function/pkg/tnf/identifier"
 )
 
 var testTimeoutDuration = time.Second * 2

@@ -21,8 +21,8 @@ import (
 	"flag"
 	"fmt"
 
-	"github.com/redhat-nfvpe/test-network-function-claim/pkg/claim"
-	"github.com/redhat-nfvpe/test-network-function/pkg/junit"
+	"github.com/test-network-function/test-network-function-claim/pkg/claim"
+	"github.com/test-network-function/test-network-function/pkg/junit"
 
 	"io/ioutil"
 	"log"

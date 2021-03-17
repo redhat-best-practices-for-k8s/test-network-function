@@ -20,10 +20,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/hostname"
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/identifier"
 	"github.com/stretchr/testify/assert"
+	"github.com/test-network-function/test-network-function/pkg/tnf"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/hostname"
+	"github.com/test-network-function/test-network-function/pkg/tnf/identifier"
 )
 
 const (

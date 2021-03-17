@@ -23,8 +23,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/testcases"
 	"github.com/stretchr/testify/assert"
+	"github.com/test-network-function/test-network-function/pkg/tnf/testcases"
 	"gopkg.in/yaml.v2"
 )
 

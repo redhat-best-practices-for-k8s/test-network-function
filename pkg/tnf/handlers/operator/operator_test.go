@@ -22,11 +22,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/operator"
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/identifier"
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/testcases"
 	"github.com/stretchr/testify/assert"
+	"github.com/test-network-function/test-network-function/pkg/tnf"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/operator"
+	"github.com/test-network-function/test-network-function/pkg/tnf/identifier"
+	"github.com/test-network-function/test-network-function/pkg/tnf/testcases"
 )
 
 const (

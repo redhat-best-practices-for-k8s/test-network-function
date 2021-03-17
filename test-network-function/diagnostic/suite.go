@@ -7,10 +7,10 @@ import (
 
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf"
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/generic"
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/interactive"
 	expect "github.com/ryandgoulding/goexpect"
+	"github.com/test-network-function/test-network-function/pkg/tnf"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/generic"
+	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
 )
 
 const (

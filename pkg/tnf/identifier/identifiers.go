@@ -16,7 +16,7 @@
 
 package identifier
 
-import "github.com/redhat-nfvpe/test-network-function/pkg/tnf/dependencies"
+import "github.com/test-network-function/test-network-function/pkg/tnf/dependencies"
 
 const (
 	hostnameIdentifierURL = "http://test-network-function.com/tests/hostname"

@@ -23,8 +23,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/testcases/data/cnf"
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/testcases/data/operator"
+	"github.com/test-network-function/test-network-function/pkg/tnf/testcases/data/cnf"
+	"github.com/test-network-function/test-network-function/pkg/tnf/testcases/data/operator"
 	"gopkg.in/yaml.v2"
 )
 

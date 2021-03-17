@@ -23,8 +23,8 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/handlers/generic/assertion"
 	"github.com/stretchr/testify/assert"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/generic/assertion"
 )
 
 type assertionsTestCase struct {

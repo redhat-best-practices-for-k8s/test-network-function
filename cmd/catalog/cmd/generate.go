@@ -22,8 +22,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/redhat-nfvpe/test-network-function/pkg/tnf/identifier"
 	"github.com/spf13/cobra"
+	"github.com/test-network-function/test-network-function/pkg/tnf/identifier"
 )
 
 const (
