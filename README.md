@@ -1,4 +1,4 @@
-# Test Network Function
+# Test Network Function ![build](https://github.com/test-network-function/test-network-function/actions/workflows/merge.yaml/badge.svg)
 
 This repository contains a set of network function test cases and the framework to build more.  It also generates reports
 (claim.json) on the result of a test run.
