@@ -554,3 +554,25 @@ implementations included out of the box in the [handlers](pkg/tnf/handlers) dire
 
 This guide does not cover unit testing the Test, nor does it cover managing test-specific configuration.  Please see the
 examples of existing tests in the codebase for how to do these things.
+
+
+## Processing CLI Output: A note about `oc` and `jq`
+
+The current tests frequently use `jq` to process structured output from `oc -o json`. `oc` also allows use of
+[Go Templates](https://www.openshift.com/blog/customizing-oc-output-with-go-templates) for processing structured output.
+This is potentially more powerful than using `jq` as it allows building highly customised output of multiple resources
+simultaneously without adding dependencies. Conversely `jq` is widely available and commonly used, and has been
+sufficient for all cases so far. It is up to the author of a contribution to decide which approach is best suited to the
+task at hand.
+
+While the likely use of Go Templates is at the complex end of the spectrum, as a simple example the command used in `CONTAINER_COUNT` to find the number of containers in a pod is currently using `jq`:
+
+```shell-script
+oc get pod %s -n %s -o json | jq -r '.spec.containers | length'
+```
+
+The same result could be achieved using a Go Template:
+
+```shell-script
+oc get pod %s -n %s -o go-template='{{len .spec.containers}}{{"\n"}}'
+```
