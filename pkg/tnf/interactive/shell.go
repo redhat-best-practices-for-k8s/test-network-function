@@ -17,6 +17,7 @@
 package interactive
 
 import (
+	"fmt"
 	"os"
 	"time"
 
@@ -27,10 +28,17 @@ const (
 	shellEnvironmentVariableKey = "SHELL"
 )
 
+var (
+	errorUnsetShell = fmt.Errorf("Environment variable SHELL is not set")
+)
+
 // SpawnShell creates an interactive shell subprocess based on the value of $SHELL, spawning the appropriate underlying
 // PTY.
 func SpawnShell(spawner *Spawner, timeout time.Duration, opts ...expect.Option) (*Context, error) {
-	shellEnv := os.Getenv(shellEnvironmentVariableKey)
+	shellEnv, isSet := os.LookupEnv(shellEnvironmentVariableKey)
+	if isSet != true {
+		return nil, errorUnsetShell
+	}
 	var args []string
 	return (*spawner).Spawn(shellEnv, args, timeout, opts...)
 }
