@@ -47,7 +47,8 @@ RUN make install-tools && \
 #  Extract what's needed to run at a seperate location
 RUN mkdir ${TNF_BIN_DIR} && \
 	cp run-cnf-suites.sh ${TNF_DIR} && \
-	cp version.json ${TNF_DIR} && \
+	# copy all JSON files to allow tests to run
+	cp --parents `find -name \*.json*` ${TNF_DIR} && \
 	cp test-network-function/test-network-function.test ${TNF_BIN_DIR}
 
 WORKDIR ${TNF_DIR}
@@ -75,4 +76,5 @@ FROM scratch
 COPY --from=build / /
 ENV KUBECONFIG=/usr/tnf/kubeconfig/config
 WORKDIR /usr/tnf
+ENV SHELL=/bin/bash
 CMD ["./run-cnf-suites.sh", "-o", "claim", "diagnostic", "generic"]
