@@ -10,6 +10,7 @@ Although this is an open source project, a review is required from one of the fo
 Pull Request:
 
 * Ryan Goulding (rgoulding@redhat.com)
+* Charlie Wheeler-Robinson (cwheeler@redhat.com)
 * David Spence (dspence@redhat.com)
 
 This list is expected to grow over time.
