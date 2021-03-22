@@ -31,7 +31,7 @@ You can build an image locally by using the command below. Use the value of `TNF
 installed into the image. Note that this image will not be run by the script above.
 
 ```shell-script
-docker build -t test-network-function --build-arg TNF_VERSION=v1.0.4 .
+docker build -t test-network-function --build-arg TNF_VERSION=v1.0.5 .
 ```
 
 ## Dependencies
