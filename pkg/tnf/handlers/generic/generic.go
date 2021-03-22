@@ -22,6 +22,7 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/test-network-function/test-network-function/pkg/jsonschema"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
 	"github.com/test-network-function/test-network-function/pkg/tnf/identifier"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
@@ -201,30 +202,9 @@ func NewGenericFromJSONFile(filename, schemaPath string) (*tnf.Tester, []reel.Ha
 	return &tester, []reel.Handler{handler}, result, nil
 }
 
-// validateJSONTestAgainstSchema validates an input schema against the generic-test.schema.json JSON schema.
-func validateJSONTestAgainstSchema(filename, schemaPath string) (*gojsonschema.Result, error) {
-	schemaBytes, err := ioutil.ReadFile(schemaPath)
-	if err != nil {
-		return nil, err
-	}
-	schemaLoader := gojsonschema.NewStringLoader(string(schemaBytes))
-
-	inputBytes, err := ioutil.ReadFile(filename)
-	if err != nil {
-		return nil, err
-	}
-	inputLoader := gojsonschema.NewStringLoader(string(inputBytes))
-
-	schema, err := gojsonschema.NewSchema(schemaLoader)
-	if err != nil {
-		return nil, err
-	}
-	return schema.Validate(inputLoader)
-}
-
 // createGeneric is a helper function for instantiating and initializing a Generic tnf.Test.
 func createGeneric(filename, schemaPath string) (*Generic, *gojsonschema.Result, error) {
-	result, err := validateJSONTestAgainstSchema(filename, schemaPath)
+	result, err := jsonschema.ValidateJSONFileAgainstSchema(filename, schemaPath)
 	if err != nil {
 		return nil, result, err
 	}
