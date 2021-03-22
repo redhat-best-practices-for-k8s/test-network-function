@@ -555,6 +555,16 @@ implementations included out of the box in the [handlers](pkg/tnf/handlers) dire
 This guide does not cover unit testing the Test, nor does it cover managing test-specific configuration.  Please see the
 examples of existing tests in the codebase for how to do these things.
 
+## Writing custom PTY interactive.Context Implementations
+
+Although `test-network-function` includes built in `interactive.Context` implementations for `oc`, `shell` and `ssh`,
+there are many cases in which you may need a completely new PTY.  For example, networking software (including vpp, Cisco
+IOS, etc.) often includes interactive PTY-based menus.  In such a case, you will need a new `interactive.Context` to
+communicate with the underlying Shell.
+
+In such cases, consider using `interactive.SpawnGenericPTYFromYAMLFile(...)` or its corollary
+`interactive.SpawnGenericPTYFromYAMLTemplate(...)` which can be templated using Go `text/template` language.  Examples
+of such PTY implementations can be found in [examples/pty](./examples/pty).
 
 ## Processing CLI Output: A note about `oc` and `jq`
 

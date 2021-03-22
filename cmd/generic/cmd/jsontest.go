@@ -43,6 +43,12 @@ const (
 	// sshCmdMandatoryNumArgs is the number of positional arguments expected for "jsontest run ssh"
 	sshCmdMandatoryNumArgs = 3
 
+	// ptyMandatoryNumArgs is the number of positional arguments expected for "jsontest run pty"
+	ptyMandatoryNumArgs = 2
+
+	// ptyMandatoryNumArgs is the number of positional arguments expected for "jsontest run pty-template"
+	ptyTemplateMandatoryNumArgs = 3
+
 	// testCreationErrorExitCode is the Unix return code used when a test fails to instantiate due to issues with the
 	// underlying Unix subprocess.
 	testCreationErrorExitCode = iota + 100
@@ -69,6 +75,14 @@ const (
 	// inappropriateArguments is the Unix return code used when the supplied arguments are inappropriate for the given
 	// context.
 	inappropriateArguments
+
+	// ptyDoesNotConformToSchemaExitCode is the Unix return code used when the PTY JSON file provided does not adhere to
+	// the generic-pty.schema.json JSON schema.
+	ptyDoesNotConformToSchemaExitCode
+
+	// ptyMarshalErrorExitCode is the Unix return code used when the PTY JSON file fails to Marshal correctly.  This may
+	// be caused by issues in the JSON payload.
+	ptyMarshalErrorExitCode
 )
 
 var (
@@ -111,8 +125,25 @@ var (
 		Run:   runOcCmd,
 	}
 
-	// schemaPath is the path to the generic-test.schema.json JSON schema relative to the program entrypoint.
-	schemaPath = path.Join("schemas", generic.TestSchemaFileName)
+	// ptyCmd is the entrypoint for running a test case in a custom defined PTY.
+	ptyCmd = &cobra.Command{
+		Use:   "pty [ptyFile] [jsonTestFile]",
+		Short: "run a generic PTY command context",
+		Run:   runPTYCmd,
+	}
+
+	// ptyTemplateCmd is the entrypoint for running a test case in a custom defined, templated PTY.
+	ptyTemplateCmd = &cobra.Command{
+		Use:   "pty-template [ptyFile] [valuesFile] [jsonTestFile]",
+		Short: "run a generic templated PTY command context",
+		Run:   runPTYTemplateCmd,
+	}
+
+	// genericTestSchemaPath is the path to the generic-test.schema.json JSON schema relative to the program entrypoint.
+	genericTestSchemaPath = path.Join("schemas", generic.TestSchemaFileName)
+
+	// ptySchemaPath is the path to the generic-pty.schema.json JSON schema relative to the program entrypoint.
+	ptySchemaPath = path.Join("schemas", interactive.PTYSchemaFileName)
 )
 
 // fatalError reports a fatal error to stdout and exits.
@@ -158,7 +189,7 @@ func runTest(expecter *expect.Expecter, tester *tnf.Tester, handlers []reel.Hand
 // setupAndRunTest is a helper function to run a JSON test in a given expecter context.
 func setupTest(file string) (*tnf.Tester, []reel.Handler) {
 	// Instantiate the test from JSON, ensuring that JSON validation succeeds.
-	tester, handlers, result, err := generic.NewGenericFromJSONFile(file, schemaPath)
+	tester, handlers, result, err := generic.NewGenericFromJSONFile(file, genericTestSchemaPath)
 	if err != nil {
 		fatalError("the supplied JSON test could not be parsed correctly", err, testDidNotParseExitCode)
 	}
@@ -256,9 +287,74 @@ func runShellCmd(_ *cobra.Command, args []string) {
 	runTest(context.GetExpecter(), tester, handlers, context.GetErrorChannel())
 }
 
+// runPTYCmd runs a generic, off the shell, command using a pseudo-terminal.  This is particularly useful for quickly
+// testing and incorporating custom PTYs, such as a router CLI.
+func runPTYCmd(_ *cobra.Command, args []string) {
+	numArgs := len(args)
+	if numArgs < ptyMandatoryNumArgs {
+		errString := fmt.Sprintf("command requires %d arguments", ptyMandatoryNumArgs)
+		fatalError(errString, errors.New(errString), inappropriateArguments)
+	}
+
+	ptyFile, jsonTestFile := args[0], args[1]
+
+	goExpectSpawner := interactive.NewGoExpectSpawner()
+	var spawnContext interactive.Spawner = goExpectSpawner
+
+	context, result, err := interactive.SpawnGenericPTYFromYAMLFile(ptyFile, ptySchemaPath, &spawnContext)
+	tester, handlers := setupTest(jsonTestFile)
+
+	if err != nil {
+		fatalError("Couldn't create the PTY", err, ptyMarshalErrorExitCode)
+	}
+	if !result.Valid() {
+		log.Error("The supplied JSON does not conform to the generic-ptyFile.schema.json JSON schema.  Here are the problems we found:")
+		for _, e := range result.Errors() {
+			log.Errorf("- %v\n", e)
+		}
+		fatalError("the supplied JSON does not conform to the expected JSON schema",
+			fmt.Errorf("schema validation error"), ptyDoesNotConformToSchemaExitCode)
+	}
+
+	runTest(context.GetExpecter(), tester, handlers, context.GetErrorChannel())
+}
+
+// runPTYTemplateCmd runs a generic, off the shell, Go-templated command using a pseudo-terminal.  This is particularly
+// useful for quickly testing and incorporating custom PTYs, such as a router CLI, especially in cases in which the
+// arguments vary given the context (i.e., ftp <host>).
+func runPTYTemplateCmd(_ *cobra.Command, args []string) {
+	numArgs := len(args)
+	if numArgs < ptyTemplateMandatoryNumArgs {
+		errString := fmt.Sprintf("command requires %d arguments", ptyMandatoryNumArgs)
+		fatalError(errString, errors.New(errString), inappropriateArguments)
+	}
+
+	ptyTemplate, valuesFile, jsonTestFile := args[0], args[1], args[2]
+
+	goExpectSpawner := interactive.NewGoExpectSpawner()
+	var spawnContext interactive.Spawner = goExpectSpawner
+
+	context, result, err := interactive.SpawnGenericPTYFromYAMLTemplate(ptyTemplate, valuesFile, ptySchemaPath, &spawnContext)
+	tester, handlers := setupTest(jsonTestFile)
+
+	if err != nil {
+		fatalError("Couldn't create the PTY", err, ptyMarshalErrorExitCode)
+	}
+	if !result.Valid() {
+		log.Error("The rendered JSON does not conform to the generic-ptyTemplate.schema.json JSON schema.  Here are the problems we found:")
+		for _, e := range result.Errors() {
+			log.Errorf("- %v\n", e)
+		}
+		fatalError("the supplied JSON does not conform to the expected JSON schema",
+			fmt.Errorf("schema validation error"), ptyDoesNotConformToSchemaExitCode)
+	}
+
+	runTest(context.GetExpecter(), tester, handlers, context.GetErrorChannel())
+}
+
 // Execute executes the jsontest program, returning any applicable errors.
 func Execute() error {
-	runCmd.AddCommand(ocCmd, sshCmd, shellCmd)
+	runCmd.AddCommand(ocCmd, sshCmd, shellCmd, ptyCmd, ptyTemplateCmd)
 	rootCmd.AddCommand(runCmd)
 	return rootCmd.Execute()
 }

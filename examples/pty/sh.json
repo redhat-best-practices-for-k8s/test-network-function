@@ -1,0 +1,4 @@
+{
+  "command": "/bin/sh",
+  "timeout": 2000000000
+}
