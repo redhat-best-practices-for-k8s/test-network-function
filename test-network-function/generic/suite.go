@@ -156,6 +156,10 @@ var _ = ginkgo.Describe(testsKey, func() {
 			testIsRedHatRelease(containersUnderTest.oc)
 		}
 		testIsRedHatRelease(testOrchestrator.oc)
+
+		for _, containersUnderTest := range containersUnderTest {
+			testNamespace(containersUnderTest.oc)
+		}
 	}
 })
 
@@ -241,4 +245,15 @@ func GetTestConfiguration() *tnfConfig.TestConfiguration {
 	gomega.Expect(err).To(gomega.BeNil())
 	gomega.Expect(config).ToNot(gomega.BeNil())
 	return config
+}
+
+func testNamespace(oc *interactive.Oc) {
+	pod := oc.GetPodName()
+	container := oc.GetPodContainerName()
+	ginkgo.When(fmt.Sprintf("Reading namespace of %s/%s", pod, container), func() {
+		ginkgo.It("Should not be 'default' and should not begin with 'openshift-'", func() {
+			gomega.Expect(oc.GetPodNamespace()).To(gomega.Not(gomega.Equal("default")))
+			gomega.Expect(oc.GetPodNamespace()).To(gomega.Not(gomega.HavePrefix("openshift-")))
+		})
+	})
 }
