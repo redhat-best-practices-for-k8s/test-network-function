@@ -19,13 +19,16 @@ package identifier
 import "github.com/test-network-function/test-network-function/pkg/tnf/dependencies"
 
 const (
-	hostnameIdentifierURL = "http://test-network-function.com/tests/hostname"
-	ipAddrIdentifierURL   = "http://test-network-function.com/tests/ipaddr"
-	nodesIdentifierURL    = "http://test-network-function.com/tests/nodes"
-	operatorIdentifierURL = "http://test-network-function.com/tests/operator"
-	pingIdentifierURL     = "http://test-network-function.com/tests/ping"
-	podIdentifierURL      = "http://test-network-function.com/tests/container/pod"
-	versionIdentifierURL  = "http://test-network-function.com/tests/generic/version"
+	hostnameIdentifierURL           = "http://test-network-function.com/tests/hostname"
+	ipAddrIdentifierURL             = "http://test-network-function.com/tests/ipaddr"
+	nodesIdentifierURL              = "http://test-network-function.com/tests/nodes"
+	operatorIdentifierURL           = "http://test-network-function.com/tests/operator"
+	pingIdentifierURL               = "http://test-network-function.com/tests/ping"
+	podIdentifierURL                = "http://test-network-function.com/tests/container/pod"
+	versionIdentifierURL            = "http://test-network-function.com/tests/generic/version"
+	serviceAccountIdentifierURL     = "http://test-network-function.com/tests/serviceaccount"
+	roleBindingIdentifierURL        = "http://test-network-function.com/tests/rolebinding"
+	clusterRoleBindingIdentifierURL = "http://test-network-function.com/tests/clusterrolebinding"
 
 	versionOne = "v1.0.0"
 )
@@ -156,6 +159,42 @@ var Catalog = map[string]TestCatalogEntry{
 			dependencies.CatBinaryName,
 		},
 	},
+	serviceAccountIdentifierURL: {
+		Identifier:  ServiceAccountIdentifier,
+		Description: "A generic test used to extract the CNF pod's ServiceAccount name.",
+		Type:        Normative,
+		IntrusionSettings: IntrusionSettings{
+			ModifiesSystem:           false,
+			ModificationIsPersistent: false,
+		},
+		BinaryDependencies: []string{
+			dependencies.OcBinaryName,
+		},
+	},
+	roleBindingIdentifierURL: {
+		Identifier:  RoleBindingIdentifier,
+		Description: "A generic test used to test RoleBindings of CNF pod's ServiceAccount.",
+		Type:        Normative,
+		IntrusionSettings: IntrusionSettings{
+			ModifiesSystem:           false,
+			ModificationIsPersistent: false,
+		},
+		BinaryDependencies: []string{
+			dependencies.OcBinaryName,
+		},
+	},
+	clusterRoleBindingIdentifierURL: {
+		Identifier:  ClusterRoleBindingIdentifier,
+		Description: "A generic test used to test ClusterRoleBindings of CNF pod's ServiceAccount.",
+		Type:        Normative,
+		IntrusionSettings: IntrusionSettings{
+			ModifiesSystem:           false,
+			ModificationIsPersistent: false,
+		},
+		BinaryDependencies: []string{
+			dependencies.OcBinaryName,
+		},
+	},
 }
 
 // HostnameIdentifier is the Identifier used to represent the generic hostname test case.
@@ -197,5 +236,23 @@ var PodIdentifier = Identifier{
 // VersionIdentifier is the Identifier used to represent the generic container base image test.
 var VersionIdentifier = Identifier{
 	URL:             versionIdentifierURL,
+	SemanticVersion: versionOne,
+}
+
+// ServiceAccountIdentifier is the Identifier used to represent the generic serviceAccount test.
+var ServiceAccountIdentifier = Identifier{
+	URL:             serviceAccountIdentifierURL,
+	SemanticVersion: versionOne,
+}
+
+// RoleBindingIdentifier is the Identifier used to represent the generic roleBinding test.
+var RoleBindingIdentifier = Identifier{
+	URL:             roleBindingIdentifierURL,
+	SemanticVersion: versionOne,
+}
+
+// ClusterRoleBindingIdentifier is the Identifier used to represent the generic clusterRoleBinding test.
+var ClusterRoleBindingIdentifier = Identifier{
+	URL:             clusterRoleBindingIdentifierURL,
 	SemanticVersion: versionOne,
 }
