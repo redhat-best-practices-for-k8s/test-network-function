@@ -27,8 +27,11 @@ import (
 	tnfConfig "github.com/test-network-function/test-network-function/pkg/config"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/base/redhat"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/clusterrolebinding"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/ipaddr"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/ping"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/rolebinding"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/serviceaccount"
 	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
 	"github.com/test-network-function/test-network-function/pkg/tnf/testcases"
@@ -129,6 +132,10 @@ func createPartnerContainers(config *tnfConfig.TestConfiguration) map[tnfConfig.
 var _ = ginkgo.Describe(testsKey, func() {
 	if testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusStrings, testsKey) {
 
+		context, err := interactive.SpawnShell(interactive.CreateGoExpectSpawner(), defaultTimeout, interactive.Verbose(true))
+		gomega.Expect(err).To(gomega.BeNil())
+		gomega.Expect(context).ToNot(gomega.BeNil())
+
 		config := GetTestConfiguration()
 		log.Infof("Test Configuration: %s", config)
 
@@ -158,6 +165,10 @@ var _ = ginkgo.Describe(testsKey, func() {
 
 		for _, containersUnderTest := range containersUnderTest {
 			testNamespace(containersUnderTest.oc)
+		}
+
+		for _, containersUnderTest := range containersUnderTest {
+			testRoles(context, containersUnderTest.oc.GetPodName(), containersUnderTest.oc.GetPodNamespace())
 		}
 	}
 })
@@ -254,5 +265,62 @@ func testNamespace(oc *interactive.Oc) {
 			gomega.Expect(oc.GetPodNamespace()).To(gomega.Not(gomega.Equal("default")))
 			gomega.Expect(oc.GetPodNamespace()).To(gomega.Not(gomega.HavePrefix("openshift-")))
 		})
+	})
+}
+
+func testRoles(context *interactive.Context, podName, podNamespace string) {
+	var serviceAccountName string
+
+	ginkgo.When(fmt.Sprintf("Testing roles and privileges of %s/%s", podNamespace, podName), func() {
+		testServiceAccount(context, podName, podNamespace, &serviceAccountName)
+		testRoleBindings(context, podNamespace, &serviceAccountName)
+		testClusterRoleBindings(context, podNamespace, &serviceAccountName)
+	})
+}
+
+func testServiceAccount(context *interactive.Context, podName, podNamespace string, serviceAccountName *string) {
+	ginkgo.It("Should have a valid ServiceAccount name", func() {
+		tester := serviceaccount.NewServiceAccount(defaultTimeout, podName, podNamespace)
+		test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
+		gomega.Expect(err).To(gomega.BeNil())
+		testResult, err := test.Run()
+		gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
+		gomega.Expect(err).To(gomega.BeNil())
+		*serviceAccountName = tester.GetServiceAccountName()
+		gomega.Expect(*serviceAccountName).ToNot(gomega.BeEmpty())
+	})
+}
+
+func testRoleBindings(context *interactive.Context, podNamespace string, serviceAccountName *string) {
+	ginkgo.It("Should not have RoleBinding in other namespaces", func() {
+		if *serviceAccountName == "" {
+			ginkgo.Skip("Can not test when serviceAccountName is empty. Please check previous tests for failures")
+		}
+		rbTester := rolebinding.NewRoleBinding(defaultTimeout, *serviceAccountName, podNamespace)
+		test, err := tnf.NewTest(context.GetExpecter(), rbTester, []reel.Handler{rbTester}, context.GetErrorChannel())
+		gomega.Expect(err).To(gomega.BeNil())
+		testResult, err := test.Run()
+		if rbTester.Result() == tnf.FAILURE {
+			log.Info("RoleBindings: ", rbTester.GetRoleBindings())
+		}
+		gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
+		gomega.Expect(err).To(gomega.BeNil())
+	})
+}
+
+func testClusterRoleBindings(context *interactive.Context, podNamespace string, serviceAccountName *string) {
+	ginkgo.It("Should not have ClusterRoleBindings", func() {
+		if *serviceAccountName == "" {
+			ginkgo.Skip("Can not test when serviceAccountName is empty. Please check previous tests for failures")
+		}
+		crbTester := clusterrolebinding.NewClusterRoleBinding(defaultTimeout, *serviceAccountName, podNamespace)
+		test, err := tnf.NewTest(context.GetExpecter(), crbTester, []reel.Handler{crbTester}, context.GetErrorChannel())
+		gomega.Expect(err).To(gomega.BeNil())
+		testResult, err := test.Run()
+		if crbTester.Result() == tnf.FAILURE {
+			log.Info("ClusterRoleBindings: ", crbTester.GetClusterRoleBindings())
+		}
+		gomega.Expect(err).To(gomega.BeNil())
+		gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
 	})
 }
