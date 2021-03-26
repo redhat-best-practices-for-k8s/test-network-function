@@ -66,14 +66,8 @@ const (
 	operatorNameSpace = "my-etcd"
 	// operatorPackageName operator package name in the bundle
 	operatorPackageName = "amq-streams"
-	// operatorStatus specifies status of the CSV in the cluster
-	operatorStatus = "Succeeded"
 	// organization is under which operator is published
 	organization = "redhat-marketplace"
-	// permissionName type of permission
-	permissionName = "Cluster-wide-permission"
-	// permissionRole type of role
-	permissionRole = "ClusterRole"
 	// imageRepository for  container images
 	imageRepository = "rhel8"
 	// testNameSpace k8s namespace
@@ -86,7 +80,6 @@ func loadCnfConfig() {
 		{
 			Name:      cnfName,
 			Namespace: testNameSpace,
-			Status:    "",
 			Tests:     []string{testcases.PrivilegedPod},
 			CertifiedContainerRequestInfos: []tnfConfig.CertifiedContainerRequestInfo{
 				{
@@ -106,13 +99,10 @@ func loadOperatorConfig() {
 	operator := tnfConfig.Operator{}
 	operator.Name = operatorName
 	operator.Namespace = operatorNameSpace
-	operator.Status = operatorStatus
-	setCrdsAndInstances(&operator)
+	setCrdsAndInstances()
 	dep := tnfConfig.Deployment{}
 	dep.Name = deploymentName
 	dep.Replicas = deploymentReplicas
-	operator.Deployments = append(operator.Deployments, dep)
-	setCnfAndPermissions(&operator)
 	operator.Tests = []string{testcases.OperatorStatus}
 	operator.CertifiedOperatorRequestInfos = []tnfConfig.CertifiedOperatorRequestInfo{
 		{
@@ -125,33 +115,19 @@ func loadOperatorConfig() {
 	loadCnfConfig()
 }
 
-func setCrdsAndInstances(op *tnfConfig.Operator) {
+func setCrdsAndInstances() {
 	crd := tnfConfig.Crd{}
 	crd.Name = crdNameOne
 	crd.Namespace = testNameSpace
 	instance := tnfConfig.Instance{}
 	instance.Name = instanceNameOne
 	crd.Instances = append(crd.Instances, instance)
-	op.CRDs = append(op.CRDs, crd)
 	crd2 := tnfConfig.Crd{}
 	crd2.Name = crdNameTwo
 	crd2.Namespace = testNameSpace
 	instance2 := tnfConfig.Instance{}
 	instance2.Name = instanceNameTwo
 	crd2.Instances = append(crd2.Instances, instance2)
-	op.CRDs = append(op.CRDs, crd2)
-}
-
-func setCnfAndPermissions(op *tnfConfig.Operator) {
-	cnf := tnfConfig.Cnf{}
-	cnf.Name = cnfName
-	cnf.Namespace = testNameSpace
-	cnf.Tests = []string{testcases.PrivilegedPod}
-	permission := tnfConfig.Permission{}
-	permission.Name = permissionName
-	permission.Role = permissionRole
-	op.Permissions = append(op.Permissions, permission)
-	op.CNFs = append(op.CNFs, cnf)
 }
 
 func loadFullConfig() {

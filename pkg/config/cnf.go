@@ -74,24 +74,6 @@ type Operator struct {
 	// If its all namespace then you can replace it with ALL_NAMESPACE TODO: add check for ALL_NAMESPACE
 	Namespace string `yaml:"namespace" json:"namespace"`
 
-	// Status is a required field , specified what status of the csv to be checked.
-	Status string `yaml:"status" json:"status"`
-
-	// AutoGenerate if set to true will generate the config with operator related artifacts.
-	AutoGenerate string `yaml:"autogenerate,omitempty" json:"autogenerate"`
-
-	// CRDs If AutoGenerate is set to true, then the program will populate the CRD data from the CSV file.
-	CRDs []Crd `yaml:"crds" json:"crds"`
-
-	// Deployments If AutoGenerate is set to true, then the program will populate the Deployment data from the CSV file.
-	Deployments []Deployment `yaml:"deployments" json:"deployments"`
-
-	// CNFs If AutoGenerate is set to true, then the program will populate the CNFs data from the CSV file.
-	CNFs []Cnf `yaml:"cnfs" json:"cnfs"`
-
-	// Permissions If AutoGenerate is set to true, then the program will populate the Permission data from the CSV file.
-	Permissions []Permission `yaml:"permissions" json:"permissions"`
-
 	// Tests this is list of test that need to run against the operator.
 	Tests []string `yaml:"tests" json:"tests"`
 
@@ -137,9 +119,6 @@ type Cnf struct {
 
 	// Namespace where the CNF is deployed
 	Namespace string `yaml:"namespace" json:"namespace"`
-
-	// Status is the status of the CNF
-	Status string `yaml:"status" json:"status"`
 
 	// Tests this is list of test that need to run against the CNF.
 	Tests []string `yaml:"tests" json:"tests"`
