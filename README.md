@@ -16,14 +16,22 @@ A container that can be used to run the tests is available from [quay.io](https:
 
 To pull the latest container and run the tests you use the following command. There are several required arguments:
 
-* `-k` gives a path to the kube config file to be used by the container to authenticate with the cluster.
 * `-t` gives the local directory that contains tnf config files set up for the test.
 * `-o` gives the local directory that the test results will be available in once the container exits.
 * Finally, list the specs to be run must be specified, space-separated.
 
+Optional arguments are:
+
+* `-k` gives a path to one or more kubeconfig files to be used by the container to authenticate with the cluster. Paths must be separated by a colon.
+
+If `-k` is not specified, autodiscovery is performed.
+The autodiscovery first looks for paths in the `$KUBECONFIG` environment variable on the host system, and if the variable is not set or is empty, the default configuration stored in `$HOME/.kube/config` is checked.
+
 ```shell-script
 ./run-container.sh -k ~/.kube/config -t ~/tnf/config -o ~/tnf/output diagnostic generic
 ```
+
+*Note*: Tests must be specified after all other arguments!
 
 ### Building
 
