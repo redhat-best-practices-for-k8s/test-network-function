@@ -28,8 +28,8 @@ jobs:
         with:
           version: v1.32
 
-  test:
-    name: Run Tests
+  unit-test:
+    name: Run Unit Tests
     runs-on: ubuntu-latest
     steps:
 
@@ -46,3 +46,127 @@ jobs:
 
     - name: Run Tests
       run: make test
+
+  # Defines a smoke-test job on ubuntu-20.04.  The smoke-test involves:
+  # 1. Building the test-network-function.test Ginkgo test suite.
+  # 2. Set up Minikube.  This also involves setting up the appropriate Service Accounts (SA).
+  # 3. Install test-network-function/local-test-infra Pods.  This also involves ensuring they are available prior to
+  #    executing the CNF Certification test suite.
+  # 4. Execute the CNF Certification test suite.  If errors occur, the job is failed.
+  smoke-test-ubuntu-20:
+    name: Run Smoke Tests on ubuntu-20.04
+    runs-on: ubuntu-20.04
+    steps:
+
+    - name: Set up Go 1.15
+      uses: actions/setup-go@v2
+      with:
+        go-version: ^1.15
+
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v2
+
+    - name: Execute make mocks
+      run: go get github.com/golang/mock/mockgen && make mocks
+
+    - name: Install ginkgo
+      run: go get -u github.com/onsi/ginkgo/ginkgo
+
+    - name: Execute make build
+      run: make build
+
+    - name: Setup Minikube
+      uses: manusa/actions-setup-minikube@v2.3.1
+      with:
+        minikube version: 'v1.16.0'
+        kubernetes version: 'v1.19.2'
+        github token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Create tnf Service Account (SA)
+      run: oc create sa tnf
+
+    - name: Wait for the tnf Service Account (SA) to be created
+      run: exitcode=1; while [[ $exitcode != 0 ]]; do echo "waiting for tnf SA to be created..." && sleep 1 && oc get sa tnf -o jsonpath='{.metadata.creationTimestamp}' && exitcode=$?; done
+
+    - name: Sleep 45s as Service Account (SA) creation takes time to set up
+      run: sleep 45
+
+    - name: Checkout local-test-infra
+      uses: actions/checkout@v2
+      with:
+        repository: ryandgoulding/cnf-certification-test-partner
+        path: local-test-infra
+        ref: namespace
+
+    - name: Execute make local-test-infra
+      run: cd local-test-infra && make
+
+    - name: Wait for the local-test-infra Pods to report status as Ready
+      run: while [[ $(kubectl get pods -n tnf -o 'jsonpath={..status.conditions[?(@.type=="Ready")].status}') != "True True" ]]; do echo "waiting for tnf pods..." && sleep 1; done
+
+    - name: Execute make run-cnf-tests
+      run: make run-cnf-tests
+      env:
+        SHELL: /bin/bash
+
+  # Defines a smoke-test job on ubuntu-18.04.  The smoke-test involves:
+  # 1. Building the test-network-function.test Ginkgo test suite.
+  # 2. Set up Minikube.  This also involves setting up the appropriate Service Accounts (SA).
+  # 3. Install test-network-function/local-test-infra Pods.  This also involves ensuring they are available prior to
+  #    executing the CNF Certification test suite.
+  # 4. Execute the CNF Certification test suite.  If errors occur, the job is failed.
+  smoke-test-ubuntu-18:
+    name: Run Smoke Tests on ubuntu-18.04
+    runs-on: ubuntu-18.04
+    steps:
+
+    - name: Set up Go 1.15
+      uses: actions/setup-go@v2
+      with:
+        go-version: ^1.15
+
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v2
+
+    - name: Execute make mocks
+      run: go get github.com/golang/mock/mockgen && make mocks
+
+    - name: Install ginkgo
+      run: go get -u github.com/onsi/ginkgo/ginkgo
+
+    - name: Execute make build
+      run: make build
+
+    - name: Setup Minikube
+      uses: manusa/actions-setup-minikube@v2.3.1
+      with:
+        minikube version: 'v1.16.0'
+        kubernetes version: 'v1.19.2'
+        github token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Create tnf Service Account (SA)
+      run: oc create sa tnf
+
+    - name: Wait for the tnf Service Account (SA) to be created
+      run: exitcode=1; while [[ $exitcode != 0 ]]; do echo "waiting for tnf SA to be created..." && sleep 1 && oc get sa tnf -o jsonpath='{.metadata.creationTimestamp}' && exitcode=$?; done
+
+    - name: Sleep 45s as Service Account (SA) creation takes time to set up
+      run: sleep 45
+
+    - name: Checkout local-test-infra
+      uses: actions/checkout@v2
+      with:
+        repository: ryandgoulding/cnf-certification-test-partner
+        path: local-test-infra
+        ref: namespace
+
+    - name: Execute make local-test-infra
+      run: cd local-test-infra && make
+
+    - name: Wait for the local-test-infra Pods to report status as Ready
+      run: while [[ $(kubectl get pods -n tnf -o 'jsonpath={..status.conditions[?(@.type=="Ready")].status}') != "True True" ]]; do echo "waiting for tnf pods..." && sleep 1; done
+
+    - name: Execute make run-cnf-tests
+      run: make run-cnf-tests
+      env:
+        SHELL: /bin/bash

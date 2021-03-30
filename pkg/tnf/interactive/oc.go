@@ -29,7 +29,7 @@ const (
 	ocDefaultShell           = "sh"
 	ocExecCommand            = "exec"
 	ocNamespaceArg           = "-n"
-	ocInteractiveArg         = "-it"
+	ocInteractiveArg         = "-i"
 )
 
 // Oc provides an OpenShift Client designed to wrap the "oc" CLI.

@@ -1,18 +1,8 @@
 operators:
-  - name: etcdoperator.v0.9.4
-    namespace: my-etcd
-    autogenerate: false
-    tests:
-      - OPERATOR_STATUS
-    certifiedoperatorrequestinfo:
-      - name: amq-streams  #just a working example
-        organization: redhat-operators
 cnfs:
-  - name: ubuntu
-    namespace: default
+  - name: test
+    namespace: tnf
     tests:
       - PRIVILEGED_POD
       - PRIVILEGED_ROLE
     certifiedcontainerrequestinfo:
-      - name: nginx-116  # working example
-        repository: rhel8
