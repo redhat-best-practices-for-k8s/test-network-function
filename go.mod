@@ -10,7 +10,7 @@ require (
 	github.com/golang/mock v1.5.0
 	github.com/google/goterm v0.0.0-20190703233501-fc88cf888a3f
 	github.com/kr/pretty v0.2.1 // indirect
-	github.com/onsi/ginkgo v1.15.0
+	github.com/onsi/ginkgo v1.15.2
 	github.com/onsi/gomega v1.10.5
 	github.com/ryandgoulding/goexpect v0.0.1
 	github.com/sirupsen/logrus v1.8.1
