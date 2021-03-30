@@ -14,7 +14,7 @@ require (
 	github.com/onsi/gomega v1.11.0
 	github.com/ryandgoulding/goexpect v0.0.1
 	github.com/sirupsen/logrus v1.8.1
-	github.com/spf13/cobra v1.1.1
+	github.com/spf13/cobra v1.1.3
 	github.com/stretchr/testify v1.7.0
 	github.com/test-network-function/test-network-function-claim v1.0.2
 	github.com/xeipuuv/gojsonschema v1.2.0
