@@ -11,7 +11,7 @@ require (
 	github.com/google/goterm v0.0.0-20190703233501-fc88cf888a3f
 	github.com/kr/pretty v0.2.1 // indirect
 	github.com/onsi/ginkgo v1.15.2
-	github.com/onsi/gomega v1.10.5
+	github.com/onsi/gomega v1.11.0
 	github.com/ryandgoulding/goexpect v0.0.1
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.1.1
@@ -19,6 +19,6 @@ require (
 	github.com/test-network-function/test-network-function-claim v1.0.1
 	github.com/xeipuuv/gojsonschema v1.2.0
 	google.golang.org/grpc v1.31.0
-	gopkg.in/yaml.v2 v2.3.0
+	gopkg.in/yaml.v2 v2.4.0
 	kubevirt.io/qe-tools v0.1.7
 )
