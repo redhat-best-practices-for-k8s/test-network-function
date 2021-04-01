@@ -22,7 +22,6 @@ import (
 	"os"
 	"time"
 
-	expect "github.com/ryandgoulding/goexpect"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/ping"
 	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
@@ -62,7 +61,7 @@ func main() {
 	pingReel, timeoutDuration := parseArgs()
 	goExpectSpawner := interactive.NewGoExpectSpawner()
 	var spawner interactive.Spawner = goExpectSpawner
-	context, err := interactive.SpawnShell(&spawner, timeoutDuration, expect.Verbose(true))
+	context, err := interactive.SpawnShell(&spawner, timeoutDuration, interactive.Verbose(true))
 
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)

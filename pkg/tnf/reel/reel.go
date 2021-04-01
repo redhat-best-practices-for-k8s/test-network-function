@@ -21,7 +21,7 @@ import (
 	"strings"
 	"time"
 
-	expect "github.com/ryandgoulding/goexpect"
+	expect "github.com/google/goexpect"
 	"google.golang.org/grpc/codes"
 )
 

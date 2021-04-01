@@ -24,7 +24,6 @@ import (
 	"github.com/onsi/ginkgo"
 	ginkgoconfig "github.com/onsi/ginkgo/config"
 	"github.com/onsi/gomega"
-	expect "github.com/ryandgoulding/goexpect"
 	"github.com/test-network-function/test-network-function/internal/api"
 	configpool "github.com/test-network-function/test-network-function/pkg/config"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
@@ -58,7 +57,7 @@ var _ = ginkgo.Describe(testSpecName, func() {
 		ginkgo.When("a local shell is spawned", func() {
 			goExpectSpawner := interactive.NewGoExpectSpawner()
 			var spawner interactive.Spawner = goExpectSpawner
-			context, err = interactive.SpawnShell(&spawner, defaultTimeout, expect.Verbose(true))
+			context, err = interactive.SpawnShell(&spawner, defaultTimeout, interactive.Verbose(true))
 			ginkgo.It("should be created without error", func() {
 				gomega.Expect(err).To(gomega.BeNil())
 				gomega.Expect(context).ToNot(gomega.BeNil())

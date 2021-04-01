@@ -121,7 +121,7 @@ func unquoteBytes(bytes []byte) ([]byte, error) {
 	return []byte(str), nil
 }
 
-// extractsField extracts the payload for key from a map of json.RawMessage.
+// extractField extracts the payload for key from a map of json.RawMessage.
 func extractField(data map[string]json.RawMessage, key string) (string, error) {
 	if quotedBytes, ok := data[key]; ok {
 		quotedString := string(quotedBytes)

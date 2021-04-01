@@ -21,7 +21,6 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
-	expect "github.com/ryandgoulding/goexpect"
 	"github.com/stretchr/testify/assert"
 	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
 	mock_interactive "github.com/test-network-function/test-network-function/pkg/tnf/interactive/mocks"
@@ -32,7 +31,7 @@ var errSpawnSSH = errors.New("some error related to spawning SSH")
 type sshTestCase struct {
 	user               string
 	host               string
-	options            []expect.Option
+	options            []interactive.Option
 	errReturnValue     error
 	contextReturnValue *interactive.Context
 	expectedSpawnErr   error
@@ -40,13 +39,13 @@ type sshTestCase struct {
 
 var sshTestCases = map[string]sshTestCase{
 	"no_error": {
-		options:            []expect.Option{expect.Verbose(true)},
+		options:            []interactive.Option{interactive.Verbose(true)},
 		errReturnValue:     nil,
 		contextReturnValue: &interactive.Context{},
 		expectedSpawnErr:   nil,
 	},
 	"error": {
-		options:            []expect.Option{expect.Verbose(true)},
+		options:            []interactive.Option{interactive.Verbose(true)},
 		errReturnValue:     errSpawnSSH,
 		contextReturnValue: &interactive.Context{},
 		expectedSpawnErr:   errSpawnSSH,

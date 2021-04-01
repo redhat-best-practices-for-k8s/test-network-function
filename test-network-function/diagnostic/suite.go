@@ -7,7 +7,6 @@ import (
 
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
-	expect "github.com/ryandgoulding/goexpect"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/generic"
 	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
@@ -45,7 +44,7 @@ var (
 
 // createShell sets up a local shell expect.Expecter, checking errors along the way.
 func createShell() *interactive.Context {
-	context, err := interactive.SpawnShell(interactive.CreateGoExpectSpawner(), defaultTestTimeout, expect.Verbose(true))
+	context, err := interactive.SpawnShell(interactive.CreateGoExpectSpawner(), defaultTestTimeout, interactive.Verbose(true))
 	gomega.Expect(err).To(gomega.BeNil())
 	gomega.Expect(context).ToNot(gomega.BeNil())
 	return context

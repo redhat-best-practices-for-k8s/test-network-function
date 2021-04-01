@@ -22,7 +22,6 @@ import (
 	"time"
 
 	"github.com/golang/mock/gomock"
-	expect "github.com/ryandgoulding/goexpect"
 	"github.com/stretchr/testify/assert"
 	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
 	mock_interactive "github.com/test-network-function/test-network-function/pkg/tnf/interactive/mocks"
@@ -38,7 +37,7 @@ type ocTestCase struct {
 	podName            string
 	podContainerName   string
 	podNamespace       string
-	options            []expect.Option
+	options            []interactive.Option
 	errReturnValue     error
 	contextReturnValue *interactive.Context
 	expectedSpawnErr   error
@@ -49,7 +48,7 @@ var ocTestCases = map[string]ocTestCase{
 		podName:            "test",
 		podContainerName:   "test",
 		podNamespace:       "default",
-		options:            []expect.Option{expect.Verbose(true)},
+		options:            []interactive.Option{interactive.Verbose(true)},
 		errReturnValue:     nil,
 		contextReturnValue: &interactive.Context{},
 		expectedSpawnErr:   nil,
@@ -58,7 +57,7 @@ var ocTestCases = map[string]ocTestCase{
 		podName:            "test",
 		podContainerName:   "testPod",
 		podNamespace:       "default",
-		options:            []expect.Option{expect.Verbose(true)},
+		options:            []interactive.Option{interactive.Verbose(true)},
 		errReturnValue:     errSpawnOC,
 		contextReturnValue: &interactive.Context{},
 		expectedSpawnErr:   errSpawnOC,
