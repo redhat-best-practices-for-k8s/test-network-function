@@ -22,7 +22,6 @@ import (
 	"io/ioutil"
 	"time"
 
-	expect "github.com/ryandgoulding/goexpect"
 	"github.com/test-network-function/test-network-function/pkg/jsonschema"
 	"github.com/xeipuuv/gojsonschema"
 	"gopkg.in/yaml.v2"
@@ -99,7 +98,7 @@ func SpawnGenericPTYFromYAMLTemplate(templateFile, valuesFile, schemaPath string
 }
 
 // spawnGenericPTY spawns a generic command as a pseudo-terminal (PTY).
-func spawnGenericPTY(spawner *Spawner, command string, args []string, timeout time.Duration, opts ...expect.Option) (*Context, error) {
+func spawnGenericPTY(spawner *Spawner, command string, args []string, timeout time.Duration, opts ...Option) (*Context, error) {
 	return (*spawner).Spawn(command, args, timeout, opts...)
 }
 

@@ -21,8 +21,13 @@ import (
 	"os/exec"
 	"time"
 
-	expect "github.com/ryandgoulding/goexpect"
+	expect "github.com/google/goexpect"
 	log "github.com/sirupsen/logrus"
+)
+
+const (
+	// defaultBufferSize is the size of the input/output buffers in bytes.
+	defaultBufferSize = 16384
 )
 
 // UnitTestMode is used to determine if the context is unit test oriented v.s. an actual CNF test run, so appropriate
@@ -89,7 +94,7 @@ func (e *ExecSpawnFunc) StdoutPipe() (io.Reader, error) {
 // Spawner provides an interface for creating interactive sessions such as oc, ssh, or shell.
 type Spawner interface {
 	// Spawn creates the interactive session.
-	Spawn(command string, args []string, timeout time.Duration, opts ...expect.Option) (*Context, error)
+	Spawn(command string, args []string, timeout time.Duration, opts ...Option) (*Context, error)
 }
 
 // Context represents an interactive context.  This abstraction is meant to be overloaded, and can represent
@@ -116,7 +121,96 @@ func NewContext(expecter *expect.Expecter, errorChannel <-chan error) *Context {
 }
 
 // GoExpectSpawner provides an implementation of a Spawner based on GoExpect.  This was abstracted for testing purposes.
+// Creation through struct initialization is prohibited;  use NewGoExpectSpawner instead.
 type GoExpectSpawner struct {
+	// bufferSizeIsSet tracks whether the bufferSize option is set.
+	bufferSizeIsSet bool
+	// bufferSize is the size of the receive buffer in bytes.
+	bufferSize int
+
+	// environmentSettingsIsSet tracks whether the environmentSettings option is set.
+	environmentSettingsIsSet bool
+	// environmentSettings sets environment settings within the Expecter shell.
+	environmentSettings []string
+
+	// verboseIsSet tracks whether the verbose option is set.
+	verboseIsSet bool
+	// verbose controls verbose output.
+	verbose bool
+
+	// verboseWriterIsSet tracks whether the verboseWriter option is set.
+	verboseWriterIsSet bool
+	// verboseWriter is an alternate destination for verbose logs.
+	verboseWriter io.Writer
+}
+
+// Option is a function pointer to enable lightweight optionals for GoExpectSpawner.
+type Option func(spawner *GoExpectSpawner) Option
+
+// BufferSize sets the size of receive buffer in bytes.
+func BufferSize(bufferSize int) Option {
+	return func(g *GoExpectSpawner) Option {
+		g.bufferSizeIsSet = true
+		prev := g.bufferSize
+		g.bufferSize = bufferSize
+		return BufferSize(prev)
+	}
+}
+
+// SetEnv sets the environmental variables of the spawned process.
+func SetEnv(environmentSettings []string) Option {
+	return func(g *GoExpectSpawner) Option {
+		g.environmentSettingsIsSet = true
+		prev := g.environmentSettings
+		g.environmentSettings = environmentSettings
+		return SetEnv(prev)
+	}
+}
+
+// Verbose enables/disables verbose logging of matches and sends.
+func Verbose(verbose bool) Option {
+	return func(g *GoExpectSpawner) Option {
+		g.verboseIsSet = true
+		prev := g.verbose
+		g.verbose = verbose
+		return Verbose(prev)
+	}
+}
+
+// VerboseWriter sets an alternate destination for verbose logs.
+func VerboseWriter(verboseWriter io.Writer) Option {
+	return func(g *GoExpectSpawner) Option {
+		g.verboseWriterIsSet = true
+		prev := g.verboseWriter
+		g.verboseWriter = verboseWriter
+		return VerboseWriter(prev)
+	}
+}
+
+// GetGoExpectOptions renders the GoExpectSpawner Option(s) as expect.Option(s).
+func (g *GoExpectSpawner) GetGoExpectOptions() []expect.Option {
+	opts := make([]expect.Option, 0)
+
+	// Use BufferSize if supplied.  Otherwise, use the test-network-function default.
+	if g.bufferSizeIsSet {
+		opts = append(opts, expect.BufferSize(g.bufferSize))
+	} else {
+		opts = append(opts, expect.BufferSize(defaultBufferSize))
+	}
+
+	if g.environmentSettingsIsSet {
+		opts = append(opts, expect.SetEnv(g.environmentSettings))
+	}
+
+	if g.verboseIsSet {
+		opts = append(opts, expect.Verbose(g.verbose))
+	}
+
+	if g.verboseWriterIsSet {
+		opts = append(opts, expect.VerboseWriter(g.verboseWriter))
+	}
+
+	return opts
 }
 
 // NewGoExpectSpawner creates a new GoExpectSpawner.
@@ -126,11 +220,15 @@ func NewGoExpectSpawner() *GoExpectSpawner {
 
 // Spawn creates a subprocess, setting standard input and standard output appropriately.  This is the base method to
 // create any interactive PTY based process.
-func (g *GoExpectSpawner) Spawn(command string, args []string, timeout time.Duration, opts ...expect.Option) (*Context, error) {
+func (g *GoExpectSpawner) Spawn(command string, args []string, timeout time.Duration, opts ...Option) (*Context, error) {
 	if !UnitTestMode {
 		execSpawnFunc := &ExecSpawnFunc{}
 		var transitionSpawnFunc SpawnFunc = execSpawnFunc
 		spawnFunc = &transitionSpawnFunc
+	}
+
+	for _, opt := range opts {
+		opt(g)
 	}
 
 	spawnFunc = (*spawnFunc).Command(command, args...)
@@ -142,7 +240,7 @@ func (g *GoExpectSpawner) Spawn(command string, args []string, timeout time.Dura
 	if err != nil {
 		return nil, err
 	}
-	return g.spawnGeneric(spawnFunc, stdinPipe, stdoutPipe, timeout, opts...)
+	return g.spawnGeneric(spawnFunc, stdinPipe, stdoutPipe, timeout, g.GetGoExpectOptions()...)
 }
 
 // Helper method which spawns a Context.  The pseudo-terminal (PTY) as well as the underlying goroutine is set up using

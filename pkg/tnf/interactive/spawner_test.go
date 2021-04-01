@@ -24,7 +24,7 @@ import (
 	"time"
 
 	"github.com/golang/mock/gomock"
-	expect "github.com/ryandgoulding/goexpect"
+	expect "github.com/google/goexpect"
 	"github.com/stretchr/testify/assert"
 	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
 	mock_interactive "github.com/test-network-function/test-network-function/pkg/tnf/interactive/mocks"
@@ -42,7 +42,7 @@ func init() {
 }
 
 var (
-	defaultGoExpectArgs            = []expect.Option{expect.Verbose(true)}
+	defaultGoExpectArgs            = []interactive.Option{interactive.Verbose(true)}
 	defaultStdout, defaultStdin, _ = os.Pipe()
 	errStart                       = errors.New("start failed")
 	errStdInPipe                   = errors.New("failed to access stdin")
@@ -52,7 +52,7 @@ type goExpectSpawnerTestCase struct {
 	goExpectSpawnerSpawnCommand string
 	goExpectSpawnerSpawnArgs    []string
 	goExpectSpawnerSpawnTimeout time.Duration
-	goExpectSpawnerSpawnOpts    []expect.Option
+	goExpectSpawnerSpawnOpts    []interactive.Option
 
 	stdinPipeShouldBeCalled bool
 	stdinPipeReturnValue    io.WriteCloser
@@ -230,4 +230,35 @@ func TestExecSpawnFunc(t *testing.T) {
 
 	err = (*cmd).Wait()
 	assert.Nil(t, err)
+}
+
+func TestBufferSize(t *testing.T) {
+	o := interactive.BufferSize(8)
+	g := interactive.NewGoExpectSpawner()
+	// Since GetGoExpectOptions returns a slice of function pointers, we can only inspect size.
+	assert.Equal(t, 1, len(g.GetGoExpectOptions()))
+
+	assert.NotNil(t, o(g))
+	assert.Equal(t, 1, len(g.GetGoExpectOptions()))
+}
+
+func TestSetEnv(t *testing.T) {
+	o := interactive.SetEnv([]string{})
+	g := interactive.NewGoExpectSpawner()
+	assert.NotNil(t, o(g))
+	assert.Equal(t, 2, len(g.GetGoExpectOptions()))
+}
+
+func TestVerbose(t *testing.T) {
+	o := interactive.Verbose(true)
+	g := interactive.NewGoExpectSpawner()
+	assert.NotNil(t, o(g))
+	assert.Equal(t, 2, len(g.GetGoExpectOptions()))
+}
+
+func TestVerboseWriter(t *testing.T) {
+	o := interactive.VerboseWriter(nil)
+	g := interactive.NewGoExpectSpawner()
+	assert.NotNil(t, o(g))
+	assert.Equal(t, 2, len(g.GetGoExpectOptions()))
 }

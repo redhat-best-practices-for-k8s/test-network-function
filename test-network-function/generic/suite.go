@@ -23,7 +23,6 @@ import (
 	"github.com/onsi/ginkgo"
 	ginkgoconfig "github.com/onsi/ginkgo/config"
 	"github.com/onsi/gomega"
-	expect "github.com/ryandgoulding/goexpect"
 	log "github.com/sirupsen/logrus"
 	tnfConfig "github.com/test-network-function/test-network-function/pkg/config"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
@@ -50,7 +49,7 @@ var defaultTimeout = time.Duration(defaultTimeoutSeconds) * time.Second
 var containersToExcludeFromConnectivityTests = make(map[tnfConfig.ContainerIdentifier]interface{})
 
 // Helper used to instantiate an OpenShift Client Session.
-func getOcSession(pod, container, namespace string, timeout time.Duration, options ...expect.Option) *interactive.Oc {
+func getOcSession(pod, container, namespace string, timeout time.Duration, options ...interactive.Option) *interactive.Oc {
 	// Spawn an interactive OC shell using a goroutine (needed to avoid cross expect.Expecter interaction).  Extract the
 	// Oc reference from the goroutine through a channel.  Performs basic sanity checking that the Oc session is set up
 	// correctly.
@@ -97,7 +96,7 @@ type container struct {
 func createContainers(containerDefinitions map[tnfConfig.ContainerIdentifier]tnfConfig.Container) map[tnfConfig.ContainerIdentifier]*container {
 	createdContainers := map[tnfConfig.ContainerIdentifier]*container{}
 	for containerID, containerConfig := range containerDefinitions {
-		oc := getOcSession(containerID.PodName, containerID.ContainerName, containerID.Namespace, defaultTimeout, expect.Verbose(true))
+		oc := getOcSession(containerID.PodName, containerID.ContainerName, containerID.Namespace, defaultTimeout, interactive.Verbose(true))
 		var defaultIPAddress = "UNKNOWN"
 		if _, ok := containersToExcludeFromConnectivityTests[containerID]; !ok {
 			defaultIPAddress = getContainerDefaultNetworkIPAddress(oc, containerConfig.DefaultNetworkDevice)

@@ -19,7 +19,7 @@ package tnf
 import (
 	"time"
 
-	expect "github.com/ryandgoulding/goexpect"
+	expect "github.com/google/goexpect"
 	"github.com/test-network-function/test-network-function/pkg/tnf/identifier"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
 )

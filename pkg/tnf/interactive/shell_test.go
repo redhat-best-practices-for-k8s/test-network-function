@@ -21,7 +21,6 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
-	expect "github.com/ryandgoulding/goexpect"
 	"github.com/stretchr/testify/assert"
 	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
 	mock_interactive "github.com/test-network-function/test-network-function/pkg/tnf/interactive/mocks"
@@ -30,7 +29,7 @@ import (
 var errSpawnShell = errors.New("some error related to spawning shell")
 
 type shellTestCase struct {
-	options            []expect.Option
+	options            []interactive.Option
 	errReturnValue     error
 	contextReturnValue *interactive.Context
 	expectedSpawnErr   error
@@ -38,13 +37,13 @@ type shellTestCase struct {
 
 var shellTestCases = map[string]shellTestCase{
 	"no_error": {
-		options:            []expect.Option{expect.Verbose(true)},
+		options:            []interactive.Option{interactive.Verbose(true)},
 		errReturnValue:     nil,
 		contextReturnValue: &interactive.Context{},
 		expectedSpawnErr:   nil,
 	},
 	"error": {
-		options:            []expect.Option{expect.Verbose(true)},
+		options:            []interactive.Option{interactive.Verbose(true)},
 		errReturnValue:     errSpawnShell,
 		contextReturnValue: &interactive.Context{},
 		expectedSpawnErr:   errSpawnShell,

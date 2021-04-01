@@ -19,7 +19,7 @@ package interactive
 import (
 	"time"
 
-	expect "github.com/ryandgoulding/goexpect"
+	expect "github.com/google/goexpect"
 )
 
 const (
@@ -43,7 +43,7 @@ type Oc struct {
 	// timeout for commands run in expecter
 	timeout time.Duration
 	// options for experter, such as expect.Verbose(true)
-	opts []expect.Option
+	opts []Option
 	// the underlying subprocess implementation, tailored to OpenShift Client
 	expecter *expect.Expecter
 	// error during the spawn process
@@ -53,7 +53,7 @@ type Oc struct {
 }
 
 // SpawnOc creates an OpenShift Client subprocess, spawning the appropriate underlying PTY.
-func SpawnOc(spawner *Spawner, pod, container, namespace string, timeout time.Duration, opts ...expect.Option) (*Oc, <-chan error, error) {
+func SpawnOc(spawner *Spawner, pod, container, namespace string, timeout time.Duration, opts ...Option) (*Oc, <-chan error, error) {
 	ocArgs := []string{ocExecCommand, ocNamespaceArg, namespace, ocInteractiveArg, pod, ocContainerArg, container, ocClientCommandSeparator, ocDefaultShell}
 	context, err := (*spawner).Spawn(ocCommand, ocArgs, timeout, opts...)
 	if err != nil {
@@ -89,7 +89,7 @@ func (o *Oc) GetTimeout() time.Duration {
 }
 
 // GetOptions returns the options, such as verbosity.
-func (o *Oc) GetOptions() []expect.Option {
+func (o *Oc) GetOptions() []Option {
 	return o.opts
 }
 
