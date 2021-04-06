@@ -348,3 +348,28 @@ You will need an [OpenShift 4.4 installation](https://docs.openshift.com/contain
 running your CNF, and at least one other machine available to host the test suite.  The
 [cnf-certification-test-partner](https://github.com/test-network-function/cnf-certification-test-partner) repository has a very
 simple example of this you can model your setup on.
+
+# Known Issues
+
+## Issue #146:  Shell Output larger than 16KB requires specification of the TNF_DEFAULT_BUFFER_SIZE environment variable
+
+When dealing with large output, you may occasionally overrun the default buffer size. The manifestation of this issue is
+a `json.SyntaxError`, and may look similar to the following:
+
+```shell script
+    Expected
+        <*json.SyntaxError | 0xc0002bc020>: {
+            msg: "unexpected end of JSON input",
+            Offset: 660,
+        }
+    to be nil
+```
+
+In such cases, you will need to set the TNF_DEFAULT_BUFFER_SIZE to a sufficient size (in bytes) to handle the expected
+output.
+
+For example:
+
+```shell script
+TNF_DEFAULT_BUFFER_SIZE=32768 ./run-cnf-suites.sh diagnostic generic
+```
