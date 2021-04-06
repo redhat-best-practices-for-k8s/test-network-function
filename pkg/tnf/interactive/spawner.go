@@ -18,7 +18,9 @@ package interactive
 
 import (
 	"io"
+	"os"
 	"os/exec"
+	"strconv"
 	"time"
 
 	expect "github.com/google/goexpect"
@@ -28,6 +30,8 @@ import (
 const (
 	// defaultBufferSize is the size of the input/output buffers in bytes.
 	defaultBufferSize = 16384
+	// defaultBufferSizeEnvironmentVariableKey is the OS environment variable name to override defaultBufferSize.
+	defaultBufferSizeEnvironmentVariableKey = "TNF_DEFAULT_BUFFER_SIZE"
 )
 
 // UnitTestMode is used to determine if the context is unit test oriented v.s. an actual CNF test run, so appropriate
@@ -187,6 +191,20 @@ func VerboseWriter(verboseWriter io.Writer) Option {
 	}
 }
 
+// getDefaultBufferSize returns the default buffer size as sourced from TNF_DEFAULT_BUFFER_SIZE.  If
+// TNF_DEFAULT_BUFFER_SIZE is not set or cannot be parsed as an integer, defaultBufferSize is returned.
+func getDefaultBufferSize() int {
+	bufferSizeFromEnv := os.Getenv(defaultBufferSizeEnvironmentVariableKey)
+	if bufferSizeFromEnv != "" {
+		if bufferSize, err := strconv.Atoi(bufferSizeFromEnv); err == nil {
+			log.Debugf("Utilizing buffer size as sourced from %s: %dB", defaultBufferSizeEnvironmentVariableKey, bufferSize)
+			return bufferSize
+		}
+	}
+	log.Debugf("Utilizing the default buffer size: %d", defaultBufferSize)
+	return defaultBufferSize
+}
+
 // GetGoExpectOptions renders the GoExpectSpawner Option(s) as expect.Option(s).
 func (g *GoExpectSpawner) GetGoExpectOptions() []expect.Option {
 	opts := make([]expect.Option, 0)
@@ -195,7 +213,7 @@ func (g *GoExpectSpawner) GetGoExpectOptions() []expect.Option {
 	if g.bufferSizeIsSet {
 		opts = append(opts, expect.BufferSize(g.bufferSize))
 	} else {
-		opts = append(opts, expect.BufferSize(defaultBufferSize))
+		opts = append(opts, expect.BufferSize(getDefaultBufferSize()))
 	}
 
 	if g.environmentSettingsIsSet {
