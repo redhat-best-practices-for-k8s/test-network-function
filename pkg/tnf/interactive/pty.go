@@ -32,10 +32,6 @@ const (
 	PTYSchemaFileName = "generic-pty.schema.json"
 )
 
-// SpawnGenericPTYFromYAMLFile attempts to spawn an interactive PTY given the supplied file based on
-// generic-pty.schema.json.  schemaPath should always be the path to generic-pty.schema.json relative to the execution
-// entry-point, which will vary for unit tests, executables, and test suites.  If the supplied file does not conform to
-// the generic-pty.schema.json schema, creation fails and the result is returned to the caller for further inspection.
 func SpawnGenericPTYFromYAMLFile(ptyPath, schemaPath string, spawner *Spawner) (*Context, *gojsonschema.Result, error) {
 	ptyBytes, err := ioutil.ReadFile(ptyPath)
 	if err != nil {
