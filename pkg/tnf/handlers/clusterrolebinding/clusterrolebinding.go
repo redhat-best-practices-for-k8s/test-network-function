@@ -29,6 +29,7 @@ const (
 	crbRegex = "(?s).+"
 )
 
+// ClusterRoleBinding holds information derived from running "oc get clusterrolebindings" on the command line.
 type ClusterRoleBinding struct {
 	clusterRoleBindings []string // Output variable that stores the 'bad' ClusterRoleBindings
 	result              int
@@ -36,6 +37,7 @@ type ClusterRoleBinding struct {
 	args                []string
 }
 
+// NewClusterRoleBinding creates a ClusterRoleBinding tnf.Test.
 func NewClusterRoleBinding(timeout time.Duration, serviceAccountName, podNamespace string) *ClusterRoleBinding {
 	serviceAccountSubString := "name:" + serviceAccountName + " namespace:" + podNamespace
 	return &ClusterRoleBinding{
@@ -48,6 +50,7 @@ func NewClusterRoleBinding(timeout time.Duration, serviceAccountName, podNamespa
 	}
 }
 
+// GetClusterRoleBindings returns any cluster role bindings extracted while running the ClusterRoleBinding tnf.Test.
 func (crb *ClusterRoleBinding) GetClusterRoleBindings() []string {
 	return crb.clusterRoleBindings
 }
@@ -80,6 +83,7 @@ func (crb *ClusterRoleBinding) ReelFirst() *reel.Step {
 	}
 }
 
+// ReelMatch ensures that there are no ClusterRoleBindings matched in the command output.
 func (crb *ClusterRoleBinding) ReelMatch(_, _, match string) *reel.Step {
 	const (
 		nameIdx = 0
@@ -110,9 +114,11 @@ func (crb *ClusterRoleBinding) ReelMatch(_, _, match string) *reel.Step {
 	return nil
 }
 
+// ReelTimeout does nothing;  no action is necessary upon timeout.
 func (crb *ClusterRoleBinding) ReelTimeout() *reel.Step {
 	return nil
 }
 
+// ReelEOF does nothing;  no action is necessary on EOF.
 func (crb *ClusterRoleBinding) ReelEOF() {
 }
