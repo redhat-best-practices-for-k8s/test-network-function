@@ -29,6 +29,7 @@ const (
 	rbRegex = "(?s).+"
 )
 
+// RoleBinding holds information derived from running "oc get rolebindings" on the command line.
 type RoleBinding struct {
 	podNamespace string
 	roleBindings []string // Output variable that stores the 'bad' RoleBindings
@@ -37,6 +38,7 @@ type RoleBinding struct {
 	args         []string
 }
 
+// NewRoleBinding creates a new RoleBinding tnf.Test.
 func NewRoleBinding(timeout time.Duration, serviceAccountName, podNamespace string) *RoleBinding {
 	serviceAccountSubString := "name:" + serviceAccountName + " namespace:" + podNamespace
 	return &RoleBinding{
@@ -50,6 +52,7 @@ func NewRoleBinding(timeout time.Duration, serviceAccountName, podNamespace stri
 	}
 }
 
+// GetRoleBindings returns any role bindings extracted from running the RoleBindings tnf.Test.
 func (rb *RoleBinding) GetRoleBindings() []string {
 	return rb.roleBindings
 }
@@ -82,6 +85,7 @@ func (rb *RoleBinding) ReelFirst() *reel.Step {
 	}
 }
 
+// ReelMatch ensures that there are no ServiceAccount RoleBindings for a given OpenShift Pod namespace.
 func (rb *RoleBinding) ReelMatch(_, _, match string) *reel.Step {
 	const (
 		nsIdx   = 0
@@ -119,9 +123,11 @@ func (rb *RoleBinding) ReelMatch(_, _, match string) *reel.Step {
 	return nil
 }
 
+// ReelTimeout does nothing;  no action is necessary upon timeout.
 func (rb *RoleBinding) ReelTimeout() *reel.Step {
 	return nil
 }
 
+// ReelEOF does nothing;  no action is necessary upon EOF.
 func (rb *RoleBinding) ReelEOF() {
 }
