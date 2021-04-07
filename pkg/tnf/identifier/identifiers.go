@@ -29,6 +29,7 @@ const (
 	serviceAccountIdentifierURL     = "http://test-network-function.com/tests/serviceaccount"
 	roleBindingIdentifierURL        = "http://test-network-function.com/tests/rolebinding"
 	clusterRoleBindingIdentifierURL = "http://test-network-function.com/tests/clusterrolebinding"
+	nodePortIdentifierURL           = "http://test-network-function.com/tests/nodeport"
 
 	versionOne = "v1.0.0"
 )
@@ -195,6 +196,19 @@ var Catalog = map[string]TestCatalogEntry{
 			dependencies.OcBinaryName,
 		},
 	},
+	nodePortIdentifierURL: {
+		Identifier:  NodePortIdentifier,
+		Description: "A generic test used to test services of CNF pod's namespace.",
+		Type:        Normative,
+		IntrusionSettings: IntrusionSettings{
+			ModifiesSystem:           false,
+			ModificationIsPersistent: false,
+		},
+		BinaryDependencies: []string{
+			dependencies.OcBinaryName,
+			dependencies.GrepBinaryName,
+		},
+	},
 }
 
 // HostnameIdentifier is the Identifier used to represent the generic hostname test case.
@@ -254,5 +268,11 @@ var RoleBindingIdentifier = Identifier{
 // ClusterRoleBindingIdentifier is the Identifier used to represent the generic clusterRoleBinding test.
 var ClusterRoleBindingIdentifier = Identifier{
 	URL:             clusterRoleBindingIdentifierURL,
+	SemanticVersion: versionOne,
+}
+
+// NodePortIdentifier is the Identifier used to represent the generic NodePort test.
+var NodePortIdentifier = Identifier{
+	URL:             nodePortIdentifierURL,
 	SemanticVersion: versionOne,
 }
