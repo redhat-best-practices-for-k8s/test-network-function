@@ -29,6 +29,7 @@ import (
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/base/redhat"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/clusterrolebinding"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/ipaddr"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodeport"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/ping"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/rolebinding"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/serviceaccount"
@@ -169,6 +170,10 @@ var _ = ginkgo.Describe(testsKey, func() {
 
 		for _, containersUnderTest := range containersUnderTest {
 			testRoles(context, containersUnderTest.oc.GetPodName(), containersUnderTest.oc.GetPodNamespace())
+		}
+
+		for _, containersUnderTest := range containersUnderTest {
+			testNodePort(context, containersUnderTest.oc.GetPodNamespace())
 		}
 	}
 })
@@ -322,5 +327,18 @@ func testClusterRoleBindings(context *interactive.Context, podNamespace string, 
 		}
 		gomega.Expect(err).To(gomega.BeNil())
 		gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
+	})
+}
+
+func testNodePort(context *interactive.Context, podNamespace string) {
+	ginkgo.When(fmt.Sprintf("Testing services in namespace %s", podNamespace), func() {
+		ginkgo.It("Should not have services of type NodePort", func() {
+			tester := nodeport.NewNodePort(defaultTimeout, podNamespace)
+			test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
+			gomega.Expect(err).To(gomega.BeNil())
+			testResult, err := test.Run()
+			gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
+			gomega.Expect(err).To(gomega.BeNil())
+		})
 	})
 }

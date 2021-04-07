@@ -40,4 +40,7 @@ const (
 
 	// XargsBinaryName is the name of the Unix `xargs` command.
 	XargsBinaryName = "xargs"
+
+	// GrepBinaryName is the name of the Unix `grep` command
+	GrepBinaryName = "grep"
 )
