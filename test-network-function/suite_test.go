@@ -69,13 +69,6 @@ func init() {
 		"the path of the report file containing details for failed tests")
 }
 
-var _ = ginkgo.BeforeSuite(func() {
-	tnfConfig, cfgError := config.GetConfig()
-	if cfgError != nil || tnfConfig.CNFs == nil {
-		ginkgo.Fail("Unable to load the configuration required for the test. Test aborted")
-	}
-})
-
 func createClaimRoot() *claim.Root {
 	// Initialize the claim with the start time.
 	startTime := time.Now()
@@ -138,7 +131,8 @@ func TestTest(t *testing.T) {
 	endTime := time.Now()
 	claimData.Results = junitMap
 
-	configurations, err := j.Marshal(config.GetInstance().GetConfigurations())
+	conf := config.GetConfigInstance()
+	configurations, err := j.Marshal(conf)
 	if err != nil {
 		log.Fatalf("error converting configurations to JSON: %v", err)
 	}

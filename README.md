@@ -109,7 +109,7 @@ The `generic` test spec tests:
 
 To test `Default` network connectivity, a [test partner pod](https://github.com/test-network-function/cnf-certification-test-partner)
 is installed on the network.  The test partner pod is instructed to issue ICMPv4 requests to each container listed in
-the [test configuration](./test-network-function/generic_test_configuration.yml), and vice versa.  The test asserts that
+the [test configuration](./test-network-function/tnf_config.yml), and vice versa.  The test asserts that
 the test partner pod receives the correct number of replies, and vice versa.
 
 In the future, other networking protocols aside from ICMPv4 should be tested.
@@ -208,19 +208,23 @@ for a future version.
 
 ## Test Configuration
 
-There are a few pieces of configuration required to allow the test framework to access and test the CNF:
+Configuration is accomplished with `tnf_config.yml` by default. An alternative configuration can be provided using the
+`TNF_CONFIGURATION_PATH` environment variable.
 
-Config File|Purpose
+This config file contains several sections, each of which configures one or more test specs:
+
+Config Section|Purpose
 ---|---
-generic_test_configuration.yml|Describes the CNF or CNFs that are to be tested, the container that will run the tests, and the test orchestrator.
-cnf_test_configuration.yml|Defines which containers and operators are to be tested, and in which roles.
-testconfigure.yml|Defines roles, and which tests are appropriate for which roles. It should not be necessary to modify this.
+generic|Describes containers to be tested with the `generic` and `multus` specs, if they are run.
+cnfs|Defines which containers are to be tested by the `container` spec.
+operators|Defines which containers are to be tested by the `operator` spec.
 
-Combining these configuration files is a near-term goal.
+`testconfigure.yml` defines roles, and which tests are appropriate for which roles. It should not be necessary to modify this.
 
-### generic_test_configuration.yml
 
-The config file `generic_test_configuration.yml` contains three sections:
+### generic
+
+The `generic` section contains three subsections:
 
 * `containersUnderTest:` describes the CNFs that will be tested.  Each container is defined by the combination of its
 `namespace`, `podName`, and `containerName`, which are also used to connect to the container when required.
@@ -236,21 +240,18 @@ orchestrator.
 to send various types of traffic to each container under test.  For example the orchestrator is used to ping a container
 under test, and to be the ping target of a container under test.
 
-The [included example](test-network-function/generic_test_configuration.yml) defines a single container to be tested,
+The [included default](test-network-function/tnf_config.yml) defines a single container to be tested,
 and a single partner to do the testing.
 
-### cnf_test_configuration.yml - Operator and Container Test Configuration
+### cnfs and operators
 
-Testing operator and containers in specific roles is currently configured separately from the generic tests. This is
-configured using `cnf_test_configuration.yml`.
+The `cnfs` and `operators` sections define the roles under which operators and containers are to be tested.
 
-`cnf_test_configuration.yml` defines the roles under which operators and containers are to be tested.
-
-[The included example config](test-network-function/cnf_test_configuration.yml) is set up with some examples of this:
+[The default config](test-network-function/tnf_config.yml) is set up with some examples of this:
 It will run the `"OPERATOR_STATUS"` tests (as defined in `testconfigure.yml`) against an etcd operator, and the
 `"PRIVILEGED_POD"` and `"PRIVILEGED_ROLE"` tests against an nginx container.
 
-A more extensive example is provided in [pkg/config/example.yaml](pkg/config/example.yaml)
+A more extensive example of these sections is provided in [example/example_config.yaml](example/example_config.yaml)
 
 ## Test Output
 

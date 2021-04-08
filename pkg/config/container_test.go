@@ -17,24 +17,23 @@
 package config_test
 
 import (
-	"fmt"
+	"encoding/json"
 	"io/ioutil"
 	"log"
 	"os"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	tnfConfig "github.com/test-network-function/test-network-function/pkg/config"
+	"github.com/test-network-function/test-network-function/pkg/config"
 	"github.com/test-network-function/test-network-function/pkg/tnf/testcases"
+	"gopkg.in/yaml.v2"
 )
 
 var (
-	file       *os.File
-	jsonFile   *os.File
-	err        error
-	test       tnfConfig.TnfContainerOperatorTestConfig
-	configPath *string
+	file     *os.File
+	jsonFile *os.File
+	err      error
+	test     config.File
 )
 
 const (
@@ -74,14 +73,55 @@ const (
 	testNameSpace = "default"
 )
 
+const (
+	// filePerm is the permissions these tests will use when creating config files in test setup
+	filePerm = 0644
+)
+
+func saveConfig(c *config.File, configPath string) (err error) {
+	bytes, _ := yaml.Marshal(c)
+	if err != nil {
+		return
+	}
+	err = ioutil.WriteFile(configPath, bytes, filePerm)
+	return
+}
+
+func saveConfigAsJSON(c *config.File, configPath string) (err error) {
+	bytes, err := json.Marshal(c)
+	if err != nil {
+		return
+	}
+	err = ioutil.WriteFile(configPath, bytes, filePerm)
+	return
+}
+
+// newConfig  returns a new decoded TnfContainerOperatorTestConfig struct
+func newConfig(configPath string) (*config.File, error) {
+	// Create config structure
+	conf := &config.File{}
+	// Open config file
+	if file, err = os.Open(configPath); err != nil {
+		return nil, err
+	}
+	defer file.Close()
+	// Init new YAML decode
+	d := yaml.NewDecoder(file)
+	// Start YAML decoding from file
+	if err = d.Decode(&conf); err != nil {
+		return nil, err
+	}
+	return conf, nil
+}
+
 func loadCnfConfig() {
 	// CNF only
-	test.CNFs = []tnfConfig.Cnf{
+	test.CNFs = []config.Cnf{
 		{
 			Name:      cnfName,
 			Namespace: testNameSpace,
 			Tests:     []string{testcases.PrivilegedPod},
-			CertifiedContainerRequestInfos: []tnfConfig.CertifiedContainerRequestInfo{
+			CertifiedContainerRequestInfos: []config.CertifiedContainerRequestInfo{
 				{
 					Name:       containerImageName,
 					Repository: imageRepository,
@@ -96,36 +136,36 @@ func loadCnfConfig() {
 }
 
 func loadOperatorConfig() {
-	operator := tnfConfig.Operator{}
+	operator := config.Operator{}
 	operator.Name = operatorName
 	operator.Namespace = operatorNameSpace
 	setCrdsAndInstances()
-	dep := tnfConfig.Deployment{}
+	dep := config.Deployment{}
 	dep.Name = deploymentName
 	dep.Replicas = deploymentReplicas
 	operator.Tests = []string{testcases.OperatorStatus}
-	operator.CertifiedOperatorRequestInfos = []tnfConfig.CertifiedOperatorRequestInfo{
+	operator.CertifiedOperatorRequestInfos = []config.CertifiedOperatorRequestInfo{
 		{
 			Name:         operatorPackageName,
 			Organization: organization,
 		},
 	}
-	test.Operator = append(test.Operator, operator)
+	test.Operators = append(test.Operators, operator)
 	// CNF only
 	loadCnfConfig()
 }
 
 func setCrdsAndInstances() {
-	crd := tnfConfig.Crd{}
+	crd := config.Crd{}
 	crd.Name = crdNameOne
 	crd.Namespace = testNameSpace
-	instance := tnfConfig.Instance{}
+	instance := config.Instance{}
 	instance.Name = instanceNameOne
 	crd.Instances = append(crd.Instances, instance)
-	crd2 := tnfConfig.Crd{}
+	crd2 := config.Crd{}
 	crd2.Name = crdNameTwo
 	crd2.Namespace = testNameSpace
-	instance2 := tnfConfig.Instance{}
+	instance2 := config.Instance{}
 	instance2.Name = instanceNameTwo
 	crd2.Instances = append(crd2.Instances, instance2)
 }
@@ -140,7 +180,7 @@ func setup(configType string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	test = tnfConfig.TnfContainerOperatorTestConfig{}
+	test = config.File{}
 	switch configType {
 	case fullConfig:
 		loadFullConfig()
@@ -149,7 +189,7 @@ func setup(configType string) {
 	case operatorConfig:
 		loadOperatorConfig()
 	}
-	err = test.SaveConfig(file.Name())
+	err = saveConfig(&test, file.Name())
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -160,7 +200,7 @@ func setupJSON(configType string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	test = tnfConfig.TnfContainerOperatorTestConfig{}
+	test = config.File{}
 	switch configType {
 	case fullConfig:
 		loadFullConfig()
@@ -169,7 +209,7 @@ func setupJSON(configType string) {
 	case operatorConfig:
 		loadOperatorConfig()
 	}
-	err = test.SaveConfigAsJSON(jsonFile.Name())
+	err = saveConfigAsJSON(&test, jsonFile.Name())
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -187,9 +227,9 @@ func teardown() {
 func TestFullConfigLoad(t *testing.T) {
 	setup(fullConfig)
 	defer (teardown)()
-	cfg, err := tnfConfig.NewConfig(file.Name())
+	cfg, err := newConfig(file.Name())
 	assert.NotNil(t, cfg)
-	assert.Equal(t, len(cfg.Operator), 1)
+	assert.Equal(t, len(cfg.Operators), 1)
 	assert.Equal(t, cfg.CNFs[0].Name, cnfName)
 	assert.Nil(t, err)
 }
@@ -197,7 +237,7 @@ func TestFullConfigLoad(t *testing.T) {
 func TestCnfConfigLoad(t *testing.T) {
 	setup(cnfConfig)
 	defer (teardown)()
-	cfg, err := tnfConfig.NewConfig(file.Name())
+	cfg, err := newConfig(file.Name())
 	assert.NotNil(t, cfg)
 	assert.Equal(t, cfg.CNFs[0].Name, cnfName)
 	assert.Nil(t, err)
@@ -206,80 +246,25 @@ func TestCnfConfigLoad(t *testing.T) {
 func TestOperatorConfigLoad(t *testing.T) {
 	setup(operatorConfig)
 	defer (teardown)()
-	cfg, err := tnfConfig.NewConfig(file.Name())
+	cfg, err := newConfig(file.Name())
 	assert.NotNil(t, cfg)
-	assert.Equal(t, len(cfg.Operator), 1)
+	assert.Equal(t, len(cfg.Operators), 1)
 	assert.Nil(t, err)
-}
-
-func TestValidateConfigPath(t *testing.T) {
-	var tests = []struct {
-		path  string
-		error error
-	}{
-		{".", fmt.Errorf("'.' is a directory, not a normal file")},
-		{"./config", fmt.Errorf("./config is a directory, not a normal file")},
-		{"./config.yml", nil},
-	}
-	for _, tt := range tests {
-		t.Run(tt.path, func(t *testing.T) {
-			tt := tt // pin
-			err := tnfConfig.ValidateConfigPath(tt.path)
-			if err == nil && tt.error != nil {
-				assert.Fail(t, err.Error())
-			}
-		})
-	}
-}
-
-// TestConfigLoadFunction ... Test if config is read correctly
-func TestConfigLoadFunction(t *testing.T) {
-	setup(fullConfig)
-	defer (teardown)()
-	path, _ := os.Getwd()
-	var tests = []struct {
-		args  []string
-		conf  tnfConfig.TnfContainerOperatorTestConfig
-		error string
-	}{
-		{[]string{"./operator-test"}, test, "no such file or directory"},
-		{[]string{"./operator-test", "-config", "config_not_exists"}, test, "no such file or directory"},
-		{[]string{"./operator-test", "-config", path}, test, "is a directory, not a normal file"},
-		{[]string{"./operator-test", "-config", file.Name()}, test, ""},
-	}
-	for _, tt := range tests {
-		t.Run(strings.Join(tt.args, " "), func(t *testing.T) {
-			tt := tt // pin
-			os.Args = tt.args
-			if len(tt.args) > 2 {
-				configPath = &tt.args[2]
-			}
-			testConfig, err := tnfConfig.GetConfig()
-			if err == nil {
-				assert.Nil(t, err)
-				assert.NotNil(t, testConfig)
-				assert.Equal(t, *testConfig, tt.conf)
-			} else {
-				assert.NotNil(t, err)
-				assert.Contains(t, err.Error(), tt.error)
-			}
-		})
-	}
 }
 
 func TestFullJsonConfig(t *testing.T) {
 	defer (teardown)()
 	// json
 	setupJSON(fullConfig)
-	jsonCfg, err := tnfConfig.NewConfig(jsonFile.Name())
+	jsonCfg, err := newConfig(jsonFile.Name())
 	assert.NotNil(t, jsonCfg)
 	assert.Nil(t, err)
 	// yaml
 	setup(fullConfig)
-	yamlCfg, err := tnfConfig.NewConfig(file.Name())
+	yamlCfg, err := newConfig(file.Name())
 	assert.Nil(t, err)
 	assert.NotNil(t, yamlCfg)
-	assert.Equal(t, yamlCfg.Operator, jsonCfg.Operator)
+	assert.Equal(t, yamlCfg.Operators, jsonCfg.Operators)
 	assert.Equal(t, yamlCfg.CNFs, jsonCfg.CNFs)
 }
 
@@ -287,12 +272,12 @@ func TestCnfJsonConfig(t *testing.T) {
 	defer (teardown)()
 	// json
 	setupJSON(cnfConfig)
-	jsonCfg, err := tnfConfig.NewConfig(jsonFile.Name())
+	jsonCfg, err := newConfig(jsonFile.Name())
 	assert.NotNil(t, jsonCfg)
 	assert.Nil(t, err)
 	// yaml
 	setup(cnfConfig)
-	yamlCfg, err := tnfConfig.NewConfig(file.Name())
+	yamlCfg, err := newConfig(file.Name())
 	assert.Nil(t, err)
 	assert.NotNil(t, yamlCfg)
 	assert.Equal(t, yamlCfg.CNFs, jsonCfg.CNFs)
@@ -302,23 +287,12 @@ func TestOperatorJsonConfig(t *testing.T) {
 	defer (teardown)()
 	// json
 	setupJSON(operatorConfig)
-	jsonCfg, err := tnfConfig.NewConfig(jsonFile.Name())
+	jsonCfg, err := newConfig(jsonFile.Name())
 	assert.NotNil(t, jsonCfg)
 	assert.Nil(t, err)
 	// yaml
 	setup(operatorConfig)
-	yamlCfg, err := tnfConfig.NewConfig(file.Name())
+	yamlCfg, err := newConfig(file.Name())
 	assert.Nil(t, err)
-	assert.Equal(t, yamlCfg.Operator, jsonCfg.Operator)
-}
-
-func TestNewConfig(t *testing.T) {
-	Cfg, err := tnfConfig.NewConfig("error.file")
-	assert.NotNil(t, err)
-	assert.Nil(t, Cfg)
-	defer (teardown)()
-	file, err = ioutil.TempFile(".", "test-empty.yml")
-	assert.Nil(t, err)
-	_, err = tnfConfig.NewConfig(file.Name())
-	assert.NotNil(t, err)
+	assert.Equal(t, yamlCfg.Operators, jsonCfg.Operators)
 }
