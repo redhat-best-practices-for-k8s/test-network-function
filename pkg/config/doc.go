@@ -15,9 +15,14 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 /*
-Package config provides test-network-function configuration along with a config pool for aggregating configuration.
-Configurations registered with the pool are automatically included in the claim.  Go structs used for configuration
-should each be defined in their own files, such as `cnf.go` and `generic.go`.  The corresponding configuration yaml/json
-files should be prefixed with `<filename>_test_configuration`, such as `generic_test_configuration.yaml`.
+Package config provides test-network-function configuration through a central place. Configuration data
+is automatically included in the claim. Configuration should all be contained in a single yaml file, with each
+configuration area under its own key. The different sections of the config file are independent and can have different
+structures. The config file MUST Unmarshal into a `map[string]interface{}` using `yaml.Unmarshal()`.
+The env var "TEST_CONFIGURATION_PATH" identifies the config file. If not set, the default of `tnf_config.yml` is used.
+The config file is loaded by this package, and sections can be requested by the different test specs using the
+`GetConfigSection()` method, and providing a struct into which the section is to be loaded.
+Go `struct`s used for configuration should each be defined in their own files in the package that uses that config,
+such as `generic_config.go`. They MUST Marshal successfully into JSON using the `json.Marshal()` method.
 */
 package config

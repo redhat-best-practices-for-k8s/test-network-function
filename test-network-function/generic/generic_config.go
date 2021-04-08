@@ -22,6 +22,7 @@ type ContainerIdentifier struct {
 	PodName       string `yaml:"podName" json:"podName"`
 	ContainerName string `yaml:"containerName" json:"containerName"`
 }
+
 // Container contains the payload of container facets.
 type Container struct {
 	ContainerIdentifier `yaml:",inline"`
@@ -33,9 +34,9 @@ type Container struct {
 
 // TestConfiguration provides generic test related configuration
 type TestConfiguration struct {
-	ContainersUnderTest []Container `yaml:"containersUnderTest" json:"containersUnderTest"`
-	PartnerContainers   []Container `yaml:"partnerContainers" json:"partnerContainers"`
-	TestOrchestrator    ContainerIdentifier               `yaml:"testOrchestrator" json:"testOrchestrator"`
+	ContainersUnderTest []Container         `yaml:"containersUnderTest" json:"containersUnderTest"`
+	PartnerContainers   []Container         `yaml:"partnerContainers" json:"partnerContainers"`
+	TestOrchestrator    ContainerIdentifier `yaml:"testOrchestrator" json:"testOrchestrator"`
 	// ExcludeContainersFromConnectivityTests excludes specific containers from network connectivity tests.  This is particularly useful for containers that don't have ping available.
 	ExcludeContainersFromConnectivityTests []ContainerIdentifier `yaml:"excludeContainersFromConnectivityTests" json:"excludeContainersFromConnectivityTests"`
 }

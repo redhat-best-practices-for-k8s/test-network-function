@@ -1,6 +1,6 @@
 operators:
-  - name: etcdoperator.v0.9.4
-    namespace: my-etcd
+  - name: jenkins-operator.0.7.1
+    namespace: default
     autogenerate: false
     tests:
       - OPERATOR_STATUS
@@ -8,7 +8,7 @@ operators:
       - name: amq-streams  #just a working example
         organization: redhat-operators
 cnfs:
-  - name: ubuntu
+  - name: test
     namespace: default
     tests:
       - PRIVILEGED_POD

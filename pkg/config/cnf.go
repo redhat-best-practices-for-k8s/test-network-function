@@ -27,7 +27,8 @@ import (
 )
 
 const (
-	cnfConfigCLIKey = "config"
+	cnfConfigCLIKey    = "config"
+	cnfConfigInputFile = "config_test_configuration"
 	// CNFConfigName is the configuration sentinel used to represent container and operator CNF configuration.
 	CNFConfigName = "cnf"
 	filePerm      = 0644
@@ -35,9 +36,8 @@ const (
 )
 
 var (
-	cnfConfigInputFile = getConfigurationFileNameWithoutExtension(CNFConfigName)
-	cnfConfigFileName  = fmt.Sprintf("%s.%s", cnfConfigInputFile, ymlExtension)
-	configPath         = flag.String(cnfConfigCLIKey, cnfConfigFileName, "path to config file")
+	cnfConfigFileName = fmt.Sprintf("%s.%s", cnfConfigInputFile, ymlExtension)
+	configPath        = flag.String(cnfConfigCLIKey, cnfConfigFileName, "path to config file")
 )
 
 // CNFType defines a type to be either Operator or Container

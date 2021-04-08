@@ -4,14 +4,14 @@ containersUnderTest:
     containerName: test
   : defaultNetworkDevice: eth0
     multusIpAddresses:
-      - 192.168.1.1
+      - 10.217.0.8
 partnerContainers:
   ? namespace: tnf
     podName: partner
     containerName: partner
   : defaultNetworkDevice: eth0
     multusIpAddresses:
-      - 192.168.1.3
+      - 10.217.0.29
 testOrchestrator:
   namespace: tnf
   podName: partner

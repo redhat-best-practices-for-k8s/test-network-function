@@ -138,7 +138,8 @@ func TestTest(t *testing.T) {
 	endTime := time.Now()
 	claimData.Results = junitMap
 
-	configurations, err := j.Marshal(config.GetInstance().GetConfigurations())
+	_, retrievedConfig := config.GetConfigForClaim() // TODO include the raw Config
+	configurations, err := j.Marshal(retrievedConfig)
 	if err != nil {
 		log.Fatalf("error converting configurations to JSON: %v", err)
 	}

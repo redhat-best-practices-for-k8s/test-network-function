@@ -241,7 +241,8 @@ func getContainerDefaultNetworkIPAddress(oc *interactive.Oc, dev string) string 
 // GetTestConfiguration returns the cnf-certification-generic-tests test configuration.
 func GetTestConfiguration() *TestConfiguration {
 	var config TestConfiguration
-	tnfConfig.GetConfigSection("generic", &config)
+	err := tnfConfig.GetConfigSection("generic", &config)
+	gomega.Expect(err).To(gomega.BeNil())
 	gomega.Expect(config).ToNot(gomega.BeNil())
 	return &config
 }
