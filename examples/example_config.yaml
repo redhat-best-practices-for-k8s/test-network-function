@@ -38,12 +38,10 @@ cnfs:
     status: ""
     tests:
       - PRIVILEGED_POD
-  certifiedcontainerrequestinfo:
-    - name: "ubuntu"
-      repository: "rhel8"
-      certificatetype: "CONTAINER"
+    certifiedcontainerrequestinfo:
+      - name: "ubuntu"
+        repository: "rhel8"
+        certificatetype: "CONTAINER"
 cnfavailabletestcases:
   - PRIVILEGED_POD
   - CLUSTER_ROLE
-operatoravailabletestcases:
-  - OPERATOR_STATUS

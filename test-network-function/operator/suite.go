@@ -25,7 +25,7 @@ import (
 	ginkgoconfig "github.com/onsi/ginkgo/config"
 	"github.com/onsi/gomega"
 	"github.com/test-network-function/test-network-function/internal/api"
-	configpool "github.com/test-network-function/test-network-function/pkg/config"
+	"github.com/test-network-function/test-network-function/pkg/config"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/operator"
 	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
@@ -46,10 +46,10 @@ const (
 )
 
 var (
-	defaultTimeout = time.Duration(defaultTimeoutSeconds) * time.Second
-	context        *interactive.Context
-	err            error
-	operatorInTest *configpool.TnfContainerOperatorTestConfig
+	defaultTimeout  = time.Duration(defaultTimeoutSeconds) * time.Second
+	context         *interactive.Context
+	err             error
+	operatorsInTest []config.Operator
 )
 
 var _ = ginkgo.Describe(testSpecName, func() {
@@ -71,16 +71,18 @@ var _ = ginkgo.Describe(testSpecName, func() {
 	}
 })
 
+func getConfig() []config.Operator {
+	conf := config.GetConfigInstance()
+	return conf.Operators
+}
+
 func itRunsTestsOnOperator() {
-	operatorInTest, err = configpool.GetConfig()
+	operatorsInTest = getConfig()
 	gomega.Expect(err).To(gomega.BeNil())
-	gomega.Expect(operatorInTest).ToNot(gomega.BeNil())
-	//nolint:errcheck // Even if not run, each of the suites attempts to initialise the config. This results in
-	// RegisterConfigurations erroring due to duplicate keys.
-	(*configpool.GetInstance()).RegisterConfiguration(configpool.CNFConfigName, operatorInTest)
+	gomega.Expect(operatorsInTest).ToNot(gomega.BeNil())
 	certAPIClient := api.NewHTTPClient()
-	for index := range operatorInTest.Operator {
-		for _, certified := range operatorInTest.Operator[index].CertifiedOperatorRequestInfos {
+	for _, op := range operatorsInTest {
+		for _, certified := range op.CertifiedOperatorRequestInfos {
 			ginkgo.It(fmt.Sprintf("cnf certification test for: %s/%s ", certified.Organization, certified.Name), func() {
 				certified := certified // pin
 				gomega.Eventually(func() bool {
@@ -90,7 +92,7 @@ func itRunsTestsOnOperator() {
 			})
 		}
 		// TODO: Gather facts for operator
-		for _, testType := range operatorInTest.Operator[index].Tests {
+		for _, testType := range op.Tests {
 			testFile, err := testcases.LoadConfiguredTestFile(configuredTestFile)
 			gomega.Expect(testFile).ToNot(gomega.BeNil())
 			gomega.Expect(err).To(gomega.BeNil())
@@ -99,17 +101,18 @@ func itRunsTestsOnOperator() {
 			gomega.Expect(err).To(gomega.BeNil())
 			gomega.Expect(renderedTestCase).ToNot(gomega.BeNil())
 			for _, testCase := range renderedTestCase.TestCase {
-				if testCase.SkipTest {
-					continue
-				}
-				if testCase.ExpectedType == testcases.Function {
-					for _, val := range testCase.ExpectedStatus {
-						testCase.ExpectedStatusFn(operatorInTest.Operator[index].Name, testcases.StatusFunctionType(val))
+				if !testCase.SkipTest {
+					if testCase.ExpectedType == testcases.Function {
+						for _, val := range testCase.ExpectedStatus {
+							testCase.ExpectedStatusFn(op.Name, testcases.StatusFunctionType(val))
+						}
 					}
+					args := []interface{}{op.Name, op.Namespace}
+					runTestsOnOperator(args, op.Name, op.Namespace, testCase)
 				}
-				name := agrName(operatorInTest.Operator[index].Name, operatorInTest.Operator[index].SubscriptionName, testCase.Name)
-				args := []interface{}{name, operatorInTest.Operator[index].Namespace}
-				runTestsOnOperator(args, name, operatorInTest.Operator[index].Namespace, testCase)
+				name := agrName(op.Name, op.SubscriptionName, testCase.Name)
+				args := []interface{}{name, op.Namespace}
+				runTestsOnOperator(args, name, op.Namespace, testCase)
 			}
 		}
 	}

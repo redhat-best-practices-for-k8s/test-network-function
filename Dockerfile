@@ -53,7 +53,7 @@ RUN mkdir ${TNF_BIN_DIR} && \
 
 WORKDIR ${TNF_DIR}
 
-# ENV TEST_CONFIGURATION_PATH=${TNF_DIR}/config
+# ENV TNF_CONFIGURATION_PATH=${TNF_DIR}/config
 # Currently not able to get it working with the env var config location, using symlinks until config files are rebuilt.
 RUN ln -s ${TNF_DIR}/config/cnf_test_configuration.yml ${TNF_DIR}/test-network-function/cnf_test_configuration.yml && \
 	ln -s ${TNF_DIR}/config/generic_test_configuration.yml ${TNF_DIR}/test-network-function/generic_test_configuration.yml && \
