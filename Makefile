@@ -63,7 +63,7 @@ clean:
 
 # Run configured linters
 lint:
-	golint `go list ./... | grep -v vendor`
+	golint -set_exit_status `go list ./... | grep -v vendor`
 	golangci-lint run
 
 # Build and run unit tests

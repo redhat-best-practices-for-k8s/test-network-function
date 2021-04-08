@@ -29,12 +29,14 @@ const (
 	npRegex = "(?s).+"
 )
 
+// NodePort holds information derived from inspecting NodePort services.
 type NodePort struct {
 	result  int
 	timeout time.Duration
 	args    []string
 }
 
+// NewNodePort creates a new NodePort tnf.Test.
 func NewNodePort(timeout time.Duration, podNamespace string) *NodePort {
 	return &NodePort{
 		timeout: timeout,
@@ -72,6 +74,7 @@ func (np *NodePort) ReelFirst() *reel.Step {
 	}
 }
 
+// ReelMatch ensures that no services utilize NodePort(s).
 func (np *NodePort) ReelMatch(_, _, match string) *reel.Step {
 	numExpectedLines := 1 // We want to have just the headers/titles line. Any other line is a NodePort line.
 
@@ -91,9 +94,11 @@ func (np *NodePort) ReelMatch(_, _, match string) *reel.Step {
 	return nil
 }
 
+// ReelTimeout does nothing;  no additional action is required upon timeout.
 func (np *NodePort) ReelTimeout() *reel.Step {
 	return nil
 }
 
+// ReelEOF does nothing;  no additional action is required upon EOF.
 func (np *NodePort) ReelEOF() {
 }
