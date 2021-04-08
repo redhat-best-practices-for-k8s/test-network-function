@@ -46,7 +46,7 @@ var defaultTimeout = time.Duration(defaultTimeoutSeconds) * time.Second
 
 // containersToExcludeFromConnectivityTests is a set used for storing the containers that should be excluded from
 // connectivity testing.
-var containersToExcludeFromConnectivityTests = make(map[tnfConfig.ContainerIdentifier]interface{})
+var containersToExcludeFromConnectivityTests = make(map[ContainerIdentifier]interface{})
 
 // Helper used to instantiate an OpenShift Client Session.
 func getOcSession(pod, container, namespace string, timeout time.Duration, options ...interactive.Option) *interactive.Oc {
@@ -85,39 +85,39 @@ func getOcSession(pod, container, namespace string, timeout time.Duration, optio
 // as the reference to the interactive.Oc instance, the reference to the test configuration, and the default network
 // IP address.
 type container struct {
-	containerConfiguration  tnfConfig.Container
+	containerConfiguration  Container
 	oc                      *interactive.Oc
 	defaultNetworkIPAddress string
-	containerIdentifier     tnfConfig.ContainerIdentifier
+	containerIdentifier     ContainerIdentifier
 }
 
 // createContainers contains the general steps involved in creating "oc" sessions and other configuration. A map of the
 // aggregate information is returned.
-func createContainers(containerDefinitions map[tnfConfig.ContainerIdentifier]tnfConfig.Container) map[tnfConfig.ContainerIdentifier]*container {
-	createdContainers := map[tnfConfig.ContainerIdentifier]*container{}
-	for containerID, containerConfig := range containerDefinitions {
-		oc := getOcSession(containerID.PodName, containerID.ContainerName, containerID.Namespace, defaultTimeout, interactive.Verbose(true))
+func createContainers(containerDefinitions []Container) map[ContainerIdentifier]*container {
+	createdContainers := make(map[ContainerIdentifier]*container)
+	for _, c := range containerDefinitions {
+		oc := getOcSession(c.PodName, c.ContainerName, c.Namespace, defaultTimeout, interactive.Verbose(true))
 		var defaultIPAddress = "UNKNOWN"
-		if _, ok := containersToExcludeFromConnectivityTests[containerID]; !ok {
-			defaultIPAddress = getContainerDefaultNetworkIPAddress(oc, containerConfig.DefaultNetworkDevice)
+		if _, ok := containersToExcludeFromConnectivityTests[c.ContainerIdentifier]; !ok {
+			defaultIPAddress = getContainerDefaultNetworkIPAddress(oc, c.DefaultNetworkDevice)
 		}
-		createdContainers[containerID] = &container{
-			containerConfiguration:  containerConfig,
+		createdContainers[c.ContainerIdentifier] = &container{
+			containerConfiguration:  c,
 			oc:                      oc,
 			defaultNetworkIPAddress: defaultIPAddress,
-			containerIdentifier:     containerID,
+			containerIdentifier:     c.ContainerIdentifier,
 		}
 	}
 	return createdContainers
 }
 
 // createContainersUnderTest sets up the test containers.
-func createContainersUnderTest(config *tnfConfig.TestConfiguration) map[tnfConfig.ContainerIdentifier]*container {
+func createContainersUnderTest(config *TestConfiguration) map[ContainerIdentifier]*container {
 	return createContainers(config.ContainersUnderTest)
 }
 
 // createPartnerContainers sets up the partner containers.
-func createPartnerContainers(config *tnfConfig.TestConfiguration) map[tnfConfig.ContainerIdentifier]*container {
+func createPartnerContainers(config *TestConfiguration) map[ContainerIdentifier]*container {
 	return createContainers(config.PartnerContainers)
 }
 
@@ -239,11 +239,11 @@ func getContainerDefaultNetworkIPAddress(oc *interactive.Oc, dev string) string 
 }
 
 // GetTestConfiguration returns the cnf-certification-generic-tests test configuration.
-func GetTestConfiguration() *tnfConfig.TestConfiguration {
-	config, err := tnfConfig.GetConfiguration(tnfConfig.UseDefaultConfigurationFilePath)
-	gomega.Expect(err).To(gomega.BeNil())
+func GetTestConfiguration() *TestConfiguration {
+	var config TestConfiguration
+	tnfConfig.GetConfigSection("generic", &config)
 	gomega.Expect(config).ToNot(gomega.BeNil())
-	return config
+	return &config
 }
 
 func testNamespace(oc *interactive.Oc) {
