@@ -40,8 +40,9 @@ const (
 	// timeout for eventually call
 	eventuallyTimeoutSeconds = 30
 	// interval of time
-	interval     = 1
-	testSpecName = "operator"
+	interval         = 1
+	testSpecName     = "operator"
+	subscriptionTest = "SUBSCRIPTION_INSTALLED"
 )
 
 var (
@@ -98,18 +99,28 @@ func itRunsTestsOnOperator() {
 			gomega.Expect(err).To(gomega.BeNil())
 			gomega.Expect(renderedTestCase).ToNot(gomega.BeNil())
 			for _, testCase := range renderedTestCase.TestCase {
-				if !testCase.SkipTest {
-					if testCase.ExpectedType == testcases.Function {
-						for _, val := range testCase.ExpectedStatus {
-							testCase.ExpectedStatusFn(operatorInTest.Operator[index].Name, testcases.StatusFunctionType(val))
-						}
-					}
-					args := []interface{}{operatorInTest.Operator[index].Name, operatorInTest.Operator[index].Namespace}
-					runTestsOnOperator(args, operatorInTest.Operator[index].Name, operatorInTest.Operator[index].Namespace, testCase)
+				if testCase.SkipTest {
+					continue
 				}
+				if testCase.ExpectedType == testcases.Function {
+					for _, val := range testCase.ExpectedStatus {
+						testCase.ExpectedStatusFn(operatorInTest.Operator[index].Name, testcases.StatusFunctionType(val))
+					}
+				}
+				name := agrName(operatorInTest.Operator[index].Name, operatorInTest.Operator[index].SubscriptionName, testCase.Name)
+				args := []interface{}{name, operatorInTest.Operator[index].Namespace}
+				runTestsOnOperator(args, name, operatorInTest.Operator[index].Namespace, testCase)
 			}
 		}
 	}
+}
+
+func agrName(operatorName, subName, testName string) string {
+	name := operatorName
+	if testName == subscriptionTest {
+		name = subName
+	}
+	return name
 }
 
 //nolint:gocritic // ignore hugeParam error. Pointers to loop iterator vars are bad and `testCmd` is likely to be such.

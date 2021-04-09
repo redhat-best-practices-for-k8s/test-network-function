@@ -124,8 +124,8 @@ accessed in user space, the test is unidirectional.
 
 ### operator tests
 
-Currently, the `operator` test spec is limited to a single test case called `OPERATOR_STATUS`.  `OPERATOR_STATUS` just
-checks that the `CSV` corresponding to the CNF Operator is properly installed.
+Currently, the `operator` test spec is limited to two test cases called `OPERATOR_STATUS`.  `OPERATOR_STATUS`
+checks that the `CSV` corresponding to the CNF Operator is properly installed and operator `Subscription` is available.
 
 In the future, tests surrounding `Operational Lifecycle Management` will be added.
 
@@ -326,6 +326,33 @@ operator
     /Users/$USER/cnf-cert/test-network-function/test-network-function/operator/suite.go:121
       tests for: CSV_INSTALLED [It]
       /Users/$USER/cnf-cert/test-network-function/test-network-function/operator/suite.go:122
+
+      Expected
+          <int>: 0
+      to equal
+          <int>: 1
+
+```
+
+The following is the output from a Test failure.  In this case, the test is checking that a Subscription
+is installed correctly, but does not find it (the operator was not present on the cluster under test):
+
+```shell
+------------------------------
+operator Runs test on operators when under test is: my-etcd/etcd
+  tests for: SUBSCRIPTION_INSTALLED
+  /Users/$USER/cnf-cert/test-network-function/test-network-function/operator/suite.go:129
+2021/04/09 12:37:10 Sent: "oc get subscription etcd -n my-etcd -ojson | jq -r '.spec.name'\n"
+
+• Failure [10.000 seconds]
+operator
+/Users/$USER/cnf-cert/test-network-function/test-network-function/operator/suite.go:55
+  Runs test on operators
+  /Users/$USER/cnf-cert/test-network-function/test-network-function/operator/suite.go:68
+    when under test is: default/etcdoperator.v0.9.4 
+    /Users/$USER/cnf-cert/test-network-function/test-network-function/operator/suite.go:128
+      tests for: SUBSCRIPTION_INSTALLED [It]
+      /Users/$USER/cnf-cert/test-network-function/test-network-function/operator/suite.go:129
 
       Expected
           <int>: 0

@@ -34,6 +34,8 @@ const (
 	name                = "CSV_INSTALLED"
 	namespace           = "test"
 	command             = "oc get csv %s -n %s -o json | jq -r '.status.phase'"
+	subName             = "SUBSCRIPTION_INSTALLED"
+	subCommand          = "oc get subscription %s -n %s -ojson | jq -r '.spec.name'"
 )
 
 var (
@@ -43,11 +45,17 @@ var (
 	resultSliceExpectedStatus        = `["Running", "Installed"]`
 	resultSliceExpectedStatusInvalid = `["Not_Running", "Not_Installed"]`
 	args                             = strings.Split(fmt.Sprintf(command, name, namespace), " ")
+	subArgs                          = strings.Split(fmt.Sprintf(subCommand, subName, namespace), " ")
 )
 
 func TestOperator_Args(t *testing.T) {
 	c := operator.NewOperator(args, name, namespace, stringExpectedStatus, testcases.StringType, testcases.Allow, testTimeoutDuration)
 	assert.Equal(t, args, c.Args())
+}
+
+func TestOperator_SubArgs(t *testing.T) {
+	c := operator.NewOperator(subArgs, subName, namespace, stringExpectedStatus, testcases.StringType, testcases.Allow, testTimeoutDuration)
+	assert.Equal(t, subArgs, c.Args())
 }
 
 func TestOperator_GetIdentifier(t *testing.T) {
