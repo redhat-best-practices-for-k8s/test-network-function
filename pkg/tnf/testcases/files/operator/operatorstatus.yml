@@ -7,4 +7,12 @@ testcase:
     expectedType: "string"
     expectedstatus:
       - "Succeeded"
+  - name: "SUBSCRIPTION_INSTALLED"
+    skiptest: false
+    command: "oc get subscription %s -n %s -ojson | jq -r '.spec.name'"
+    action: "allow"
+    resulttype: "string"
+    expectedType: "string"
+    expectedstatus:
+      - "etcd"
 

@@ -16,3 +16,4 @@ operatortest:
   - name: "OPERATOR_STATUS"
     tests:
       - "CSV_INSTALLED"
+      - "SUBSCRIPTION_INSTALLED"

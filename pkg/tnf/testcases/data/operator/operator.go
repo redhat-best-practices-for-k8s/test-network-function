@@ -28,6 +28,16 @@ var OperatorJSON = string(`{
       "expectedstatus": [
         "Succeeded"
       ]
+    },
+    {
+      "name": "SUBSCRIPTION_INSTALLED",
+      "skiptest": true,
+      "command": "oc get subscription %s -n %s -ojson | jq -r '.spec.name'",
+      "action": "allow",
+      "resulttype": "string",
+      "expectedstatus": [
+        "etcd"
+      ]
     }
   ]
 }`)

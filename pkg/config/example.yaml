@@ -1,6 +1,7 @@
 operators:
   - name: etcdoperator.v0.9.4
     namespace: my-etcd
+    subscriptionName: etcd
     status: Succeeded
     autogenerate: "true"
     crds:
@@ -26,6 +27,7 @@ operators:
           - PRIVILEGED_POD
     tests:
       - CSV_INSTALLED
+      - SUBSCRIPTION_INSTALLED
     certifiedoperatorrequestinfo:
       - name: "etcd-operator"
         organization: "redhat-marketplace"
