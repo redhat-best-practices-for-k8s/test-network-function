@@ -19,6 +19,7 @@ package generic
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/onsi/ginkgo"
@@ -32,7 +33,9 @@ import (
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/cnffsdiff"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/containerid"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/ipaddr"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodenames"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodeport"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodetainted"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/ping"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/rolebinding"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/serviceaccount"
@@ -187,6 +190,8 @@ var _ = ginkgo.Describe(testsKey, func() {
 		for _, containersUnderTest := range containersUnderTest {
 			testNodePort(context, containersUnderTest.oc.GetPodNamespace())
 		}
+
+		testTainted(context)
 	}
 })
 
@@ -372,6 +377,45 @@ func testNodePort(context *interactive.Context, podNamespace string) {
 			testResult, err := test.Run()
 			gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
 			gomega.Expect(err).To(gomega.BeNil())
+		})
+	})
+}
+
+func testTainted(context *interactive.Context) {
+	minikubeOnly, _ := strconv.ParseBool(os.Getenv("TNF_MINIKUBE_ONLY"))
+	if minikubeOnly {
+		return
+	}
+	var nodeNames []string
+	ginkgo.When("Testing tainted nodes in cluster", func() {
+		ginkgo.It("Should return list of node names", func() {
+			tester := nodenames.NewNodeNames(defaultTimeout)
+			test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
+			gomega.Expect(err).To(gomega.BeNil())
+			testResult, err := test.Run()
+			gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
+			gomega.Expect(err).To(gomega.BeNil())
+			nodeNames = tester.GetNodeNames()
+			gomega.Expect(nodeNames).NotTo(gomega.BeNil())
+		})
+
+		ginkgo.It("Should not have tainted nodes", func() {
+			if len(nodeNames) == 0 {
+				ginkgo.Skip("Can't test tainted nodes when list of nodes is empty. Please check previous tests.")
+			}
+			var taintedNodes []string
+			for _, node := range nodeNames {
+				tester := nodetainted.NewNodeTainted(defaultTimeout, node)
+				test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
+				gomega.Expect(err).To(gomega.BeNil())
+				testResult, err := test.Run()
+				gomega.Expect(testResult).NotTo(gomega.Equal(tnf.ERROR))
+				gomega.Expect(err).To(gomega.BeNil())
+				if testResult == tnf.FAILURE {
+					taintedNodes = append(taintedNodes, node)
+				}
+			}
+			gomega.Expect(taintedNodes).To(gomega.BeNil())
 		})
 	})
 }
