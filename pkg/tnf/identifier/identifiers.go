@@ -32,6 +32,8 @@ const (
 	roleBindingIdentifierURL        = "http://test-network-function.com/tests/rolebinding"
 	clusterRoleBindingIdentifierURL = "http://test-network-function.com/tests/clusterrolebinding"
 	nodePortIdentifierURL           = "http://test-network-function.com/tests/nodeport"
+	nodeNamesIdentifierURL          = "http://test-network-function.com/tests/nodenames"
+	nodeTaintedIdentifierURL        = "http://test-network-function.com/tests/nodetainted"
 
 	versionOne = "v1.0.0"
 )
@@ -238,6 +240,32 @@ var Catalog = map[string]TestCatalogEntry{
 			dependencies.GrepBinaryName,
 		},
 	},
+	nodeNamesIdentifierURL: {
+		Identifier:  NodeNamesIdentifier,
+		Description: "A generic test used to get node names",
+		Type:        Normative,
+		IntrusionSettings: IntrusionSettings{
+			ModifiesSystem:           false,
+			ModificationIsPersistent: false,
+		},
+		BinaryDependencies: []string{
+			dependencies.OcBinaryName,
+		},
+	},
+	nodeTaintedIdentifierURL: {
+		Identifier:  NodeTaintedIdentifier,
+		Description: "A generic test used to test whether node is tainted",
+		Type:        Normative,
+		IntrusionSettings: IntrusionSettings{
+			ModifiesSystem:           false,
+			ModificationIsPersistent: false,
+		},
+		BinaryDependencies: []string{
+			dependencies.OcBinaryName,
+			dependencies.CatBinaryName,
+			dependencies.EchoBinaryName,
+		},
+	},
 }
 
 // HostnameIdentifier is the Identifier used to represent the generic hostname test case.
@@ -315,5 +343,17 @@ var ClusterRoleBindingIdentifier = Identifier{
 // NodePortIdentifier is the Identifier used to represent the generic NodePort test.
 var NodePortIdentifier = Identifier{
 	URL:             nodePortIdentifierURL,
+	SemanticVersion: versionOne,
+}
+
+// NodeNamesIdentifier is the Identifier used to represent the generic NodeNames test.
+var NodeNamesIdentifier = Identifier{
+	URL:             nodeNamesIdentifierURL,
+	SemanticVersion: versionOne,
+}
+
+// NodeTaintedIdentifier is the Identifier used to represent the generic NodeTainted test.
+var NodeTaintedIdentifier = Identifier{
+	URL:             nodeTaintedIdentifierURL,
 	SemanticVersion: versionOne,
 }

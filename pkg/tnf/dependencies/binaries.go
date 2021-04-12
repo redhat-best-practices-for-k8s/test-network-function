@@ -52,4 +52,7 @@ const (
 
 	// CgroupProcfsPath is the path to the psuedofile in procfs that contains the list of cgroups
 	CgroupProcfsPath = "/proc/self/cgroup"
+
+	// EchoBinaryName is the name of the Unix `echo` command
+	EchoBinaryName = "echo"
 )
