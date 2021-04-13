@@ -13,6 +13,7 @@ require (
 	github.com/kr/pretty v0.2.1 // indirect
 	github.com/onsi/ginkgo v1.16.0
 	github.com/onsi/gomega v1.11.0
+	github.com/ryandgoulding/goexpect v0.0.1 // indirect
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.1.3
 	github.com/stretchr/testify v1.7.0
