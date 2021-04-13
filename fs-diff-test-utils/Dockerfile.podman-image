@@ -1,0 +1,3 @@
+FROM centos:8.3.2011
+RUN yum -y install podman
+COPY diff-fs.sh /diff-fs.sh

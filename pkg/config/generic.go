@@ -171,9 +171,10 @@ type Container struct {
 
 // TestConfiguration provides generic test related configuration
 type TestConfiguration struct {
-	ContainersUnderTest map[ContainerIdentifier]Container `yaml:"containersUnderTest" json:"containersUnderTest"`
-	PartnerContainers   map[ContainerIdentifier]Container `yaml:"partnerContainers" json:"partnerContainers"`
-	TestOrchestrator    ContainerIdentifier               `yaml:"testOrchestrator" json:"testOrchestrator"`
+	ContainersUnderTest   map[ContainerIdentifier]Container `yaml:"containersUnderTest" json:"containersUnderTest"`
+	PartnerContainers     map[ContainerIdentifier]Container `yaml:"partnerContainers" json:"partnerContainers"`
+	FsDiffMasterContainer ContainerIdentifier               `yaml:"fsDiffMasterContainer" json:"fsDiffMasterContainer"`
+	TestOrchestrator      ContainerIdentifier               `yaml:"testOrchestrator" json:"testOrchestrator"`
 	// ExcludeContainersFromConnectivityTests excludes specific containers from network connectivity tests.  This is particularly useful for containers that don't have ping available.
 	ExcludeContainersFromConnectivityTests []ContainerIdentifier `yaml:"excludeContainersFromConnectivityTests" json:"excludeContainersFromConnectivityTests"`
 }

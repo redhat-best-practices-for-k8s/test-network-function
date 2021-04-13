@@ -26,6 +26,8 @@ const (
 	pingIdentifierURL               = "http://test-network-function.com/tests/ping"
 	podIdentifierURL                = "http://test-network-function.com/tests/container/pod"
 	versionIdentifierURL            = "http://test-network-function.com/tests/generic/version"
+	cnfFsDiffURL                    = "http://test-network-function.com/tests/generic/cnf_fs_diff"
+	containerIDURL                  = "http://test-network-function.com/tests/generic/containerId"
 	serviceAccountIdentifierURL     = "http://test-network-function.com/tests/serviceaccount"
 	roleBindingIdentifierURL        = "http://test-network-function.com/tests/rolebinding"
 	clusterRoleBindingIdentifierURL = "http://test-network-function.com/tests/clusterrolebinding"
@@ -160,6 +162,19 @@ var Catalog = map[string]TestCatalogEntry{
 			dependencies.CatBinaryName,
 		},
 	},
+	cnfFsDiffURL: {
+		Identifier:  CnfFsDiffIdentifier,
+		Description: "A test used to check if there were no installation during container runtime",
+		Type:        Normative,
+		IntrusionSettings: IntrusionSettings{
+			ModifiesSystem:           false,
+			ModificationIsPersistent: false,
+		},
+		BinaryDependencies: []string{
+			dependencies.GrepBinaryName,
+			dependencies.CutBinaryName,
+		},
+	},
 	serviceAccountIdentifierURL: {
 		Identifier:  ServiceAccountIdentifier,
 		Description: "A generic test used to extract the CNF pod's ServiceAccount name.",
@@ -169,7 +184,20 @@ var Catalog = map[string]TestCatalogEntry{
 			ModificationIsPersistent: false,
 		},
 		BinaryDependencies: []string{
-			dependencies.OcBinaryName,
+			dependencies.GrepBinaryName,
+			dependencies.CutBinaryName,
+		},
+	},
+	containerIDURL: {
+		Identifier:  ContainerIDIdentifier,
+		Description: "A test used to check what is the id of the crio generated container this command is run from",
+		Type:        Normative,
+		IntrusionSettings: IntrusionSettings{
+			ModifiesSystem:           false,
+			ModificationIsPersistent: false,
+		},
+		BinaryDependencies: []string{
+			dependencies.CatBinaryName,
 		},
 	},
 	roleBindingIdentifierURL: {
@@ -181,6 +209,7 @@ var Catalog = map[string]TestCatalogEntry{
 			ModificationIsPersistent: false,
 		},
 		BinaryDependencies: []string{
+			dependencies.CatBinaryName,
 			dependencies.OcBinaryName,
 		},
 	},
@@ -250,6 +279,18 @@ var PodIdentifier = Identifier{
 // VersionIdentifier is the Identifier used to represent the generic container base image test.
 var VersionIdentifier = Identifier{
 	URL:             versionIdentifierURL,
+	SemanticVersion: versionOne,
+}
+
+// CnfFsDiffIdentifier is the Identifier used to represent the generic cnf_fs_diff test.
+var CnfFsDiffIdentifier = Identifier{
+	URL:             cnfFsDiffURL,
+	SemanticVersion: versionOne,
+}
+
+// ContainerIDIdentifier is the Identifier used to represent the generic cnf_fs_diff test.
+var ContainerIDIdentifier = Identifier{
+	URL:             containerIDURL,
 	SemanticVersion: versionOne,
 }
 

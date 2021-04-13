@@ -18,6 +18,7 @@ package generic
 
 import (
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/onsi/ginkgo"
@@ -28,6 +29,8 @@ import (
 	"github.com/test-network-function/test-network-function/pkg/tnf"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/base/redhat"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/clusterrolebinding"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/cnffsdiff"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/containerid"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/ipaddr"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodeport"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/ping"
@@ -146,8 +149,17 @@ var _ = ginkgo.Describe(testsKey, func() {
 		containersUnderTest := createContainersUnderTest(config)
 		partnerContainers := createPartnerContainers(config)
 		testOrchestrator := partnerContainers[config.TestOrchestrator]
+		fsDiffContainer := partnerContainers[config.FsDiffMasterContainer]
 		log.Info(testOrchestrator)
 		log.Info(containersUnderTest)
+
+		ginkgo.Context("Container does not have additional packages installed", func() {
+			if os.Getenv("FSDIFF") == "1" {
+				for _, containerUnderTest := range containersUnderTest {
+					testFsDiff(fsDiffContainer.oc, containerUnderTest.oc)
+				}
+			}
+		})
 
 		ginkgo.Context("Both Pods are on the Default network", func() {
 			// for each container under test, ensure bidirectional ICMP traffic between the container and the orchestrator.
@@ -215,6 +227,27 @@ var _ = ginkgo.Describe(multusTestsKey, func() {
 		})
 	}
 })
+
+// Helper to test that the PUT didn't install new packages after starting, and report through Ginkgo.
+func testFsDiff(masterPodOc, targetPodOc *interactive.Oc) {
+	ginkgo.It(fmt.Sprintf("%s(%s) should not install new packages after starting", targetPodOc.GetPodName(), targetPodOc.GetPodContainerName()), func() {
+		targetPodOc.GetExpecter()
+		containerIDTester := containerid.NewContainerID(defaultTimeout)
+		test, err := tnf.NewTest(targetPodOc.GetExpecter(), containerIDTester, []reel.Handler{containerIDTester}, targetPodOc.GetErrorChannel())
+		gomega.Expect(err).To(gomega.BeNil())
+		testResult, err := test.Run()
+		gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
+		gomega.Expect(err).To(gomega.BeNil())
+		containerID := containerIDTester.GetID()
+
+		fsDiffTester := cnffsdiff.NewFsDiff(defaultTimeout, containerID)
+		test, err = tnf.NewTest(masterPodOc.GetExpecter(), fsDiffTester, []reel.Handler{fsDiffTester}, masterPodOc.GetErrorChannel())
+		gomega.Expect(err).To(gomega.BeNil())
+		testResult, err = test.Run()
+		gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
+		gomega.Expect(err).To(gomega.BeNil())
+	})
+}
 
 // Helper to test that a container can ping a target IP address, and report through Ginkgo.
 func testNetworkConnectivity(initiatingPodOc, targetPodOc *interactive.Oc, targetPodIPAddress string, count int) {

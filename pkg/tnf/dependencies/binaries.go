@@ -23,6 +23,12 @@ const (
 	// CatBinaryName is the name of the Unix `cat` command.
 	CatBinaryName = "cat"
 
+	// GrepBinaryName is the name of the Unix `grep` command.
+	GrepBinaryName = "grep"
+
+	// CutBinaryName is the name of the Unix `cut` command.
+	CutBinaryName = "cut"
+
 	// HostnameBinaryName is the name of the Unix `hostname` command.
 	HostnameBinaryName = "hostname"
 
@@ -35,12 +41,15 @@ const (
 	// OcBinaryName is the name of the OpenShift CLI client command.
 	OcBinaryName = "oc"
 
+	// PodmanBinaryName is the name of the podman tool.
+	PodmanBinaryName = "podman"
+
 	// PingBinaryName is the name of the Unix `ping` command.
 	PingBinaryName = "ping"
 
 	// XargsBinaryName is the name of the Unix `xargs` command.
 	XargsBinaryName = "xargs"
 
-	// GrepBinaryName is the name of the Unix `grep` command
-	GrepBinaryName = "grep"
+	// CgroupProcfsPath is the path to the psuedofile in procfs that contains the list of cgroups
+	CgroupProcfsPath = "/proc/self/cgroup"
 )
