@@ -1,7 +1,0 @@
-giftbasket:
-  fruit:
-    - name: apple
-      number: 6
-    - name: banana
-      number: 13
-  chocolates: 10
