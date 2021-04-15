@@ -400,3 +400,18 @@ For example:
 ```shell script
 TNF_DEFAULT_BUFFER_SIZE=32768 ./run-cnf-suites.sh diagnostic generic
 ```
+
+## Issue-161 Some containers under test do nto contain `ping` or `ip` binary utilities
+
+In some cases, containers do not provide ping or ip binary utilities. Since these binaries are required for the
+connectivity tests, we must exclude such containers from the connectivity test suite.  In order to exclude these
+containers, please issue add the following to `test-network-function/generic_test_configuration.yaml`:
+
+```yaml
+excludeContainersFromConnectivityTests:
+  - namespace: <namespace>
+    podName: <podName>
+    containerName: <containerName>
+```
+
+Note:  Future work may involve installing missing binary dependencies.
