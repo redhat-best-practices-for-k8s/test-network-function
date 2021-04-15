@@ -340,3 +340,20 @@ You will need an [OpenShift 4.4 installation](https://docs.openshift.com/contain
 running your CNF, and at least one other machine available to host the test suite.  The
 [cnf-certification-test-partner](https://github.com/test-network-function/cnf-certification-test-partner) repository has a very
 simple example of this you can model your setup on.
+
+# Known Issues
+
+## Issue-161 Some containers under test do nto contain `ping` or `ip` binary utilities
+
+In some cases, containers do not provide ping or ip binary utilities. Since these binaries are required for the
+connectivity tests, we must exclude such containers from the connectivity test suite.  In order to exclude these
+containers, please issue add the following to `test-network-function/generic_test_configuration.yaml`:
+
+```yaml
+excludeContainersFromConnectivityTests:
+  - namespace: <namespace>
+    podName: <podName>
+    containerName: <containerName>
+```
+
+Note:  Future work may involve installing missing binary dependencies.
