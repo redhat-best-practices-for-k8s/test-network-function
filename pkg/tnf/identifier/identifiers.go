@@ -34,6 +34,8 @@ const (
 	nodePortIdentifierURL           = "http://test-network-function.com/tests/nodeport"
 	nodeNamesIdentifierURL          = "http://test-network-function.com/tests/nodenames"
 	nodeTaintedIdentifierURL        = "http://test-network-function.com/tests/nodetainted"
+	hugepagesIdentifierURL          = "http://test-network-function.com/tests/hugepages"
+	nodehugepagesIdentifierURL      = "http://test-network-function.com/tests/nodehugepages"
 
 	versionOne = "v1.0.0"
 )
@@ -266,6 +268,32 @@ var Catalog = map[string]TestCatalogEntry{
 			dependencies.EchoBinaryName,
 		},
 	},
+	hugepagesIdentifierURL: {
+		Identifier:  HugepagesIdentifier,
+		Description: "A generic test used to read cluster's hugepages configuration",
+		Type:        Normative,
+		IntrusionSettings: IntrusionSettings{
+			ModifiesSystem:           false,
+			ModificationIsPersistent: false,
+		},
+		BinaryDependencies: []string{
+			dependencies.OcBinaryName,
+			dependencies.GrepBinaryName,
+		},
+	},
+	nodehugepagesIdentifierURL: {
+		Identifier:  NodeHugepagesIdentifier,
+		Description: "A generic test used to verify a node's hugepages configuration",
+		Type:        Normative,
+		IntrusionSettings: IntrusionSettings{
+			ModifiesSystem:           false,
+			ModificationIsPersistent: false,
+		},
+		BinaryDependencies: []string{
+			dependencies.OcBinaryName,
+			dependencies.GrepBinaryName,
+		},
+	},
 }
 
 // HostnameIdentifier is the Identifier used to represent the generic hostname test case.
@@ -355,5 +383,17 @@ var NodeNamesIdentifier = Identifier{
 // NodeTaintedIdentifier is the Identifier used to represent the generic NodeTainted test.
 var NodeTaintedIdentifier = Identifier{
 	URL:             nodeTaintedIdentifierURL,
+	SemanticVersion: versionOne,
+}
+
+// HugepagesIdentifier is the Identifier used to represent the generic Hugepages test.
+var HugepagesIdentifier = Identifier{
+	URL:             hugepagesIdentifierURL,
+	SemanticVersion: versionOne,
+}
+
+// NodeHugepagesIdentifier is the Identifier used to represent the generic NodeHugepages test.
+var NodeHugepagesIdentifier = Identifier{
+	URL:             nodehugepagesIdentifierURL,
 	SemanticVersion: versionOne,
 }

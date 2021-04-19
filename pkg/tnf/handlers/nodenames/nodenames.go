@@ -29,7 +29,7 @@ const (
 	nnRegex = "(?s).+"
 )
 
-// NodeNames holds information derived from running "oc get rolebindings" on the command line.
+// NodeNames holds information derived from running "oc get nodes" on the command line.
 type NodeNames struct {
 	nodeNames []string
 	result    int
@@ -38,13 +38,26 @@ type NodeNames struct {
 }
 
 // NewNodeNames creates a new NodeNames tnf.Test.
-func NewNodeNames(timeout time.Duration) *NodeNames {
+// labels is a map of label names and values for filtering nodes
+// nil label value is like a wildcard - any value as long as the label exists
+func NewNodeNames(timeout time.Duration, labels map[string]*string) *NodeNames {
+	args := []string{"oc", "get", "nodes", "-o", "custom-columns=NAME:.metadata.name"}
+	var labelsString string
+	for labelName, labelValue := range labels {
+		labelsString += labelName
+		if labelValue != nil {
+			labelsString += "=" + *labelValue
+		}
+		labelsString += ","
+	}
+	if labelsString != "" {
+		labelsString = labelsString[:len(labelsString)-1]
+		args = append(args, "-l", labelsString)
+	}
 	return &NodeNames{
 		timeout: timeout,
 		result:  tnf.ERROR,
-		args: []string{
-			"oc", "get", "nodes", "-o", "custom-columns=NAME:.metadata.name",
-		},
+		args:    args,
 	}
 }
 

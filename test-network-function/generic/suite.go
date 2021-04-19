@@ -32,7 +32,9 @@ import (
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/clusterrolebinding"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/cnffsdiff"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/containerid"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/hugepages"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/ipaddr"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodehugepages"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodenames"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodeport"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodetainted"
@@ -192,6 +194,7 @@ var _ = ginkgo.Describe(testsKey, func() {
 		}
 
 		testTainted(context)
+		testHugepages(context)
 	}
 })
 
@@ -382,14 +385,13 @@ func testNodePort(context *interactive.Context, podNamespace string) {
 }
 
 func testTainted(context *interactive.Context) {
-	minikubeOnly, _ := strconv.ParseBool(os.Getenv("TNF_MINIKUBE_ONLY"))
-	if minikubeOnly {
+	if isMinikube() {
 		return
 	}
 	var nodeNames []string
 	ginkgo.When("Testing tainted nodes in cluster", func() {
 		ginkgo.It("Should return list of node names", func() {
-			tester := nodenames.NewNodeNames(defaultTimeout)
+			tester := nodenames.NewNodeNames(defaultTimeout, nil)
 			test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 			gomega.Expect(err).To(gomega.BeNil())
 			testResult, err := test.Run()
@@ -418,4 +420,53 @@ func testTainted(context *interactive.Context) {
 			gomega.Expect(taintedNodes).To(gomega.BeNil())
 		})
 	})
+}
+
+func testHugepages(context *interactive.Context) {
+	if isMinikube() {
+		return
+	}
+	var nodeNames []string
+	var clusterHugepages, clusterHugepagesz int
+	ginkgo.When("Testing worker nodes' hugepages configuration", func() {
+		ginkgo.It("Should return list of worker node names", func() {
+			tester := nodenames.NewNodeNames(defaultTimeout, map[string]*string{"node-role.kubernetes.io/worker": nil})
+			test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
+			gomega.Expect(err).To(gomega.BeNil())
+			testResult, err := test.Run()
+			gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
+			gomega.Expect(err).To(gomega.BeNil())
+			nodeNames = tester.GetNodeNames()
+			gomega.Expect(nodeNames).NotTo(gomega.BeNil())
+		})
+		ginkgo.It("Should return cluster's hugepages configuration", func() {
+			tester := hugepages.NewHugepages(defaultTimeout)
+			test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
+			gomega.Expect(err).To(gomega.BeNil())
+			testResult, err := test.Run()
+			gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
+			gomega.Expect(err).To(gomega.BeNil())
+			clusterHugepages = tester.GetHugepages()
+			clusterHugepagesz = tester.GetHugepagesz()
+		})
+		ginkgo.It("Should have same configuration as cluster", func() {
+			var badNodes []string
+			for _, node := range nodeNames {
+				tester := nodehugepages.NewNodeHugepages(defaultTimeout, node, clusterHugepagesz, clusterHugepages)
+				test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
+				gomega.Expect(err).To(gomega.BeNil())
+				testResult, err := test.Run()
+				gomega.Expect(err).To(gomega.BeNil())
+				if testResult != tnf.SUCCESS {
+					badNodes = append(badNodes, node)
+				}
+			}
+			gomega.Expect(badNodes).To(gomega.BeNil())
+		})
+	})
+}
+
+func isMinikube() bool {
+	b, _ := strconv.ParseBool(os.Getenv("TNF_MINIKUBE_ONLY"))
+	return b
 }
