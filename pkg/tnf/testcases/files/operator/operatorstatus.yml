@@ -15,4 +15,12 @@ testcase:
     expectedType: "string"
     expectedstatus:
       - "etcd"
+  - name: "CSV_SCC"
+    skiptest: false
+    command: "oc get csv %s -n %s -o json | jq -r 'if .spec.install.spec.clusterPermissions == null then null else . end | if . == null then \"EMPTY\" else .spec.install.spec.clusterPermissions[].rules[].resourceNames end'"
+    action: "allow"
+    resulttype: "string"
+    expectedtype: "string"
+    expectedstatus: 
+      - "EMPTY"
 

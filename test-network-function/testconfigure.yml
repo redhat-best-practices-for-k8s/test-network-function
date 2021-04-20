@@ -17,3 +17,4 @@ operatortest:
     tests:
       - "CSV_INSTALLED"
       - "SUBSCRIPTION_INSTALLED"
+      - "CSV_SCC"

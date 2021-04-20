@@ -135,12 +135,13 @@ func TestBaseTestCase_CNFExpectedStatusFn(t *testing.T) {
 func TestConfiguredTest_Operator_RenderTestCaseSpec(t *testing.T) {
 	var c = testcases.ConfiguredTest{}
 	c.Name = "OPERATOR_STATUS"
-	c.Tests = []string{"CSV_INSTALLED", "SUBSCRIPTION_INSTALLED"}
+	c.Tests = []string{"CSV_INSTALLED", "SUBSCRIPTION_INSTALLED", "CSV_SCC"}
 	b, err := c.RenderTestCaseSpec(testcases.Operator, testcases.OperatorStatus)
 	assert.Nil(t, err)
 	assert.NotNil(t, b)
 	assert.Equal(t, "CSV_INSTALLED", b.TestCase[0].Name)
 	assert.Equal(t, "SUBSCRIPTION_INSTALLED", b.TestCase[1].Name)
+	assert.Equal(t, "CSV_SCC", b.TestCase[2].Name)
 
 	c.Name = "PRIVILEGED_POD"
 	c.Tests = []string{"HOST_NETWORK_CHECK"}

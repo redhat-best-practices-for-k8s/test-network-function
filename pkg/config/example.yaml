@@ -28,6 +28,7 @@ operators:
     tests:
       - CSV_INSTALLED
       - SUBSCRIPTION_INSTALLED
+      - CSV_SCC
     certifiedoperatorrequestinfo:
       - name: "etcd-operator"
         organization: "redhat-marketplace"

@@ -38,6 +38,16 @@ var OperatorJSON = string(`{
       "expectedstatus": [
         "etcd"
       ]
+    },
+    {
+      "name": "CSV_SCC",
+      "skiptest": true,
+      "command": "oc get csv %s -n %s -o json | jq -r 'if .spec.install.spec.clusterPermissions == null then null else . end | if . == null then \"EMPTY\" else .spec.install.spec.clusterPermissions[].rules[].resourceNames end'",
+      "action": "allow",
+      "resulttype": "string",
+      "expectedstatus": [
+        "EMPTY"
+      ]
     }
   ]
 }`)
