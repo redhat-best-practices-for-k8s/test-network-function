@@ -124,8 +124,9 @@ accessed in user space, the test is unidirectional.
 
 ### operator tests
 
-Currently, the `operator` test spec is limited to two test cases called `OPERATOR_STATUS`.  `OPERATOR_STATUS`
+Currently, the `operator` test spec is limited to three test cases called `OPERATOR_STATUS`.  `OPERATOR_STATUS`
 checks that the `CSV` corresponding to the CNF Operator is properly installed and operator `Subscription` is available.
+It checks whether operator is using privileged permissions by inspecting `clusterPermissions` specified in `CSV`. 
 
 In the future, tests surrounding `Operational Lifecycle Management` will be added.
 
@@ -352,6 +353,33 @@ operator
     when under test is: default/etcdoperator.v0.9.4 
     /Users/$USER/cnf-cert/test-network-function/test-network-function/operator/suite.go:128
       tests for: SUBSCRIPTION_INSTALLED [It]
+      /Users/$USER/cnf-cert/test-network-function/test-network-function/operator/suite.go:129
+
+      Expected
+          <int>: 0
+      to equal
+          <int>: 1
+
+```
+
+The following is the output from a Test failure.  In this case, the test is checking clusterPermissions for
+specific CSV, but does not find it (the operator was not present on the cluster under test):
+
+```shell
+------------------------------
+operator Runs test on operators when under test is: my-etcd/etcdoperator.v0.9.4  
+  tests for: CSV_SCC
+  /Users/$USER/cnf-cert/test-network-function/test-network-function/operator/suite.go:129
+2021/04/20 14:47:52 Sent: "oc get csv etcdoperator.v0.9.4 -n my-etcd -o json | jq -r 'if .spec.install.spec.clusterPermissions == null then null else . end | if . == null then \"EMPTY\" else .spec.install.spec.clusterPermissions[].rules[].resourceNames end'\n"
+
+• Failure [10.001 seconds]
+operator
+/Users/$USER/cnf-cert/test-network-function/test-network-function/operator/suite.go:55
+  Runs test on operators
+  /Users/$USER/cnf-cert/test-network-function/test-network-function/operator/suite.go:68
+    when under test is: my-etcd/etcdoperator.v0.9.4 
+    /Users/$USER/cnf-cert/test-network-function/test-network-function/operator/suite.go:128
+      tests for: CSV_SCC [It]
       /Users/$USER/cnf-cert/test-network-function/test-network-function/operator/suite.go:129
 
       Expected

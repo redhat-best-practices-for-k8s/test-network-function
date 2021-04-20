@@ -36,6 +36,8 @@ const (
 	command             = "oc get csv %s -n %s -o json | jq -r '.status.phase'"
 	subName             = "SUBSCRIPTION_INSTALLED"
 	subCommand          = "oc get subscription %s -n %s -ojson | jq -r '.spec.name'"
+	sccName             = "CSV_SCC"
+	sccCommand          = "oc get csv %s -n %s -o json | jq -r 'if .spec.install.spec.clusterPermissions == null then null else . end | if . == null then \"EMPTY\" else .spec.install.spec.clusterPermissions[].rules[].resourceNames end'"
 )
 
 var (
@@ -46,6 +48,7 @@ var (
 	resultSliceExpectedStatusInvalid = `["Not_Running", "Not_Installed"]`
 	args                             = strings.Split(fmt.Sprintf(command, name, namespace), " ")
 	subArgs                          = strings.Split(fmt.Sprintf(subCommand, subName, namespace), " ")
+	sccArgs                          = strings.Split(fmt.Sprintf(sccCommand, sccName, namespace), " ")
 )
 
 func TestOperator_Args(t *testing.T) {
@@ -56,6 +59,11 @@ func TestOperator_Args(t *testing.T) {
 func TestOperator_SubArgs(t *testing.T) {
 	c := operator.NewOperator(subArgs, subName, namespace, stringExpectedStatus, testcases.StringType, testcases.Allow, testTimeoutDuration)
 	assert.Equal(t, subArgs, c.Args())
+}
+
+func TestOperator_SccArgs(t *testing.T) {
+	c := operator.NewOperator(sccArgs, sccName, namespace, stringExpectedStatus, testcases.StringType, testcases.Allow, testTimeoutDuration)
+	assert.Equal(t, sccArgs, c.Args())
 }
 
 func TestOperator_GetIdentifier(t *testing.T) {
