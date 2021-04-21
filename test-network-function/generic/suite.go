@@ -32,6 +32,7 @@ import (
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/clusterrolebinding"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/cnffsdiff"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/containerid"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/graceperiod"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/hugepages"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/ipaddr"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodehugepages"
@@ -47,10 +48,11 @@ import (
 )
 
 const (
-	defaultNumPings       = 5
-	defaultTimeoutSeconds = 10
-	multusTestsKey        = "multus"
-	testsKey              = "generic"
+	defaultNumPings               = 5
+	defaultTimeoutSeconds         = 10
+	defaultTerminationGracePeriod = 30
+	multusTestsKey                = "multus"
+	testsKey                      = "generic"
 )
 
 // The default test timeout.
@@ -193,6 +195,10 @@ var _ = ginkgo.Describe(testsKey, func() {
 			testNodePort(context, containersUnderTest.oc.GetPodNamespace())
 		}
 
+		for _, containersUnderTest := range containersUnderTest {
+			testGracePeriod(context, containersUnderTest.oc.GetPodName(), containersUnderTest.oc.GetPodNamespace())
+		}
+
 		testTainted(context)
 		testHugepages(context)
 	}
@@ -321,6 +327,21 @@ func testRoles(context *interactive.Context, podName, podNamespace string) {
 		testServiceAccount(context, podName, podNamespace, &serviceAccountName)
 		testRoleBindings(context, podNamespace, &serviceAccountName)
 		testClusterRoleBindings(context, podNamespace, &serviceAccountName)
+	})
+}
+
+func testGracePeriod(context *interactive.Context, podName, podNamespace string) {
+	ginkgo.It(fmt.Sprintf("Testing pod terminationGracePeriod %s/%s", podNamespace, podName), func() {
+		tester := graceperiod.NewGracePeriod(defaultTimeout, podName, podNamespace)
+		test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
+		gomega.Expect(err).To(gomega.BeNil())
+		testResult, err := test.Run()
+		gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
+		gomega.Expect(err).To(gomega.BeNil())
+		gracePeriod := tester.GetGracePeriod()
+		if gracePeriod == defaultTerminationGracePeriod {
+			log.Warn(fmt.Sprintf("%s %s has terminationGracePeriod set to 30, you might want to change it", podName, podNamespace))
+		}
 	})
 }
 
