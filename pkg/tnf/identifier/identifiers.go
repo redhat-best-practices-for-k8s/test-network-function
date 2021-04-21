@@ -34,6 +34,7 @@ const (
 	nodePortIdentifierURL           = "http://test-network-function.com/tests/nodeport"
 	nodeNamesIdentifierURL          = "http://test-network-function.com/tests/nodenames"
 	nodeTaintedIdentifierURL        = "http://test-network-function.com/tests/nodetainted"
+	gracePeriodIdentifierURL        = "http://test-network-function.com/tests/gracePeriod"
 	hugepagesIdentifierURL          = "http://test-network-function.com/tests/hugepages"
 	nodehugepagesIdentifierURL      = "http://test-network-function.com/tests/nodehugepages"
 
@@ -268,6 +269,19 @@ var Catalog = map[string]TestCatalogEntry{
 			dependencies.EchoBinaryName,
 		},
 	},
+	gracePeriodIdentifierURL: {
+		Identifier:  GracePeriodIdentifier,
+		Description: "A generic test used to extract the CNF pod's terminationGracePeriod.",
+		Type:        Normative,
+		IntrusionSettings: IntrusionSettings{
+			ModifiesSystem:           false,
+			ModificationIsPersistent: false,
+		},
+		BinaryDependencies: []string{
+			dependencies.GrepBinaryName,
+			dependencies.CutBinaryName,
+		},
+	},
 	hugepagesIdentifierURL: {
 		Identifier:  HugepagesIdentifier,
 		Description: "A generic test used to read cluster's hugepages configuration",
@@ -277,6 +291,8 @@ var Catalog = map[string]TestCatalogEntry{
 			ModificationIsPersistent: false,
 		},
 		BinaryDependencies: []string{
+			dependencies.GrepBinaryName,
+			dependencies.CutBinaryName,
 			dependencies.OcBinaryName,
 			dependencies.GrepBinaryName,
 		},
@@ -383,6 +399,12 @@ var NodeNamesIdentifier = Identifier{
 // NodeTaintedIdentifier is the Identifier used to represent the generic NodeTainted test.
 var NodeTaintedIdentifier = Identifier{
 	URL:             nodeTaintedIdentifierURL,
+	SemanticVersion: versionOne,
+}
+
+// GracePeriodIdentifier is the Identifier used to represent the generic GracePeriod test.
+var GracePeriodIdentifier = Identifier{
+	URL:             gracePeriodIdentifierURL,
 	SemanticVersion: versionOne,
 }
 
