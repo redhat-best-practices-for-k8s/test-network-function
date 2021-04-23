@@ -86,21 +86,12 @@ make unit-tests
 ## Configuration guidelines
 
 Many Tests will require some form of extra configuration.  To maintain reproducibility and auditability outcomes this
-configuration must be included in a claim file.
-
-To support this each configuration type must be registered with `pkg/config/pool`.  In order to register with the
-configuration pool, use code similar to the following:
-
-```
-(*configpool.GetInstance()).RegisterConfiguration(configurationKey, config)
-```
-
-Additionally the `config` structure for the Test must implement or inherit a working `MarshalJSON` and `UnmarshalJSON`
-interface so it can be automatically included in a
+configuration must be included in a claim file. For all current configuration approaches (see the `generic` test spec)
+this will be done automatically provided the `config` structure for the Test implements or inherits a working `MarshalJSON` and `UnmarshalJSON`
+interface so it can be included in a
 [test-network-function-claim](https://github.com/test-network-function/test-network-function-claim) JSON file.
 
-Any configuration that adheres to these two requirements will automatically be included in the claim.  Any configuration
-needed to reproduce a claim must be added to the pool.
+All configuration must adhere to these two requirements will automatically be included in the claim.
 
 ## Documentation guidelines
 

@@ -28,6 +28,7 @@ import (
 	"github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
 	"github.com/test-network-function/test-network-function/pkg/config"
+	"github.com/test-network-function/test-network-function/pkg/config/configsections"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/base/redhat"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/clusterrolebinding"
@@ -69,7 +70,7 @@ var drainTimeout = time.Duration(drainTimeoutMinutes) * time.Minute
 
 // containersToExcludeFromConnectivityTests is a set used for storing the containers that should be excluded from
 // connectivity testing.
-var containersToExcludeFromConnectivityTests = make(map[config.ContainerIdentifier]interface{})
+var containersToExcludeFromConnectivityTests = make(map[configsections.ContainerIdentifier]interface{})
 
 // Helper used to instantiate an OpenShift Client Session.
 func getOcSession(pod, container, namespace string, timeout time.Duration, options ...interactive.Option) *interactive.Oc {
@@ -108,16 +109,16 @@ func getOcSession(pod, container, namespace string, timeout time.Duration, optio
 // as the reference to the interactive.Oc instance, the reference to the test configuration, and the default network
 // IP address.
 type container struct {
-	containerConfiguration  config.Container
+	containerConfiguration  configsections.Container
 	oc                      *interactive.Oc
 	defaultNetworkIPAddress string
-	containerIdentifier     config.ContainerIdentifier
+	containerIdentifier     configsections.ContainerIdentifier
 }
 
 // createContainers contains the general steps involved in creating "oc" sessions and other configuration. A map of the
 // aggregate information is returned.
-func createContainers(containerDefinitions []config.Container) map[config.ContainerIdentifier]*container {
-	createdContainers := make(map[config.ContainerIdentifier]*container)
+func createContainers(containerDefinitions []configsections.Container) map[configsections.ContainerIdentifier]*container {
+	createdContainers := make(map[configsections.ContainerIdentifier]*container)
 	for _, c := range containerDefinitions {
 		oc := getOcSession(c.PodName, c.ContainerName, c.Namespace, defaultTimeout, interactive.Verbose(true))
 		var defaultIPAddress = "UNKNOWN"
@@ -135,12 +136,12 @@ func createContainers(containerDefinitions []config.Container) map[config.Contai
 }
 
 // createContainersUnderTest sets up the test containers.
-func createContainersUnderTest(conf *config.TestConfiguration) map[config.ContainerIdentifier]*container {
+func createContainersUnderTest(conf *configsections.TestConfiguration) map[configsections.ContainerIdentifier]*container {
 	return createContainers(conf.ContainersUnderTest)
 }
 
 // createPartnerContainers sets up the partner containers.
-func createPartnerContainers(conf *config.TestConfiguration) map[config.ContainerIdentifier]*container {
+func createPartnerContainers(conf *configsections.TestConfiguration) map[configsections.ContainerIdentifier]*container {
 	return createContainers(conf.PartnerContainers)
 }
 
@@ -320,12 +321,9 @@ func getContainerDefaultNetworkIPAddress(oc *interactive.Oc, dev string) string 
 }
 
 // GetTestConfiguration returns the cnf-certification-generic-tests test configuration.
-func GetTestConfiguration() *config.TestConfiguration {
-	var conf config.TestConfiguration
-	c := config.GetConfigInstance()
-	conf = c.Generic
-	gomega.Expect(conf).ToNot(gomega.BeNil())
-	return &conf
+func GetTestConfiguration() *configsections.TestConfiguration {
+	conf := config.GetConfigInstance()
+	return &conf.Generic
 }
 
 func testNamespace(oc *interactive.Oc) {

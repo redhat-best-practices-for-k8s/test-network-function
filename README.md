@@ -130,9 +130,8 @@ The `generic` test spec tests:
 2) That CNF container images are RHEL based.
 
 To test `Default` network connectivity, a [test partner pod](https://github.com/test-network-function/cnf-certification-test-partner)
-is installed on the network.  The test partner pod is instructed to issue ICMPv4 requests to each container listed in
-the [test configuration](./test-network-function/tnf_config.yml), and vice versa.  The test asserts that
-the test partner pod receives the correct number of replies, and vice versa.
+is installed on the network.  The test partner pod is used as a known point when testing network connectivity of test target pods,
+pinging to and from each pod under test. The test asserts that the test partner pod receives the correct number of replies, and vice versa.
 
 In the future, other networking protocols aside from ICMPv4 should be tested.
 
@@ -179,7 +178,7 @@ By default, `test-network-function` emits results to `test-network-function/cnf-
 
 The included default configuration is for running `generic` and `multus` suites on the trivial example at
 [cnf-certification-test-partner](https://github.com/test-network-function/cnf-certification-test-partner).  To configure for your
-own environment, please see the Test Configuration section, below.
+own environment, please see [config.md](docs/config.md).
 
 ### Pulling The Code
 
@@ -230,57 +229,48 @@ for a future version.
 
 ## Test Configuration
 
-Configuration is accomplished with `tnf_config.yml` by default. An alternative configuration can be provided using the
-`TNF_CONFIGURATION_PATH` environment variable.
+Detailed configuration of the individual specs is explained in [config.md](docs/config.md).
 
-This config file contains several sections, each of which configures one or more test specs:
+We are currently transitioning to using resource labels to automate as much configuration as possible. Automatic
+configuration will only happen if the environment variable `TNF_ENABLE_CONFIG_AUTODISCOVER` is set:
 
-Config Section|Purpose
----|---
-generic|Describes containers to be tested with the `generic` and `multus` specs, if they are run.
-cnfs|Defines which containers are to be tested by the `container` spec.
-operators|Defines which containers are to be tested by the `operator` spec.
-certifiedcontainerinfo|Describes cnf names and repositories to be checked for certification status.
-certifiedoperatorinfo|Describes operator names and organisations to be checked for certification status.
+```shell
+TNF_ENABLE_CONFIG_AUTODISCOVER=true
+```
 
-`testconfigure.yml` defines roles, and which tests are appropriate for which roles. It should not be necessary to modify this.
+**NOTE** Currently when this environment variable is set the `generic` section of the config file will be ENTIRELY
+replaced with the autodiscovered configuration, to avoid potentially non-obvious errors.
 
+Autodiscovery is currently only supported in the generic spec, where the following applies:
+### Pod Roles
 
-### generic
+* The test partner pod is identified by the label `test-network-function.com/generic=orchestrator`. This must identify a
+single pod with a single container. This is equivalent to having an entry listed under `partnerContainers` in the config file.
+* Each pod under is identified by the label `test-network-function.com/generic=target`. There must be at least
+one such pod. This is equivalent to having a pod listed under `containersUnderTest` in the config file.
+* If an FS Diff Master Pod is present it should be identified with,  `test-network-function.com/generic=fs_diff_master`. This
+is equivalent to listing the pod under `fsDiffMasterContainer` in the config file.
+* If a pod is not suitable for netwrk connectivity tests because it lacks the `ping` and other binaries, it should be
+given the label `test-network-function.com/skip_connectivity_tests` to exclude it from those tests. Equivalent to
+`excludeContainersFromConnectivityTests` in the config file.
 
-The `generic` section contains three subsections:
+The autodiscovery mechanism will attempt to identify the default network device and all the IP addresses of the pods it
+needs, though that information can be explicitly set using annotations if needed. The following rules apply:
 
-* `containersUnderTest:` describes the CNFs that will be tested.  Each container is defined by the combination of its
-`namespace`, `podName`, and `containerName`, which are also used to connect to the container when required.
+### Pod IPs
 
-  * Each entry for `containersUnderTest` must also define the `defaultNetworkDevice` of that container.  There is also
-  an optional `multusIpAddresses` that can be omitted if the multus tests are not run.
+* The annotation `test-network-function.com/multusips` is the highest priority, and must contain a JSON-encoded list of
+IP addresses to be tested for the pod. This must be explicitly set.
+* If the above is not present, the `k8s.v1.cni.cncf.io/networks-status` annotation is checked and all IPs from it are
+used. This annotation is automatically managed in OpenShift.
+* If neither of the above is present, then only known IPs associated with the pod are used (the pod `.status.ips` field).
 
-* `partnerContainers:` describes the containers that support the testing.  Multiple `partnerContainers` allows
-for more complex testing scenarios.  At the time of writing, only one is used, which will also be the test
-orchestrator.
+### Network Interfaces
 
-* `testOrchestrator:` references a partner containers that is used for the generic test suite.  The test partner is used
-to send various types of traffic to each container under test.  For example the orchestrator is used to ping a container
-under test, and to be the ping target of a container under test.
-
-The [included default](test-network-function/tnf_config.yml) defines a single container to be tested,
-and a single partner to do the testing.
-
-### cnfs and operators
-
-The `cnfs` and `operators` sections define the roles under which operators and containers are to be tested.
-
-[The default config](test-network-function/tnf_config.yml) is set up with some examples of this:
-It will run the `"OPERATOR_STATUS"` tests (as defined in `testconfigure.yml`) against an etcd operator, and the
-`"PRIVILEGED_POD"` and `"PRIVILEGED_ROLE"` tests against an nginx container.
-
-A more extensive example of all these sections is provided in [example/example_config.yaml](example/example_config.yaml)
-
-### certifiedcontainerinfo and certifiedoperatorinfo
-
-The `certifiedcontainerinfo` and `certifiedoperatorinfo` sections contain information about CNFs and Operators that are
-to be checked for certification status on Red Hat catalogs.
+* The annotation `test-network-function.com/defaultnetworkinterface` is the highest priority, and must contain a
+JSON-encoded string of the primary network interface for the pod. This must be explicitly set if needed.
+* If the above is not present, the `k8s.v1.cni.cncf.io/networks-status` annotation is checked and the `"interface"` from
+the first entry found with `"default"=true` is used. This annotation is automatically managed in OpenShift.
 
 ## Test Output
 

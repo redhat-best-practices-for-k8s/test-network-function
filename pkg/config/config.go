@@ -22,29 +22,32 @@ import (
 	"os"
 
 	log "github.com/sirupsen/logrus"
+	"github.com/test-network-function/test-network-function/pkg/config/autodiscover"
+	"github.com/test-network-function/test-network-function/pkg/config/configsections"
 	"gopkg.in/yaml.v2"
 )
 
 const (
 	configurationFilePathEnvironmentVariableKey = "TNF_CONFIGURATION_PATH"
 	defaultConfigurationFilePath                = "tnf_config.yml"
+	enableAutodiscoverEnvVar                    = "TNF_ENABLE_CONFIG_AUTODISCOVER"
 )
 
 // File is the top level of the config file. All new config sections must be added here
 type File struct {
-	Generic TestConfiguration `yaml:"generic,omitempty" json:"generic,omitempty"`
+	Generic configsections.TestConfiguration `yaml:"generic,omitempty" json:"generic,omitempty"`
 
 	// Operator is the list of operator objects that needs to be tested.
-	Operators []Operator `yaml:"operators,omitempty"  json:"operators,omitempty"`
+	Operators []configsections.Operator `yaml:"operators,omitempty"  json:"operators,omitempty"`
 
 	// CNFs is the list of the CNFs that needs to be tested.
-	CNFs []Cnf `yaml:"cnfs,omitempty" json:"cnfs,omitempty"`
+	CNFs []configsections.Cnf `yaml:"cnfs,omitempty" json:"cnfs,omitempty"`
 
 	// CertifiedContainerInfo is the list of container images to be checked for certification status.
-	CertifiedContainerInfo []CertifiedContainerRequestInfo `yaml:"certifiedcontainerinfo,omitempty" json:"certifiedcontainerinfo,omitempty"`
+	CertifiedContainerInfo []configsections.CertifiedContainerRequestInfo `yaml:"certifiedcontainerinfo,omitempty" json:"certifiedcontainerinfo,omitempty"`
 
 	// CertifiedOperatorInfo is list of operator bundle names that are queried for certification status.
-	CertifiedOperatorInfo []CertifiedOperatorRequestInfo `yaml:"certifiedoperatorinfo,omitempty" json:"certifiedoperatorinfo,omitempty"`
+	CertifiedOperatorInfo []configsections.CertifiedOperatorRequestInfo `yaml:"certifiedoperatorinfo,omitempty" json:"certifiedoperatorinfo,omitempty"`
 
 	// CnfAvailableTestCases list the available test cases for  reference.
 	CnfAvailableTestCases []string `yaml:"cnfavailabletestcases,omitempty" json:"cnfavailabletestcases,omitempty"`
@@ -86,6 +89,10 @@ func loadConfigFromFile(filePath string) error {
 	return nil
 }
 
+func doAutodiscovery() {
+	configInstance.Generic = autodiscover.BuildGenericConfig()
+}
+
 // GetConfigInstance provides access to the singleton ConfigFile instance.
 func GetConfigInstance() File {
 	if !loaded {
@@ -94,6 +101,11 @@ func GetConfigInstance() File {
 		err := loadConfigFromFile(filePath)
 		if err != nil {
 			log.Fatalf("unable to load configuration file: %s", err)
+		}
+
+		if _, doAuto := os.LookupEnv(enableAutodiscoverEnvVar); doAuto {
+			log.Warn("doing configuration autodiscovery. Currently this WILL override parts of the configuration file")
+			doAutodiscovery()
 		}
 	}
 	return configInstance
