@@ -23,6 +23,7 @@ To pull the latest container and run the tests you use the following command. Th
 Optional arguments are:
 
 * `-k` gives a path to one or more kubeconfig files to be used by the container to authenticate with the cluster. Paths must be separated by a colon.
+* `-i` gives a name to a custom TNF container image. Supports local images, as well as images from external registries.
 
 If `-k` is not specified, autodiscovery is performed.
 The autodiscovery first looks for paths in the `$KUBECONFIG` environment variable on the host system, and if the variable is not set or is empty, the default configuration stored in `$HOME/.kube/config` is checked.
@@ -36,10 +37,16 @@ The autodiscovery first looks for paths in the `$KUBECONFIG` environment variabl
 ### Building
 
 You can build an image locally by using the command below. Use the value of `TNF_VERSION` to set a branch or tag that will be
-installed into the image. Note that this image will not be run by the script above.
+installed into the image.
 
 ```shell-script
-docker build -t test-network-function --build-arg TNF_VERSION=v1.0.5 .
+docker build -t test-network-function:v1.0.5 --build-arg TNF_VERSION=v1.0.5 .
+```
+
+To make `run-container.sh` use the newly built image, specify the custom TNF image using the `-i` parameter.
+
+```shell-script
+./run-container.sh -i test-network-function:v1.0.5 -t ~/tnf/config -o ~/tnf/output diagnostic generic
 ```
 
 ## Dependencies

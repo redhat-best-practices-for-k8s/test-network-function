@@ -20,12 +20,17 @@ REQUIRED_VARS_ERROR_MESSAGES=(
 	'OUTPUT_LOC is required. Use the -o option to specify the output location for the test results.'
 )
 
+TNF_IMAGE_NAME=test-network-function
+TNF_IMAGE_TAG=latest
+TNF_OFFICIAL_ORG=quay.io/testnetworkfunction/
+TNF_OFFICIAL_IMAGE="${TNF_OFFICIAL_ORG}${TNF_IMAGE_NAME}:${TNF_IMAGE_TAG}"
+
 CONTAINER_TNF_DIR=/usr/tnf
 CONTAINER_TNF_KUBECONFIG_FILE_BASE_PATH="$CONTAINER_TNF_DIR/kubeconfig/config"
 
 usage() {
 	read -d '' usage_prompt <<- EOF
-	Usage: $0 -t TNFCONFIG -o OUTPUT_LOC [ -k KUBECONFIG ] SUITE [ ... SUITE ]
+	Usage: $0 -t TNFCONFIG -o OUTPUT_LOC [ -k KUBECONFIG ] [-i IMAGE ] SUITE [ ... SUITE ]
 
 	Configure and run the containerised TNF test offering.
 
@@ -35,6 +40,7 @@ usage() {
 	  -k: set path to one or more local kubeconfigs, separated by a colon.
 	      The -k option takes precedence, overwriting the results of local kubeconfig autodiscovery.
 	      See the 'Kubeconfig lookup order' section below for more details.
+	  -i: set the TNF container image. Supports local images, as well as images from external registries.
 
 	Kubeconfig lookup order
 	  1. If -k is specified, use the paths provided with the -k option.
@@ -54,6 +60,11 @@ usage() {
 	  The command will bind two kubeconfig files (~/.kube/ABC and ~/.kube/DEF) to the TNF container,
 	  run the diagnostic and generic tests, and save the test results into the '~/tnf/output' directory
 	  on the host.
+
+	  $0 -i custom-tnf-image:v1.2-dev -t ~/tnf/config -o ~/tnf/output diagnostic generic
+
+	  The command will run the diagnostic and generic tests as implemented in the custom-tnf-image:v1.2-dev
+	  local image set by the -i parameter. The test results will be saved to the '~/tnf/output' directory.
 
 	Test suites
 	  Allowed tests are listed in the README.
@@ -125,9 +136,15 @@ get_container_tnf_kubeconfig_path_from_index() {
 	echo $kubeconfig_path
 }
 
-display_kubeconfig_volumes_summary() {
+display_config_summary() {
 	printf "Mounting %d kubeconfig volume(s):\n" "${#container_tnf_kubeconfig_volume_bindings[@]}"
 	printf -- "-v %s\n" "${container_tnf_kubeconfig_volume_bindings[@]}"
+
+	# Checks whether a prefix of the selected image path matches the address of the official TNF repository
+	if [[ "$TNF_IMAGE" != $TNF_OFFICIAL_ORG* ]]; then
+		printf "Warning: Could not verify whether '%s' is an official TNF image.\n" "$TNF_IMAGE"
+		printf "\t Official TNF images can be pulled directly from '%s'.\n" "$TNF_OFFICIAL_ORG"
+	fi
 }
 
 join_paths() {
@@ -162,6 +179,12 @@ while [[ $1 == -* ]]; do
             echo "-o requires an argument" 1>&2
             exit 1
           fi ;;
+      -i) if (($# > 1)); then
+            TNF_IMAGE=$2; shift 2
+          else
+            echo "-i requires an argument" 1>&2
+            exit 1
+          fi ;;
       --) shift; break;;
       -*) echo "invalid option: $1" 1>&2; usage_error;;
     esac
@@ -186,7 +209,9 @@ for local_path_index in "${!local_kubeconfig_paths[@]}"; do
 	container_tnf_kubeconfig_volume_bindings+=("$local_path:$container_path:ro")
 done
 
-display_kubeconfig_volumes_summary
+TNF_IMAGE="${TNF_IMAGE:-$TNF_OFFICIAL_IMAGE}"
+
+display_config_summary
 
 # Construct new $KUBECONFIG env variable containing all paths to kubeconfigs mounted to the container.
 # This environment variable is passed to the TNF container and is made available for use by oc/kubectl.
@@ -200,6 +225,6 @@ docker run --rm \
 	-v $LOCAL_TNF_CONFIG:$CONTAINER_TNF_DIR/config \
 	-v $OUTPUT_LOC:$CONTAINER_TNF_DIR/claim \
 	-e KUBECONFIG=$CONTAINER_TNF_KUBECONFIG \
-	quay.io/testnetworkfunction/test-network-function:latest \
+	$TNF_IMAGE \
 	./run-cnf-suites.sh \
 	-o $CONTAINER_TNF_DIR/claim $@
