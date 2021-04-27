@@ -262,3 +262,114 @@ func TestGeneric(t *testing.T) {
 		}
 	}
 }
+
+// newGenericFromTemplateFileTestCase contains the metadata for executing a template-based test case.
+type newGenericFromTemplateFileTestCase struct {
+
+	// testTemplateFile is the file location for the template file.
+	testTemplateFile string
+
+	// testValuesFile is the file location for the values YAML file.
+	testValuesFile string
+
+	// expectedCreationErr stores whether an error is expected during creation of the JSON Templated Generic.
+	expectedCreationErr bool
+
+	// creationErrString stores the message extracted when expectedCreationErr is true.
+	creationErrString string
+
+	// testCreationErrString stores whether to check the extracted error message.
+	testCreationErrString bool
+
+	// expectedCreationResultIsValid stores whether the rendered template conforms to the generic test JSON schema.
+	expectedCreationResultIsValid bool
+}
+
+// newGenericFromTemplateFileTestCases is the collection of JSON template test cases.
+var newGenericFromTemplateFileTestCases = map[string]newGenericFromTemplateFileTestCase{
+
+	// 1. Positive Test Case:  This template is expected to render and Parse correctly.
+	"working_example": {
+		testTemplateFile:              getTestTemplateData("ping.json.tpl"),
+		testValuesFile:                getTestTemplateData("ping.values.yaml"),
+		expectedCreationErr:           false,
+		expectedCreationResultIsValid: true,
+	},
+
+	// 2. Negative Test Case:  This template is expected to fail to render, as the template file does not exist.
+	"missing_template": {
+		testTemplateFile:      "null.json.tpl",
+		testValuesFile:        getTestTemplateData("ping.values.yaml"),
+		expectedCreationErr:   true,
+		testCreationErrString: true,
+		creationErrString:     "open null.json.tpl: no such file or directory",
+	},
+
+	// 3. Negative Test Case:  This template is expected to fail to render, as the values yaml file does not exist.
+	"missing_values_file": {
+		testTemplateFile:      getTestTemplateData("ping.json.tpl"),
+		testValuesFile:        "null.values.yaml",
+		expectedCreationErr:   true,
+		testCreationErrString: true,
+		creationErrString:     "open null.values.yaml: no such file or directory",
+	},
+
+	// 4. Negative Test Case:  This template is expected to fail to render, as the values yaml file does not contain valid YAML.
+	"bad_yaml": {
+		testTemplateFile:      getTestTemplateData("ping.json.tpl"),
+		testValuesFile:        path.Join("testdata", "bad_yaml.yaml"),
+		expectedCreationErr:   true,
+		testCreationErrString: true,
+		creationErrString:     "yaml: unmarshal errors:\n  line 1: cannot unmarshal !!str `Not a K...` into map[string]interface {}",
+	},
+
+	// 5. Negative Test Case:  This template is expected to fail to render, as the template is invalid (i.e., contains unclosed "{{")
+	"bad_template": {
+		testTemplateFile:    path.Join("testdata", "bad_template.json.tpl"),
+		testValuesFile:      getTestTemplateData("ping.values.yaml"),
+		expectedCreationErr: true,
+		// This cannot be tested, as there are stark differences between Go language versions.
+		testCreationErrString: false,
+		//creationErrString:   "template: tpl:2: unexpected unclosed action in command",
+	},
+
+	// 6. Negative Test Case:  This template is expected to fail to render, as the values yaml is missing a key required by the template.
+	"missing_key": {
+		testTemplateFile:              getTestTemplateData("ping.json.tpl"),
+		testValuesFile:                path.Join("testdata", "missing_key.yaml"),
+		expectedCreationErr:           true,
+		expectedCreationResultIsValid: false,
+		testCreationErrString:         true,
+		creationErrString:             "template: tpl:8:28: executing \"tpl\" at <.HOST>: map has no entry for key \"HOST\"",
+	},
+
+	// 7. Negative Test Case:  This template is expected to render, but then fail to pass the JSON schema as there is an extraneous field.
+	"extraneous_field": {
+		testTemplateFile:              path.Join("testdata", "template_has_extraneous_field.yaml.tpl"),
+		testValuesFile:                getTestTemplateData("ping.values.yaml"),
+		expectedCreationErr:           false,
+		expectedCreationResultIsValid: false,
+	},
+}
+
+// getTestTemplateData is a utility function to resolve example template file locations.
+func getTestTemplateData(inputFile string) string {
+	return path.Join("..", "..", "..", "..", "examples", "generic", "template", inputFile)
+}
+
+// TestNewGenericFromTemplate is used to exercise the JSON Template use case.
+func TestNewGenericFromTemplate(t *testing.T) {
+	for _, testCase := range newGenericFromTemplateFileTestCases {
+		tester, handlers, result, err := generic.NewGenericFromTemplate(testCase.testTemplateFile, schemaPath, testCase.testValuesFile)
+		assert.Equal(t, testCase.expectedCreationErr, err != nil)
+		if !testCase.expectedCreationErr {
+			assert.Equal(t, testCase.expectedCreationResultIsValid, result.Valid())
+			if testCase.expectedCreationResultIsValid {
+				assert.NotNil(t, handlers)
+				assert.NotNil(t, tester)
+			}
+		} else if testCase.testCreationErrString {
+			assert.Equal(t, testCase.creationErrString, err.Error())
+		}
+	}
+}
