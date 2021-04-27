@@ -331,6 +331,22 @@ If you wish to explore the `oc` and `ssh` variants of `jsontest-cli`, please con
 
 See the [diagnostic](test-network-function/diagnostic/suite.go) test suite for an example of this.
 
+### Including templated JSON-based tests
+
+Often times, tests require arguments.  For example, if you were to write a test which involves testing `ping` to a
+particular destination, perhaps derived dynamically, the destination would need to be configurable.  In this case,
+Go templates can be used to render a JSON-based test.  [ping.json.tpl](./examples/generic/template/ping.json.tpl) is an
+example of a JSON-test which contains a `HOST` argument, and
+[ping.values.yaml](./examples/generic/template/ping.values.yaml) provides the necessary values.  Tests can be rendered
+using something similar to:
+
+```go
+templateFile := path.Join("examples", "generic", "template", "ping.json.tpl")
+schemaPath := path.Join("schemas", "generic-test.schema.json")
+valuesFile := path.Join("examples", "generic", "template", "ping.values.yaml")
+tester, handlers, result, err := generic.NewGenericFromTemplate(templateFile, schemaPath, valuesFile)
+```
+
 ## Writing a simple CLI-oriented test in Go
 
 A `test-network-function` test must implement `tnf.Tester` and `reel.Handler` Go `interface`s.  The `tnf.Tester`

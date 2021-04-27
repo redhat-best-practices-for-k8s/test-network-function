@@ -17,9 +17,11 @@
 package generic
 
 import (
+	"bytes"
 	"encoding/json"
 	"io/ioutil"
 	"regexp"
+	"text/template"
 	"time"
 
 	"github.com/test-network-function/test-network-function/pkg/jsonschema"
@@ -27,6 +29,7 @@ import (
 	"github.com/test-network-function/test-network-function/pkg/tnf/identifier"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
 	"github.com/xeipuuv/gojsonschema"
+	"gopkg.in/yaml.v2"
 )
 
 const (
@@ -192,8 +195,17 @@ func (g *Generic) ReelEOF() {
 
 // NewGenericFromJSONFile instantiates and initializes a Generic from a JSON-serialized file.
 func NewGenericFromJSONFile(filename, schemaPath string) (*tnf.Tester, []reel.Handler, *gojsonschema.Result, error) {
-	g, result, err := createGeneric(filename, schemaPath)
+	inputBytes, err := ioutil.ReadFile(filename)
 	if err != nil {
+		return nil, nil, nil, err
+	}
+	return newGenericFromJSON(inputBytes, schemaPath)
+}
+
+// newGenericFromJSON instantiates and initializes a Generic from a JSON-serialized byte array.
+func newGenericFromJSON(inputBytes []byte, schemaPath string) (*tnf.Tester, []reel.Handler, *gojsonschema.Result, error) {
+	g, result, err := createGeneric(inputBytes, schemaPath)
+	if err != nil || !result.Valid() {
 		return nil, nil, result, err
 	}
 	// poor man's polymorphism
@@ -202,20 +214,51 @@ func NewGenericFromJSONFile(filename, schemaPath string) (*tnf.Tester, []reel.Ha
 	return &tester, []reel.Handler{handler}, result, nil
 }
 
-// createGeneric is a helper function for instantiating and initializing a Generic tnf.Test.
-func createGeneric(filename, schemaPath string) (*Generic, *gojsonschema.Result, error) {
-	result, err := jsonschema.ValidateJSONFileAgainstSchema(filename, schemaPath)
+// NewGenericFromTemplate attempts to instantiate and initialize a Generic by rendering the supplied template/values and
+// validating schema conformance based on generic-test.schema.json.  schemaPath should always be the path to
+// generic-test.schema.json relative to the execution entry-point, which will vary for unit tests, executables, and test
+// suites.  If the supplied template/values do not conform to the generic-test.schema.json schema, creation fails and
+// the result is returned to the caller for further inspection.
+func NewGenericFromTemplate(templateFile, schemaPath, valuesFile string) (*tnf.Tester, []reel.Handler, *gojsonschema.Result, error) {
+	tplBytes, err := ioutil.ReadFile(valuesFile)
 	if err != nil {
-		return nil, result, err
+		return nil, nil, nil, err
 	}
 
-	bytes, err := ioutil.ReadFile(filename)
+	values := make(map[string]interface{})
+	err = yaml.Unmarshal(tplBytes, values)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	templateBytes, err := ioutil.ReadFile(templateFile)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	// Note: "tpl" just names the template.  It is arbitrary, and doesn't really matter.
+	t, err := template.New("tpl").Option("missingkey=error").Parse(string(templateBytes))
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	var buf bytes.Buffer
+	err = t.ExecuteTemplate(&buf, "tpl", values)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	return newGenericFromJSON(buf.Bytes(), schemaPath)
+}
+
+// createGeneric is a helper function for instantiating and initializing a Generic tnf.Test.
+func createGeneric(inputBytes []byte, schemaPath string) (*Generic, *gojsonschema.Result, error) {
+	result, err := jsonschema.ValidateJSONAgainstSchema(inputBytes, schemaPath)
 	if err != nil {
 		return nil, result, err
 	}
 
 	g := &Generic{}
-	err = json.Unmarshal(bytes, g)
+	err = json.Unmarshal(inputBytes, g)
 	if err != nil {
 		return nil, result, err
 	}
