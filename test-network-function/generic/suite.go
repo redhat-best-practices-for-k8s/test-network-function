@@ -19,6 +19,7 @@ package generic
 import (
 	"fmt"
 	"os"
+	"sort"
 	"strconv"
 	"time"
 
@@ -32,6 +33,9 @@ import (
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/clusterrolebinding"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/cnffsdiff"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/containerid"
+	dp "github.com/test-network-function/test-network-function/pkg/tnf/handlers/deployments"
+	dd "github.com/test-network-function/test-network-function/pkg/tnf/handlers/deploymentsdrain"
+	dn "github.com/test-network-function/test-network-function/pkg/tnf/handlers/deploymentsnodes"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/graceperiod"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/hugepages"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/ipaddr"
@@ -49,14 +53,17 @@ import (
 
 const (
 	defaultNumPings               = 5
-	defaultTimeoutSeconds         = 10
+	defaultTimeoutSeconds         = 30
 	defaultTerminationGracePeriod = 30
 	multusTestsKey                = "multus"
 	testsKey                      = "generic"
+	drainTimeoutMinutes           = 5
 )
 
 // The default test timeout.
 var defaultTimeout = time.Duration(defaultTimeoutSeconds) * time.Second
+
+var drainTimeout = time.Duration(drainTimeoutMinutes) * time.Minute
 
 // containersToExcludeFromConnectivityTests is a set used for storing the containers that should be excluded from
 // connectivity testing.
@@ -143,10 +150,6 @@ func createPartnerContainers(conf *config.TestConfiguration) map[config.Containe
 var _ = ginkgo.Describe(testsKey, func() {
 	if testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusStrings, testsKey) {
 
-		context, err := interactive.SpawnShell(interactive.CreateGoExpectSpawner(), defaultTimeout, interactive.Verbose(true))
-		gomega.Expect(err).To(gomega.BeNil())
-		gomega.Expect(context).ToNot(gomega.BeNil())
-
 		config := GetTestConfiguration()
 		log.Infof("Test Configuration: %s", config)
 
@@ -188,19 +191,23 @@ var _ = ginkgo.Describe(testsKey, func() {
 		}
 
 		for _, containersUnderTest := range containersUnderTest {
-			testRoles(context, containersUnderTest.oc.GetPodName(), containersUnderTest.oc.GetPodNamespace())
+			testRoles(containersUnderTest.oc.GetPodName(), containersUnderTest.oc.GetPodNamespace())
 		}
 
 		for _, containersUnderTest := range containersUnderTest {
-			testNodePort(context, containersUnderTest.oc.GetPodNamespace())
+			testNodePort(containersUnderTest.oc.GetPodNamespace())
 		}
 
 		for _, containersUnderTest := range containersUnderTest {
-			testGracePeriod(context, containersUnderTest.oc.GetPodName(), containersUnderTest.oc.GetPodNamespace())
+			testGracePeriod(getContext(), containersUnderTest.oc.GetPodName(), containersUnderTest.oc.GetPodNamespace())
 		}
 
-		testTainted(context)
-		testHugepages(context)
+		testTainted()
+		testHugepages()
+
+		for _, containersUnderTest := range containersUnderTest {
+			testDeployments(containersUnderTest.oc.GetPodNamespace())
+		}
 	}
 })
 
@@ -321,13 +328,13 @@ func testNamespace(oc *interactive.Oc) {
 	})
 }
 
-func testRoles(context *interactive.Context, podName, podNamespace string) {
+func testRoles(podName, podNamespace string) {
 	var serviceAccountName string
 
 	ginkgo.When(fmt.Sprintf("Testing roles and privileges of %s/%s", podNamespace, podName), func() {
-		testServiceAccount(context, podName, podNamespace, &serviceAccountName)
-		testRoleBindings(context, podNamespace, &serviceAccountName)
-		testClusterRoleBindings(context, podNamespace, &serviceAccountName)
+		testServiceAccount(podName, podNamespace, &serviceAccountName)
+		testRoleBindings(podNamespace, &serviceAccountName)
+		testClusterRoleBindings(podNamespace, &serviceAccountName)
 	})
 }
 
@@ -346,8 +353,9 @@ func testGracePeriod(context *interactive.Context, podName, podNamespace string)
 	})
 }
 
-func testServiceAccount(context *interactive.Context, podName, podNamespace string, serviceAccountName *string) {
+func testServiceAccount(podName, podNamespace string, serviceAccountName *string) {
 	ginkgo.It("Should have a valid ServiceAccount name", func() {
+		context := getContext()
 		tester := serviceaccount.NewServiceAccount(defaultTimeout, podName, podNamespace)
 		test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 		gomega.Expect(err).To(gomega.BeNil())
@@ -359,11 +367,12 @@ func testServiceAccount(context *interactive.Context, podName, podNamespace stri
 	})
 }
 
-func testRoleBindings(context *interactive.Context, podNamespace string, serviceAccountName *string) {
+func testRoleBindings(podNamespace string, serviceAccountName *string) {
 	ginkgo.It("Should not have RoleBinding in other namespaces", func() {
 		if *serviceAccountName == "" {
 			ginkgo.Skip("Can not test when serviceAccountName is empty. Please check previous tests for failures")
 		}
+		context := getContext()
 		rbTester := rolebinding.NewRoleBinding(defaultTimeout, *serviceAccountName, podNamespace)
 		test, err := tnf.NewTest(context.GetExpecter(), rbTester, []reel.Handler{rbTester}, context.GetErrorChannel())
 		gomega.Expect(err).To(gomega.BeNil())
@@ -376,11 +385,12 @@ func testRoleBindings(context *interactive.Context, podNamespace string, service
 	})
 }
 
-func testClusterRoleBindings(context *interactive.Context, podNamespace string, serviceAccountName *string) {
+func testClusterRoleBindings(podNamespace string, serviceAccountName *string) {
 	ginkgo.It("Should not have ClusterRoleBindings", func() {
 		if *serviceAccountName == "" {
 			ginkgo.Skip("Can not test when serviceAccountName is empty. Please check previous tests for failures")
 		}
+		context := getContext()
 		crbTester := clusterrolebinding.NewClusterRoleBinding(defaultTimeout, *serviceAccountName, podNamespace)
 		test, err := tnf.NewTest(context.GetExpecter(), crbTester, []reel.Handler{crbTester}, context.GetErrorChannel())
 		gomega.Expect(err).To(gomega.BeNil())
@@ -393,9 +403,10 @@ func testClusterRoleBindings(context *interactive.Context, podNamespace string, 
 	})
 }
 
-func testNodePort(context *interactive.Context, podNamespace string) {
+func testNodePort(podNamespace string) {
 	ginkgo.When(fmt.Sprintf("Testing services in namespace %s", podNamespace), func() {
 		ginkgo.It("Should not have services of type NodePort", func() {
+			context := getContext()
 			tester := nodeport.NewNodePort(defaultTimeout, podNamespace)
 			test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 			gomega.Expect(err).To(gomega.BeNil())
@@ -406,13 +417,14 @@ func testNodePort(context *interactive.Context, podNamespace string) {
 	})
 }
 
-func testTainted(context *interactive.Context) {
+func testTainted() {
 	if isMinikube() {
 		return
 	}
 	var nodeNames []string
 	ginkgo.When("Testing tainted nodes in cluster", func() {
 		ginkgo.It("Should return list of node names", func() {
+			context := getContext()
 			tester := nodenames.NewNodeNames(defaultTimeout, nil)
 			test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 			gomega.Expect(err).To(gomega.BeNil())
@@ -429,6 +441,7 @@ func testTainted(context *interactive.Context) {
 			}
 			var taintedNodes []string
 			for _, node := range nodeNames {
+				context := getContext()
 				tester := nodetainted.NewNodeTainted(defaultTimeout, node)
 				test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 				gomega.Expect(err).To(gomega.BeNil())
@@ -444,7 +457,7 @@ func testTainted(context *interactive.Context) {
 	})
 }
 
-func testHugepages(context *interactive.Context) {
+func testHugepages() {
 	if isMinikube() {
 		return
 	}
@@ -452,6 +465,7 @@ func testHugepages(context *interactive.Context) {
 	var clusterHugepages, clusterHugepagesz int
 	ginkgo.When("Testing worker nodes' hugepages configuration", func() {
 		ginkgo.It("Should return list of worker node names", func() {
+			context := getContext()
 			tester := nodenames.NewNodeNames(defaultTimeout, map[string]*string{"node-role.kubernetes.io/worker": nil})
 			test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 			gomega.Expect(err).To(gomega.BeNil())
@@ -462,6 +476,7 @@ func testHugepages(context *interactive.Context) {
 			gomega.Expect(nodeNames).NotTo(gomega.BeNil())
 		})
 		ginkgo.It("Should return cluster's hugepages configuration", func() {
+			context := getContext()
 			tester := hugepages.NewHugepages(defaultTimeout)
 			test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 			gomega.Expect(err).To(gomega.BeNil())
@@ -474,6 +489,7 @@ func testHugepages(context *interactive.Context) {
 		ginkgo.It("Should have same configuration as cluster", func() {
 			var badNodes []string
 			for _, node := range nodeNames {
+				context := getContext()
 				tester := nodehugepages.NewNodeHugepages(defaultTimeout, node, clusterHugepagesz, clusterHugepages)
 				test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 				gomega.Expect(err).To(gomega.BeNil())
@@ -488,7 +504,124 @@ func testHugepages(context *interactive.Context) {
 	})
 }
 
+func testDeployments(namespace string) {
+	ready := true
+	var deployments dp.DeploymentMap
+	var notReadyDeployments []string
+	var nodesSorted []node // A slice version of nodes sorted by number of deployments descending
+	ginkgo.When("Testing deployments in namespace", func() {
+		ginkgo.It("Should return list of deployments", func() {
+			deployments, notReadyDeployments = getDeployments(namespace)
+			if len(deployments) == 0 {
+				ready = false
+				return
+			}
+			// We require that all deployments have the desired number of replicas and are all up to date
+			if len(notReadyDeployments) != 0 {
+				ready = false
+			}
+			gomega.Expect(notReadyDeployments).To(gomega.BeEmpty())
+		})
+		ginkgo.It("Should return map of nodes to deployments", func() {
+			if !ready {
+				ginkgo.Skip("Can not test when deployments are not ready")
+			}
+			nodesSorted = getDeploymentsNodes(namespace)
+		})
+		ginkgo.It("should create new replicas when node is drained", func() {
+			if !ready {
+				ginkgo.Skip("Can not test when deployments are not ready")
+			}
+			testedDeployments := map[string]bool{}
+			for _, n := range nodesSorted {
+				oldLen := len(testedDeployments)
+				// mark tested deployments
+				for d := range n.deployments {
+					testedDeployments[d] = true
+				}
+				if oldLen == len(testedDeployments) {
+					// If node does not add new deployments then skip it
+					continue
+				}
+				// drain node
+				drainNode(n.name)
+				// verify deployments are ready again
+				_, notReadyDeployments = getDeployments(namespace)
+				gomega.Expect(notReadyDeployments).To(gomega.BeEmpty())
+				if len(testedDeployments) == len(deployments) {
+					break
+				}
+			}
+		})
+	})
+}
+
 func isMinikube() bool {
 	b, _ := strconv.ParseBool(os.Getenv("TNF_MINIKUBE_ONLY"))
 	return b
+}
+
+type node struct {
+	name        string
+	deployments map[string]bool
+}
+
+func sortNodesMap(nodesMap dn.NodesMap) []node {
+	nodes := make([]node, 0, len(nodesMap))
+	for n, d := range nodesMap {
+		nodes = append(nodes, node{n, d})
+	}
+	sort.Slice(nodes, func(i, j int) bool { return len(nodes[i].deployments) > len(nodes[j].deployments) })
+	return nodes
+}
+
+func getDeploymentsNodes(namespace string) []node {
+	context := getContext()
+	tester := dn.NewDeploymentsNodes(defaultTimeout, namespace)
+	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
+	gomega.Expect(err).To(gomega.BeNil())
+	testResult, err := test.Run()
+	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
+	gomega.Expect(err).To(gomega.BeNil())
+	nodes := tester.GetNodes()
+	gomega.Expect(nodes).NotTo(gomega.BeEmpty())
+	return sortNodesMap(nodes)
+}
+
+// getDeployments returns map of deployments and names of not-ready deployments
+func getDeployments(namespace string) (deployments dp.DeploymentMap, notReadyDeployments []string) {
+	context := getContext()
+	tester := dp.NewDeployments(defaultTimeout, namespace)
+	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
+	gomega.Expect(err).To(gomega.BeNil())
+	testResult, err := test.Run()
+	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
+	gomega.Expect(err).To(gomega.BeNil())
+
+	deployments = tester.GetDeployments()
+
+	for name, d := range deployments {
+		if d.Unavailable != 0 || d.Ready != d.Replicas || d.Available != d.Replicas || d.UpToDate != d.Replicas {
+			notReadyDeployments = append(notReadyDeployments, name)
+		}
+	}
+
+	return deployments, notReadyDeployments
+}
+
+func drainNode(node string) {
+	context := getContext()
+	tester := dd.NewDeploymentsDrain(drainTimeout, node)
+	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
+	gomega.Expect(err).To(gomega.BeNil())
+	testResult, err := test.Run()
+	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
+	gomega.Expect(err).To(gomega.BeNil())
+}
+
+func getContext() *interactive.Context {
+	context, err := interactive.SpawnShell(interactive.CreateGoExpectSpawner(), defaultTimeout, interactive.Verbose(true))
+	gomega.Expect(err).To(gomega.BeNil())
+	gomega.Expect(context).ToNot(gomega.BeNil())
+	return context
 }
