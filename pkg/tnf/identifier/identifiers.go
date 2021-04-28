@@ -37,6 +37,9 @@ const (
 	gracePeriodIdentifierURL        = "http://test-network-function.com/tests/gracePeriod"
 	hugepagesIdentifierURL          = "http://test-network-function.com/tests/hugepages"
 	nodehugepagesIdentifierURL      = "http://test-network-function.com/tests/nodehugepages"
+	deploymentsIdentifierURL        = "http://test-network-function.com/tests/deployments"
+	deploymentsnodesIdentifierURL   = "http://test-network-function.com/tests/deploymentsnodes"
+	deploymentsdrainIdentifierURL   = "http://test-network-function.com/tests/deploymentsdrain"
 
 	versionOne = "v1.0.0"
 )
@@ -310,6 +313,44 @@ var Catalog = map[string]TestCatalogEntry{
 			dependencies.GrepBinaryName,
 		},
 	},
+	deploymentsIdentifierURL: {
+		Identifier:  DeploymentsIdentifier,
+		Description: "A generic test used to read namespace's deployments",
+		Type:        Normative,
+		IntrusionSettings: IntrusionSettings{
+			ModifiesSystem:           false,
+			ModificationIsPersistent: false,
+		},
+		BinaryDependencies: []string{
+			dependencies.OcBinaryName,
+		},
+	},
+	deploymentsnodesIdentifierURL: {
+		Identifier:  DeploymentsNodesIdentifier,
+		Description: "A generic test used to read node names of pods owned by deployments in namespace",
+		Type:        Normative,
+		IntrusionSettings: IntrusionSettings{
+			ModifiesSystem:           false,
+			ModificationIsPersistent: false,
+		},
+		BinaryDependencies: []string{
+			dependencies.OcBinaryName,
+			dependencies.GrepBinaryName,
+		},
+	},
+	deploymentsdrainIdentifierURL: {
+		Identifier:  DeploymentsNodesIdentifier,
+		Description: "A generic test used to drain node from its deployment pods",
+		Type:        Normative,
+		IntrusionSettings: IntrusionSettings{
+			ModifiesSystem:           false,
+			ModificationIsPersistent: false,
+		},
+		BinaryDependencies: []string{
+			dependencies.OcBinaryName,
+			dependencies.EchoBinaryName,
+		},
+	},
 }
 
 // HostnameIdentifier is the Identifier used to represent the generic hostname test case.
@@ -417,5 +458,23 @@ var HugepagesIdentifier = Identifier{
 // NodeHugepagesIdentifier is the Identifier used to represent the generic NodeHugepages test.
 var NodeHugepagesIdentifier = Identifier{
 	URL:             nodehugepagesIdentifierURL,
+	SemanticVersion: versionOne,
+}
+
+// DeploymentsIdentifier is the Identifier used to represent the generic Deployments test.
+var DeploymentsIdentifier = Identifier{
+	URL:             deploymentsIdentifierURL,
+	SemanticVersion: versionOne,
+}
+
+// DeploymentsNodesIdentifier is the Identifier used to represent the generic DeploymentsNodes test.
+var DeploymentsNodesIdentifier = Identifier{
+	URL:             deploymentsnodesIdentifierURL,
+	SemanticVersion: versionOne,
+}
+
+// DeploymentsDrainIdentifier is the Identifier used to represent the generic DeploymentsDrain test.
+var DeploymentsDrainIdentifier = Identifier{
+	URL:             deploymentsdrainIdentifierURL,
 	SemanticVersion: versionOne,
 }
