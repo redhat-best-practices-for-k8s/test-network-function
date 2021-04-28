@@ -20,5 +20,4 @@ require (
 	github.com/xeipuuv/gojsonschema v1.2.0
 	google.golang.org/grpc v1.37.0
 	gopkg.in/yaml.v2 v2.4.0
-	kubevirt.io/qe-tools v0.1.7
 )
