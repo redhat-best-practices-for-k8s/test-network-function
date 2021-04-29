@@ -32,12 +32,10 @@ while [[ $1 == -* ]]; do
 		-*) echo "invalid option: $1" 1>&2; usage_error;;
 	esac
 done
-
-GINKGO_ARGS="-ginkgo.v -junit . -report $OUTPUT_LOC -claimloc $OUTPUT_LOC"
+# specify Junit report file name here.
+GINKGO_ARGS="-ginkgo.v -junit . -claimloc $OUTPUT_LOC -ginkgo.reportFile $OUTPUT_LOC/"cnf-certification-tests_junit.xml""
 FOCUS=""
 
-# specify Junit report file name.
-GINKGO_ARGS2="-ginkgo.reportFile $OUTPUT_LOC/"cnf-certification-tests_junit.xml""
 
 for var in "$@"
 do
@@ -57,4 +55,4 @@ done
 FOCUS=${FOCUS%?}  # strip the trailing "|" from the concatenation
 
 echo "Running with focus '$FOCUS'. Report will be output to '$OUTPUT_LOC'"
-cd ./test-network-function && ./test-network-function.test -ginkgo.focus="$FOCUS" ${GINKGO_ARGS} ${GINKGO_ARGS2}
+cd ./test-network-function && ./test-network-function.test -ginkgo.focus="$FOCUS" ${GINKGO_ARGS}
