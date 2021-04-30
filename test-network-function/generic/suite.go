@@ -129,7 +129,7 @@ func createPartnerContainers(config *tnfConfig.TestConfiguration) map[tnfConfig.
 // Runs the "generic" CNF test cases.
 var _ = ginkgo.Describe(testsKey, func() {
 	if testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusStrings, testsKey) {
-
+		defer ginkgo.GinkgoRecover()
 		config := GetTestConfiguration()
 		log.Infof("Test Configuration: %s", config)
 
@@ -179,6 +179,7 @@ func testIsRedHatRelease(oc *interactive.Oc) {
 // a useful test across most CNFs.  Should "multus" be considered generic, cnf_specific, or somewhere in between.
 var _ = ginkgo.Describe(multusTestsKey, func() {
 	if testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusStrings, multusTestsKey) {
+		defer ginkgo.GinkgoRecover()
 		config := GetTestConfiguration()
 		log.Infof("Test Configuration: %s", config)
 
@@ -238,7 +239,9 @@ func getContainerDefaultNetworkIPAddress(oc *interactive.Oc, dev string) string 
 // GetTestConfiguration returns the cnf-certification-generic-tests test configuration.
 func GetTestConfiguration() *tnfConfig.TestConfiguration {
 	config, err := tnfConfig.GetConfiguration(tnfConfig.UseDefaultConfigurationFilePath)
-	gomega.Expect(err).To(gomega.BeNil())
+	if err != nil {
+		ginkgo.Fail("Error getting `generic` configuration, skipping generic and/or multus specs")
+	}
 	gomega.Expect(config).ToNot(gomega.BeNil())
 	return config
 }
