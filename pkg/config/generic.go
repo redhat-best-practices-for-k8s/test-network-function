@@ -24,6 +24,7 @@ import (
 	"strconv"
 	"strings"
 
+	log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 )
 
@@ -66,9 +67,11 @@ func GetConfiguration(filepath string) (*TestConfiguration, error) {
 	if filepath == "" {
 		filepath = getConfigurationFilePathFromEnvironment()
 	}
+	log.Infof("loading config from file: %s", filepath)
 
 	contents, err := ioutil.ReadFile(filepath)
 	if err != nil {
+		log.Errorf("failed to read from file: %s", err)
 		return nil, err
 	}
 
@@ -79,6 +82,7 @@ func GetConfiguration(filepath string) (*TestConfiguration, error) {
 	}
 
 	if err != nil {
+		log.Errorf("failed to unmarshal configuration: %s", err)
 		return nil, err
 	}
 
