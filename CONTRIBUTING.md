@@ -68,13 +68,21 @@ Generally speaking, the CLI API changes much less quickly.
 
 For more details on how to add a new Test either as a JSON definition, or in code, please see [DEVELOPING.md](DEVELOPING.md)
 
-For some examples of existing tests, consult:
+### Unit Testing Tests
+
+Each `tnf.Tester` implementation must have unit tests.  Ideally, it should strive for 100% line coverage when possible.  For some examples of existing unit tests, consult:
 
 * pkg/tnf/handlers/base/version_test.go
 * pkg/tnf/handlers/hostname/hostname_test.go
 * pkg/tnf/handlers/ipaddr/ipaddr_test.go
 * pkg/tnf/handlers/ping/ping_test.go
 
+As always, you should ensure that tests should pass prior to submitting a Pull Request.  To run the unit tests issue the
+following command:
+
+```bash
+make unit-tests
+```
 ## Configuration guidelines
 
 Many Tests will require some form of extra configuration.  To maintain reproducibility and auditability outcomes this
