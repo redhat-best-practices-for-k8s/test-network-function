@@ -53,7 +53,7 @@ import (
 
 const (
 	defaultNumPings               = 5
-	defaultTimeoutSeconds         = 30
+	defaultTimeoutSeconds         = 10
 	defaultTerminationGracePeriod = 30
 	multusTestsKey                = "multus"
 	testsKey                      = "generic"
