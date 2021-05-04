@@ -13,6 +13,7 @@ variety of `interactive.Context` implementations for each of these.  In general,
 on specific prompts, the framework handles the context transparently.
 * Tests must implement the `tnf.Tester` interface.
 * Tests must implement the `reel.Handler` interface.
+* Tests must be accompanied by appropriate unit tests.
 * Tests adhere to the strict quality and style guidelines set forth in [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Test Identifiers
