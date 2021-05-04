@@ -101,14 +101,13 @@ func itRunsTestsOnOperator() {
 			gomega.Expect(err).To(gomega.BeNil())
 			gomega.Expect(renderedTestCase).ToNot(gomega.BeNil())
 			for _, testCase := range renderedTestCase.TestCase {
-				if !testCase.SkipTest {
-					if testCase.ExpectedType == testcases.Function {
-						for _, val := range testCase.ExpectedStatus {
-							testCase.ExpectedStatusFn(op.Name, testcases.StatusFunctionType(val))
-						}
+				if testCase.SkipTest {
+					continue
+				}
+				if testCase.ExpectedType == testcases.Function {
+					for _, val := range testCase.ExpectedStatus {
+						testCase.ExpectedStatusFn(op.Name, testcases.StatusFunctionType(val))
 					}
-					args := []interface{}{op.Name, op.Namespace}
-					runTestsOnOperator(args, op.Name, op.Namespace, testCase)
 				}
 				name := agrName(op.Name, op.SubscriptionName, testCase.Name)
 				args := []interface{}{name, op.Namespace}
