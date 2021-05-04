@@ -40,6 +40,7 @@ const (
 	deploymentsIdentifierURL        = "http://test-network-function.com/tests/deployments"
 	deploymentsnodesIdentifierURL   = "http://test-network-function.com/tests/deploymentsnodes"
 	deploymentsdrainIdentifierURL   = "http://test-network-function.com/tests/deploymentsdrain"
+	ownersIdentifierURL             = "http://test-network-function.com/tests/owners"
 
 	versionOne = "v1.0.0"
 )
@@ -351,6 +352,18 @@ var Catalog = map[string]TestCatalogEntry{
 			dependencies.EchoBinaryName,
 		},
 	},
+	ownersIdentifierURL: {
+		Identifier:  OwnersIdentifier,
+		Description: "A generic test used to test pod owners",
+		Type:        Normative,
+		IntrusionSettings: IntrusionSettings{
+			ModifiesSystem:           false,
+			ModificationIsPersistent: false,
+		},
+		BinaryDependencies: []string{
+			dependencies.OcBinaryName,
+		},
+	},
 }
 
 // HostnameIdentifier is the Identifier used to represent the generic hostname test case.
@@ -476,5 +489,11 @@ var DeploymentsNodesIdentifier = Identifier{
 // DeploymentsDrainIdentifier is the Identifier used to represent the generic DeploymentsDrain test.
 var DeploymentsDrainIdentifier = Identifier{
 	URL:             deploymentsdrainIdentifierURL,
+	SemanticVersion: versionOne,
+}
+
+// OwnersIdentifier is the Identifier used to represent the generic Owners test.
+var OwnersIdentifier = Identifier{
+	URL:             ownersIdentifierURL,
 	SemanticVersion: versionOne,
 }

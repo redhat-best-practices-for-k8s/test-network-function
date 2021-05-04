@@ -43,6 +43,7 @@ import (
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodenames"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodeport"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodetainted"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/owners"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/ping"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/rolebinding"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/serviceaccount"
@@ -207,6 +208,10 @@ var _ = ginkgo.Describe(testsKey, func() {
 
 		for _, containersUnderTest := range containersUnderTest {
 			testDeployments(containersUnderTest.oc.GetPodNamespace())
+		}
+
+		for _, containerUnderTest := range containersUnderTest {
+			testOwner(containerUnderTest.oc.GetPodNamespace(), containerUnderTest.oc.GetPodName())
 		}
 	}
 })
@@ -624,4 +629,18 @@ func getContext() *interactive.Context {
 	gomega.Expect(err).To(gomega.BeNil())
 	gomega.Expect(context).ToNot(gomega.BeNil())
 	return context
+}
+
+func testOwner(podNamespace, podName string) {
+	ginkgo.When("Testing owners of CNF pod", func() {
+		ginkgo.It("Should contain at least one of kind DaemonSet/ReplicaSet", func() {
+			context := getContext()
+			tester := owners.NewOwners(defaultTimeout, podNamespace, podName)
+			test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
+			gomega.Expect(err).To(gomega.BeNil())
+			testResult, err := test.Run()
+			gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
+			gomega.Expect(err).To(gomega.BeNil())
+		})
+	})
 }
