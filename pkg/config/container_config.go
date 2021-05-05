@@ -100,10 +100,6 @@ type Cnf struct {
 
 	// Tests this is list of test that need to run against the CNF.
 	Tests []string `yaml:"tests" json:"tests"`
-
-	// CertifiedContainerRequestInfos  is list of images (`repo/image-version`)
-	// that are queried for certificate status
-	CertifiedContainerRequestInfos []CertifiedContainerRequestInfo `yaml:"certifiedcontainerrequestinfo,omitempty" json:"certifiedcontainerrequestinfo,omitempty"`
 }
 
 // Instance defines crd instances in the cluster

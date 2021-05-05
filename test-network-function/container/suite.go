@@ -64,25 +64,31 @@ var _ = ginkgo.Describe(testSpecName, func() {
 			gomega.Expect(context).ToNot(gomega.BeNil())
 			gomega.Expect(context.GetExpecter()).ToNot(gomega.BeNil())
 		})
-		// Test for CNF certificates
+		// Query API for certification status of listed containers
+		ginkgo.When("verifying a container is certified", func() {
+			conf := config.GetConfigInstance()
+			cnfsToQuery := conf.CertifiedContainerInfo
+			gomega.Expect(cnfsToQuery).ToNot(gomega.BeNil())
+			certAPIClient = api.NewHTTPClient()
+			for _, cnfRequestInfo := range cnfsToQuery {
+				cnf := cnfRequestInfo
+				ginkgo.It(fmt.Sprintf("tests for Container Certification Status for %s/%s", cnf.Repository, cnf.Name), func() {
+					cnf := cnf // pin
+					gomega.Eventually(func() bool {
+						isCertified := certAPIClient.IsContainerCertified(cnf.Repository, cnf.Name)
+						return isCertified
+					}, eventuallyTimeoutSeconds, interval).Should(gomega.BeTrue())
+				})
+			}
+		})
+		// Run the tests that interact with the containers
 		ginkgo.When("under test", func() {
 			conf := config.GetConfigInstance()
 			cnfsInTest = conf.CNFs
-			gomega.Expect(err).To(gomega.BeNil())
 			gomega.Expect(cnfsInTest).ToNot(gomega.BeNil())
-			certAPIClient = api.NewHTTPClient()
 			for _, cnf := range cnfsInTest {
 				cnf := cnf
 				var containerFact = testcases.ContainerFact{Namespace: cnf.Namespace, Name: cnf.Name, ContainerCount: 0, HasClusterRole: false, Exists: true}
-				for _, certified := range cnf.CertifiedContainerRequestInfos {
-					ginkgo.It(fmt.Sprintf("tests for Container Certification Status for %s/%s", certified.Repository, certified.Name), func() {
-						certified := certified // pin
-						gomega.Eventually(func() bool {
-							isCertified := certAPIClient.IsContainerCertified(certified.Repository, certified.Name)
-							return isCertified
-						}, eventuallyTimeoutSeconds, interval).Should(gomega.BeTrue())
-					})
-				}
 				// Gather facts for containers
 				podFacts, err := testcases.LoadCnfTestCaseSpecs(testcases.GatherFacts)
 				gomega.Expect(err).To(gomega.BeNil())
