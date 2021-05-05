@@ -41,8 +41,6 @@ const (
 	cnfConfig = "cnf_only_config"
 	// cnfName name of the cnf
 	cnfName = "cnf-test-one"
-	// containerImageName name of the container image name
-	containerImageName = "rhel8/nginx-116"
 	// crdNameOne name of the crd
 	crdNameOne = "crd-test-one"
 	// crdNameTwo name of the crd
@@ -63,12 +61,6 @@ const (
 	operatorName = "etcdoperator.v0.9.4"
 	// operatorNameSpace is test namespace for an operator
 	operatorNameSpace = "my-etcd"
-	// operatorPackageName operator package name in the bundle
-	operatorPackageName = "amq-streams"
-	// organization is under which operator is published
-	organization = "redhat-marketplace"
-	// imageRepository for  container images
-	imageRepository = "rhel8"
 	// testNameSpace k8s namespace
 	testNameSpace = "default"
 )
@@ -121,12 +113,6 @@ func loadCnfConfig() {
 			Name:      cnfName,
 			Namespace: testNameSpace,
 			Tests:     []string{testcases.PrivilegedPod},
-			CertifiedContainerRequestInfos: []config.CertifiedContainerRequestInfo{
-				{
-					Name:       containerImageName,
-					Repository: imageRepository,
-				},
-			},
 		},
 	}
 	test.CnfAvailableTestCases = nil
@@ -144,12 +130,6 @@ func loadOperatorConfig() {
 	dep.Name = deploymentName
 	dep.Replicas = deploymentReplicas
 	operator.Tests = []string{testcases.OperatorStatus}
-	operator.CertifiedOperatorRequestInfos = []config.CertifiedOperatorRequestInfo{
-		{
-			Name:         operatorPackageName,
-			Organization: organization,
-		},
-	}
 	test.Operators = append(test.Operators, operator)
 	// CNF only
 	loadCnfConfig()

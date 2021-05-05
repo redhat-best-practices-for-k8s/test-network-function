@@ -40,6 +40,9 @@ type File struct {
 	// CNFs is the list of the CNFs that needs to be tested.
 	CNFs []Cnf `yaml:"cnfs,omitempty" json:"cnfs,omitempty"`
 
+	// CertifiedContainerInfo is the list of container images (`repo/image-version`) and names to be checked for certification status.
+	CertifiedContainerInfo []CertifiedContainerRequestInfo `yaml:"certifiedcontainerinfo,omitempty" json:"certifiedcontainerinfo,omitempty"`
+
 	// CnfAvailableTestCases list the available test cases for  reference.
 	CnfAvailableTestCases []string `yaml:"cnfavailabletestcases,omitempty" json:"cnfavailabletestcases,omitempty"`
 }
