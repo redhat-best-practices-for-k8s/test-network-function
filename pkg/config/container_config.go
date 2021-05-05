@@ -54,10 +54,6 @@ type Operator struct {
 
 	// Subscription name is required field, Name of used subscription.
 	SubscriptionName string `yaml:"subscriptionName" json:"subscriptionName"`
-
-	// CertifiedOperatorRequestInfos  is list of  operator bundle names (`package-name`)
-	// that are queried for certificate status
-	CertifiedOperatorRequestInfos []CertifiedOperatorRequestInfo `yaml:"certifiedoperatorrequestinfo,omitempty" json:"certifiedoperatorrequestinfo,omitempty"`
 }
 
 // Crd struct defines Custom Resource Definition of the operator
