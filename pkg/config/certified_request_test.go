@@ -1,4 +1,4 @@
-// Copyright (C) 2020-2021 Red Hat, Inc.
+// Copyright (C) 2021 Red Hat, Inc.
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -37,24 +37,26 @@ type marshalFunc func(interface{}) ([]byte, error)
 type unmarshalFunc func([]byte, interface{}) error
 
 // test data
-const (
-	// bananas are in the fruit bowl
-	containerImageNameBanana = "banana"
-	imageRepositoryFruitBowl = "fruitbowl"
-
-	// apples are in the fridge
-	containerImageNameApple = "apple"
-	imageRepositoryFridge   = "fridge"
-)
-
 var (
+	// bananas go in the fruit bowl.
 	fruitbowlRequestInfo = config.CertifiedContainerRequestInfo{
-		Name:       containerImageNameBanana,
-		Repository: imageRepositoryFruitBowl,
+		Name:       "banana",
+		Repository: "fruitbowl",
 	}
+	// apples go in the fridge.
 	fridgeRequestInfo = config.CertifiedContainerRequestInfo{
-		Name:       containerImageNameApple,
-		Repository: imageRepositoryFridge,
+		Name:       "apple",
+		Repository: "fridge",
+	}
+
+	jenkinsOperatorRequestInfo = config.CertifiedOperatorRequestInfo{
+		Name:         "jenkins",
+		Organization: "Red Hat",
+	}
+
+	etcdOperatorRequestInfo = config.CertifiedOperatorRequestInfo{
+		Name:         "etcd",
+		Organization: "Core OS",
 	}
 )
 
@@ -63,7 +65,7 @@ var (
 	tempFiles []*os.File
 )
 
-// setupRequestTest writes the result of `populateRequestConfig` to a temporary file for loading in a test
+// setupRequestTest writes the result of `populateRequestConfig` to a temporary file for loading in a test.
 func setupRequestTest(marshalFun marshalFunc) (tempfileName string) {
 	tempfile, err := ioutil.TempFile(".", tmpfileNameBase)
 	if err != nil {
@@ -75,7 +77,7 @@ func setupRequestTest(marshalFun marshalFunc) (tempfileName string) {
 	return tempfile.Name()
 }
 
-// loadRequestConfig reads `tmpPath`, unmarshals it using `unmarshalFun`, and returns the resulting `config.File`
+// loadRequestConfig reads `tmpPath`, unmarshals it using `unmarshalFun`, and returns the resulting `config.File`.
 func loadRequestConfig(tmpPath string, unmarshalFun unmarshalFunc) (conf *config.File) {
 	contents, err := ioutil.ReadFile(tmpPath)
 	if err != nil {
@@ -91,7 +93,7 @@ func loadRequestConfig(tmpPath string, unmarshalFun unmarshalFunc) (conf *config
 	return conf
 }
 
-// saveRequestConfig calls `marshalFun` on `c`, then writes the result to `configPath`
+// saveRequestConfig calls `marshalFun` on `c`, then writes the result to `configPath`.
 func saveRequestConfig(marshalFun marshalFunc, c *config.File, configPath string) {
 	bytes, err := marshalFun(c)
 	if err != nil {
@@ -116,6 +118,10 @@ func buildRequestConfig() *config.File {
 		fruitbowlRequestInfo,
 		fridgeRequestInfo,
 	}
+	conf.CertifiedOperatorInfo = []config.CertifiedOperatorRequestInfo{
+		jenkinsOperatorRequestInfo,
+		etcdOperatorRequestInfo,
+	}
 	return conf
 }
 
@@ -125,6 +131,9 @@ func RequestTest(t *testing.T, marshalFun marshalFunc, unmarshalFun unmarshalFun
 	assert.Equal(t, len(cfg.CertifiedContainerInfo), 2)
 	assert.Equal(t, cfg.CertifiedContainerInfo[0], fruitbowlRequestInfo)
 	assert.Equal(t, cfg.CertifiedContainerInfo[1], fridgeRequestInfo)
+	assert.Equal(t, len(cfg.CertifiedOperatorInfo), 2)
+	assert.Equal(t, cfg.CertifiedOperatorInfo[0], jenkinsOperatorRequestInfo)
+	assert.Equal(t, cfg.CertifiedOperatorInfo[1], etcdOperatorRequestInfo)
 }
 
 func TestRequestInfos(t *testing.T) {

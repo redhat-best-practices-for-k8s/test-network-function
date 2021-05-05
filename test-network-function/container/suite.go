@@ -65,14 +65,14 @@ var _ = ginkgo.Describe(testSpecName, func() {
 			gomega.Expect(context.GetExpecter()).ToNot(gomega.BeNil())
 		})
 		// Query API for certification status of listed containers
-		ginkgo.When("verifying a container is certified", func() {
+		ginkgo.When("getting certification status", func() {
 			conf := config.GetConfigInstance()
 			cnfsToQuery := conf.CertifiedContainerInfo
 			gomega.Expect(cnfsToQuery).ToNot(gomega.BeNil())
 			certAPIClient = api.NewHTTPClient()
 			for _, cnfRequestInfo := range cnfsToQuery {
 				cnf := cnfRequestInfo
-				ginkgo.It(fmt.Sprintf("tests for Container Certification Status for %s/%s", cnf.Repository, cnf.Name), func() {
+				ginkgo.It(fmt.Sprintf("container %s/%s should eventually be verified as certified", cnf.Repository, cnf.Name), func() {
 					cnf := cnf // pin
 					gomega.Eventually(func() bool {
 						isCertified := certAPIClient.IsContainerCertified(cnf.Repository, cnf.Name)

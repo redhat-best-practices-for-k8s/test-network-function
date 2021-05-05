@@ -46,10 +46,9 @@ const (
 )
 
 var (
-	defaultTimeout  = time.Duration(defaultTimeoutSeconds) * time.Second
-	context         *interactive.Context
-	err             error
-	operatorsInTest []config.Operator
+	defaultTimeout = time.Duration(defaultTimeoutSeconds) * time.Second
+	context        *interactive.Context
+	err            error
 )
 
 var _ = ginkgo.Describe(testSpecName, func() {
@@ -71,26 +70,28 @@ var _ = ginkgo.Describe(testSpecName, func() {
 	}
 })
 
-func getConfig() []config.Operator {
+func getConfig() ([]config.CertifiedOperatorRequestInfo, []config.Operator) {
 	conf := config.GetConfigInstance()
-	return conf.Operators
+	operatorsToQuery := conf.CertifiedOperatorInfo
+	operatorsInTest := conf.Operators
+	return operatorsToQuery, operatorsInTest
 }
 
 func itRunsTestsOnOperator() {
-	operatorsInTest = getConfig()
-	gomega.Expect(err).To(gomega.BeNil())
-	gomega.Expect(operatorsInTest).ToNot(gomega.BeNil())
+	operatorsToQuery, operatorsInTest := getConfig()
+	gomega.Expect(operatorsToQuery).ToNot(gomega.BeNil())
 	certAPIClient := api.NewHTTPClient()
+	for _, certified := range operatorsToQuery {
+		ginkgo.It(fmt.Sprintf("should eventually be verified as certified (operator %s/%s)", certified.Organization, certified.Name), func() {
+			certified := certified // pin
+			gomega.Eventually(func() bool {
+				isCertified := certAPIClient.IsOperatorCertified(certified.Organization, certified.Name)
+				return isCertified
+			}, eventuallyTimeoutSeconds, interval).Should(gomega.BeTrue())
+		})
+	}
+	gomega.Expect(operatorsInTest).ToNot(gomega.BeNil())
 	for _, op := range operatorsInTest {
-		for _, certified := range op.CertifiedOperatorRequestInfos {
-			ginkgo.It(fmt.Sprintf("cnf certification test for: %s/%s ", certified.Organization, certified.Name), func() {
-				certified := certified // pin
-				gomega.Eventually(func() bool {
-					isCertified := certAPIClient.IsOperatorCertified(certified.Organization, certified.Name)
-					return isCertified
-				}, eventuallyTimeoutSeconds, interval).Should(gomega.BeTrue())
-			})
-		}
 		// TODO: Gather facts for operator
 		for _, testType := range op.Tests {
 			testFile, err := testcases.LoadConfiguredTestFile(configuredTestFile)
