@@ -239,6 +239,8 @@ Config Section|Purpose
 generic|Describes containers to be tested with the `generic` and `multus` specs, if they are run.
 cnfs|Defines which containers are to be tested by the `container` spec.
 operators|Defines which containers are to be tested by the `operator` spec.
+certifiedcontainerinfo|Describes cnf names and repositories to be checked for certification status.
+certifiedoperatorinfo|Describes operator names and organisations to be checked for certification status.
 
 `testconfigure.yml` defines roles, and which tests are appropriate for which roles. It should not be necessary to modify this.
 
@@ -272,7 +274,12 @@ The `cnfs` and `operators` sections define the roles under which operators and c
 It will run the `"OPERATOR_STATUS"` tests (as defined in `testconfigure.yml`) against an etcd operator, and the
 `"PRIVILEGED_POD"` and `"PRIVILEGED_ROLE"` tests against an nginx container.
 
-A more extensive example of these sections is provided in [example/example_config.yaml](example/example_config.yaml)
+A more extensive example of all these sections is provided in [example/example_config.yaml](example/example_config.yaml)
+
+### certifiedcontainerinfo and certifiedoperatorinfo
+
+The `certifiedcontainerinfo` and `certifiedoperatorinfo` sections contain information about CNFs and Operators that are
+to be checked for certification status on Red Hat catalogs.
 
 ## Test Output
 

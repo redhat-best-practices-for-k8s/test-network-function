@@ -29,19 +29,18 @@ operators:
       - CSV_INSTALLED
       - SUBSCRIPTION_INSTALLED
       - CSV_SCC
-    certifiedoperatorrequestinfo:
-      - name: "etcd-operator"
-        organization: "redhat-marketplace"
 cnfs:
   - name: cnf_only
     namespace: test
     status: ""
     tests:
       - PRIVILEGED_POD
-    certifiedcontainerrequestinfo:
-      - name: "ubuntu"
-        repository: "rhel8"
-        certificatetype: "CONTAINER"
+certifiedcontainerrequestinfo:
+  - name: nginx-116
+    repository: rhel8
+certifiedoperatorrequestinfo:
+  - name: etcd-operator
+    organization: redhat-marketplace
 cnfavailabletestcases:
   - PRIVILEGED_POD
   - CLUSTER_ROLE
