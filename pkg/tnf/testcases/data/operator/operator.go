@@ -42,7 +42,8 @@ var OperatorJSON = string(`{
     {
       "name": "CSV_SCC",
       "skiptest": true,
-      "command": "oc get csv %s -n %s -o json | jq -r 'if .spec.install.spec.clusterPermissions == null then null else . end | if . == null then \"EMPTY\" else .spec.install.spec.clusterPermissions[].rules[].resourceNames end'",
+      "command": "oc get csv %s -n %s -o json | jq -r 'if .spec.install.spec.clusterPermissions == null then null else . end ` +
+	`| if . == null then \"EMPTY\" else .spec.install.spec.clusterPermissions[].rules[].resourceNames end | if length == 0 then \"EMPTY\" else . end'",
       "action": "allow",
       "resulttype": "string",
       "expectedstatus": [

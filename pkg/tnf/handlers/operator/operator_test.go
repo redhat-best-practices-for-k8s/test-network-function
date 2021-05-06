@@ -37,7 +37,7 @@ const (
 	subName             = "SUBSCRIPTION_INSTALLED"
 	subCommand          = "oc get subscription %s -n %s -ojson | jq -r '.spec.name'"
 	sccName             = "CSV_SCC"
-	sccCommand          = "oc get csv %s -n %s -o json | jq -r 'if .spec.install.spec.clusterPermissions == null then null else . end | if . == null then \"EMPTY\" else .spec.install.spec.clusterPermissions[].rules[].resourceNames end'"
+	sccCommand          = "oc get csv %s -n %s -o json | jq -r 'if .spec.install.spec.clusterPermissions == null then null else . end | if . == null then \"EMPTY\" else .spec.install.spec.clusterPermissions[].rules[].resourceNames end | if length == 0 then \"EMPTY\" else . end'"
 )
 
 var (
