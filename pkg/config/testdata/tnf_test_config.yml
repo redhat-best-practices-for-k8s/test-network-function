@@ -29,15 +29,15 @@ operators:
     autogenerate: false
     tests:
       - OPERATOR_STATUS
-    certifiedoperatorrequestinfo:
-      - name: "etcd-operator"
-        organization: "redhat-marketplace"
 cnfs:
   - name: ubuntu
     namespace: default
     tests:
       - PRIVILEGED_POD
       - PRIVILEGED_ROLE
-    certifiedcontainerrequestinfo:
-      - name: nginx-116  # working example
-        repository: rhel8
+certifiedcontainerrequestinfo:
+  - name: nginx-116  # working example
+    repository: rhel8
+certifiedoperatorrequestinfo:
+  - name: etcd-operator
+    organization: redhat-marketplace
