@@ -28,6 +28,7 @@ generic:
 operators:
   - name: etcdoperator.v0.9.4
     namespace: default
+    subscriptionName: etcd
     autogenerate: false
     tests:
       - OPERATOR_STATUS
