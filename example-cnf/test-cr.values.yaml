@@ -1,0 +1,6 @@
+CR_NAME: trex-app-cnf-cert
+NAMESPACE: example-cnf
+DURATION: 10
+PKT:
+  RATE: 10kbps
+  SIZE: 64

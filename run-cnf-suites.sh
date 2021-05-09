@@ -42,6 +42,7 @@ do
 	case "$var" in
 		diagnostic) FOCUS="diagnostic|$FOCUS";;
 		generic) FOCUS="generic|$FOCUS";;
+    example-cnf) FOCUS="example-cnf|$FOCUS";;
 		multus) FOCUS="multus|$FOCUS";;
 		operator) FOCUS="operator|$FOCUS";;
 		container) FOCUS="container|$FOCUS";;

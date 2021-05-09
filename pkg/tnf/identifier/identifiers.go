@@ -41,7 +41,7 @@ const (
 	deploymentsnodesIdentifierURL   = "http://test-network-function.com/tests/deploymentsnodes"
 	deploymentsdrainIdentifierURL   = "http://test-network-function.com/tests/deploymentsdrain"
 
-	versionOne = "v1.0.0"
+	VersionOne = "v1.0.0"
 )
 
 const (
@@ -356,125 +356,125 @@ var Catalog = map[string]TestCatalogEntry{
 // HostnameIdentifier is the Identifier used to represent the generic hostname test case.
 var HostnameIdentifier = Identifier{
 	URL:             hostnameIdentifierURL,
-	SemanticVersion: versionOne,
+	SemanticVersion: VersionOne,
 }
 
 // IPAddrIdentifier is the Identifier used to represent the generic IP Addr test case.
 var IPAddrIdentifier = Identifier{
 	URL:             ipAddrIdentifierURL,
-	SemanticVersion: versionOne,
+	SemanticVersion: VersionOne,
 }
 
 // NodesIdentifier is the Identifier used to represent the nodes test case.
 var NodesIdentifier = Identifier{
 	URL:             nodesIdentifierURL,
-	SemanticVersion: versionOne,
+	SemanticVersion: VersionOne,
 }
 
 // OperatorIdentifier is the Identifier used to represent the operator-specific test suite.
 var OperatorIdentifier = Identifier{
 	URL:             operatorIdentifierURL,
-	SemanticVersion: versionOne,
+	SemanticVersion: VersionOne,
 }
 
 // PingIdentifier is the Identifier used to represent the generic Ping test.
 var PingIdentifier = Identifier{
 	URL:             pingIdentifierURL,
-	SemanticVersion: versionOne,
+	SemanticVersion: VersionOne,
 }
 
 // PodIdentifier is the Identifier used to represent the container-specific test suite.
 var PodIdentifier = Identifier{
 	URL:             podIdentifierURL,
-	SemanticVersion: versionOne,
+	SemanticVersion: VersionOne,
 }
 
 // VersionIdentifier is the Identifier used to represent the generic container base image test.
 var VersionIdentifier = Identifier{
 	URL:             versionIdentifierURL,
-	SemanticVersion: versionOne,
+	SemanticVersion: VersionOne,
 }
 
 // CnfFsDiffIdentifier is the Identifier used to represent the generic cnf_fs_diff test.
 var CnfFsDiffIdentifier = Identifier{
 	URL:             cnfFsDiffURL,
-	SemanticVersion: versionOne,
+	SemanticVersion: VersionOne,
 }
 
 // ContainerIDIdentifier is the Identifier used to represent the generic cnf_fs_diff test.
 var ContainerIDIdentifier = Identifier{
 	URL:             containerIDURL,
-	SemanticVersion: versionOne,
+	SemanticVersion: VersionOne,
 }
 
 // ServiceAccountIdentifier is the Identifier used to represent the generic serviceAccount test.
 var ServiceAccountIdentifier = Identifier{
 	URL:             serviceAccountIdentifierURL,
-	SemanticVersion: versionOne,
+	SemanticVersion: VersionOne,
 }
 
 // RoleBindingIdentifier is the Identifier used to represent the generic roleBinding test.
 var RoleBindingIdentifier = Identifier{
 	URL:             roleBindingIdentifierURL,
-	SemanticVersion: versionOne,
+	SemanticVersion: VersionOne,
 }
 
 // ClusterRoleBindingIdentifier is the Identifier used to represent the generic clusterRoleBinding test.
 var ClusterRoleBindingIdentifier = Identifier{
 	URL:             clusterRoleBindingIdentifierURL,
-	SemanticVersion: versionOne,
+	SemanticVersion: VersionOne,
 }
 
 // NodePortIdentifier is the Identifier used to represent the generic NodePort test.
 var NodePortIdentifier = Identifier{
 	URL:             nodePortIdentifierURL,
-	SemanticVersion: versionOne,
+	SemanticVersion: VersionOne,
 }
 
 // NodeNamesIdentifier is the Identifier used to represent the generic NodeNames test.
 var NodeNamesIdentifier = Identifier{
 	URL:             nodeNamesIdentifierURL,
-	SemanticVersion: versionOne,
+	SemanticVersion: VersionOne,
 }
 
 // NodeTaintedIdentifier is the Identifier used to represent the generic NodeTainted test.
 var NodeTaintedIdentifier = Identifier{
 	URL:             nodeTaintedIdentifierURL,
-	SemanticVersion: versionOne,
+	SemanticVersion: VersionOne,
 }
 
 // GracePeriodIdentifier is the Identifier used to represent the generic GracePeriod test.
 var GracePeriodIdentifier = Identifier{
 	URL:             gracePeriodIdentifierURL,
-	SemanticVersion: versionOne,
+	SemanticVersion: VersionOne,
 }
 
 // HugepagesIdentifier is the Identifier used to represent the generic Hugepages test.
 var HugepagesIdentifier = Identifier{
 	URL:             hugepagesIdentifierURL,
-	SemanticVersion: versionOne,
+	SemanticVersion: VersionOne,
 }
 
 // NodeHugepagesIdentifier is the Identifier used to represent the generic NodeHugepages test.
 var NodeHugepagesIdentifier = Identifier{
 	URL:             nodehugepagesIdentifierURL,
-	SemanticVersion: versionOne,
+	SemanticVersion: VersionOne,
 }
 
 // DeploymentsIdentifier is the Identifier used to represent the generic Deployments test.
 var DeploymentsIdentifier = Identifier{
 	URL:             deploymentsIdentifierURL,
-	SemanticVersion: versionOne,
+	SemanticVersion: VersionOne,
 }
 
 // DeploymentsNodesIdentifier is the Identifier used to represent the generic DeploymentsNodes test.
 var DeploymentsNodesIdentifier = Identifier{
 	URL:             deploymentsnodesIdentifierURL,
-	SemanticVersion: versionOne,
+	SemanticVersion: VersionOne,
 }
 
 // DeploymentsDrainIdentifier is the Identifier used to represent the generic DeploymentsDrain test.
 var DeploymentsDrainIdentifier = Identifier{
 	URL:             deploymentsdrainIdentifierURL,
-	SemanticVersion: versionOne,
+	SemanticVersion: VersionOne,
 }
