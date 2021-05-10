@@ -19,7 +19,7 @@ RUN yum install -y golang-${GOLANG_VERSION} jq make git
 
 # Build oc from source
 ADD ${OC_SRC_URL} ${TEMP_DIR}
-RUN mkdir ${OC_SRC_DIR} && \ 
+RUN mkdir ${OC_SRC_DIR} && \
 	tar -xf ${TEMP_DIR}/${OC_SRC_ARCHIVE} -C ${OC_SRC_DIR} --strip-components=1 && \
 	cd ${OC_SRC_DIR} && \
 	make oc && \
@@ -33,8 +33,13 @@ ENV PATH="/root/go/bin:${PATH}"
 
 # Git identifier to checkout
 ARG TNF_VERSION
-# Pull the required version of TNF
-RUN git clone --depth=1 --branch=${TNF_VERSION} https://github.com/test-network-function/test-network-function ${TNF_SRC_DIR}
+ARG TNF_SRC_URL=https://github.com/test-network-function/test-network-function
+ARG GIT_CHECKOUT_TARGET=$TNF_VERSION
+
+# Clone the TNF source repository and checkout the target branch/tag/commit
+RUN git clone --no-single-branch --depth=1 ${TNF_SRC_URL} ${TNF_SRC_DIR}
+RUN git -C ${TNF_SRC_DIR} fetch origin ${GIT_CHECKOUT_TARGET}
+RUN git -C ${TNF_SRC_DIR} checkout ${GIT_CHECKOUT_TARGET}
 
 # Build TNF binary
 WORKDIR ${TNF_SRC_DIR}
