@@ -36,11 +36,18 @@ The autodiscovery first looks for paths in the `$KUBECONFIG` environment variabl
 
 ### Building
 
-You can build an image locally by using the command below. Use the value of `TNF_VERSION` to set a branch or tag that will be
-installed into the image.
+You can build an image locally by using the command below. Use the value of `TNF_VERSION` to set a branch, a tag, or a hash of a commit that will be installed into the image.
 
 ```shell-script
 docker build -t test-network-function:v1.0.5 --build-arg TNF_VERSION=v1.0.5 .
+```
+
+To build an image that installs TNF from an unofficial source (e.g. a fork of the TNF repository), use the `TNF_SRC_URL` build argument to override the URL to a source repository.
+
+```shell-script
+docker build -t test-network-function:v1.0.5 \
+  --build-arg TNF_VERSION=v1.0.5 \
+  --build-arg TNF_SRC_URL=https://github.com/test-network-function/test-network-function .
 ```
 
 To make `run-container.sh` use the newly built image, specify the custom TNF image using the `-i` parameter.
