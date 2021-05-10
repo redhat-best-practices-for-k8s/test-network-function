@@ -29,6 +29,7 @@ import (
 	"github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
 	"github.com/test-network-function/test-network-function-claim/pkg/claim"
+	_ "github.com/test-network-function/test-network-function/example-cnf"
 	"github.com/test-network-function/test-network-function/pkg/config"
 	"github.com/test-network-function/test-network-function/pkg/junit"
 	_ "github.com/test-network-function/test-network-function/test-network-function/container"
