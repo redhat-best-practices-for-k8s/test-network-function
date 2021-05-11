@@ -42,6 +42,7 @@ import (
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodehugepages"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodenames"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodeport"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodeselector"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodetainted"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/owners"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/ping"
@@ -164,6 +165,10 @@ var _ = ginkgo.Describe(testsKey, func() {
 		log.Info(testOrchestrator)
 		log.Info(containersUnderTest)
 
+		for _, containerUnderTest := range containersUnderTest {
+			testNodeSelector(getContext(), containerUnderTest.oc.GetPodName(), containerUnderTest.oc.GetPodNamespace())
+		}
+
 		ginkgo.Context("Container does not have additional packages installed", func() {
 			// use this boolean to turn off tests that require OS packages
 			if !isMinikube() {
@@ -183,25 +188,25 @@ var _ = ginkgo.Describe(testsKey, func() {
 			}
 		})
 
-		for _, containersUnderTest := range containersUnderTest {
-			testIsRedHatRelease(containersUnderTest.oc)
+		for _, containerUnderTest := range containersUnderTest {
+			testIsRedHatRelease(containerUnderTest.oc)
 		}
 		testIsRedHatRelease(testOrchestrator.oc)
 
-		for _, containersUnderTest := range containersUnderTest {
-			testNamespace(containersUnderTest.oc)
+		for _, containerUnderTest := range containersUnderTest {
+			testNamespace(containerUnderTest.oc)
 		}
 
-		for _, containersUnderTest := range containersUnderTest {
-			testRoles(containersUnderTest.oc.GetPodName(), containersUnderTest.oc.GetPodNamespace())
+		for _, containerUnderTest := range containersUnderTest {
+			testRoles(containerUnderTest.oc.GetPodName(), containerUnderTest.oc.GetPodNamespace())
 		}
 
-		for _, containersUnderTest := range containersUnderTest {
-			testNodePort(containersUnderTest.oc.GetPodNamespace())
+		for _, containerUnderTest := range containersUnderTest {
+			testNodePort(containerUnderTest.oc.GetPodNamespace())
 		}
 
-		for _, containersUnderTest := range containersUnderTest {
-			testGracePeriod(getContext(), containersUnderTest.oc.GetPodName(), containersUnderTest.oc.GetPodNamespace())
+		for _, containerUnderTest := range containersUnderTest {
+			testGracePeriod(getContext(), containerUnderTest.oc.GetPodName(), containerUnderTest.oc.GetPodNamespace())
 		}
 
 		testTainted()
@@ -355,6 +360,21 @@ func testGracePeriod(context *interactive.Context, podName, podNamespace string)
 		gracePeriod := tester.GetGracePeriod()
 		if gracePeriod == defaultTerminationGracePeriod {
 			log.Warn(fmt.Sprintf("%s %s has terminationGracePeriod set to 30, you might want to change it", podName, podNamespace))
+		}
+	})
+}
+
+// func testServiceAccount(podName, podNamespace string, serviceAccountName *string) {
+func testNodeSelector(context *interactive.Context, podName, podNamespace string) {
+	ginkgo.It(fmt.Sprintf("Testing pod nodeSelector %s/%s", podNamespace, podName), func() {
+		tester := nodeselector.NewNodeSelector(defaultTimeout, podName, podNamespace)
+		test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
+		gomega.Expect(err).To(gomega.BeNil())
+		testResult, err := test.Run()
+
+		gomega.Expect(err).To(gomega.BeNil())
+		if testResult != tnf.SUCCESS {
+			log.Warn(fmt.Sprintf("The pod specifies nodeSelector/nodeAffinity field, you might want to change it, %s %s", podName, podNamespace))
 		}
 	})
 }
