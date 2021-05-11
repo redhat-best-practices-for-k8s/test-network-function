@@ -14,7 +14,7 @@
 // with this program; if not, write to the Free Software Foundation, Inc.,
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-package config_test
+package configsections_test
 
 import (
 	"encoding/json"
@@ -25,6 +25,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/test-network-function/test-network-function/pkg/config"
+	"github.com/test-network-function/test-network-function/pkg/config/configsections"
 	"github.com/test-network-function/test-network-function/pkg/tnf/testcases"
 	"gopkg.in/yaml.v2"
 )
@@ -108,7 +109,7 @@ func newConfig(configPath string) (*config.File, error) {
 
 func loadCnfConfig() {
 	// CNF only
-	test.CNFs = []config.Cnf{
+	test.CNFs = []configsections.Cnf{
 		{
 			Name:      cnfName,
 			Namespace: testNameSpace,
@@ -122,11 +123,11 @@ func loadCnfConfig() {
 }
 
 func loadOperatorConfig() {
-	operator := config.Operator{}
+	operator := configsections.Operator{}
 	operator.Name = operatorName
 	operator.Namespace = operatorNameSpace
 	setCrdsAndInstances()
-	dep := config.Deployment{}
+	dep := configsections.Deployment{}
 	dep.Name = deploymentName
 	dep.Replicas = deploymentReplicas
 	operator.Tests = []string{testcases.OperatorStatus}
@@ -136,16 +137,16 @@ func loadOperatorConfig() {
 }
 
 func setCrdsAndInstances() {
-	crd := config.Crd{}
+	crd := configsections.Crd{}
 	crd.Name = crdNameOne
 	crd.Namespace = testNameSpace
-	instance := config.Instance{}
+	instance := configsections.Instance{}
 	instance.Name = instanceNameOne
 	crd.Instances = append(crd.Instances, instance)
-	crd2 := config.Crd{}
+	crd2 := configsections.Crd{}
 	crd2.Name = crdNameTwo
 	crd2.Namespace = testNameSpace
-	instance2 := config.Instance{}
+	instance2 := configsections.Instance{}
 	instance2.Name = instanceNameTwo
 	crd2.Instances = append(crd2.Instances, instance2)
 }

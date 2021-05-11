@@ -27,6 +27,7 @@ import (
 	"github.com/onsi/gomega"
 	"github.com/test-network-function/test-network-function/internal/api"
 	"github.com/test-network-function/test-network-function/pkg/config"
+	"github.com/test-network-function/test-network-function/pkg/config/configsections"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/container"
 	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
@@ -49,7 +50,7 @@ var (
 	defaultTimeout = time.Duration(defaultTimeoutSeconds) * time.Second
 	context        *interactive.Context
 	err            error
-	cnfsInTest     []config.Cnf
+	cnfsInTest     []configsections.Cnf
 	certAPIClient  api.CertAPIClient
 )
 

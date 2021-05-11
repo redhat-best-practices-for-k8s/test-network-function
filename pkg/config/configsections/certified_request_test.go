@@ -14,7 +14,7 @@
 // with this program; if not, write to the Free Software Foundation, Inc.,
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-package config_test
+package configsections_test
 
 import (
 	"encoding/json"
@@ -25,6 +25,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/test-network-function/test-network-function/pkg/config"
+	"github.com/test-network-function/test-network-function/pkg/config/configsections"
 	"gopkg.in/yaml.v2"
 )
 
@@ -39,22 +40,22 @@ type unmarshalFunc func([]byte, interface{}) error
 // test data
 var (
 	// bananas go in the fruit bowl.
-	fruitbowlRequestInfo = config.CertifiedContainerRequestInfo{
+	fruitbowlRequestInfo = configsections.CertifiedContainerRequestInfo{
 		Name:       "banana",
 		Repository: "fruitbowl",
 	}
 	// apples go in the fridge.
-	fridgeRequestInfo = config.CertifiedContainerRequestInfo{
+	fridgeRequestInfo = configsections.CertifiedContainerRequestInfo{
 		Name:       "apple",
 		Repository: "fridge",
 	}
 
-	jenkinsOperatorRequestInfo = config.CertifiedOperatorRequestInfo{
+	jenkinsOperatorRequestInfo = configsections.CertifiedOperatorRequestInfo{
 		Name:         "jenkins",
 		Organization: "Red Hat",
 	}
 
-	etcdOperatorRequestInfo = config.CertifiedOperatorRequestInfo{
+	etcdOperatorRequestInfo = configsections.CertifiedOperatorRequestInfo{
 		Name:         "etcd",
 		Organization: "Core OS",
 	}
@@ -114,11 +115,11 @@ func cleanupTempfiles() {
 
 func buildRequestConfig() *config.File {
 	conf := &config.File{}
-	conf.CertifiedContainerInfo = []config.CertifiedContainerRequestInfo{
+	conf.CertifiedContainerInfo = []configsections.CertifiedContainerRequestInfo{
 		fruitbowlRequestInfo,
 		fridgeRequestInfo,
 	}
-	conf.CertifiedOperatorInfo = []config.CertifiedOperatorRequestInfo{
+	conf.CertifiedOperatorInfo = []configsections.CertifiedOperatorRequestInfo{
 		jenkinsOperatorRequestInfo,
 		etcdOperatorRequestInfo,
 	}

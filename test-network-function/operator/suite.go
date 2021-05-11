@@ -26,6 +26,7 @@ import (
 	"github.com/onsi/gomega"
 	"github.com/test-network-function/test-network-function/internal/api"
 	"github.com/test-network-function/test-network-function/pkg/config"
+	"github.com/test-network-function/test-network-function/pkg/config/configsections"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/operator"
 	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
@@ -70,7 +71,7 @@ var _ = ginkgo.Describe(testSpecName, func() {
 	}
 })
 
-func getConfig() ([]config.CertifiedOperatorRequestInfo, []config.Operator) {
+func getConfig() ([]configsections.CertifiedOperatorRequestInfo, []configsections.Operator) {
 	conf := config.GetConfigInstance()
 	operatorsToQuery := conf.CertifiedOperatorInfo
 	operatorsInTest := conf.Operators
