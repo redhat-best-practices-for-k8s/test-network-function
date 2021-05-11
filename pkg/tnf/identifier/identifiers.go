@@ -41,6 +41,7 @@ const (
 	deploymentsnodesIdentifierURL   = "http://test-network-function.com/tests/deploymentsnodes"
 	deploymentsdrainIdentifierURL   = "http://test-network-function.com/tests/deploymentsdrain"
 	ownersIdentifierURL             = "http://test-network-function.com/tests/owners"
+	nodeselectorIdentifierURL       = "http://test-network-function.com/tests/nodeselector"
 
 	versionOne = "v1.0.0"
 )
@@ -339,6 +340,19 @@ var Catalog = map[string]TestCatalogEntry{
 			dependencies.GrepBinaryName,
 		},
 	},
+	nodeselectorIdentifierURL: {
+		Identifier:  NodeSelectorIdentifier,
+		Description: "A generic test used to verify a pod's nodeSelector and nodeAffinity configuration",
+		Type:        Normative,
+		IntrusionSettings: IntrusionSettings{
+			ModifiesSystem:           false,
+			ModificationIsPersistent: false,
+		},
+		BinaryDependencies: []string{
+			dependencies.OcBinaryName,
+			dependencies.GrepBinaryName,
+		},
+	},
 	deploymentsdrainIdentifierURL: {
 		Identifier:  DeploymentsNodesIdentifier,
 		Description: "A generic test used to drain node from its deployment pods",
@@ -495,5 +509,11 @@ var DeploymentsDrainIdentifier = Identifier{
 // OwnersIdentifier is the Identifier used to represent the generic Owners test.
 var OwnersIdentifier = Identifier{
 	URL:             ownersIdentifierURL,
+	SemanticVersion: versionOne,
+}
+
+// NodeSelectorIdentifier is the Identifier used to represent the generic NodeSelector test.
+var NodeSelectorIdentifier = Identifier{
+	URL:             nodehugepagesIdentifierURL,
 	SemanticVersion: versionOne,
 }
