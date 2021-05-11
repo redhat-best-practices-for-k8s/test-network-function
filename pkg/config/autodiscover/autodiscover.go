@@ -1,4 +1,4 @@
-// Copyright (C) 2020 Red Hat, Inc.
+// Copyright (C) 2021 Red Hat, Inc.
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -25,8 +25,9 @@ import (
 )
 
 const (
-	labelNamespace = "test-network-function.com"
-	labelTemplate  = "%s/%s"
+	labelNamespace   = "test-network-function.com"
+	labelTemplate    = "%s/%s"
+	resourceTypePods = "pods"
 
 	// AnyLabelValue is the value that will allow any value for a label when building the label query.
 	AnyLabelValue = ""
@@ -51,7 +52,7 @@ func buildLabelQuery(labelName, labelValue string) string {
 func makeGetCommand(resourceType, labelQuery string) *exec.Cmd {
 	// TODO: shell expecter
 	cmd := exec.Command("oc", "get", resourceType, "-A", "-o", "json", "-l", labelQuery)
-	log.Info("Issuing get command ", cmd.Args)
+	log.Debug("Issuing get command ", cmd.Args)
 
 	return cmd
 }
@@ -59,7 +60,7 @@ func makeGetCommand(resourceType, labelQuery string) *exec.Cmd {
 // GetPodsByLabel will return all pods with a given label value. If `labelValue` is an empty string, all pods with that
 // label will be returned, regardless of the labels value.
 func GetPodsByLabel(labelName, labelValue string) (*PodList, error) {
-	cmd := makeGetCommand("pods", buildLabelQuery(labelName, labelValue))
+	cmd := makeGetCommand(resourceTypePods, buildLabelQuery(labelName, labelValue))
 
 	out, err := cmd.Output()
 	if err != nil {

@@ -238,6 +238,14 @@ configuration will only happen if the environment variable `TNF_ENABLE_CONFIG_AU
 TNF_ENABLE_CONFIG_AUTODISCOVER=true
 ```
 
+Pods can be labelled at creation by including the label in their definition, or at any time using the `oc label`
+command. Annotations are almost identical:
+
+```shell
+oc label pod test -n tnf test-network-function.com/generic=target
+oc annotate pod test -n tnf test-network-function.com/skip_connectivity_tests=true
+```
+
 **NOTE** Currently when this environment variable is set the `generic` section of the config file will be ENTIRELY
 replaced with the autodiscovered configuration, to avoid potentially non-obvious errors.
 
@@ -250,9 +258,9 @@ single pod with a single container. This is equivalent to having an entry listed
 one such pod. This is equivalent to having a pod listed under `containersUnderTest` in the config file.
 * If an FS Diff Master Pod is present it should be identified with,  `test-network-function.com/generic=fs_diff_master`. This
 is equivalent to listing the pod under `fsDiffMasterContainer` in the config file.
-* If a pod is not suitable for netwrk connectivity tests because it lacks the `ping` and other binaries, it should be
-given the label `test-network-function.com/skip_connectivity_tests` to exclude it from those tests. Equivalent to
-`excludeContainersFromConnectivityTests` in the config file.
+* If a pod is not suitable for network connectivity tests because it lacks binaries (e.g. `ping`), it should be
+given the label `test-network-function.com/skip_connectivity_tests` to exclude it from those tests. The label value is
+not important, only its presence. Equivalent to `excludeContainersFromConnectivityTests` in the config file.
 
 The autodiscovery mechanism will attempt to identify the default network device and all the IP addresses of the pods it
 needs, though that information can be explicitly set using annotations if needed. The following rules apply:
@@ -262,15 +270,17 @@ needs, though that information can be explicitly set using annotations if needed
 * The annotation `test-network-function.com/multusips` is the highest priority, and must contain a JSON-encoded list of
 IP addresses to be tested for the pod. This must be explicitly set.
 * If the above is not present, the `k8s.v1.cni.cncf.io/networks-status` annotation is checked and all IPs from it are
-used. This annotation is automatically managed in OpenShift.
+used. This annotation is automatically managed in OpenShift but may not be present in K8s.
 * If neither of the above is present, then only known IPs associated with the pod are used (the pod `.status.ips` field).
 
 ### Network Interfaces
 
 * The annotation `test-network-function.com/defaultnetworkinterface` is the highest priority, and must contain a
-JSON-encoded string of the primary network interface for the pod. This must be explicitly set if needed.
+JSON-encoded string of the primary network interface for the pod. This must be explicitly set if needed. Examples can
+be seen in [cnf-certification-test-partner](https://github.com/test-network-function/cnf-certification-test-partner/local-test-infra/local-pod-under-test/local-partner-pod.yaml)
 * If the above is not present, the `k8s.v1.cni.cncf.io/networks-status` annotation is checked and the `"interface"` from
-the first entry found with `"default"=true` is used. This annotation is automatically managed in OpenShift.
+the first entry found with `"default"=true` is used. This annotation is automatically managed in OpenShift but may not
+be present in K8s.
 
 ## Test Output
 
