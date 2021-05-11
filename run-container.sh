@@ -27,20 +27,24 @@ TNF_OFFICIAL_IMAGE="${TNF_OFFICIAL_ORG}${TNF_IMAGE_NAME}:${TNF_IMAGE_TAG}"
 
 CONTAINER_TNF_DIR=/usr/tnf
 CONTAINER_TNF_KUBECONFIG_FILE_BASE_PATH="$CONTAINER_TNF_DIR/kubeconfig/config"
+CONTAINER_DEFAULT_NETWORK_MODE=bridge
 
 usage() {
 	read -d '' usage_prompt <<- EOF
-	Usage: $0 -t TNFCONFIG -o OUTPUT_LOC [ -k KUBECONFIG ] [-i IMAGE ] SUITE [ ... SUITE ]
+	Usage: $0 -t TNFCONFIG -o OUTPUT_LOC [-i IMAGE] [-k KUBECONFIG] [-n NETWORK_MODE] SUITE [... SUITE]
 
 	Configure and run the containerised TNF test offering.
 
-	Options
+	Options (required)
 	  -t: set the directory containing TNF config files set up for the test.
 	  -o: set the output location for the test results.
+
+	Options (optional)
+	  -i: set the TNF container image. Supports local images, as well as images from external registries.
 	  -k: set path to one or more local kubeconfigs, separated by a colon.
 	      The -k option takes precedence, overwriting the results of local kubeconfig autodiscovery.
 	      See the 'Kubeconfig lookup order' section below for more details.
-	  -i: set the TNF container image. Supports local images, as well as images from external registries.
+	  -n: set the network mode of the container.
 
 	Kubeconfig lookup order
 	  1. If -k is specified, use the paths provided with the -k option.
@@ -185,6 +189,12 @@ while [[ $1 == -* ]]; do
             echo "-i requires an argument" 1>&2
             exit 1
           fi ;;
+      -n) if (($# > 1)); then
+            CONTAINER_NETWORK_MODE=$2; shift 2
+          else
+            echo "-n requires an argument" 1>&2
+            exit 1
+          fi ;;
       --) shift; break;;
       -*) echo "invalid option: $1" 1>&2; usage_error;;
     esac
@@ -210,6 +220,7 @@ for local_path_index in "${!local_kubeconfig_paths[@]}"; do
 done
 
 TNF_IMAGE="${TNF_IMAGE:-$TNF_OFFICIAL_IMAGE}"
+CONTAINER_NETWORK_MODE="${CONTAINER_NETWORK_MODE:-$CONTAINER_DEFAULT_NETWORK_MODE}"
 
 display_config_summary
 
@@ -221,6 +232,7 @@ container_tnf_kubeconfig_volumes_cmd_args=$(printf -- "-v %s " "${container_tnf_
 
 set -x
 docker run --rm \
+	--network $CONTAINER_NETWORK_MODE \
 	${container_tnf_kubeconfig_volumes_cmd_args[@]} \
 	-v $LOCAL_TNF_CONFIG:$CONTAINER_TNF_DIR/config \
 	-v $OUTPUT_LOC:$CONTAINER_TNF_DIR/claim \
