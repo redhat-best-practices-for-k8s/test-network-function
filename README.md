@@ -93,6 +93,13 @@ The 'General' tests are designed to test any commodity CNF running on OpenShift,
 'CNF-specific' tests are designed to test some unique aspects of the CNF under test are behaving correctly.  This could
 include specifications such as issuing a `GET` request to a web server, or passing traffic through an IPSEC tunnel.
 
+## Turn off openshift required tests when CNF run on kubernetes only environment
+when test on CNFs that run on k8s only envirnment, execute shell command below before compile tool and run test shell script.
+
+```shell-command
+export TNF_MINIKUBE_ONLY=true
+```
+
 ### General
 
 The general-purpose category covers most tests.  It consists of multiple suites that can be run in any combination as is
