@@ -160,7 +160,7 @@ perform_kubeconfig_autodiscovery
 
 # Parge args beginning with -
 while [[ $1 == -* ]]; do
-	echo $1 $2
+	echo "$1 $2"
     case "$1" in
       -h|--help|-\?) usage; exit 0;;
       -k) if (($# > 1)); then
