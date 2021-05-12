@@ -603,3 +603,35 @@ The same result could be achieved using a Go Template:
 ```shell-script
 oc get pod %s -n %s -o go-template='{{len .spec.containers}}{{"\n"}}'
 ```
+
+## Adding information to claim file
+
+The result of each test execution is included in the claim file.
+Sometimes it is convenient to add informational messages regarding the test execution.
+For this purpose we have an additional section in the claim file (see `suite.extraInfoKey` in suite_test.go).
+In order to add informational messages to your test use the function `tnf.CreateTestExtraInfoWriter`.
+This function adds an entry for your test in the claim file.
+The return value is a function.
+The returned function can be called to add a message to the test entry.
+Each added message will be written to claim file even if test failed or error occurred in the middle of the test.
+
+Example usage:
+```go
+ginkgo.It("Should do what I tell it to do", func(){
+  // do some work
+  // create test info writer
+  myWriter := tnf.CreateTestExtraInfoWriter()
+  // do some more work
+  // add info
+  myWriter("important info part 1")
+  // more work
+  // more info
+  myWriter("important info part 2")
+  // error
+  if err != nil {
+    return
+  }
+  // last info
+  myWriter("important info part last")
+})
+```

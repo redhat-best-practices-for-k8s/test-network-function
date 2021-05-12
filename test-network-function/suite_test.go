@@ -31,6 +31,7 @@ import (
 	"github.com/test-network-function/test-network-function-claim/pkg/claim"
 	"github.com/test-network-function/test-network-function/pkg/config"
 	"github.com/test-network-function/test-network-function/pkg/junit"
+	"github.com/test-network-function/test-network-function/pkg/tnf"
 	_ "github.com/test-network-function/test-network-function/test-network-function/container"
 	"github.com/test-network-function/test-network-function/test-network-function/diagnostic"
 	_ "github.com/test-network-function/test-network-function/test-network-function/generic"
@@ -50,6 +51,7 @@ const (
 	reportFlagKey                 = "report"
 	// dateTimeFormatDirective is the directive used to format date/time according to ISO 8601.
 	dateTimeFormatDirective = "2006-01-02T15:04:05+00:00"
+	extraInfoKey            = "testsExtraInfo"
 )
 
 var (
@@ -115,6 +117,8 @@ func TestTest(t *testing.T) {
 	if err != nil {
 		log.Fatalf("error reading JUnit XML file into JSON: %v", err)
 	}
+
+	junitMap[extraInfoKey] = tnf.TestsExtraInfo
 
 	endTime := time.Now()
 	claimData.Results = junitMap
