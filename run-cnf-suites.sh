@@ -36,9 +36,6 @@ done
 GINKGO_ARGS="-ginkgo.v -junit . -report $OUTPUT_LOC -claimloc $OUTPUT_LOC"
 FOCUS=""
 
-# specify Junit report file name.
-GINKGO_ARGS2="-ginkgo.reportFile $OUTPUT_LOC/"cnf-certification-tests_junit.xml""
-
 for var in "$@"
 do
 	case "$var" in
@@ -57,4 +54,4 @@ done
 FOCUS=${FOCUS%?}  # strip the trailing "|" from the concatenation
 
 echo "Running with focus '$FOCUS'. Report will be output to '$OUTPUT_LOC'"
-cd ./test-network-function && ./test-network-function.test -ginkgo.focus="$FOCUS" ${GINKGO_ARGS} ${GINKGO_ARGS2}
+cd ./test-network-function && ./test-network-function.test -ginkgo.focus="$FOCUS" ${GINKGO_ARGS}
