@@ -6,11 +6,20 @@ on:
   pull_request:
     branches: [ main ]
   workflow_dispatch:
+env:
+  IMAGE_NAME: testnetworkfunction/test-network-function
+  IMAGE_TAG: latest
+  TNF_MINIKUBE_ONLY: true
+  TNF_CONFIG_DIR: /tmp/tnf/config
+  TNF_OUTPUT_DIR: /tmp/tnf/output
+  TNF_SRC_URL: 'https://github.com/${{ github.repository }}'
+  TESTING_CMD_PARAMS: '-n host -i $IMAGE_NAME:$IMAGE_TAG -t $TNF_CONFIG_DIR -o $TNF_OUTPUT_DIR'
 
 jobs:
   lint:
     name: Run Linter
     runs-on: ubuntu-latest
+
     steps:
       - name: Set up Go 1.15
         uses: actions/setup-go@v2
@@ -36,23 +45,88 @@ jobs:
       - name: make lint
         run: make lint
 
-  test:
-    name: Run Tests
+  unit-tests:
+    name: Run Unit Tests
     runs-on: ubuntu-latest
+
     steps:
+      - name: Set up Go 1.15
+        uses: actions/setup-go@v2
+        with:
+          go-version: ^1.15
 
-    - name: Set up Go 1.15
-      uses: actions/setup-go@v2
-      with:
-        go-version: ^1.15
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.sha }}
 
-    - name: Check out code into the Go module directory
-      uses: actions/checkout@v2
-      with:
-        ref: ${{ github.sha }}
+      - name: Rebuild mocks
+        run: go get github.com/golang/mock/mockgen && make mocks
 
-    - name: Rebuild mocks
-      run: go get github.com/golang/mock/mockgen && make mocks
+      - name: Run Tests
+        run: make test
 
-    - name: Run Tests
-      run: make test
+  smoke-tests:
+    name: Run Smoke Tests
+    runs-on: ubuntu-latest
+    env:
+      SHELL: /bin/bash
+      KUBECONFIG: '/home/runner/.kube/config'
+
+    steps:
+      - name: Set up Go 1.15
+        uses: actions/setup-go@v2
+        with:
+          go-version: ^1.15
+
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.sha }}
+
+      - name: Execute `make mocks`
+        run: go get github.com/golang/mock/mockgen && make mocks
+
+      - name: Install ginkgo
+        run: go get -u github.com/onsi/ginkgo/ginkgo
+
+      - name: Execute `make build`
+        run: make build
+
+      # Create a minikube cluster for testing.
+
+      - name: Check out `cnf-certification-test-partner`
+        uses: actions/checkout@v2
+        with:
+          repository: test-network-function/cnf-certification-test-partner
+          path: cnf-certification-test-partner
+
+      - name: Start the minikube cluster for `local-test-infra`
+        uses: ./cnf-certification-test-partner/.github/actions/start-minikube
+
+      - name: Create `local-test-infra` OpenShift resources
+        uses: ./cnf-certification-test-partner/.github/actions/create-local-test-infra-resources
+        with:
+          working_directory: cnf-certification-test-partner
+
+      # Perform smoke tests.
+
+      - name: 'Test: Run diagnostic test suite'
+        run: ./run-cnf-suites.sh diagnostic
+
+      # Perform smoke tests using a TNF container.
+
+      - name: Build the `test-network-function` image
+        run: |
+          docker build --no-cache -t $IMAGE_NAME:$IMAGE_TAG \
+            --build-arg TNF_VERSION=${{ github.sha }} \
+            --build-arg TNF_SRC_URL=$TNF_SRC_URL .
+
+      - name: Create required TNF config files and directories
+        run: |
+          mkdir -p $TNF_CONFIG_DIR $TNF_OUTPUT_DIR
+          cp test-network-function/*.yml $TNF_CONFIG_DIR
+        shell: bash
+
+      - name: 'Test: Run diagnostic test suite'
+        run: ./run-container.sh ${{ env.TESTING_CMD_PARAMS }} diagnostic
