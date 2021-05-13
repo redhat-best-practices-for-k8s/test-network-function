@@ -13,14 +13,6 @@ generic:
       defaultNetworkDevice: eth0
       multusIpAddresses:
         - 10.217.0.29
-    - namespace: tnf
-      podName: node-master
-      containerName: master
-      defaultNetworkDevice: eth0
-  fsDiffMasterContainer:
-    namespace: tnf
-    podName: node-master
-    containerName: master
   testOrchestrator:
     namespace: tnf
     podName: partner

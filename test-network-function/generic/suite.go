@@ -173,8 +173,12 @@ var _ = ginkgo.Describe(testsKey, func() {
 		ginkgo.Context("Container does not have additional packages installed", func() {
 			// use this boolean to turn off tests that require OS packages
 			if !isMinikube() {
-				for _, containerUnderTest := range containersUnderTest {
-					testFsDiff(fsDiffContainer.oc, containerUnderTest.oc)
+				if fsDiffContainer != nil {
+					for _, containerUnderTest := range containersUnderTest {
+						testFsDiff(fsDiffContainer.oc, containerUnderTest.oc)
+					}
+				} else {
+					log.Warn("no fs diff container is configured, cannot run fs diff test")
 				}
 			}
 		})
