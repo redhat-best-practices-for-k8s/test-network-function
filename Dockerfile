@@ -58,11 +58,7 @@ RUN mkdir ${TNF_BIN_DIR} && \
 
 WORKDIR ${TNF_DIR}
 
-# ENV TNF_CONFIGURATION_PATH=${TNF_DIR}/config
-# Currently not able to get it working with the env var config location, using symlinks until config files are rebuilt.
-RUN ln -s ${TNF_DIR}/config/cnf_test_configuration.yml ${TNF_DIR}/test-network-function/cnf_test_configuration.yml && \
-	ln -s ${TNF_DIR}/config/generic_test_configuration.yml ${TNF_DIR}/test-network-function/generic_test_configuration.yml && \
-	ln -s ${TNF_DIR}/config/testconfigure.yml ${TNF_DIR}/test-network-function/testconfigure.yml
+RUN ln -s ${TNF_DIR}/config/testconfigure.yml ${TNF_DIR}/test-network-function/testconfigure.yml
 
 # Remove most of the build artefacts
 RUN yum remove -y golang make git && \
@@ -79,6 +75,7 @@ RUN yum remove -y golang make git && \
 # TODO run as non-root
 FROM scratch
 COPY --from=build / /
+ENV TNF_CONFIGURATION_PATH=/usr/tnf/config/tnf_config.yml
 ENV KUBECONFIG=/usr/tnf/kubeconfig/config
 WORKDIR /usr/tnf
 ENV SHELL=/bin/bash
