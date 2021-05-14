@@ -61,31 +61,3 @@ func TestGetAnnotationValue(t *testing.T) {
 	assert.Equal(t, "eth0", val)
 	assert.Nil(t, err)
 }
-
-func TestGetContainers(t *testing.T) {
-	orchestratorPod := loadPodResource(testOrchestratorFilePath)
-	orchestratorContainers := orchestratorPod.GetContainers()
-	assert.Equal(t, 1, len(orchestratorContainers))
-
-	subjectPod := loadPodResource(testSubjectFilePath)
-	subjectContainers := subjectPod.GetContainers()
-	assert.Equal(t, 1, len(subjectContainers))
-
-	assert.Equal(t, "tnf", orchestratorContainers[0].Namespace)
-	assert.Equal(t, "I'mAPodName", orchestratorContainers[0].PodName)
-	assert.Equal(t, "I'mAContainer", orchestratorContainers[0].ContainerName)
-
-	// Check correct order of precedence for network devices
-	assert.Equal(t, "eth0", orchestratorContainers[0].DefaultNetworkDevice)
-	assert.NotEqual(t, "LowerPriorityInterface", orchestratorContainers[0].DefaultNetworkDevice)
-	assert.Equal(t, "eth1", subjectContainers[0].DefaultNetworkDevice)
-
-	// Check correct IPs are chosen
-	assert.Equal(t, 1, len(orchestratorContainers[0].MultusIPAddresses))
-	assert.Equal(t, "1.1.1.1", orchestratorContainers[0].MultusIPAddresses[0])
-	assert.NotEqual(t, "2.2.2.2", orchestratorContainers[0].MultusIPAddresses[0])
-	// test-network-function.com/multusips should be used for the test subject container.
-	assert.Equal(t, 2, len(subjectContainers[0].MultusIPAddresses))
-	assert.Equal(t, "3.3.3.3", subjectContainers[0].MultusIPAddresses[0])
-	assert.Equal(t, "4.4.4.4", subjectContainers[0].MultusIPAddresses[1])
-}

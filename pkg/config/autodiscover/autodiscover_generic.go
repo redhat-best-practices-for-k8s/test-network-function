@@ -79,7 +79,7 @@ func getContainersByLabel(labelName, labelValue string) (containers []configsect
 		return nil, err
 	}
 	for i := range pods.Items {
-		containers = append(containers, pods.Items[i].GetContainers()...)
+		containers = append(containers, GetGenericContainers(&pods.Items[i])...)
 	}
 	return containers, nil
 }
@@ -107,4 +107,27 @@ func getContainerByLabel(labelName, labelValue string) (container configsections
 		return container, fmt.Errorf("expected exactly one container, got %d for label %s=%s", len(containers), labelName, labelValue)
 	}
 	return containers[0], nil
+}
+
+// getGenericContainers builds `configsections.Container`s from a `PodResource`
+func GetGenericContainers(pr *PodResource) (containers []configsections.Container) {
+	for _, containerResource := range pr.Spec.Containers {
+		var err error
+		var container configsections.Container
+		container.Namespace = pr.Metadata.Namespace
+		container.PodName = pr.Metadata.Name
+		container.ContainerName = containerResource.Name
+		container.DefaultNetworkDevice, err = pr.getDefaultNetworkDeviceFromAnnotations()
+		if err != nil {
+			log.Warnf("error encountered getting default network device: %s", err)
+		}
+		container.MultusIPAddresses, err = pr.getPodIPs()
+		if err != nil {
+			log.Warnf("error encountered getting multus IPs: %s", err)
+			err = nil
+		}
+
+		containers = append(containers, container)
+	}
+	return
 }
