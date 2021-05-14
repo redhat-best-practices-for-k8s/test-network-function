@@ -19,7 +19,6 @@ env:
   REGISTRY: quay.io
   IMAGE_NAME: testnetworkfunction/test-network-function
   IMAGE_TAG: latest
-  IMAGE_CONTAINER_FILE_PATH: Dockerfile
   CURRENT_VERSION_GENERIC_BRANCH: 1.0.x
   TNF_MINIKUBE_ONLY: true
   TNF_CONFIG_DIR: /tmp/tnf/config
