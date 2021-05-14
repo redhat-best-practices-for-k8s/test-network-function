@@ -21,7 +21,6 @@ import (
 	"fmt"
 
 	log "github.com/sirupsen/logrus"
-	"github.com/test-network-function/test-network-function/pkg/config/configsections"
 )
 
 const (
@@ -65,29 +64,6 @@ type cniNetworkInterface struct {
 	IPs       []string               `json:"ips"`
 	Default   bool                   `json:"default"`
 	DNS       map[string]interface{} `json:"dns"`
-}
-
-// GetContainers builds `config.Container`s from a `PodResource`
-func (pr *PodResource) GetContainers() (containers []configsections.Container) {
-	for _, containerResource := range pr.Spec.Containers {
-		var err error
-		var container configsections.Container
-		container.Namespace = pr.Metadata.Namespace
-		container.PodName = pr.Metadata.Name
-		container.ContainerName = containerResource.Name
-		container.DefaultNetworkDevice, err = pr.getDefaultNetworkDeviceFromAnnotations()
-		if err != nil {
-			log.Warnf("error encountered getting default network device: %s", err)
-		}
-		container.MultusIPAddresses, err = pr.getPodIPs()
-		if err != nil {
-			log.Warnf("error encountered getting multus IPs: %s", err)
-			err = nil
-		}
-
-		containers = append(containers, container)
-	}
-	return
 }
 
 func (pr *PodResource) hasAnnotation(annotationKey string) (present bool) {
