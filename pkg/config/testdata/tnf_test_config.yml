@@ -35,9 +35,9 @@ cnfs:
     tests:
       - PRIVILEGED_POD
       - PRIVILEGED_ROLE
-certifiedcontainerrequestinfo:
+certifiedcontainerinfo:
   - name: nginx-116  # working example
     repository: rhel8
-certifiedoperatorrequestinfo:
+certifiedoperatorinfo:
   - name: etcd-operator
     organization: redhat-marketplace
