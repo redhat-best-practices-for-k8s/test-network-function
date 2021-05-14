@@ -62,10 +62,10 @@ cnfs:
     status: ""
     tests:
       - PRIVILEGED_POD
-certifiedcontainerrequestinfo:
+certifiedcontainerinfo:
   - name: nginx-116
     repository: rhel8
-certifiedoperatorrequestinfo:
+certifiedoperatorinfo:
   - name: etcd-operator
     organization: redhat-marketplace
 cnfavailabletestcases:
