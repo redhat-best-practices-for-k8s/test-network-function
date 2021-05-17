@@ -30,7 +30,7 @@ If `-k` is not specified, autodiscovery is performed.
 The autodiscovery first looks for paths in the `$KUBECONFIG` environment variable on the host system, and if the variable is not set or is empty, the default configuration stored in `$HOME/.kube/config` is checked.
 
 ```shell-script
-./run-container.sh -k ~/.kube/config -t ~/tnf/config -o ~/tnf/output diagnostic generic
+./run-tnf-container.sh -k ~/.kube/config -t ~/tnf/config -o ~/tnf/output diagnostic generic
 ```
 
 *Note*: Tests must be specified after all other arguments!
@@ -51,10 +51,10 @@ docker build -t test-network-function:v1.0.5 \
   --build-arg TNF_SRC_URL=https://github.com/test-network-function/test-network-function .
 ```
 
-To make `run-container.sh` use the newly built image, specify the custom TNF image using the `-i` parameter.
+To make `run-tnf-container.sh` use the newly built image, specify the custom TNF image using the `-i` parameter.
 
 ```shell-script
-./run-container.sh -i test-network-function:v1.0.5 -t ~/tnf/config -o ~/tnf/output diagnostic generic
+./run-tnf-container.sh -i test-network-function:v1.0.5 -t ~/tnf/config -o ~/tnf/output diagnostic generic
 ```
 
 ## Dependencies
@@ -100,6 +100,25 @@ when test on CNFs that run on k8s only envirnment, execute shell command below b
 ```shell-command
 export TNF_MINIKUBE_ONLY=true
 ```
+
+## Execute test suites from openshift-kni/cnf-feature-deploy
+The test suites from openshift-kni/cnf-feature-deploy can be run prior to the actual CNF certification test execution and the results are incorporated in the same claim file if the following environment variable is set:
+
+
+```shell-command
+export VERIFY_CNF_FEATURES=true
+```
+
+Currently, these suites are skipped:
+* performance
+* sriov
+* ptp
+* sctp
+* xt_u32
+* dpdk
+* ovn
+
+For more information on the test suites, refer to [the cnf-fature-deploy repository](https://github.com/openshift-kni/cnf-features-deploy/tree/release-4.6)
 
 ### General
 

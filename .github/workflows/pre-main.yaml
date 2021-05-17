@@ -134,7 +134,7 @@ jobs:
         shell: bash
 
       - name: 'Test: Run diagnostic test suite'
-        run: ./run-container.sh ${{ env.TESTING_CMD_PARAMS }} diagnostic
+        run: ./run-tnf-container.sh ${{ env.TESTING_CMD_PARAMS }} diagnostic
 
       # Push the new unstable TNF image to Quay.io.
 
@@ -150,4 +150,4 @@ jobs:
 
       - name: (if on main and upstream) Push the newly built image to Quay.io
         if: ${{ github.ref == 'refs/heads/main' && github.repository_owner == 'test-network-function' }}
-        run: docker push --all-tags ${REGISTRY}/${IMAGE_NAME}
+        run: docker push --all-tags ${REGISTRY}/${IMAGE_NAME}        

@@ -111,7 +111,7 @@ jobs:
         shell: bash
 
       - name: 'Test: Run diagnostic test suite'
-        run: ./run-container.sh ${{ env.TESTING_CMD_PARAMS }} diagnostic
+        run: ./run-tnf-container.sh ${{ env.TESTING_CMD_PARAMS }} diagnostic
 
       # Push the new TNF image to Quay.io.
 

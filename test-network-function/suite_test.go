@@ -20,8 +20,8 @@ import (
 	j "encoding/json"
 	"flag"
 	"io/ioutil"
+	"os"
 	"path"
-	"path/filepath"
 	"testing"
 	"time"
 
@@ -40,15 +40,17 @@ import (
 )
 
 const (
-	claimFileName                 = "claim.json"
-	claimFilePermissions          = 0644
-	claimPathFlagKey              = "claimloc"
-	CnfCertificationTestSuiteName = "CNF Certification Test Suite"
-	defaultClaimPath              = ".."
-	defaultCliArgValue            = ""
-	junitFlagKey                  = "junit"
-	JunitXMLFileName              = "cnf-certification-tests_junit.xml"
-	reportFlagKey                 = "report"
+	claimFileName                        = "claim.json"
+	claimFilePermissions                 = 0644
+	claimPathFlagKey                     = "claimloc"
+	CnfCertificationTestSuiteName        = "CNF Certification Test Suite"
+	defaultClaimPath                     = ".."
+	defaultCliArgValue                   = ""
+	junitFlagKey                         = "junit"
+	JunitXMLFileName                     = "cnf-certification-tests_junit.xml"
+	CNFFeatureValidationJunitXMLFileName = "validation_junit.xml"
+	CNFFeatureValidationReportKey        = "cnf-feature-validation"
+	reportFlagKey                        = "report"
 	// dateTimeFormatDirective is the directive used to format date/time according to ISO 8601.
 	dateTimeFormatDirective = "2006-01-02T15:04:05+00:00"
 	extraInfoKey            = "testsExtraInfo"
@@ -82,6 +84,18 @@ func createClaimRoot() *claim.Root {
 	}
 }
 
+func loadJunitXMLIntoMap(result map[string]interface{}, filepath, key string) {
+	var err error
+	if key == "" {
+		var extension = path.Ext(filepath)
+		key = JunitXMLFileName[0 : len(filepath)-len(extension)]
+	}
+	result[key], err = junit.ExportJUnitAsJSON(filepath)
+	if err != nil {
+		log.Fatalf("error reading JUnit XML file into JSON: %v", err)
+	}
+}
+
 // Invokes the CNF Certification Tests.
 //nolint:funlen // Function is long but core entrypoint and linear. Consider revisiting later.
 func TestTest(t *testing.T) {
@@ -110,18 +124,17 @@ func TestTest(t *testing.T) {
 	}
 	junitFile := path.Join(*junitPath, JunitXMLFileName)
 	ginkgo.RunSpecs(t, CnfCertificationTestSuiteName)
-	junitMap := make(map[string]interface{})
-	var extension = filepath.Ext(JunitXMLFileName)
-	reportKeyName := JunitXMLFileName[0 : len(JunitXMLFileName)-len(extension)]
-
-	junitMap[reportKeyName], err = junit.ExportJUnitAsJSON(junitFile)
-	if err != nil {
-		log.Fatalf("error reading JUnit XML file into JSON: %v", err)
-	}
-
-	junitMap[extraInfoKey] = tnf.TestsExtraInfo
 
 	endTime := time.Now()
+	junitMap := make(map[string]interface{})
+	loadJunitXMLIntoMap(junitMap, junitFile, "")
+
+	junitFile = path.Join(*junitPath, CNFFeatureValidationJunitXMLFileName)
+	if _, err = os.Stat(junitFile); err == nil {
+		loadJunitXMLIntoMap(junitMap, junitFile, CNFFeatureValidationReportKey)
+	}
+	junitMap[extraInfoKey] = tnf.TestsExtraInfo
+
 	claimData.Results = junitMap
 
 	conf := config.GetConfigInstance()
