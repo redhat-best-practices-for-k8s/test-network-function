@@ -83,6 +83,7 @@ func itRunsTestsOnOperator() {
 	gomega.Expect(operatorsToQuery).ToNot(gomega.BeNil())
 	certAPIClient := api.NewHTTPClient()
 	for _, certified := range operatorsToQuery {
+		// Care: this test takes some time to run, failures at later points while before this has finished may be reported as a failure here. Read the failure reason carefully.
 		ginkgo.It(fmt.Sprintf("should eventually be verified as certified (operator %s/%s)", certified.Organization, certified.Name), func() {
 			certified := certified // pin
 			gomega.Eventually(func() bool {
