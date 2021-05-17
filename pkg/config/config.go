@@ -40,7 +40,7 @@ type File struct {
 	// Operator is the list of operator objects that needs to be tested.
 	Operators []configsections.Operator `yaml:"operators,omitempty"  json:"operators,omitempty"`
 
-	// CNFs is the list of the CNFs that needs to be tested.
+	// CNFs is the list of the CNFs that needs to be tested. Each entry is a single pod to be tested.
 	CNFs []configsections.Cnf `yaml:"cnfs,omitempty" json:"cnfs,omitempty"`
 
 	// CertifiedContainerInfo is the list of container images to be checked for certification status.

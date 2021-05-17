@@ -88,13 +88,13 @@ type Permission struct {
 
 // Cnf defines cloud network function in the cluster
 type Cnf struct {
-	// Name is the name of the CNF (TODO: This should also take cnf labels in case name is dynamically created)
+	// Name is the name of a single Pod to test
 	Name string `yaml:"name" json:"name"`
 
-	// Namespace where the CNF is deployed
+	// Namespace where the Pod is deployed
 	Namespace string `yaml:"namespace" json:"namespace"`
 
-	// Tests this is list of test that need to run against the CNF.
+	// Tests this is list of test that need to run against the Pod.
 	Tests []string `yaml:"tests" json:"tests"`
 }
 
