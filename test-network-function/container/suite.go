@@ -73,6 +73,7 @@ var _ = ginkgo.Describe(testSpecName, func() {
 			certAPIClient = api.NewHTTPClient()
 			for _, cnfRequestInfo := range cnfsToQuery {
 				cnf := cnfRequestInfo
+				// Care: this test takes some time to run, failures at later points while before this has finished may be reported as a failure here. Read the failure reason carefully.
 				ginkgo.It(fmt.Sprintf("container %s/%s should eventually be verified as certified", cnf.Repository, cnf.Name), func() {
 					cnf := cnf // pin
 					gomega.Eventually(func() bool {
