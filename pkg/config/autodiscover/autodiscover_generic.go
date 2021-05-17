@@ -79,7 +79,7 @@ func getContainersByLabel(labelName, labelValue string) (containers []configsect
 		return nil, err
 	}
 	for i := range pods.Items {
-		containers = append(containers, GetGenericContainers(&pods.Items[i])...)
+		containers = append(containers, BuildContainersFromPodResource(&pods.Items[i])...)
 	}
 	return containers, nil
 }
@@ -109,8 +109,8 @@ func getContainerByLabel(labelName, labelValue string) (container configsections
 	return containers[0], nil
 }
 
-// getGenericContainers builds `configsections.Container`s from a `PodResource`
-func GetGenericContainers(pr *PodResource) (containers []configsections.Container) {
+// BuildContainersFromPodResource builds `configsections.Container`s from a `PodResource`
+func BuildContainersFromPodResource(pr *PodResource) (containers []configsections.Container) {
 	for _, containerResource := range pr.Spec.Containers {
 		var err error
 		var container configsections.Container
