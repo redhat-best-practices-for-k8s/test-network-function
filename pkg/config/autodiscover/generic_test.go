@@ -23,13 +23,13 @@ import (
 	"github.com/test-network-function/test-network-function/pkg/config/autodiscover"
 )
 
-func TestGetGenericContainers(t *testing.T) {
+func TestBuildContainersFromPodResource(t *testing.T) {
 	orchestratorPod := loadPodResource(testOrchestratorFilePath)
-	orchestratorContainers := autodiscover.GetGenericContainers(&orchestratorPod)
+	orchestratorContainers := autodiscover.BuildContainersFromPodResource(&orchestratorPod)
 	assert.Equal(t, 1, len(orchestratorContainers))
 
 	subjectPod := loadPodResource(testSubjectFilePath)
-	subjectContainers := autodiscover.GetGenericContainers(&subjectPod)
+	subjectContainers := autodiscover.BuildContainersFromPodResource(&subjectPod)
 	assert.Equal(t, 1, len(subjectContainers))
 
 	assert.Equal(t, "tnf", orchestratorContainers[0].Namespace)
