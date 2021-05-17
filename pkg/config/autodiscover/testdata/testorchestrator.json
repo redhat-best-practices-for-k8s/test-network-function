@@ -7,7 +7,8 @@
         },
         "labels": {
             "app": "partner",
-            "test-network-function.com/generic": "orchestrator"
+            "test-network-function.com/generic": "orchestrator",
+            "test-network-function.com/container": "target"
         },
         "name": "I'mAPodName",
         "namespace": "tnf"
