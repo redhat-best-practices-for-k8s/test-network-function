@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # defaults
-OUTPUT_LOC="."
+OUTPUT_LOC="$PWD/test-network-function"
 
 usage() {
 	echo "$0 [-o OUTPUT_LOC] SUITE [... SUITE]"
@@ -52,6 +52,19 @@ done
 [ -z "$FOCUS" ] && usage_error
 
 FOCUS=${FOCUS%?}  # strip the trailing "|" from the concatenation
+
+if [ "$VERIFY_CNF_FEATURES" == "true" ] && [ "$TNF_MINIKUBE_ONLY" != "true" ]; then
+
+	export TNF_IMAGE_NAME=cnf-tests
+	export TNF_IMAGE_TAG=latest
+	export TNF_OFFICIAL_ORG=quay.io/openshift-kni/
+	export TNF_OFFICIAL_IMAGE="${TNF_OFFICIAL_ORG}${TNF_IMAGE_NAME}:${TNF_IMAGE_TAG}"
+	export TNF_CMD="/usr/bin/test-run.sh"
+	export OUTPUT_ARG="--junit"
+
+	./run-container.sh -d 127.0.0.53 -n host -o $OUTPUT_LOC -ginkgo.v -ginkgo.skip="performance|sriov|ptp|sctp|xt_u32|dpdk|ovn"
+
+fi
 
 echo "Running with focus '$FOCUS'. Report will be output to '$OUTPUT_LOC'"
 cd ./test-network-function && ./test-network-function.test -ginkgo.focus="$FOCUS" ${GINKGO_ARGS}

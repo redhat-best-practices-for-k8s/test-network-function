@@ -1,37 +1,12 @@
 #!/usr/bin/env bash
 
-# Requires
-# - kubeconfig file mounted to /usr/tnf/kubeconfig/config
-#   If more than one kubeconfig needs to be used, bind
-#   additional volumes for each kubeconfig, e.g.
-#     - /usr/tnf/kubeconfig/config
-#     - /usr/tnf/kubeconfig/config.2
-#     - /usr/tnf/kubeconfig/config.3
-# - TNF config files mounted into /usr/tnf/config
-# - A directory to output claim into mounted at /usr/tnf/claim
-# - A $KUBECONFIG environment variable passed to the TNF container
-#   containing all paths to kubeconfigs located in the container, e.g.
-#   KUBECONFIG=/usr/tnf/kubeconfig/config:/usr/tnf/kubeconfig/config.2
-
-REQUIRED_VARS=('LOCAL_KUBECONFIG' 'LOCAL_TNF_CONFIG' 'OUTPUT_LOC')
-REQUIRED_VARS_ERROR_MESSAGES=(
-	'KUBECONFIG is invalid or not given. Use the -k option to provide path to one or more kubeconfig files.'
-	'TNFCONFIG is required. Use the -t option to specify the directory containing the TNF configuration files.'
-	'OUTPUT_LOC is required. Use the -o option to specify the output location for the test results.'
-)
-
-TNF_IMAGE_NAME=test-network-function
-TNF_IMAGE_TAG=latest
-TNF_OFFICIAL_ORG=quay.io/testnetworkfunction/
-TNF_OFFICIAL_IMAGE="${TNF_OFFICIAL_ORG}${TNF_IMAGE_NAME}:${TNF_IMAGE_TAG}"
-
 CONTAINER_TNF_DIR=/usr/tnf
 CONTAINER_TNF_KUBECONFIG_FILE_BASE_PATH="$CONTAINER_TNF_DIR/kubeconfig/config"
 CONTAINER_DEFAULT_NETWORK_MODE=bridge
 
 usage() {
 	read -d '' usage_prompt <<- EOF
-	Usage: $0 -t TNFCONFIG -o OUTPUT_LOC [-i IMAGE] [-k KUBECONFIG] [-n NETWORK_MODE] SUITE [... SUITE]
+	Usage: $0 -t TNFCONFIG -o OUTPUT_LOC [-i IMAGE] [-k KUBECONFIG] [-n NETWORK_MODE] [-d DNS_RESOLVER_ADDRESS] SUITE [... SUITE]
 
 	Configure and run the containerised TNF test offering.
 
@@ -45,6 +20,7 @@ usage() {
 	      The -k option takes precedence, overwriting the results of local kubeconfig autodiscovery.
 	      See the 'Kubeconfig lookup order' section below for more details.
 	  -n: set the network mode of the container.
+	  -d: set the DNS resolver address for the test containers started by docker, may be required with certain docker version if the kubeconfig contains host names
 
 	Kubeconfig lookup order
 	  1. If -k is specified, use the paths provided with the -k option.
@@ -84,7 +60,7 @@ usage_error() {
 }
 
 check_cli_required_num_of_args() {
-	if (($# < 5)); then
+	if (($# < $REQUIRED_NUM_OF_ARGS)); then
 		usage_error
 	fi;
 }
@@ -155,7 +131,10 @@ join_paths() {
 	local IFS=':'; echo "$*"
 }
 
-check_cli_required_num_of_args $@
+if [ ! -z "${REQUIRED_NUM_OF_ARGS}" ]; then
+	check_cli_required_num_of_args $@
+fi
+
 perform_kubeconfig_autodiscovery
 
 # Parge args beginning with -
@@ -195,8 +174,19 @@ while [[ $1 == -* ]]; do
             echo "-n requires an argument" 1>&2
             exit 1
           fi ;;
+      -d) if (($# > 1)); then
+            DNS_ARG=$2; shift 2
+          else
+            echo "-d requires an argument" 1>&2
+            exit 1
+          fi ;;		  
       --) shift; break;;
-      -*) echo "invalid option: $1" 1>&2; usage_error;;
+      -*) if [ ! -z "${LOCAL_TNF_CONFIG}" ]; then
+	  		echo "invalid option: $1" 1>&2
+			usage_error
+		  else
+		  	break
+		  fi ;;
     esac
 done
 
@@ -230,13 +220,20 @@ CONTAINER_TNF_KUBECONFIG=$(join_paths ${container_tnf_kubeconfig_paths[@]})
 
 container_tnf_kubeconfig_volumes_cmd_args=$(printf -- "-v %s " "${container_tnf_kubeconfig_volume_bindings[@]}")
 
+if [ ! -z "${LOCAL_TNF_CONFIG}" ]; then
+	CONFIG_VOLUME_MOUNT_ARG="-v $LOCAL_TNF_CONFIG:$CONTAINER_TNF_DIR/config"
+fi
+
+if [ ! -z "${DNS_ARG}" ]; then
+	DNS_ARG="--dns $DNS_ARG"
+fi
+
 set -x
-docker run --rm \
+docker run --rm $DNS_ARG \
 	--network $CONTAINER_NETWORK_MODE \
 	${container_tnf_kubeconfig_volumes_cmd_args[@]} \
-	-v $LOCAL_TNF_CONFIG:$CONTAINER_TNF_DIR/config \
+	$CONFIG_VOLUME_MOUNT_ARG \
 	-v $OUTPUT_LOC:$CONTAINER_TNF_DIR/claim \
 	-e KUBECONFIG=$CONTAINER_TNF_KUBECONFIG \
 	$TNF_IMAGE \
-	./run-cnf-suites.sh \
-	-o $CONTAINER_TNF_DIR/claim $@
+	$TNF_CMD $OUTPUT_ARG $CONTAINER_TNF_DIR/claim "$@"
