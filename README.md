@@ -246,8 +246,8 @@ oc label pod test -n tnf test-network-function.com/generic=target
 oc annotate pod test -n tnf test-network-function.com/skip_connectivity_tests=true
 ```
 
-**NOTE** Currently when this environment variable is set the `generic` section of the config file will be ENTIRELY
-replaced with the autodiscovered configuration, to avoid potentially non-obvious errors.
+**NOTE** Currently when this environment variable is set the `generic` and `cnfs` sections of the config file will be
+ENTIRELY replaced with the autodiscovered configuration, to avoid potentially non-obvious errors.
 
 Autodiscovery is currently only supported in the generic spec, where the following applies:
 ### Pod Roles
@@ -281,6 +281,24 @@ be seen in [cnf-certification-test-partner](https://github.com/test-network-func
 * If the above is not present, the `k8s.v1.cni.cncf.io/networks-status` annotation is checked and the `"interface"` from
 the first entry found with `"default"=true` is used. This annotation is automatically managed in OpenShift but may not
 be present in K8s.
+
+### Container Spec
+
+* Pods to be tested by the `container` spec are identified with the `test-network-function.com/container=target`
+label. Any value is permitted but `target` is used here for consistency with the `generic` spec.
+* If specific tests are to be run on the pod then they can be listed as a JSON-encoded list of strings under the
+`test-network-function.com/container_tests` annotation. If the annotation is not found then by default every
+group of CNF tests defined in `testconfigure.yml` will be run.
+
+For example:
+```yaml
+...
+  labels:
+    test-network-function.com/container: target
+  annotations:
+    test-network-function.com/container_tests: "[\"PRIVILEGED_POD\",\"PRIVILEGED_ROLE\"]" # optional
+...
+```
 
 ## Test Output
 

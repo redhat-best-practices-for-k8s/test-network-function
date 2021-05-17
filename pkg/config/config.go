@@ -21,9 +21,11 @@ import (
 	"io/ioutil"
 	"os"
 
+	ginkgoconfig "github.com/onsi/ginkgo/config"
 	log "github.com/sirupsen/logrus"
 	"github.com/test-network-function/test-network-function/pkg/config/autodiscover"
 	"github.com/test-network-function/test-network-function/pkg/config/configsections"
+	"github.com/test-network-function/test-network-function/pkg/tnf/testcases"
 	"gopkg.in/yaml.v2"
 )
 
@@ -31,6 +33,12 @@ const (
 	configurationFilePathEnvironmentVariableKey = "TNF_CONFIGURATION_PATH"
 	defaultConfigurationFilePath                = "tnf_config.yml"
 	enableAutodiscoverEnvVar                    = "TNF_ENABLE_CONFIG_AUTODISCOVER"
+)
+
+const (
+	containerTestSpecName  = "container"
+	diagnosticTestSpecName = "diagnostic"
+	genericTestSpecName    = "generic"
 )
 
 // File is the top level of the config file. All new config sections must be added here
@@ -89,8 +97,16 @@ func loadConfigFromFile(filePath string) error {
 	return nil
 }
 
+// doAutodiscovery will autodiscover config for any enabled test spec. Specs which are not selected will be skipped to
+// avoid unnecessary noise in the logs.
 func doAutodiscovery() {
-	configInstance.Generic = autodiscover.BuildGenericConfig()
+	if testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusStrings, genericTestSpecName) ||
+		testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusStrings, diagnosticTestSpecName) {
+		configInstance.Generic = autodiscover.BuildGenericConfig()
+	}
+	if testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusStrings, containerTestSpecName) {
+		configInstance.CNFs = autodiscover.BuildCNFsConfig()
+	}
 }
 
 // GetConfigInstance provides access to the singleton ConfigFile instance.
