@@ -32,7 +32,6 @@ import (
 const (
 	configurationFilePathEnvironmentVariableKey = "TNF_CONFIGURATION_PATH"
 	defaultConfigurationFilePath                = "tnf_config.yml"
-	enableAutodiscoverEnvVar                    = "TNF_ENABLE_CONFIG_AUTODISCOVER"
 )
 
 const (
@@ -119,7 +118,7 @@ func GetConfigInstance() File {
 			log.Fatalf("unable to load configuration file: %s", err)
 		}
 
-		if _, doAuto := os.LookupEnv(enableAutodiscoverEnvVar); doAuto {
+		if autodiscover.PerformAutoDiscovery() {
 			log.Warn("doing configuration autodiscovery. Currently this WILL override parts of the configuration file")
 			doAutodiscovery()
 		}

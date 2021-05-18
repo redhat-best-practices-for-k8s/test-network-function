@@ -19,19 +19,28 @@ package autodiscover
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"os/exec"
+	"strconv"
 
 	log "github.com/sirupsen/logrus"
 )
 
 const (
-	labelNamespace   = "test-network-function.com"
-	labelTemplate    = "%s/%s"
-	resourceTypePods = "pods"
+	enableAutodiscoverEnvVar = "TNF_ENABLE_CONFIG_AUTODISCOVER"
+	labelNamespace           = "test-network-function.com"
+	labelTemplate            = "%s/%s"
+	resourceTypePods         = "pods"
 
 	// AnyLabelValue is the value that will allow any value for a label when building the label query.
 	AnyLabelValue = ""
 )
+
+// PerformAutoDiscovery checks the environment variable to see if autodiscovery should be performed
+func PerformAutoDiscovery() (doAuto bool) {
+	doAuto, _ = strconv.ParseBool(os.Getenv(enableAutodiscoverEnvVar))
+	return doAuto
+}
 
 func buildLabelName(labelName string) string {
 	return fmt.Sprintf(labelTemplate, labelNamespace, labelName)
