@@ -30,6 +30,7 @@ env:
 jobs:
   get-latest-tnf-version-number:
     name: 'Get the version number of the latest release'
+    if: ${{ github.repository_owner == 'test-network-function' }}
     runs-on: ubuntu-20.04
     outputs:
       TNF_VERSION: ${{ steps.set_tnf_version.outputs.version_number }}
