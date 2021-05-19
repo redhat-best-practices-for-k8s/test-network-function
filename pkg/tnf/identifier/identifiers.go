@@ -19,29 +19,34 @@ package identifier
 import "github.com/test-network-function/test-network-function/pkg/tnf/dependencies"
 
 const (
-	hostnameIdentifierURL           = "http://test-network-function.com/tests/hostname"
-	ipAddrIdentifierURL             = "http://test-network-function.com/tests/ipaddr"
-	nodesIdentifierURL              = "http://test-network-function.com/tests/nodes"
-	operatorIdentifierURL           = "http://test-network-function.com/tests/operator"
-	pingIdentifierURL               = "http://test-network-function.com/tests/ping"
-	podIdentifierURL                = "http://test-network-function.com/tests/container/pod"
-	versionIdentifierURL            = "http://test-network-function.com/tests/generic/version"
-	cnfFsDiffURL                    = "http://test-network-function.com/tests/generic/cnf_fs_diff"
-	containerIDURL                  = "http://test-network-function.com/tests/generic/containerId"
-	serviceAccountIdentifierURL     = "http://test-network-function.com/tests/serviceaccount"
-	roleBindingIdentifierURL        = "http://test-network-function.com/tests/rolebinding"
-	clusterRoleBindingIdentifierURL = "http://test-network-function.com/tests/clusterrolebinding"
-	nodePortIdentifierURL           = "http://test-network-function.com/tests/nodeport"
-	nodeNamesIdentifierURL          = "http://test-network-function.com/tests/nodenames"
-	nodeTaintedIdentifierURL        = "http://test-network-function.com/tests/nodetainted"
-	gracePeriodIdentifierURL        = "http://test-network-function.com/tests/gracePeriod"
-	hugepagesIdentifierURL          = "http://test-network-function.com/tests/hugepages"
-	nodehugepagesIdentifierURL      = "http://test-network-function.com/tests/nodehugepages"
-	deploymentsIdentifierURL        = "http://test-network-function.com/tests/deployments"
-	deploymentsnodesIdentifierURL   = "http://test-network-function.com/tests/deploymentsnodes"
-	deploymentsdrainIdentifierURL   = "http://test-network-function.com/tests/deploymentsdrain"
-	ownersIdentifierURL             = "http://test-network-function.com/tests/owners"
-	nodeselectorIdentifierURL       = "http://test-network-function.com/tests/nodeselector"
+	nodeselectorIdentifierURL             = "http://test-network-function.com/tests/nodeselector"
+	hostnameIdentifierURL                 = "http://test-network-function.com/tests/hostname"
+	ipAddrIdentifierURL                   = "http://test-network-function.com/tests/ipaddr"
+	nodesIdentifierURL                    = "http://test-network-function.com/tests/nodes"
+	operatorIdentifierURL                 = "http://test-network-function.com/tests/operator"
+	pingIdentifierURL                     = "http://test-network-function.com/tests/ping"
+	podIdentifierURL                      = "http://test-network-function.com/tests/container/pod"
+	versionIdentifierURL                  = "http://test-network-function.com/tests/generic/version"
+	containerIDURL                        = "http://test-network-function.com/tests/generic/containerId"
+	serviceAccountIdentifierURL           = "http://test-network-function.com/tests/serviceaccount"
+	roleBindingIdentifierURL              = "http://test-network-function.com/tests/rolebinding"
+	clusterRoleBindingIdentifierURL       = "http://test-network-function.com/tests/clusterrolebinding"
+	nodePortIdentifierURL                 = "http://test-network-function.com/tests/nodeport"
+	nodeNamesIdentifierURL                = "http://test-network-function.com/tests/nodenames"
+	nodeTaintedIdentifierURL              = "http://test-network-function.com/tests/nodetainted"
+	gracePeriodIdentifierURL              = "http://test-network-function.com/tests/gracePeriod"
+	hugepagesIdentifierURL                = "http://test-network-function.com/tests/hugepages"
+	nodehugepagesIdentifierURL            = "http://test-network-function.com/tests/nodehugepages"
+	deploymentsIdentifierURL              = "http://test-network-function.com/tests/deployments"
+	deploymentsnodesIdentifierURL         = "http://test-network-function.com/tests/deploymentsnodes"
+	deploymentsdrainIdentifierURL         = "http://test-network-function.com/tests/deploymentsdrain"
+	ownersIdentifierURL                   = "http://test-network-function.com/tests/owners"
+	cnfFsDiffURL                          = "http://test-network-function.com/tests/generic/cnf_fs_diff"
+	podnodenameIdentifierURL              = "http://test-network-function.com/tests/podnodename"
+	nodemcnameIdentifierURL               = "http://test-network-function.com/tests/nodemcname"
+	mckernelargumentsIdentifierURL        = "http://test-network-function.com/tests/mckernelarguments"
+	currentKernelCmdlineArgsIdentifierURL = "http://test-network-function.com/tests/currentKernelCmdlineArgs"
+	grubKernelCmdlineArgsIdentifierURL    = "http://test-network-function.com/tests/grubKernelCmdlineArgs"
 
 	versionOne = "v1.0.0"
 )
@@ -327,6 +332,18 @@ var Catalog = map[string]TestCatalogEntry{
 			dependencies.OcBinaryName,
 		},
 	},
+	podnodenameIdentifierURL: {
+		Identifier:  PodNodeNameIdentifier,
+		Description: "A generic test used to get a pod's node",
+		Type:        Normative,
+		IntrusionSettings: IntrusionSettings{
+			ModifiesSystem:           false,
+			ModificationIsPersistent: false,
+		},
+		BinaryDependencies: []string{
+			dependencies.OcBinaryName,
+		},
+	},
 	deploymentsnodesIdentifierURL: {
 		Identifier:  DeploymentsNodesIdentifier,
 		Description: "A generic test used to read node names of pods owned by deployments in namespace",
@@ -353,9 +370,9 @@ var Catalog = map[string]TestCatalogEntry{
 			dependencies.GrepBinaryName,
 		},
 	},
-	deploymentsdrainIdentifierURL: {
-		Identifier:  DeploymentsNodesIdentifier,
-		Description: "A generic test used to drain node from its deployment pods",
+	nodemcnameIdentifierURL: {
+		Identifier:  NodeMcNameIdentifier,
+		Description: "A generic test used to get a node's current mc",
 		Type:        Normative,
 		IntrusionSettings: IntrusionSettings{
 			ModifiesSystem:           false,
@@ -363,6 +380,28 @@ var Catalog = map[string]TestCatalogEntry{
 		},
 		BinaryDependencies: []string{
 			dependencies.OcBinaryName,
+			dependencies.GrepBinaryName,
+		},
+	},
+	deploymentsdrainIdentifierURL: {
+		Identifier:  DeploymentsNodesIdentifier,
+		Description: "A generic test used to drain node from its deployment pods",
+		BinaryDependencies: []string{
+			dependencies.JqBinaryName,
+			dependencies.EchoBinaryName,
+		},
+	},
+	mckernelargumentsIdentifierURL: {
+		Identifier:  NodeMcNameIdentifier,
+		Description: "A generic test used to get an mc's kernel arguments",
+		Type:        Normative,
+		IntrusionSettings: IntrusionSettings{
+			ModifiesSystem:           false,
+			ModificationIsPersistent: false,
+		},
+		BinaryDependencies: []string{
+			dependencies.OcBinaryName,
+			dependencies.JqBinaryName,
 			dependencies.EchoBinaryName,
 		},
 	},
@@ -375,6 +414,34 @@ var Catalog = map[string]TestCatalogEntry{
 			ModificationIsPersistent: false,
 		},
 		BinaryDependencies: []string{
+			dependencies.CatBinaryName,
+		},
+	},
+	currentKernelCmdlineArgsIdentifierURL: {
+		Identifier:  NodeMcNameIdentifier,
+		Description: "A generic test used to get node's /proc/cmdline",
+		Type:        Normative,
+		IntrusionSettings: IntrusionSettings{
+			ModifiesSystem:           false,
+			ModificationIsPersistent: false,
+		},
+		BinaryDependencies: []string{
+			dependencies.CatBinaryName,
+		},
+	},
+	grubKernelCmdlineArgsIdentifierURL: {
+		Identifier:  NodeMcNameIdentifier,
+		Description: "A generic test used to get node's next boot kernel args",
+		Type:        Normative,
+		IntrusionSettings: IntrusionSettings{
+			ModifiesSystem:           false,
+			ModificationIsPersistent: false,
+		},
+		BinaryDependencies: []string{
+			dependencies.LsBinaryName,
+			dependencies.SortBinaryName,
+			dependencies.HeadBinaryName,
+			dependencies.CutBinaryName,
 			dependencies.OcBinaryName,
 		},
 	},
@@ -515,5 +582,35 @@ var OwnersIdentifier = Identifier{
 // NodeSelectorIdentifier is the Identifier used to represent the generic NodeSelector test.
 var NodeSelectorIdentifier = Identifier{
 	URL:             nodehugepagesIdentifierURL,
+	SemanticVersion: versionOne,
+}
+
+// PodNodeNameIdentifier is the Identifier used to represent the generic PodNodeName test.
+var PodNodeNameIdentifier = Identifier{
+	URL:             podnodenameIdentifierURL,
+	SemanticVersion: versionOne,
+}
+
+// NodeMcNameIdentifier is the Identifier used to represent the generic NodeMcName test.
+var NodeMcNameIdentifier = Identifier{
+	URL:             nodemcnameIdentifierURL,
+	SemanticVersion: versionOne,
+}
+
+// McKernelArgumentsIdentifier is the Identifier used to represent the generic McKernelArguments test.
+var McKernelArgumentsIdentifier = Identifier{
+	URL:             mckernelargumentsIdentifierURL,
+	SemanticVersion: versionOne,
+}
+
+// CurrentKernelCmdlineArgsURLIdentifier is the Identifier used to represent the generic getCurrentKernelCmdlineArgs test.
+var CurrentKernelCmdlineArgsURLIdentifier = Identifier{
+	URL:             currentKernelCmdlineArgsIdentifierURL,
+	SemanticVersion: versionOne,
+}
+
+// GrubKernelCmdlineArgsURLIdentifier is the Identifier used to represent the generic getCurrentKernelCmdlineArgs test.
+var GrubKernelCmdlineArgsURLIdentifier = Identifier{
+	URL:             grubKernelCmdlineArgsIdentifierURL,
 	SemanticVersion: versionOne,
 }

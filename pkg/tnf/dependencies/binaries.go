@@ -35,6 +35,15 @@ const (
 	// IPBinaryName is the name of the Unix `ip` command.
 	IPBinaryName = "ip"
 
+	// LsBinaryName is the name of the Unix `ls` command.
+	LsBinaryName = "ls"
+
+	// SortBinaryName is the name of the Unix `sort` command.
+	SortBinaryName = "sort"
+
+	// HeadBinaryName is the name of the Unix `head` command.
+	HeadBinaryName = "head"
+
 	// JqBinaryName is the name of the Unix `jq` command.
 	JqBinaryName = "jq"
 
