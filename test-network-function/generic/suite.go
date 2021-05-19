@@ -17,10 +17,12 @@
 package generic
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"sort"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/onsi/ginkgo"
@@ -31,27 +33,34 @@ import (
 	"github.com/test-network-function/test-network-function/pkg/config/configsections"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/base/redhat"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/bootconfigentries"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/clusterrolebinding"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/cnffsdiff"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/containerid"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/currentkernelcmdlineargs"
 	dp "github.com/test-network-function/test-network-function/pkg/tnf/handlers/deployments"
 	dd "github.com/test-network-function/test-network-function/pkg/tnf/handlers/deploymentsdrain"
 	dn "github.com/test-network-function/test-network-function/pkg/tnf/handlers/deploymentsnodes"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/graceperiod"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/hugepages"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/ipaddr"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/mckernelarguments"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodehugepages"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodemcname"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodenames"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodeport"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodeselector"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodetainted"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/owners"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/ping"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/podnodename"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/readbootconfig"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/rolebinding"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/serviceaccount"
 	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
 	"github.com/test-network-function/test-network-function/pkg/tnf/testcases"
+	utils "github.com/test-network-function/test-network-function/pkg/utils"
 )
 
 const (
@@ -152,7 +161,6 @@ func createPartnerContainers(conf *configsections.TestConfiguration) map[configs
 // Runs the "generic" CNF test cases.
 var _ = ginkgo.Describe(testsKey, func() {
 	if testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusStrings, testsKey) {
-
 		config := GetTestConfiguration()
 		log.Infof("Test Configuration: %s", config)
 
@@ -223,6 +231,10 @@ var _ = ginkgo.Describe(testsKey, func() {
 
 		for _, containerUnderTest := range containersUnderTest {
 			testOwner(containerUnderTest.oc.GetPodNamespace(), containerUnderTest.oc.GetPodName())
+		}
+
+		for _, containersUnderTest := range containersUnderTest {
+			testBootParams(getContext(), containersUnderTest.oc.GetPodName(), containersUnderTest.oc.GetPodNamespace(), containersUnderTest.oc)
 		}
 	}
 })
@@ -377,6 +389,121 @@ func testNodeSelector(context *interactive.Context, podName, podNamespace string
 		gomega.Expect(err).To(gomega.BeNil())
 		if testResult != tnf.SUCCESS {
 			log.Warn(fmt.Sprintf("The pod specifies nodeSelector/nodeAffinity field, you might want to change it, %s %s", podName, podNamespace))
+		}
+	})
+}
+
+func getMcKernelArguments(context *interactive.Context, mcName string) map[string]string {
+	mcKernelArgumentsTester := mckernelarguments.NewMcKernelArguments(defaultTimeout, mcName)
+	test, err := tnf.NewTest(context.GetExpecter(), mcKernelArgumentsTester, []reel.Handler{mcKernelArgumentsTester}, context.GetErrorChannel())
+	gomega.Expect(err).To(gomega.BeNil())
+	testResult, err := test.Run()
+	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
+	gomega.Expect(err).To(gomega.BeNil())
+	mcKernelArguments := mcKernelArgumentsTester.GetKernelArguments()
+	var mcKernelArgumentsJSON []string
+	err = json.Unmarshal([]byte(mcKernelArguments), &mcKernelArgumentsJSON)
+	gomega.Expect(err).To(gomega.BeNil())
+	mcKernelArgumentsMap := utils.ArgListToMap(mcKernelArgumentsJSON)
+	return mcKernelArgumentsMap
+}
+
+func getMcName(context *interactive.Context, nodeName string) string {
+	mcNameTester := nodemcname.NewNodeMcName(defaultTimeout, nodeName)
+	test, err := tnf.NewTest(context.GetExpecter(), mcNameTester, []reel.Handler{mcNameTester}, context.GetErrorChannel())
+	gomega.Expect(err).To(gomega.BeNil())
+	testResult, err := test.Run()
+	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
+	gomega.Expect(err).To(gomega.BeNil())
+	return mcNameTester.GetMcName()
+}
+
+func getPodNodeName(context *interactive.Context, podName, podNamespace string) string {
+	podNameTester := podnodename.NewPodNodeName(defaultTimeout, podName, podNamespace)
+	test, err := tnf.NewTest(context.GetExpecter(), podNameTester, []reel.Handler{podNameTester}, context.GetErrorChannel())
+	gomega.Expect(err).To(gomega.BeNil())
+	testResult, err := test.Run()
+	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
+	gomega.Expect(err).To(gomega.BeNil())
+	return podNameTester.GetNodeName()
+}
+
+func getCurrentKernelCmdlineArgs(targetPodOc *interactive.Oc) map[string]string {
+	currentKernelCmdlineArgsTester := currentkernelcmdlineargs.NewCurrentKernelCmdlineArgs(defaultTimeout)
+	test, err := tnf.NewTest(targetPodOc.GetExpecter(), currentKernelCmdlineArgsTester, []reel.Handler{currentKernelCmdlineArgsTester}, targetPodOc.GetErrorChannel())
+	gomega.Expect(err).To(gomega.BeNil())
+	testResult, err := test.Run()
+	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
+	gomega.Expect(err).To(gomega.BeNil())
+	currnetKernelCmdlineArgs := currentKernelCmdlineArgsTester.GetKernelArguments()
+	currentSplitKernelCmdlineArgs := strings.Split(currnetKernelCmdlineArgs, " ")
+	return utils.ArgListToMap(currentSplitKernelCmdlineArgs)
+}
+
+func getBootEntryIndex(bootEntry string) (int, error) {
+	return strconv.Atoi(strings.Split(bootEntry, "-")[1])
+}
+
+func getMaxIndexEntry(bootConfigEntries []string) string {
+	maxIndex, err := getBootEntryIndex(bootConfigEntries[0])
+	gomega.Expect(err).To(gomega.BeNil())
+	maxIndexEntryName := bootConfigEntries[0]
+	for _, bootEntry := range bootConfigEntries {
+		if entryIndex, err2 := getBootEntryIndex(bootEntry); entryIndex > maxIndex {
+			maxIndex = entryIndex
+			gomega.Expect(err2).To(gomega.BeNil())
+			maxIndexEntryName = bootEntry
+		}
+	}
+
+	return maxIndexEntryName
+}
+
+func getGrubKernelArgs(context *interactive.Context, nodeName string) map[string]string {
+	bootConfigEntriesTester := bootconfigentries.NewBootConfigEntries(defaultTimeout, nodeName)
+	test, err := tnf.NewTest(context.GetExpecter(), bootConfigEntriesTester, []reel.Handler{bootConfigEntriesTester}, context.GetErrorChannel())
+	gomega.Expect(err).To(gomega.BeNil())
+	testResult, err := test.Run()
+	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
+	gomega.Expect(err).To(gomega.BeNil())
+	bootConfigEntries := bootConfigEntriesTester.GetBootConfigEntries()
+
+	maxIndexEntryName := getMaxIndexEntry(bootConfigEntries)
+
+	readBootConfigTester := readbootconfig.NewReadBootConfig(defaultTimeout, nodeName, maxIndexEntryName)
+	test, err = tnf.NewTest(context.GetExpecter(), readBootConfigTester, []reel.Handler{readBootConfigTester}, context.GetErrorChannel())
+	gomega.Expect(err).To(gomega.BeNil())
+	testResult, err = test.Run()
+	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
+	gomega.Expect(err).To(gomega.BeNil())
+	bootConfig := readBootConfigTester.GetBootConfig()
+
+	splitBootConfig := strings.Split(bootConfig, "\n")
+	filteredBootConfig := utils.FilterArray(splitBootConfig, func(line string) bool {
+		return strings.HasPrefix(line, "options")
+	})
+	gomega.Expect(len(filteredBootConfig)).To(gomega.Equal(1))
+	grubKernelConfig := filteredBootConfig[0]
+	grubSplitKernelConfig := strings.Split(grubKernelConfig, " ")
+	grubSplitKernelConfig = grubSplitKernelConfig[1:]
+	return utils.ArgListToMap(grubSplitKernelConfig)
+}
+
+func testBootParams(context *interactive.Context, podName, podNamespace string, targetPodOc *interactive.Oc) {
+	ginkgo.It(fmt.Sprintf("Testing boot params for the pod's node %s/%s", podNamespace, podName), func() {
+		nodeName := getPodNodeName(context, podName, podNamespace)
+		mcName := getMcName(context, nodeName)
+		mcKernelArgumentsMap := getMcKernelArguments(context, mcName)
+		currentKernelArgsMap := getCurrentKernelCmdlineArgs(targetPodOc)
+		grubKernelConfigMap := getGrubKernelArgs(context, nodeName)
+
+		for key, mcVal := range mcKernelArgumentsMap {
+			if currentVal, ok := currentKernelArgsMap[key]; ok {
+				gomega.Expect(currentVal).To(gomega.Equal(mcVal))
+			}
+			if grubVal, ok := grubKernelConfigMap[key]; ok {
+				gomega.Expect(grubVal).To(gomega.Equal(mcVal))
+			}
 		}
 	})
 }
