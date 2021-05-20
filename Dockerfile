@@ -1,7 +1,5 @@
 FROM registry.access.redhat.com/ubi8/ubi:latest AS build
 
-# golang 1.14.12 as it's the only version available on yum at time of writing.
-ENV GOLANG_VERSION=1.14.12
 ENV GOLANGCI_VERSION=v1.32.2
 
 ENV TNF_DIR=/usr/tnf
@@ -15,7 +13,23 @@ ENV OC_SRC_URL=https://github.com/openshift/oc/archive/${OC_SRC_ARCHIVE}
 ENV OC_SRC_DIR=${TEMP_DIR}/oc-client-src
 
 # Install dependencies
-RUN yum install -y golang-${GOLANG_VERSION} jq make git
+RUN yum install -y gcc git jq krb5-devel make wget
+
+# Install Go binary
+ENV GO_DL_URL="https://golang.org/dl"
+ENV GO_BIN_TAR="go1.14.12.linux-amd64.tar.gz"
+ENV GO_BIN_URL_x86_64=${GO_DL_URL}/${GO_BIN_TAR}
+ENV GOPATH="/root/go"
+RUN if [[ "$(uname -m)" -eq "x86_64" ]] ; then \
+        wget --directory-prefix=${TEMP_DIR} ${GO_BIN_URL_x86_64} && \
+            rm -rf /usr/local/go && \
+            tar -C /usr/local -xzf ${TEMP_DIR}/${GO_BIN_TAR}; \
+     else \
+         echo "CPU architecture not supported" && exit 1; \
+     fi
+
+# Add go binary directory to $PATH
+ENV PATH=${PATH}:"/usr/local/go/bin":${GOPATH}/"bin"
 
 # Build oc from source
 ADD ${OC_SRC_URL} ${TEMP_DIR}
@@ -27,9 +41,6 @@ RUN mkdir ${OC_SRC_DIR} && \
 
 # golangci-lint
 RUN curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b /usr/bin ${GOLANGCI_VERSION}
-
-# Add go binary directory to $PATH
-ENV PATH="/root/go/bin:${PATH}"
 
 # Git identifier to checkout
 ARG TNF_VERSION
@@ -61,7 +72,7 @@ WORKDIR ${TNF_DIR}
 RUN ln -s ${TNF_DIR}/config/testconfigure.yml ${TNF_DIR}/test-network-function/testconfigure.yml
 
 # Remove most of the build artefacts
-RUN yum remove -y golang make git && \
+RUN yum remove -y gcc git krb5-devel make wget && \
 	yum clean all && \
 	rm -rf ${TNF_SRC_DIR} && \
 	rm -rf ${TEMP_DIR} && \
