@@ -26,8 +26,8 @@ import (
 const (
 	cnfDefaultNetworkInterfaceKey = "defaultnetworkinterface"
 	cnfIPsKey                     = "multusips"
-
-	cniNetworksStatusKey = "k8s.v1.cni.cncf.io/networks-status"
+	cniNetworksStatusKey          = "k8s.v1.cni.cncf.io/networks-status"
+	resourceTypePods              = "pods"
 )
 
 var (
@@ -144,4 +144,23 @@ func (pr *PodResource) getPodIPs() (ips []string, err error) {
 func (pr *PodResource) annotationUnmarshalError(err error) error {
 	return fmt.Errorf("error (%s) attempting to unmarshal value of annotation '%s' on pod '%s/%s'",
 		err, cniNetworksStatusKey, pr.Metadata.Namespace, pr.Metadata.Name)
+}
+
+// GetPodsByLabel will return all pods with a given label value. If `labelValue` is an empty string, all pods with that
+// label will be returned, regardless of the labels value.
+func GetPodsByLabel(labelName, labelValue string) (*PodList, error) {
+	cmd := makeGetCommand(resourceTypePods, buildLabelQuery(labelName, labelValue))
+
+	out, err := cmd.Output()
+	if err != nil {
+		return nil, err
+	}
+
+	var podList PodList
+	err = json.Unmarshal(out, &podList)
+	if err != nil {
+		return nil, err
+	}
+
+	return &podList, nil
 }
