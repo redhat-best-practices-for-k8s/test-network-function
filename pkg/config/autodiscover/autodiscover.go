@@ -17,7 +17,6 @@
 package autodiscover
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
@@ -30,7 +29,6 @@ const (
 	enableAutodiscoverEnvVar = "TNF_ENABLE_CONFIG_AUTODISCOVER"
 	labelNamespace           = "test-network-function.com"
 	labelTemplate            = "%s/%s"
-	resourceTypePods         = "pods"
 
 	// AnyLabelValue is the value that will allow any value for a label when building the label query.
 	AnyLabelValue = ""
@@ -64,23 +62,4 @@ func makeGetCommand(resourceType, labelQuery string) *exec.Cmd {
 	log.Debug("Issuing get command ", cmd.Args)
 
 	return cmd
-}
-
-// GetPodsByLabel will return all pods with a given label value. If `labelValue` is an empty string, all pods with that
-// label will be returned, regardless of the labels value.
-func GetPodsByLabel(labelName, labelValue string) (*PodList, error) {
-	cmd := makeGetCommand(resourceTypePods, buildLabelQuery(labelName, labelValue))
-
-	out, err := cmd.Output()
-	if err != nil {
-		return nil, err
-	}
-
-	var podList PodList
-	err = json.Unmarshal(out, &podList)
-	if err != nil {
-		return nil, err
-	}
-
-	return &podList, nil
 }
