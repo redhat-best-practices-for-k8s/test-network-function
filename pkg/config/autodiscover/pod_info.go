@@ -75,7 +75,7 @@ func (pr *PodResource) hasAnnotation(annotationKey string) (present bool) {
 // Unmarshal it into the given var `v`.
 func (pr *PodResource) GetAnnotationValue(annotationKey string, v interface{}) (err error) {
 	if !pr.hasAnnotation(annotationKey) {
-		return fmt.Errorf("failed to find annotation '%s' on pod '%s/%s'", annotationKey, pr.Metadata.Namespace, pr.Metadata.Namespace)
+		return fmt.Errorf("failed to find annotation '%s' on pod '%s/%s'", annotationKey, pr.Metadata.Namespace, pr.Metadata.Name)
 	}
 	val := pr.Metadata.Annotations[annotationKey]
 	err = json.Unmarshal([]byte(val), v)
