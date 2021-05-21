@@ -80,7 +80,7 @@ func (pr *PodResource) GetAnnotationValue(annotationKey string, v interface{}) (
 	val := pr.Metadata.Annotations[annotationKey]
 	err = json.Unmarshal([]byte(val), v)
 	if err != nil {
-		return pr.annotationUnmarshalError(err)
+		return pr.annotationUnmarshalError(annotationKey, err)
 	}
 	return
 }
@@ -100,7 +100,7 @@ func (pr *PodResource) getDefaultNetworkDeviceFromAnnotations() (iface string, e
 		var cniInfo []cniNetworkInterface
 		err = json.Unmarshal([]byte(val), &cniInfo)
 		if err != nil {
-			return "", pr.annotationUnmarshalError(err)
+			return "", pr.annotationUnmarshalError(cniNetworksStatusKey, err)
 		}
 		for _, cniInterface := range cniInfo {
 			if cniInterface.Default {
@@ -127,7 +127,7 @@ func (pr *PodResource) getPodIPs() (ips []string, err error) {
 		var cniInfo []cniNetworkInterface
 		err = json.Unmarshal([]byte(val), &cniInfo)
 		if err != nil {
-			return nil, pr.annotationUnmarshalError(err)
+			return nil, pr.annotationUnmarshalError(cniNetworksStatusKey, err)
 		}
 		for _, cniInterface := range cniInfo {
 			ips = append(ips, cniInterface.IPs...)
@@ -141,9 +141,9 @@ func (pr *PodResource) getPodIPs() (ips []string, err error) {
 	return
 }
 
-func (pr *PodResource) annotationUnmarshalError(err error) error {
+func (pr *PodResource) annotationUnmarshalError(annotationKey string, err error) error {
 	return fmt.Errorf("error (%s) attempting to unmarshal value of annotation '%s' on pod '%s/%s'",
-		err, cniNetworksStatusKey, pr.Metadata.Namespace, pr.Metadata.Name)
+		err, annotationKey, pr.Metadata.Namespace, pr.Metadata.Name)
 }
 
 // GetPodsByLabel will return all pods with a given label value. If `labelValue` is an empty string, all pods with that
