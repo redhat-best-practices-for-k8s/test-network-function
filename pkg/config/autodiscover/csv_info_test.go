@@ -28,36 +28,34 @@ import (
 )
 
 const (
-	filePath             = "testdata"
-	testOrchestratorFile = "testorchestrator.json"
-	testSubjectFile      = "testtarget.json"
+	csvFile = "csv.json"
 )
 
 var (
-	testOrchestratorFilePath = path.Join(filePath, testOrchestratorFile)
-	testSubjectFilePath      = path.Join(filePath, testSubjectFile)
+	csvFilePath = path.Join(filePath, csvFile)
 )
 
-func loadPodResource(filePath string) (pod autodiscover.PodResource) {
+func loadCSVResource(filePath string) (csv autodiscover.CSVResource) {
 	contents, err := ioutil.ReadFile(filePath)
 	if err != nil {
-		log.Fatalf("error (%s) loading PodResource %s for testing", err, filePath)
+		log.Fatalf("error (%s) loading CSVResource %s for testing", err, filePath)
 	}
-	err = json.Unmarshal(contents, &pod)
+	err = json.Unmarshal(contents, &csv)
 	if err != nil {
-		log.Fatalf("error (%s) loading PodResource %s for testing", err, filePath)
+		log.Fatalf("error (%s) loading CSVResource %s for testing", err, filePath)
 	}
 	return
 }
 
-func TestPodGetAnnotationValue(t *testing.T) {
-	pod := loadPodResource(testOrchestratorFilePath)
-	var val string
-	err := pod.GetAnnotationValue("notPresent", &val)
-	assert.Equal(t, "", val)
+func TestCSVGetAnnotationValue(t *testing.T) {
+	csv := loadCSVResource(csvFilePath)
+	var val []string
+
+	err := csv.GetAnnotationValue("notPresent", &val)
+	assert.Equal(t, 0, len(val))
 	assert.NotNil(t, err)
 
-	err = pod.GetAnnotationValue("test-network-function.com/defaultnetworkinterface", &val)
-	assert.Equal(t, "eth0", val)
+	err = csv.GetAnnotationValue("test-network-function.com/operator_tests", &val)
+	assert.Equal(t, []string{"OPERATOR_STATUS", "ANOTHER_TEST"}, val)
 	assert.Nil(t, err)
 }
