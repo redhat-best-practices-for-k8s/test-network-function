@@ -38,6 +38,7 @@ const (
 	containerTestSpecName  = "container"
 	diagnosticTestSpecName = "diagnostic"
 	genericTestSpecName    = "generic"
+	operatorTestSpecName   = "operator"
 )
 
 // File is the top level of the config file. All new config sections must be added here
@@ -105,6 +106,9 @@ func doAutodiscovery() {
 	}
 	if testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusStrings, containerTestSpecName) {
 		configInstance.CNFs = autodiscover.BuildCNFsConfig()
+	}
+	if testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusStrings, operatorTestSpecName) {
+		configInstance.Operators = autodiscover.BuildOperatorConfig()
 	}
 }
 
