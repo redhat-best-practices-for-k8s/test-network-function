@@ -36,8 +36,7 @@ var (
 func BuildCNFsConfig() (cnfs []configsections.Cnf) {
 	pods, err := GetPodsByLabel(cnfLabelName, AnyLabelValue)
 	if err != nil {
-		log.Warnf("an error (%s) occurred when getting the FS Diff Master Container. Attempting to continue", err)
-		return cnfs
+		log.Fatalf("found no CNFs to test while 'container' spec enabled: %s", err)
 	}
 	for i := range pods.Items {
 		cnfs = append(cnfs, BuildCnfFromPodResource(&pods.Items[i]))
