@@ -300,6 +300,15 @@ For example:
 ...
 ```
 
+### Operator Spec
+
+* CSVs to be tested by the `operator` spec are identified with the `test-network-function-com/operator=target`
+label. Any value is permitted but `target` is used here for consistency with the other specs.
+* Defining which tests are to be run on the operator is done using the `test-network-function.com/operator_tests`
+annotation. This is equivalent to the `test-network-function.com/container_tests` and behaves the same.
+* `test-network-function.com/subscription_name` is optional and should contain a JSON-encoded string that's the name of
+the subscription for this CSV. If unset, the CSV name will be used.
+
 ## Test Output
 
 ### Claim File
