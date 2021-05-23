@@ -231,12 +231,5 @@ CONTAINER_TNF_KUBECONFIG=$(join_paths ${container_tnf_kubeconfig_paths[@]})
 container_tnf_kubeconfig_volumes_cmd_args=$(printf -- "-v %s " "${container_tnf_kubeconfig_volume_bindings[@]}")
 
 set -x
-docker run --rm \
-	--network $CONTAINER_NETWORK_MODE \
-	${container_tnf_kubeconfig_volumes_cmd_args[@]} \
-	-v $LOCAL_TNF_CONFIG:$CONTAINER_TNF_DIR/config \
-	-v $OUTPUT_LOC:$CONTAINER_TNF_DIR/claim \
-	-e KUBECONFIG=$CONTAINER_TNF_KUBECONFIG \
-	$TNF_IMAGE \
-	./run-cnf-suites.sh \
-	-o $CONTAINER_TNF_DIR/claim $@
+
+podman run --rm -v $LOCAL_TNF_CONFIG:$CONTAINER_TNF_DIR/config:Z -v $LOCAL_KUBECONFIG:$CONTAINER_TNF_DIR/kubeconfig/config:Z -v $OUTPUT_LOC:$CONTAINER_TNF_DIR/claim:Z quay.io/testnetworkfunction/test-network-function:latest ./run-cnf-suites.sh -o $CONTAINER_TNF_DIR/claim $@
