@@ -225,8 +225,10 @@ var _ = ginkgo.Describe(testsKey, func() {
 		testTainted()
 		testHugepages()
 
-		for _, containersUnderTest := range containersUnderTest {
-			testDeployments(containersUnderTest.oc.GetPodNamespace())
+		if !isMinikube() {
+			for _, containersUnderTest := range containersUnderTest {
+				testDeployments(containersUnderTest.oc.GetPodNamespace())
+			}
 		}
 
 		for _, containerUnderTest := range containersUnderTest {
