@@ -119,7 +119,7 @@ jobs:
 
       - name: Build the `test-network-function` image
         run: |
-          docker build --no-cache \
+          podman build --no-cache \
             -t ${IMAGE_NAME}:${IMAGE_TAG} \
             -t ${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG} \
             --build-arg TNF_VERSION=${COMMIT_SHA} \
@@ -140,7 +140,7 @@ jobs:
 
       - name: (if on main and upstream) Authenticate against Quay.io
         if: ${{ github.ref == 'refs/heads/main' && github.repository_owner == 'test-network-function' }}
-        uses: docker/login-action@v1
+        uses: podman/login-action@v1
         with:
           registry: ${{ env.REGISTRY }}
           # Use a Robot Account to authenticate against Quay.io
@@ -150,4 +150,4 @@ jobs:
 
       - name: (if on main and upstream) Push the newly built image to Quay.io
         if: ${{ github.ref == 'refs/heads/main' && github.repository_owner == 'test-network-function' }}
-        run: docker push --all-tags ${REGISTRY}/${IMAGE_NAME}
+        run: podman push --all-tags ${REGISTRY}/${IMAGE_NAME}
