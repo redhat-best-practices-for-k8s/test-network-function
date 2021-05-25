@@ -79,7 +79,7 @@ jobs:
 
       - name: Build the `test-network-function` image
         run: |
-          podman build --no-cache \
+          docker build --no-cache \
             -t ${IMAGE_NAME}:${IMAGE_TAG} \
             -t ${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG} \
             -t ${REGISTRY}/${IMAGE_NAME}:${TNF_VERSION} \
@@ -125,4 +125,4 @@ jobs:
           password: ${{ secrets.QUAY_ROBOT_TOKEN }}
 
       - name: Push the newly built image to Quay.io
-        run: podman push --all-tags ${REGISTRY}/${IMAGE_NAME}
+        run: docker push --all-tags ${REGISTRY}/${IMAGE_NAME}
