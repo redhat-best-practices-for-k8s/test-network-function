@@ -95,7 +95,7 @@ func claimUpdate() {
 	}
 
 	claimRoot := readClaim(&dat)
-	junitMap := claimRoot.Claim.Results
+	junitMap := claimRoot.Claim.RawResults
 
 	items, _ := ioutil.ReadDir(*reportFilesTextPtr)
 
@@ -114,7 +114,7 @@ func claimUpdate() {
 			fileUpdated = true
 		}
 	}
-	claimRoot.Claim.Results = junitMap
+	claimRoot.Claim.RawResults = junitMap
 	payload, err := json.MarshalIndent(claimRoot, "", "  ")
 	if err != nil {
 		log.Fatalf("Failed to generate the claim: %v", err)
