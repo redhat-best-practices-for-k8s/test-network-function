@@ -26,7 +26,6 @@ import (
 	"time"
 
 	"github.com/onsi/ginkgo"
-	"github.com/onsi/ginkgo/reporters"
 	"github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
 	"github.com/test-network-function/test-network-function-claim/pkg/claim"
@@ -38,7 +37,6 @@ import (
 	_ "github.com/test-network-function/test-network-function/test-network-function/generic"
 	_ "github.com/test-network-function/test-network-function/test-network-function/operator"
 	"github.com/test-network-function/test-network-function/test-network-function/version"
-	ginkgoreporters "kubevirt.io/qe-tools/pkg/ginkgo-reporters"
 )
 
 const (
@@ -110,22 +108,13 @@ func TestTest(t *testing.T) {
 	claimData.Versions = &claim.Versions{
 		Tnf: tnfVersion.Tag,
 	}
-
-	var ginkgoReporters []ginkgo.Reporter
-	if ginkgoreporters.Polarion.Run {
-		ginkgoReporters = append(ginkgoReporters, &ginkgoreporters.Polarion)
-	}
-
-	if *junitPath != "" {
-		junitFile := path.Join(*junitPath, JunitXMLFileName)
-		ginkgoReporters = append(ginkgoReporters, reporters.NewJUnitReporter(junitFile))
-	}
-
-	ginkgo.RunSpecsWithDefaultAndCustomReporters(t, CnfCertificationTestSuiteName, ginkgoReporters)
+	junitFile := path.Join(*junitPath, JunitXMLFileName)
+	ginkgo.RunSpecs(t, CnfCertificationTestSuiteName)
 	junitMap := make(map[string]interface{})
 	var extension = filepath.Ext(JunitXMLFileName)
 	reportKeyName := JunitXMLFileName[0 : len(JunitXMLFileName)-len(extension)]
-	junitMap[reportKeyName], err = junit.ExportJUnitAsJSON(JunitXMLFileName)
+
+	junitMap[reportKeyName], err = junit.ExportJUnitAsJSON(junitFile)
 	if err != nil {
 		log.Fatalf("error reading JUnit XML file into JSON: %v", err)
 	}

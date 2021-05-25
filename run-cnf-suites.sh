@@ -32,8 +32,8 @@ while [[ $1 == -* ]]; do
 		-*) echo "invalid option: $1" 1>&2; usage_error;;
 	esac
 done
-
-GINKGO_ARGS="-ginkgo.v -junit . -report $OUTPUT_LOC -claimloc $OUTPUT_LOC"
+# specify Junit report file name.
+GINKGO_ARGS="-ginkgo.v -junit $OUTPUT_LOC -report $OUTPUT_LOC -claimloc $OUTPUT_LOC -ginkgo.reportFile $OUTPUT_LOC/cnf-certification-tests_junit.xml"
 FOCUS=""
 
 for var in "$@"
