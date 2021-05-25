@@ -169,6 +169,8 @@ The `generic` test spec tests:
 3) That CNF pod namespace is not 'default' and does not begin with 'openshift-'.
 4) That CNF pod uses a ServiceAccount that does not have ClusterRoleBindings and does not have RoleBinding in other namespaces.
 5) That deployments in CNF namespace create new replicas successfully when needed.
+6) Print a warning if a pod spec specifies nodeSelector/nodeAffinity.
+7) Print a warning if a pod's terminationGracePeriod is set to 30s(the default in Openshift)
 
 To test `Default` network connectivity, a [test partner pod](https://github.com/test-network-function/cnf-certification-test-partner)
 is installed on the network.  The test partner pod is used as a known point when testing network connectivity of test target pods,
