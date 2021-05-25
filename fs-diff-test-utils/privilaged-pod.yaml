@@ -12,7 +12,7 @@ spec:
         - tail
         - -f
         - /dev/null
-      image: quay.io/isaacdorfman/centos-podman
+      image: quay.io/isaacdorfman/centos-docker
       name: master
       resources:
         limits:
