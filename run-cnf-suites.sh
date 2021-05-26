@@ -73,7 +73,9 @@ if [ "$VERIFY_CNF_FEATURES" == "true" ] && [ "$TNF_MINIKUBE_ONLY" != "true" ]; t
 	#
 	# export DNS_ARG=172.0.0.53
 	./run-container.sh -ginkgo.v -ginkgo.skip="performance|sriov|ptp|sctp|xt_u32|dpdk|ovn"
-
+else
+	# removing report if not running, so the final claim won't include stale reports
+	rm -f ${OUTPUT_LOC}/validation_junit.xml
 fi
 
 echo "Running with focus '$FOCUS'. Report will be output to '$OUTPUT_LOC'"
