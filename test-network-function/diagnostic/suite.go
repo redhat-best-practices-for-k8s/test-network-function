@@ -5,6 +5,9 @@ import (
 	"path"
 	"time"
 
+	"github.com/test-network-function/test-network-function/test-network-function/identifiers"
+	"github.com/test-network-function/test-network-function/test-network-function/results"
+
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
@@ -53,6 +56,7 @@ func createShell() *interactive.Context {
 var _ = ginkgo.Describe(testSuiteSpec, func() {
 	ginkgo.When("a cluster is set up and installed with OpenShift", func() {
 		ginkgo.It("should report all available nodeSummary", func() {
+			defer results.RecordResult(identifiers.TestExtractNodeInformationIdentifier)
 			context := createShell()
 
 			test, handlers, jsonParseResult, err := generic.NewGenericFromJSONFile(relativeNodesTestPath, relativeSchemaPath)

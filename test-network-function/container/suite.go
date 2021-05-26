@@ -22,6 +22,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/test-network-function/test-network-function/test-network-function/identifiers"
+	"github.com/test-network-function/test-network-function/test-network-function/results"
+
 	"github.com/onsi/ginkgo"
 	ginkgoconfig "github.com/onsi/ginkgo/config"
 	"github.com/onsi/gomega"
@@ -75,6 +78,7 @@ var _ = ginkgo.Describe(testSpecName, func() {
 				cnf := cnfRequestInfo
 				// Care: this test takes some time to run, failures at later points while before this has finished may be reported as a failure here. Read the failure reason carefully.
 				ginkgo.It(fmt.Sprintf("container %s/%s should eventually be verified as certified", cnf.Repository, cnf.Name), func() {
+					defer results.RecordResult(identifiers.TestContainerIsCertifiedIdentifier)
 					cnf := cnf // pin
 					gomega.Eventually(func() bool {
 						isCertified := certAPIClient.IsContainerCertified(cnf.Repository, cnf.Name)
@@ -155,6 +159,7 @@ var _ = ginkgo.Describe(testSpecName, func() {
 func runTestsOnCNF(containerCount int, testCmd testcases.BaseTestCase,
 	testType string, facts testcases.ContainerFact) {
 	ginkgo.It(fmt.Sprintf("is running test for : %s/%s for test command :  %s", facts.Namespace, facts.Name, testCmd.Name), func() {
+		defer results.RecordResult(identifiers.TestContainerBestPracticesIdentifier)
 		containerCount := containerCount
 		testType := testType
 		facts := facts
