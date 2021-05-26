@@ -47,7 +47,8 @@ const (
 	defaultClaimPath                     = ".."
 	defaultCliArgValue                   = ""
 	junitFlagKey                         = "junit"
-	JunitXMLFileName                     = "cnf-certification-tests_junit.xml"
+	TNFJunitXMLFileName                  = "cnf-certification-tests_junit.xml"
+	TNFReportKey                         = "cnf-certification-test"
 	CNFFeatureValidationJunitXMLFileName = "validation_junit.xml"
 	CNFFeatureValidationReportKey        = "cnf-feature-validation"
 	reportFlagKey                        = "report"
@@ -88,7 +89,7 @@ func loadJunitXMLIntoMap(result map[string]interface{}, junitFilepath, key strin
 	var err error
 	if key == "" {
 		var extension = filepath.Ext(junitFilepath)
-		key = JunitXMLFileName[0 : len(junitFilepath)-len(extension)]
+		key = junitFilepath[0 : len(junitFilepath)-len(extension)]
 	}
 	result[key], err = junit.ExportJUnitAsJSON(junitFilepath)
 	if err != nil {
@@ -122,12 +123,12 @@ func TestTest(t *testing.T) {
 	claimData.Versions = &claim.Versions{
 		Tnf: tnfVersion.Tag,
 	}
-	junitFile := filepath.Join(*junitPath, JunitXMLFileName)
+	junitFile := filepath.Join(*junitPath, TNFJunitXMLFileName)
 	ginkgo.RunSpecs(t, CnfCertificationTestSuiteName)
 
 	endTime := time.Now()
 	junitMap := make(map[string]interface{})
-	loadJunitXMLIntoMap(junitMap, junitFile, "")
+	loadJunitXMLIntoMap(junitMap, junitFile, TNFReportKey)
 
 	junitFile = filepath.Join(*junitPath, CNFFeatureValidationJunitXMLFileName)
 	if _, err = os.Stat(junitFile); err == nil {
