@@ -235,8 +235,10 @@ var _ = ginkgo.Describe(testsKey, func() {
 			testOwner(containerUnderTest.oc.GetPodNamespace(), containerUnderTest.oc.GetPodName())
 		}
 
-		for _, containersUnderTest := range containersUnderTest {
-			testBootParams(getContext(), containersUnderTest.oc.GetPodName(), containersUnderTest.oc.GetPodNamespace(), containersUnderTest.oc)
+		if !isMinikube() {
+			for _, containersUnderTest := range containersUnderTest {
+				testBootParams(getContext(), containersUnderTest.oc.GetPodName(), containersUnderTest.oc.GetPodNamespace(), containersUnderTest.oc)
+			}
 		}
 	}
 })
