@@ -21,7 +21,7 @@ import (
 	"flag"
 	"io/ioutil"
 	"os"
-	"path"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -84,13 +84,13 @@ func createClaimRoot() *claim.Root {
 	}
 }
 
-func loadJunitXMLIntoMap(result map[string]interface{}, filepath, key string) {
+func loadJunitXMLIntoMap(result map[string]interface{}, junitFilepath, key string) {
 	var err error
 	if key == "" {
-		var extension = path.Ext(filepath)
-		key = JunitXMLFileName[0 : len(filepath)-len(extension)]
+		var extension = filepath.Ext(junitFilepath)
+		key = JunitXMLFileName[0 : len(junitFilepath)-len(extension)]
 	}
-	result[key], err = junit.ExportJUnitAsJSON(filepath)
+	result[key], err = junit.ExportJUnitAsJSON(junitFilepath)
 	if err != nil {
 		log.Fatalf("error reading JUnit XML file into JSON: %v", err)
 	}
@@ -100,7 +100,7 @@ func loadJunitXMLIntoMap(result map[string]interface{}, filepath, key string) {
 //nolint:funlen // Function is long but core entrypoint and linear. Consider revisiting later.
 func TestTest(t *testing.T) {
 	flag.Parse()
-	claimOutputFile := path.Join(*claimPath, claimFileName)
+	claimOutputFile := filepath.Join(*claimPath, claimFileName)
 
 	gomega.RegisterFailHandler(ginkgo.Fail)
 
@@ -122,14 +122,14 @@ func TestTest(t *testing.T) {
 	claimData.Versions = &claim.Versions{
 		Tnf: tnfVersion.Tag,
 	}
-	junitFile := path.Join(*junitPath, JunitXMLFileName)
+	junitFile := filepath.Join(*junitPath, JunitXMLFileName)
 	ginkgo.RunSpecs(t, CnfCertificationTestSuiteName)
 
 	endTime := time.Now()
 	junitMap := make(map[string]interface{})
 	loadJunitXMLIntoMap(junitMap, junitFile, "")
 
-	junitFile = path.Join(*junitPath, CNFFeatureValidationJunitXMLFileName)
+	junitFile = filepath.Join(*junitPath, CNFFeatureValidationJunitXMLFileName)
 	if _, err = os.Stat(junitFile); err == nil {
 		loadJunitXMLIntoMap(junitMap, junitFile, CNFFeatureValidationReportKey)
 	}

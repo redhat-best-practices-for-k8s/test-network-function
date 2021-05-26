@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # defaults
-OUTPUT_LOC="$PWD/test-network-function"
+export OUTPUT_LOC="$PWD/test-network-function"
 
 usage() {
 	echo "$0 [-o OUTPUT_LOC] SUITE [... SUITE]"
@@ -61,8 +61,18 @@ if [ "$VERIFY_CNF_FEATURES" == "true" ] && [ "$TNF_MINIKUBE_ONLY" != "true" ]; t
 	export TNF_OFFICIAL_IMAGE="${TNF_OFFICIAL_ORG}${TNF_IMAGE_NAME}:${TNF_IMAGE_TAG}"
 	export TNF_CMD="/usr/bin/test-run.sh"
 	export OUTPUT_ARG="--junit"
+	export CONTAINER_NETWORK_MODE="host"
 
-	./run-container.sh -d 127.0.0.53 -n host -o $OUTPUT_LOC -ginkgo.v -ginkgo.skip="performance|sriov|ptp|sctp|xt_u32|dpdk|ovn"
+	if [[ -n "$KUBECONFIG" ]]; then
+		export LOCAL_KUBECONFIG=$KUBECONFIG
+	elif [[ -f "$HOME/.kube/config" ]]; then
+		export LOCAL_KUBECONFIG=$HOME/.kube/config
+	fi
+	
+	# For older verions of docker, dns server may need to be set explicitly, e.g.
+	#
+	# export DNS_ARG=172.0.0.53
+	./run-container.sh -ginkgo.v -ginkgo.skip="performance|sriov|ptp|sctp|xt_u32|dpdk|ovn"
 
 fi
 

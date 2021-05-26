@@ -28,4 +28,157 @@ export TNF_OFFICIAL_IMAGE="${TNF_OFFICIAL_ORG}${TNF_IMAGE_NAME}:${TNF_IMAGE_TAG}
 export TNF_CMD="./run-cnf-suites.sh"
 export OUTPUT_ARG="-o"
 
+usage() {
+	read -d '' usage_prompt <<- EOF
+	Usage: $0 -t TNFCONFIG -o OUTPUT_LOC [-i IMAGE] [-k KUBECONFIG] [-n NETWORK_MODE] [-d DNS_RESOLVER_ADDRESS] SUITE [... SUITE]
+
+	Configure and run the containerised TNF test offering.
+
+	Options (required)
+	  -t: set the directory containing TNF config files set up for the test.
+	  -o: set the output location for the test results.
+
+	Options (optional)
+	  -i: set the TNF container image. Supports local images, as well as images from external registries.
+	  -k: set path to one or more local kubeconfigs, separated by a colon.
+	      The -k option takes precedence, overwriting the results of local kubeconfig autodiscovery.
+	      See the 'Kubeconfig lookup order' section below for more details.
+	  -n: set the network mode of the container.
+	  -d: set the DNS resolver address for the test containers started by docker, may be required with 
+	      certain docker version if the kubeconfig contains host names
+
+	Kubeconfig lookup order
+	  1. If -k is specified, use the paths provided with the -k option.
+	  2. If -k is not specified, use paths defined in \$KUBECONFIG on the underlying host.
+	  3. If no paths are defined, use the default kubeconfig file located in '\$HOME/.kube/config'
+	     (currently: $HOME/.kube/config).
+
+	Examples
+	  $0 -t ~/tnf/config -o ~/tnf/output diagnostic generic
+
+	  Because -k is omitted, $(basename $0) will first try to autodiscover local kubeconfig files.
+	  If it succeeds, the diagnostic and generic tests will be run using the autodiscovered configuration.
+	  The test results will be saved to the '~/tnf/output' directory on the host.
+
+	  $0 -k ~/.kube/ABC:~/.kube/DEF -t ~/tnf/config -o ~/tnf/output diagnostic generic
+
+	  The command will bind two kubeconfig files (~/.kube/ABC and ~/.kube/DEF) to the TNF container,
+	  run the diagnostic and generic tests, and save the test results into the '~/tnf/output' directory
+	  on the host.
+
+	  $0 -i custom-tnf-image:v1.2-dev -t ~/tnf/config -o ~/tnf/output diagnostic generic
+
+	  The command will run the diagnostic and generic tests as implemented in the custom-tnf-image:v1.2-dev
+	  local image set by the -i parameter. The test results will be saved to the '~/tnf/output' directory.
+
+	Test suites
+	  Allowed tests are listed in the README.
+	  Note: Tests must be specified after all other arguments!
+	EOF
+
+	echo -e "$usage_prompt"
+}
+
+usage_error() {
+	usage
+	exit 1
+}
+
+check_required_vars() {
+	local var_missing=false
+
+	for index in "${!REQUIRED_VARS[@]}"; do
+		var=${REQUIRED_VARS[$index]}
+		if [[ -z ${!var} ]]; then
+			error_message=${REQUIRED_VARS_ERROR_MESSAGES[$index]}
+			echo "$0: error: $error_message" 1>&2
+			var_missing=true
+		fi
+	done
+
+	if $var_missing; then
+		echo ""
+		usage_error
+	fi
+}
+
+check_cli_required_num_of_args() {
+	if (($# < $REQUIRED_NUM_OF_ARGS)); then
+		usage_error
+	fi;
+}
+
+perform_kubeconfig_autodiscovery() {
+	if [[ -n "$KUBECONFIG" ]]; then
+		export LOCAL_KUBECONFIG=$KUBECONFIG
+		kubeconfig_autodiscovery_source='$KUBECONFIG'
+	elif [[ -f "$HOME/.kube/config" ]]; then
+		export LOCAL_KUBECONFIG=$HOME/.kube/config
+		kubeconfig_autodiscovery_source="\$HOME/.kube/config ($HOME/.kube/config)"
+	fi
+}
+
+display_kubeconfig_autodiscovery_summary() {
+	if [[ -n "$kubeconfig_autodiscovery_source" ]]; then
+		echo "Kubeconfig Autodiscovery: configuration loaded from $kubeconfig_autodiscovery_source"
+	fi
+}
+
+if [ ! -z "${REQUIRED_NUM_OF_ARGS}" ]; then
+	check_cli_required_num_of_args $@
+fi
+
+perform_kubeconfig_autodiscovery
+
+# Parge args beginning with -
+while [[ $1 == -* ]]; do
+	echo "$1 $2"
+    case "$1" in
+      -h|--help|-\?) usage; exit 0;;
+      -k) if (($# > 1)); then
+            export LOCAL_KUBECONFIG=$2
+            unset kubeconfig_autodiscovery_source
+            shift 2
+          else
+            echo "-k requires an argument" 1>&2
+            exit 1
+          fi ;;
+      -t) if (($# > 1)); then
+            export LOCAL_TNF_CONFIG=$2; shift 2
+          else
+            echo "-t requires an argument" 1>&2
+            exit 1
+          fi ;;
+      -o) if (($# > 1)); then
+            export OUTPUT_LOC=$2; shift 2
+          else
+            echo "-o requires an argument" 1>&2
+            exit 1
+          fi ;;
+      -i) if (($# > 1)); then
+            export TNF_IMAGE=$2; shift 2
+          else
+            echo "-i requires an argument" 1>&2
+            exit 1
+          fi ;;
+      -n) if (($# > 1)); then
+            export CONTAINER_NETWORK_MODE=$2; shift 2
+          else
+            echo "-n requires an argument" 1>&2
+            exit 1
+          fi ;;
+      -d) if (($# > 1)); then
+            export DNS_ARG=$2; shift 2
+          else
+            echo "-d requires an argument" 1>&2
+            exit 1
+          fi ;;		  
+      --) shift; break;;
+      -*) echo "invalid option: $1" 1>&2; usage_error;;
+    esac
+done
+
+display_kubeconfig_autodiscovery_summary
+check_required_vars
+
 ./run-container.sh "$@"
