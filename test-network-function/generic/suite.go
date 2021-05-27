@@ -375,6 +375,7 @@ func testRoles(podName, podNamespace string) {
 func testGracePeriod(context *interactive.Context, podName, podNamespace string) {
 	ginkgo.It(fmt.Sprintf("Testing pod terminationGracePeriod %s/%s", podNamespace, podName), func() {
 		defer results.RecordResult(identifiers.TestNonDefaultGracePeriodIdentifier)
+		infoWriter := tnf.CreateTestExtraInfoWriter()
 		tester := graceperiod.NewGracePeriod(defaultTimeout, podName, podNamespace)
 		test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 		gomega.Expect(err).To(gomega.BeNil())
@@ -383,7 +384,9 @@ func testGracePeriod(context *interactive.Context, podName, podNamespace string)
 		gomega.Expect(err).To(gomega.BeNil())
 		gracePeriod := tester.GetGracePeriod()
 		if gracePeriod == defaultTerminationGracePeriod {
-			log.Warn(fmt.Sprintf("%s %s has terminationGracePeriod set to 30, you might want to change it", podName, podNamespace))
+			msg := fmt.Sprintf("%s %s has terminationGracePeriod set to 30, you might want to change it", podName, podNamespace)
+			log.Warn(msg)
+			infoWriter(msg)
 		}
 	})
 }
