@@ -35,6 +35,11 @@ The autodiscovery first looks for paths in the `$KUBECONFIG` environment variabl
 
 *Note*: Tests must be specified after all other arguments!
 
+*Note*: The `run-tnf-container.sh` script performs autodiscovery of selected TNF environment variables.  
+Currently supported environment variables include:
+- `TNF_MINIKUBE_ONLY`
+- `TNF_ENABLE_CONFIG_AUTODISCOVER`
+
 ### Building
 
 You can build an image locally by using the command below. Use the value of `TNF_VERSION` to set a branch, a tag, or a hash of a commit that will be installed into the image.
