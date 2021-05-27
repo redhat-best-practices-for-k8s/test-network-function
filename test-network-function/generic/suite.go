@@ -394,6 +394,7 @@ func testGracePeriod(context *interactive.Context, podName, podNamespace string)
 func testNodeSelector(context *interactive.Context, podName, podNamespace string) {
 	ginkgo.It(fmt.Sprintf("Testing pod nodeSelector %s/%s", podNamespace, podName), func() {
 		defer results.RecordResult(identifiers.TestPodNodeSelectorAndAffinityBestPractices)
+		infoWriter := tnf.CreateTestExtraInfoWriter()
 		tester := nodeselector.NewNodeSelector(defaultTimeout, podName, podNamespace)
 		test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 		gomega.Expect(err).To(gomega.BeNil())
@@ -401,7 +402,9 @@ func testNodeSelector(context *interactive.Context, podName, podNamespace string
 
 		gomega.Expect(err).To(gomega.BeNil())
 		if testResult != tnf.SUCCESS {
-			log.Warn(fmt.Sprintf("The pod specifies nodeSelector/nodeAffinity field, you might want to change it, %s %s", podName, podNamespace))
+			msg := fmt.Sprintf("The pod specifies nodeSelector/nodeAffinity field, you might want to change it, %s %s", podName, podNamespace)
+			log.Warn(msg)
+			infoWriter(msg)
 		}
 	})
 }
