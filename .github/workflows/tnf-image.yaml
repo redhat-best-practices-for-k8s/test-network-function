@@ -21,6 +21,7 @@ env:
   IMAGE_TAG: latest
   CURRENT_VERSION_GENERIC_BRANCH: 1.0.x
   TNF_MINIKUBE_ONLY: true
+  TNF_ENABLE_CONFIG_AUTODISCOVER: true
   TNF_CONFIG_DIR: /tmp/tnf/config
   TNF_OUTPUT_DIR: /tmp/tnf/output
   TNF_SRC_URL: 'https://github.com/${{ github.repository }}'
@@ -110,8 +111,11 @@ jobs:
           cp test-network-function/*.yml $TNF_CONFIG_DIR
         shell: bash
 
-      - name: 'Test: Run diagnostic test suite'
+      - name: 'Test: Run diagnostic test suite in a TNF container'
         run: ./run-tnf-container.sh ${{ env.TESTING_CMD_PARAMS }} diagnostic
+
+      - name: 'Test: Run generic test suite in a TNF container'
+        run: ./run-tnf-container.sh ${{ env.TESTING_CMD_PARAMS }} generic
 
       # Push the new TNF image to Quay.io.
 
