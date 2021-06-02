@@ -26,7 +26,7 @@ import (
 )
 
 const (
-	owRegex = "(?s).+"
+	owRegex = "(?s)OWNERKIND\n.+"
 )
 
 // Owners tests pod owners
@@ -42,7 +42,7 @@ func NewOwners(timeout time.Duration, podNamespace, podName string) *Owners {
 		timeout: timeout,
 		result:  tnf.ERROR,
 		args: []string{"oc", "-n", podNamespace, "get", "pods", podName,
-			"-o", "custom-columns=OWNERKIND:.metadata.ownerReferences[*].kind"},
+			"-o", `custom-columns=OWNERKIND:.metadata.ownerReferences\[\*\].kind`},
 	}
 }
 

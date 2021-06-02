@@ -71,7 +71,7 @@ func Test_ReelMatchSuccess(t *testing.T) {
 }
 
 // Just ensure there are no panics.
-func Test_ReelEof(t *testing.T) {
+func Test_ReelEOF(t *testing.T) {
 	newDn := dn.NewDeploymentsNodes(testTimeoutDuration, testNamespace)
 	assert.NotNil(t, newDn)
 	newDn.ReelEOF()
