@@ -55,7 +55,7 @@ type File struct {
 	CertifiedContainerInfo []configsections.CertifiedContainerRequestInfo `yaml:"certifiedcontainerinfo,omitempty" json:"certifiedcontainerinfo,omitempty"`
 
 	// CertifiedOperatorInfo is list of operator bundle names that are queried for certification status.
-	CertifiedOperatorInfo []configsections.CertifiedOperatorRequestInfo `yaml:"certifiedoperatorinfo,omitempty" json:"certifiedoperatorinfo,omitempty"`
+	CertifiedOperatorInfo []configsections.CertifiedOperatorInfo `yaml:"certifiedoperatorinfo,omitempty" json:"certifiedoperatorinfo,omitempty"`
 
 	// CnfAvailableTestCases list the available test cases for  reference.
 	CnfAvailableTestCases []string `yaml:"cnfavailabletestcases,omitempty" json:"cnfavailabletestcases,omitempty"`
