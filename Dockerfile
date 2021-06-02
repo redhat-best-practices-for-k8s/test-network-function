@@ -1,19 +1,16 @@
 FROM registry.access.redhat.com/ubi8/ubi:latest AS build
 
 ENV GOLANGCI_VERSION=v1.32.2
+ENV OPENSHIFT_VERSION=4.6.32
 
 ENV TNF_DIR=/usr/tnf
 ENV TNF_SRC_DIR=${TNF_DIR}/tnf-src
 ENV TNF_BIN_DIR=${TNF_DIR}/test-network-function
 
 ENV TEMP_DIR=/tmp
-# Most recent version of 4.4 available at time of writing.
-ENV OC_SRC_ARCHIVE=openshift-clients-4.4.0-202006211643.p0.tar.gz
-ENV OC_SRC_URL=https://github.com/openshift/oc/archive/${OC_SRC_ARCHIVE}
-ENV OC_SRC_DIR=${TEMP_DIR}/oc-client-src
 
 # Install dependencies
-RUN yum install -y gcc git jq krb5-devel make wget
+RUN yum install -y gcc git jq make wget
 
 # Install Go binary
 ENV GO_DL_URL="https://golang.org/dl"
@@ -28,16 +25,17 @@ RUN if [[ "$(uname -m)" -eq "x86_64" ]] ; then \
          echo "CPU architecture not supported" && exit 1; \
      fi
 
-# Add go binary directory to $PATH
-ENV PATH=${PATH}:"/usr/local/go/bin":${GOPATH}/"bin"
+# Install oc binary
+ENV OC_BIN_TAR="openshift-client-linux.tar.gz"
+ENV OC_DL_URL="https://mirror.openshift.com/pub/openshift-v4/clients/ocp"/${OPENSHIFT_VERSION}/${OC_BIN_TAR}
+ENV OC_BIN="/usr/local/oc/bin"
+RUN wget --directory-prefix=${TEMP_DIR} ${OC_DL_URL} && \
+    mkdir -p ${OC_BIN} && \
+    tar -C ${OC_BIN} -xzf ${TEMP_DIR}/${OC_BIN_TAR} && \
+    chmod a+x ${OC_BIN}/oc
 
-# Build oc from source
-ADD ${OC_SRC_URL} ${TEMP_DIR}
-RUN mkdir ${OC_SRC_DIR} && \
-	tar -xf ${TEMP_DIR}/${OC_SRC_ARCHIVE} -C ${OC_SRC_DIR} --strip-components=1 && \
-	cd ${OC_SRC_DIR} && \
-	make oc && \
-	mv ./oc /usr/bin/
+# Add go and oc binary directory to $PATH
+ENV PATH=${PATH}:"/usr/local/go/bin":${GOPATH}/"bin"
 
 # golangci-lint
 RUN curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b /usr/bin ${GOLANGCI_VERSION}
@@ -72,7 +70,7 @@ WORKDIR ${TNF_DIR}
 RUN ln -s ${TNF_DIR}/config/testconfigure.yml ${TNF_DIR}/test-network-function/testconfigure.yml
 
 # Remove most of the build artefacts
-RUN yum remove -y gcc git krb5-devel make wget && \
+RUN yum remove -y gcc git make wget && \
 	yum clean all && \
 	rm -rf ${TNF_SRC_DIR} && \
 	rm -rf ${TEMP_DIR} && \
