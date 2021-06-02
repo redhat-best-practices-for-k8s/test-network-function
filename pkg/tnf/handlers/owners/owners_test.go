@@ -38,11 +38,9 @@ func Test_ReelFirstPositive(t *testing.T) {
 	assert.NotNil(t, newOw)
 	firstStep := newOw.ReelFirst()
 	re := regexp.MustCompile(firstStep.Expect[0])
-	positiveInputs := append(testInputFailureSlice, testInputFailureSlice...)
-	for _, positiveInput := range positiveInputs {
+	for _, positiveInput := range testInputSuccessSlice {
 		matches := re.FindStringSubmatch(positiveInput)
 		assert.Len(t, matches, 1)
-		assert.Equal(t, positiveInput, matches[0])
 	}
 }
 
@@ -95,7 +93,7 @@ var (
 		"NAME\nOwner\nOwner\n",
 	}
 	testInputSuccessSlice = []string{
-		"NAME\nOwner\nReplicaSet\n",
-		"NAME\nDaemonSet\nOwner\n",
+		"OWNERKIND\nReplicaSet\n",
+		"OWNERKIND\nDaemonSet\n",
 	}
 )
