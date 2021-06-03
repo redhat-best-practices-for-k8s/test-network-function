@@ -2,6 +2,9 @@
 
 This repository contains a set of network function test cases and the framework to build more.  It also generates reports
 (claim.json) on the result of a test run.
+
+Please consult [CATALOG.md](./CATALOG.md) for a catalog of the included test cases and test case building blocks.
+
 The tests and framework are intended to test the interaction of Cloud-Native Network Functions (CNFs) with OpenShift
 Container Platform.
 
