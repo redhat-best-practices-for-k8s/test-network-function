@@ -11,6 +11,7 @@ env:
   IMAGE_NAME: testnetworkfunction/test-network-function
   IMAGE_TAG: unstable
   TNF_MINIKUBE_ONLY: true
+  TNF_ENABLE_CONFIG_AUTODISCOVER: true
   TNF_CONFIG_DIR: /tmp/tnf/config
   TNF_OUTPUT_DIR: /tmp/tnf/output
   TNF_SRC_URL: 'https://github.com/${{ github.repository }}'
@@ -115,6 +116,9 @@ jobs:
       - name: 'Test: Run diagnostic test suite'
         run: ./run-cnf-suites.sh diagnostic
 
+      - name: 'Test: Run generic test suite'
+        run: ./run-cnf-suites.sh generic
+
       # Perform smoke tests using a TNF container.
 
       - name: Build the `test-network-function` image
@@ -133,8 +137,11 @@ jobs:
           cp test-network-function/*.yml $TNF_CONFIG_DIR
         shell: bash
 
-      - name: 'Test: Run diagnostic test suite'
+      - name: 'Test: Run diagnostic test suite in a TNF container'
         run: ./run-tnf-container.sh ${{ env.TESTING_CMD_PARAMS }} diagnostic
+
+      - name: 'Test: Run generic test suite in a TNF container'
+        run: ./run-tnf-container.sh ${{ env.TESTING_CMD_PARAMS }} generic
 
       # Push the new unstable TNF image to Quay.io.
 
@@ -150,4 +157,4 @@ jobs:
 
       - name: (if on main and upstream) Push the newly built image to Quay.io
         if: ${{ github.ref == 'refs/heads/main' && github.repository_owner == 'test-network-function' }}
-        run: docker push --all-tags ${REGISTRY}/${IMAGE_NAME}        
+        run: docker push --all-tags ${REGISTRY}/${IMAGE_NAME}

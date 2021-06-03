@@ -21,6 +21,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/test-network-function/test-network-function/test-network-function/identifiers"
+	"github.com/test-network-function/test-network-function/test-network-function/results"
+
 	"github.com/onsi/ginkgo"
 	ginkgoconfig "github.com/onsi/ginkgo/config"
 	"github.com/onsi/gomega"
@@ -85,6 +88,7 @@ func itRunsTestsOnOperator() {
 	for _, certified := range operatorsToQuery {
 		// Care: this test takes some time to run, failures at later points while before this has finished may be reported as a failure here. Read the failure reason carefully.
 		ginkgo.It(fmt.Sprintf("should eventually be verified as certified (operator %s/%s)", certified.Organization, certified.Name), func() {
+			defer results.RecordResult(identifiers.TestOperatorIsCertifiedIdentifier)
 			certified := certified // pin
 			gomega.Eventually(func() bool {
 				isCertified := certAPIClient.IsOperatorCertified(certified.Organization, certified.Name)
@@ -132,6 +136,7 @@ func agrName(operatorName, subName, testName string) string {
 func runTestsOnOperator(args []interface{}, name, namespace string, testCmd testcases.BaseTestCase) {
 	ginkgo.When(fmt.Sprintf("under test is: %s/%s ", namespace, name), func() {
 		ginkgo.It(fmt.Sprintf("tests for: %s", testCmd.Name), func() {
+			defer results.RecordResult(identifiers.TestOperatorBestPracticesIdentifier)
 			cmdArgs := strings.Split(fmt.Sprintf(testCmd.Command, args...), " ")
 			opInTest := operator.NewOperator(cmdArgs, name, namespace, testCmd.ExpectedStatus, testCmd.ResultType, testCmd.Action, defaultTimeout)
 			gomega.Expect(opInTest).ToNot(gomega.BeNil())
