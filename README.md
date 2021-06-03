@@ -40,6 +40,17 @@ Currently supported environment variables include:
 - `TNF_MINIKUBE_ONLY`
 - `TNF_ENABLE_CONFIG_AUTODISCOVER`
 
+#### Running using `docker` instead of `podman`
+
+By default, `run-container.sh` utilizes `podman`.  However, you can configure an alternate container virtualization
+client using `TNF_CONTAINER_CLIENT`.  This is particularly useful for operating systems that do not readily support
+`podman`, such as macOS.  In order to configure the test harness to use `docker`, issue the following prior to
+`run-tnf-container.sh`:
+
+```shell script
+export TNF_CONAINER_CLIENT="docker"
+```
+
 ### Building
 
 You can build an image locally by using the command below. Use the value of `TNF_VERSION` to set a branch, a tag, or a hash of a commit that will be installed into the image.

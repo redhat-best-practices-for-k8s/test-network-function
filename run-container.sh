@@ -1,5 +1,24 @@
 #!/usr/bin/env bash
 
+# configure_tnf_container_client configures the underlying container virtualization client.  If the user sets the
+# TNF_CONTAINER_CLIENT environment variable, then that value is utilized.  Otherwise, "podman" is used by default.
+# This is particularly useful for Operating Systems which do not readily support "podman", and "docker" must be used.
+function configure_tnf_container_client() {
+  PODMAN_EXECUTABLE="podman"
+  DEFAULT_CONTAINER_EXECUTABLE="${PODMAN_EXECUTABLE}"
+
+  if [ "" == "${TNF_CONTAINER_CLIENT}" ]
+  then
+    echo "The \$TNF_CONTAINER_CLIENT environment variable is not set; defaulting to use: ${DEFAULT_CONTAINER_EXECUTABLE}"
+    export TNF_CONTAINER_CLIENT="${DEFAULT_CONTAINER_EXECUTABLE}"
+  else
+    echo "\$TNF_CONTAINER_CLIENT is set;  using: ${TNF_CONTAINER_CLIENT}"
+  fi
+}
+
+# call the function to configure "podman" or something else if specified by TNF_CONTAINER_CLIENT
+configure_tnf_container_client
+
 CONTAINER_TNF_DIR=/usr/tnf
 CONTAINER_TNF_KUBECONFIG_FILE_BASE_PATH="$CONTAINER_TNF_DIR/kubeconfig/config"
 CONTAINER_DEFAULT_NETWORK_MODE=bridge
@@ -76,7 +95,7 @@ if [ ! -z "${DNS_ARG}" ]; then
 fi
 
 set -x
-podman run --rm $DNS_ARG \
+${TNF_CONTAINER_CLIENT} run --rm $DNS_ARG \
 	--network $CONTAINER_NETWORK_MODE \
 	${container_tnf_kubeconfig_volumes_cmd_args[@]} \
 	$CONFIG_VOLUME_MOUNT_ARG:Z \
