@@ -30,7 +30,7 @@ const (
 )
 
 func TestExtractTestSuiteResults(t *testing.T) {
-	junitResults, err := junit.ExportJUnitAsJSON(path.Join("testdata", testJunitXMLFilename))
+	junitResults, err := junit.ExportJUnitAsMap(path.Join("testdata", testJunitXMLFilename))
 	claim := make(map[string]interface{})
 	claim[testKey] = junitResults
 	assert.Nil(t, err)

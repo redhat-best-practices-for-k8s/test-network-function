@@ -45,8 +45,8 @@ const (
 	CouldNotDeriveFailureReason = "could not derive a reason for the failure from the output JSON"
 )
 
-// ExportJUnitAsJSON attempts to read a JUnit XML file and converts it to a generic JSON map.
-func ExportJUnitAsJSON(junitFilename string) (map[string]interface{}, error) {
+// ExportJUnitAsMap attempts to read a JUnit XML file and converts it to a generic map.
+func ExportJUnitAsMap(junitFilename string) (map[string]interface{}, error) {
 	xmlReader, err := os.Open(junitFilename)
 	// An error is encountered reading the file.
 	if err != nil {
