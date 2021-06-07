@@ -89,7 +89,7 @@ CONTAINER_TNF_KUBECONFIG=$(join_paths ${container_tnf_kubeconfig_paths[@]})
 container_tnf_kubeconfig_volumes_cmd_args=$(printf -- "-v %s " "${container_tnf_kubeconfig_volume_bindings[@]}")
 
 if [ ! -z "${LOCAL_TNF_CONFIG}" ]; then
-	CONFIG_VOLUME_MOUNT_ARG="-v $LOCAL_TNF_CONFIG:$CONTAINER_TNF_DIR/config"
+	CONFIG_VOLUME_MOUNT_ARG="-v $LOCAL_TNF_CONFIG:$CONTAINER_TNF_DIR/config:Z"
 fi
 
 if [ ! -z "${DNS_ARG}" ]; then
@@ -100,7 +100,7 @@ set -x
 ${TNF_CONTAINER_CLIENT} run --rm $DNS_ARG \
 	--network $CONTAINER_NETWORK_MODE \
 	${container_tnf_kubeconfig_volumes_cmd_args[@]} \
-	$CONFIG_VOLUME_MOUNT_ARG:Z \
+	$CONFIG_VOLUME_MOUNT_ARG \
 	-v $OUTPUT_LOC:$CONTAINER_TNF_DIR/claim:Z \
 	-e KUBECONFIG=$CONTAINER_TNF_KUBECONFIG \
 	-e TNF_MINIKUBE_ONLY=$CONTAINER_TNF_MINIKUBE_ONLY \
