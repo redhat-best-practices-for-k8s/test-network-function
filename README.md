@@ -51,7 +51,7 @@ client using `TNF_CONTAINER_CLIENT`.  This is particularly useful for operating 
 `run-tnf-container.sh`:
 
 ```shell script
-export TNF_CONAINER_CLIENT="docker"
+export TNF_CONTAINER_CLIENT="docker"
 ```
 
 ### Building
