@@ -20,6 +20,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -60,6 +61,7 @@ import (
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/readbootconfig"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/rolebinding"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/serviceaccount"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/sysctlallconfigsargs"
 	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
 	"github.com/test-network-function/test-network-function/pkg/tnf/testcases"
@@ -242,6 +244,10 @@ var _ = ginkgo.Describe(testsKey, func() {
 			for _, containersUnderTest := range containersUnderTest {
 				testBootParams(getContext(), containersUnderTest.oc.GetPodName(), containersUnderTest.oc.GetPodNamespace(), containersUnderTest.oc)
 			}
+		}
+
+		for _, containersUnderTest := range containersUnderTest {
+			testSysctlConfigs(getContext(), containersUnderTest.oc.GetPodName(), containersUnderTest.oc.GetPodNamespace())
 		}
 	}
 })
@@ -505,6 +511,43 @@ func getGrubKernelArgs(context *interactive.Context, nodeName string) map[string
 	return utils.ArgListToMap(grubSplitKernelConfig)
 }
 
+// Creates a map describing the final sysctl key-value pair out of the results of "sysctl --system"
+func parseSysctlSystemOutput(sysctlSystemOutput string) map[string]string {
+	retval := make(map[string]string)
+	splitConfig := strings.Split(sysctlSystemOutput, "\n")
+	for _, line := range splitConfig {
+		if line == "" {
+			continue
+		}
+
+		if strings.HasPrefix(line, "*") {
+			continue
+		}
+
+		keyValRegexp := regexp.MustCompile(`( \S+)(\s*)=(\s*)(\S+)`) // A line is of the form "kernel.yama.ptrace_scope = 0"
+		if !keyValRegexp.MatchString(line) {
+			continue
+		}
+		regexResults := keyValRegexp.FindStringSubmatch(line)
+		key := regexResults[1]
+		val := regexResults[4]
+		retval[key] = val
+	}
+	return retval
+}
+
+func getSysctlConfigArgs(context *interactive.Context, nodeName string) map[string]string {
+	sysctlAllConfigsArgsTester := sysctlallconfigsargs.NewSysctlAllConfigsArgs(defaultTimeout, nodeName)
+	test, err := tnf.NewTest(context.GetExpecter(), sysctlAllConfigsArgsTester, []reel.Handler{sysctlAllConfigsArgsTester}, context.GetErrorChannel())
+	gomega.Expect(err).To(gomega.BeNil())
+	testResult, err := test.Run()
+	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
+	gomega.Expect(err).To(gomega.BeNil())
+	sysctlAllConfigsArgs := sysctlAllConfigsArgsTester.GetSysctlAllConfigsArgs()
+
+	return parseSysctlSystemOutput(sysctlAllConfigsArgs)
+}
+
 func testBootParams(context *interactive.Context, podName, podNamespace string, targetPodOc *interactive.Oc) {
 	ginkgo.It(fmt.Sprintf("Testing boot params for the pod's node %s/%s", podNamespace, podName), func() {
 		defer results.RecordResult(identifiers.TestUnalteredStartupBootParamsIdentifier)
@@ -520,6 +563,21 @@ func testBootParams(context *interactive.Context, podName, podNamespace string, 
 			}
 			if grubVal, ok := grubKernelConfigMap[key]; ok {
 				gomega.Expect(grubVal).To(gomega.Equal(mcVal))
+			}
+		}
+	})
+}
+
+func testSysctlConfigs(context *interactive.Context, podName, podNamespace string) {
+	ginkgo.It(fmt.Sprintf("Testing sysctl config files for the pod's node %s/%s", podNamespace, podName), func() {
+		nodeName := getPodNodeName(context, podName, podNamespace)
+		combinedSysctlSettings := getSysctlConfigArgs(context, nodeName)
+		mcName := getMcName(context, nodeName)
+		mcKernelArgumentsMap := getMcKernelArguments(context, mcName)
+
+		for key, sysctlConfigVal := range combinedSysctlSettings {
+			if mcVal, ok := mcKernelArgumentsMap[key]; ok {
+				gomega.Expect(mcVal).To(gomega.Equal(sysctlConfigVal))
 			}
 		}
 	})
