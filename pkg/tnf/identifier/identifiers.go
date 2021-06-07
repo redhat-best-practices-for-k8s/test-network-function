@@ -47,6 +47,8 @@ const (
 	mckernelargumentsIdentifierURL        = "http://test-network-function.com/tests/mckernelarguments"
 	currentKernelCmdlineArgsIdentifierURL = "http://test-network-function.com/tests/currentKernelCmdlineArgs"
 	grubKernelCmdlineArgsIdentifierURL    = "http://test-network-function.com/tests/grubKernelCmdlineArgs"
+	sysctlConfigFilesListIdentifierURL    = "http://test-network-function.com/tests/sysctlConfigFilesList"
+	readRemoteFileIdentifierURL           = "http://test-network-function.com/tests/readRemoteFile"
 
 	versionOne = "v1.0.0"
 )
@@ -445,6 +447,31 @@ var Catalog = map[string]TestCatalogEntry{
 			dependencies.OcBinaryName,
 		},
 	},
+	sysctlConfigFilesListIdentifierURL: {
+		Identifier:  SysctlConfigFilesListURLIdentifier,
+		Description: "A generic test used to get node's list of sysctl config files",
+		Type:        Normative,
+		IntrusionSettings: IntrusionSettings{
+			ModifiesSystem:           false,
+			ModificationIsPersistent: false,
+		},
+		BinaryDependencies: []string{
+			dependencies.CatBinaryName,
+		},
+	},
+	readRemoteFileIdentifierURL: {
+		Identifier:  ReadRemoteFileURLIdentifier,
+		Description: "A generic test used to read a specified file at a specified node",
+		Type:        Normative,
+		IntrusionSettings: IntrusionSettings{
+			ModifiesSystem:           false,
+			ModificationIsPersistent: false,
+		},
+		BinaryDependencies: []string{
+			dependencies.EchoBinaryName,
+			dependencies.OcBinaryName,
+		},
+	},
 }
 
 // HostnameIdentifier is the Identifier used to represent the generic hostname test case.
@@ -612,5 +639,17 @@ var CurrentKernelCmdlineArgsURLIdentifier = Identifier{
 // GrubKernelCmdlineArgsURLIdentifier is the Identifier used to represent the generic getCurrentKernelCmdlineArgs test.
 var GrubKernelCmdlineArgsURLIdentifier = Identifier{
 	URL:             grubKernelCmdlineArgsIdentifierURL,
+	SemanticVersion: versionOne,
+}
+
+// SysctlConfigFilesListURLIdentifier is the Identifier used to represent the generic getCurrentKernelCmdlineArgs test.
+var SysctlConfigFilesListURLIdentifier = Identifier{
+	URL:             sysctlConfigFilesListIdentifierURL,
+	SemanticVersion: versionOne,
+}
+
+// ReadRemoteFileURLIdentifier is the Identifier used to represent the generic getCurrentKernelCmdlineArgs test.
+var ReadRemoteFileURLIdentifier = Identifier{
+	URL:             readRemoteFileIdentifierURL,
 	SemanticVersion: versionOne,
 }
