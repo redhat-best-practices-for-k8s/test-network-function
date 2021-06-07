@@ -330,9 +330,7 @@ func testPing(initiatingPodOc *interactive.Oc, targetPodIPAddress string, count 
 	pingTester := ping.NewPing(defaultTimeout, targetPodIPAddress, count)
 	test, err := tnf.NewTest(initiatingPodOc.GetExpecter(), pingTester, []reel.Handler{pingTester}, initiatingPodOc.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
-	testResult, err := test.Run()
-	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
-	gomega.Expect(err).To(gomega.BeNil())
+	runAndValidateTest(test)
 	transmitted, received, errors := pingTester.GetStats()
 	gomega.Expect(received).To(gomega.Equal(transmitted))
 	gomega.Expect(errors).To(gomega.BeZero())
@@ -345,9 +343,7 @@ func getContainerDefaultNetworkIPAddress(oc *interactive.Oc, dev string) string 
 	ipTester := ipaddr.NewIPAddr(defaultTimeout, dev)
 	test, err := tnf.NewTest(oc.GetExpecter(), ipTester, []reel.Handler{ipTester}, oc.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
-	testResult, err := test.Run()
-	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
-	gomega.Expect(err).To(gomega.BeNil())
+	runAndValidateTest(test)
 	return ipTester.GetIPv4Address()
 }
 
@@ -419,9 +415,7 @@ func getMcKernelArguments(context *interactive.Context, mcName string) map[strin
 	mcKernelArgumentsTester := mckernelarguments.NewMcKernelArguments(defaultTimeout, mcName)
 	test, err := tnf.NewTest(context.GetExpecter(), mcKernelArgumentsTester, []reel.Handler{mcKernelArgumentsTester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
-	testResult, err := test.Run()
-	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
-	gomega.Expect(err).To(gomega.BeNil())
+	runAndValidateTest(test)
 	mcKernelArguments := mcKernelArgumentsTester.GetKernelArguments()
 	var mcKernelArgumentsJSON []string
 	err = json.Unmarshal([]byte(mcKernelArguments), &mcKernelArgumentsJSON)
@@ -434,9 +428,7 @@ func getMcName(context *interactive.Context, nodeName string) string {
 	mcNameTester := nodemcname.NewNodeMcName(defaultTimeout, nodeName)
 	test, err := tnf.NewTest(context.GetExpecter(), mcNameTester, []reel.Handler{mcNameTester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
-	testResult, err := test.Run()
-	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
-	gomega.Expect(err).To(gomega.BeNil())
+	runAndValidateTest(test)
 	return mcNameTester.GetMcName()
 }
 
@@ -444,9 +436,7 @@ func getPodNodeName(context *interactive.Context, podName, podNamespace string) 
 	podNameTester := podnodename.NewPodNodeName(defaultTimeout, podName, podNamespace)
 	test, err := tnf.NewTest(context.GetExpecter(), podNameTester, []reel.Handler{podNameTester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
-	testResult, err := test.Run()
-	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
-	gomega.Expect(err).To(gomega.BeNil())
+	runAndValidateTest(test)
 	return podNameTester.GetNodeName()
 }
 
@@ -454,9 +444,7 @@ func getCurrentKernelCmdlineArgs(targetPodOc *interactive.Oc) map[string]string 
 	currentKernelCmdlineArgsTester := currentkernelcmdlineargs.NewCurrentKernelCmdlineArgs(defaultTimeout)
 	test, err := tnf.NewTest(targetPodOc.GetExpecter(), currentKernelCmdlineArgsTester, []reel.Handler{currentKernelCmdlineArgsTester}, targetPodOc.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
-	testResult, err := test.Run()
-	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
-	gomega.Expect(err).To(gomega.BeNil())
+	runAndValidateTest(test)
 	currnetKernelCmdlineArgs := currentKernelCmdlineArgsTester.GetKernelArguments()
 	currentSplitKernelCmdlineArgs := strings.Split(currnetKernelCmdlineArgs, " ")
 	return utils.ArgListToMap(currentSplitKernelCmdlineArgs)
@@ -485,9 +473,7 @@ func getGrubKernelArgs(context *interactive.Context, nodeName string) map[string
 	bootConfigEntriesTester := bootconfigentries.NewBootConfigEntries(defaultTimeout, nodeName)
 	test, err := tnf.NewTest(context.GetExpecter(), bootConfigEntriesTester, []reel.Handler{bootConfigEntriesTester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
-	testResult, err := test.Run()
-	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
-	gomega.Expect(err).To(gomega.BeNil())
+	runAndValidateTest(test)
 	bootConfigEntries := bootConfigEntriesTester.GetBootConfigEntries()
 
 	maxIndexEntryName := getMaxIndexEntry(bootConfigEntries)
@@ -495,9 +481,7 @@ func getGrubKernelArgs(context *interactive.Context, nodeName string) map[string
 	readBootConfigTester := readbootconfig.NewReadBootConfig(defaultTimeout, nodeName, maxIndexEntryName)
 	test, err = tnf.NewTest(context.GetExpecter(), readBootConfigTester, []reel.Handler{readBootConfigTester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
-	testResult, err = test.Run()
-	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
-	gomega.Expect(err).To(gomega.BeNil())
+	runAndValidateTest(test)
 	bootConfig := readBootConfigTester.GetBootConfig()
 
 	splitBootConfig := strings.Split(bootConfig, "\n")
@@ -540,9 +524,7 @@ func getSysctlConfigArgs(context *interactive.Context, nodeName string) map[stri
 	sysctlAllConfigsArgsTester := sysctlallconfigsargs.NewSysctlAllConfigsArgs(defaultTimeout, nodeName)
 	test, err := tnf.NewTest(context.GetExpecter(), sysctlAllConfigsArgsTester, []reel.Handler{sysctlAllConfigsArgsTester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
-	testResult, err := test.Run()
-	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
-	gomega.Expect(err).To(gomega.BeNil())
+	runAndValidateTest(test)
 	sysctlAllConfigsArgs := sysctlAllConfigsArgsTester.GetSysctlAllConfigsArgs()
 
 	return parseSysctlSystemOutput(sysctlAllConfigsArgs)
@@ -817,9 +799,7 @@ func getDeploymentsNodes(namespace string) []node {
 	tester := dn.NewDeploymentsNodes(defaultTimeout, namespace)
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
-	testResult, err := test.Run()
-	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
-	gomega.Expect(err).To(gomega.BeNil())
+	runAndValidateTest(test)
 	nodes := tester.GetNodes()
 	gomega.Expect(nodes).NotTo(gomega.BeEmpty())
 	return sortNodesMap(nodes)
@@ -831,9 +811,7 @@ func getDeployments(namespace string) (deployments dp.DeploymentMap, notReadyDep
 	tester := dp.NewDeployments(defaultTimeout, namespace)
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
-	testResult, err := test.Run()
-	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
-	gomega.Expect(err).To(gomega.BeNil())
+	runAndValidateTest(test)
 
 	deployments = tester.GetDeployments()
 
@@ -851,9 +829,7 @@ func drainNode(node string) {
 	tester := dd.NewDeploymentsDrain(drainTimeout, node)
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
-	testResult, err := test.Run()
-	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
-	gomega.Expect(err).To(gomega.BeNil())
+	runAndValidateTest(test)
 }
 
 func getContext() *interactive.Context {
@@ -876,4 +852,10 @@ func testOwner(podNamespace, podName string) {
 			gomega.Expect(err).To(gomega.BeNil())
 		})
 	})
+}
+
+func runAndValidateTest(test *tnf.Test) {
+	testResult, err := test.Run()
+	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
+	gomega.Expect(err).To(gomega.BeNil())
 }
