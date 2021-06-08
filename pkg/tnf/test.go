@@ -129,9 +129,9 @@ func (t *Test) ReelEOF() {
 }
 
 // NewTest creates a new Test given a chain of Handlers.
-func NewTest(expecter *expect.Expecter, tester Tester, chain []reel.Handler, errorChannel <-chan error) (*Test, error) {
-	var args []string = tester.Args()
-	runner, err := reel.NewReel(expecter, args, errorChannel)
+func NewTest(expecter *expect.Expecter, tester Tester, chain []reel.Handler, errorChannel <-chan error, opts ...reel.Option) (*Test, error) {
+	args := tester.Args()
+	runner, err := reel.NewReel(expecter, args, errorChannel, opts...)
 	if err != nil {
 		return nil, err
 	}
