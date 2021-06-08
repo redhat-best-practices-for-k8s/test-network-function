@@ -17,6 +17,7 @@
 package reel
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 	"time"
@@ -26,8 +27,16 @@ import (
 )
 
 const (
-	// CtrlC is the constant representing SIGINT.
-	CtrlC = "\003" // ^C
+	// EndOfTestSentinel is the emulated terminal prompt that will follow command output.
+	EndOfTestSentinel = `END_OF_TEST_SENTINEL`
+)
+
+var (
+	// endOfTestSentinelCutset is used to trim a match of the EndOfTestSentinel.
+	endOfTestSentinelCutset = fmt.Sprintf("%s\n", EndOfTestSentinel)
+	// EndOfTestRegexPostfix is the postfix added to regular expressions to match the emulated terminal prompt
+	// (EndOfTestSentinel)
+	EndOfTestRegexPostfix = fmt.Sprintf("((.|\n)*%s\n)", EndOfTestSentinel)
 )
 
 // Step is an instruction for a single REEL pass.
@@ -76,20 +85,33 @@ type Handler interface {
 // StepFunc provides a wrapper around a generic Handler.
 type StepFunc func(Handler) *Step
 
+// Option is a function pointer to enable lightweight optionals for Reel.
+type Option func(reel *Reel) Option
+
 // A Reel instance allows interaction with a target subprocess.
 type Reel struct {
 	// A pointer to the underlying subprocess
 	expecter *expect.Expecter
 	Err      error
+	// disableTerminalPromptEmulation determines whether terminal prompt emulation should be disabled.
+	disableTerminalPromptEmulation bool
+}
+
+// DisableTerminalPromptEmulation disables terminal prompt emulation for the reel.Reel.
+func DisableTerminalPromptEmulation() Option {
+	return func(r *Reel) Option {
+		r.disableTerminalPromptEmulation = true
+		return DisableTerminalPromptEmulation()
+	}
 }
 
 // Each Step can have zero or more expectations (Step.Expect).  This method follows the Adapter design pattern;  a raw
 // array of strings is turned into a corresponding array of exepct.Batcher.  This method side-effects the input
 // expectations array, following the Builder design pattern.  Finally, the first match is stored in the firstMatch
 // output parameter.
-func batchExpectations(expectations []string, batcher []expect.Batcher, firstMatch *string) []expect.Batcher {
+func (r *Reel) batchExpectations(expectations []string, batcher []expect.Batcher, firstMatch *string) []expect.Batcher {
 	if len(expectations) > 0 {
-		expectCases := generateCases(expectations, firstMatch)
+		expectCases := r.generateCases(expectations, firstMatch)
 		batcher = append(batcher, &expect.BCas{C: expectCases})
 	}
 	return batcher
@@ -99,10 +121,10 @@ func batchExpectations(expectations []string, batcher []expect.Batcher, firstMat
 // (representing a logical "OR" over the array). This helper follows the Adapter design pattern;  a raw array of string
 // regular expressions is converted to an equivalent expect.Caser array.  The firstMatch parameter is used as an output
 // parameter to store the first match found in the expectations array.  Thus, the order of expectations is important.
-func generateCases(expectations []string, firstMatch *string) []expect.Caser {
+func (r *Reel) generateCases(expectations []string, firstMatch *string) []expect.Caser {
 	var cases []expect.Caser
 	for _, expectation := range expectations {
-		thisCase := generateCase(expectation, firstMatch)
+		thisCase := r.generateCase(expectation, firstMatch)
 		cases = append(cases, thisCase)
 	}
 	return cases
@@ -110,7 +132,8 @@ func generateCases(expectations []string, firstMatch *string) []expect.Caser {
 
 // Each Step can have zero or more expectations (Step.Expect).  This method follows the Adapter design pattern;  a
 // single raw string Expectation is converted into a corresponding expect.Case.
-func generateCase(expectation string, firstMatch *string) *expect.Case {
+func (r *Reel) generateCase(expectation string, firstMatch *string) *expect.Case {
+	expectation = r.addEmulatedRegularExpression(expectation)
 	return &expect.Case{R: regexp.MustCompile(expectation), T: func() (expect.Tag, *expect.Status) {
 		if *firstMatch == "" {
 			*firstMatch = expectation
@@ -122,9 +145,10 @@ func generateCase(expectation string, firstMatch *string) *expect.Case {
 // Each Step can have exactly one execution string (Step.Execute).  This method follows the Adapter design pattern;  a
 // single raw execution string is converted into a corresponding expect.Batcher.  The function returns an array of
 // expect.Batcher, as it is expected that there are likely expectations to follow.
-func generateBatcher(execute string) []expect.Batcher {
+func (r *Reel) generateBatcher(execute string) []expect.Batcher {
 	var batcher []expect.Batcher
 	if execute != "" {
+		execute = r.wrapTestCommand(execute)
 		batcher = append(batcher, &expect.BSnd{S: execute})
 	}
 	return batcher
@@ -145,9 +169,9 @@ func (r *Reel) Step(step *Step, handler Handler) error {
 		}
 		exec, exp, timeout := step.unpack()
 		var batcher []expect.Batcher
-		batcher = generateBatcher(exec)
+		batcher = r.generateBatcher(exec)
 		var firstMatch string
-		batcher = batchExpectations(exp, batcher, &firstMatch)
+		batcher = r.batchExpectations(exp, batcher, &firstMatch)
 		results, err := (*r.expecter).ExpectBatch(batcher, timeout)
 
 		if !step.hasExpectations() {
@@ -163,17 +187,19 @@ func (r *Reel) Step(step *Step, handler Handler) error {
 		} else {
 			if len(results) > 0 {
 				result := results[0]
-				output := result.Output
-				match := result.Match[0]
+
+				output := r.stripEmulatedPromptFromOutput(result.Output)
+				match := r.stripEmulatedPromptFromOutput(result.Match[0])
+
 				matchIndex := strings.Index(output, match)
 				var before string
 				// special case:  the match regex may be nothing at all.
-				if matchIndex != 0 {
+				if matchIndex > 0 {
 					before = output[0 : matchIndex-1]
 				} else {
 					before = ""
 				}
-				step = handler.ReelMatch(firstMatch, before, match)
+				step = handler.ReelMatch(r.stripEmulatedRegularExpression(firstMatch), before, match)
 			}
 		}
 	}
@@ -187,26 +213,70 @@ func (r *Reel) Run(handler Handler) error {
 }
 
 // Appends a new line to a command, if necessary.
-func createExecutableCommand(command string) string {
-	if !strings.HasSuffix(command, "\n") {
-		return command + "\n"
-	}
+func (r *Reel) createExecutableCommand(command string) string {
+	command = r.wrapTestCommand(command)
 	return command
 }
 
 // NewReel create a new `Reel` instance for interacting with a target subprocess.  The command line for the target is
 // specified by the args parameter.
-func NewReel(expecter *expect.Expecter, args []string, errorChannel <-chan error) (*Reel, error) {
+func NewReel(expecter *expect.Expecter, args []string, errorChannel <-chan error, opts ...Option) (*Reel, error) {
+	r := &Reel{}
+	for _, o := range opts {
+		o(r)
+	}
 	if len(args) > 0 {
-		command := createExecutableCommand(strings.Join(args, " "))
+		command := r.createExecutableCommand(strings.Join(args, " "))
 		err := (*expecter).Send(command)
 		if err != nil {
 			return nil, err
 		}
 	}
-	r := &Reel{expecter: expecter}
+	r.expecter = expecter
+
 	go func() {
 		r.Err = <-errorChannel
 	}()
 	return r, nil
+}
+
+// wrapTestCommand will wrap a test command in syntax to postfix a terminal emulation prompt.
+func (r *Reel) wrapTestCommand(cmd string) string {
+	if !r.disableTerminalPromptEmulation {
+		return WrapTestCommand(cmd)
+	}
+	if !strings.HasSuffix(cmd, "\n") {
+		cmd += "\n"
+	}
+	return cmd
+}
+
+// WrapTestCommand wraps cmd so that the output will end in an emulated terminal prompt.
+func WrapTestCommand(cmd string) string {
+	cmd = strings.TrimRight(cmd, "\n")
+	return fmt.Sprintf("%s && echo %s\n", cmd, EndOfTestSentinel)
+}
+
+// stripEmulatedPromptFromOutput will elide the emulated terminal prompt from the test output.
+func (r *Reel) stripEmulatedPromptFromOutput(output string) string {
+	if !r.disableTerminalPromptEmulation {
+		return strings.TrimRight(strings.TrimRight(output, endOfTestSentinelCutset), "\n")
+	}
+	return output
+}
+
+// stripEmulatedRegularExpression will elide the modified part of the terminal prompt regular expression.
+func (r *Reel) stripEmulatedRegularExpression(match string) string {
+	if !r.disableTerminalPromptEmulation && len(match) > len(EndOfTestRegexPostfix) {
+		return match[0 : len(match)-len(EndOfTestRegexPostfix)]
+	}
+	return match
+}
+
+// addEmulatedRegularExpression will append the additional regular expression to capture the emulated terminal prompt.
+func (r *Reel) addEmulatedRegularExpression(regularExpressionString string) string {
+	if !r.disableTerminalPromptEmulation {
+		return fmt.Sprintf("%s%s", regularExpressionString, EndOfTestRegexPostfix)
+	}
+	return regularExpressionString
 }
