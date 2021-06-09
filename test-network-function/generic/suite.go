@@ -246,8 +246,10 @@ var _ = ginkgo.Describe(testsKey, func() {
 			}
 		}
 
-		for _, containersUnderTest := range containersUnderTest {
-			testSysctlConfigs(getContext(), containersUnderTest.oc.GetPodName(), containersUnderTest.oc.GetPodNamespace())
+		if !isMinikube() {
+			for _, containersUnderTest := range containersUnderTest {
+				testSysctlConfigs(getContext(), containersUnderTest.oc.GetPodName(), containersUnderTest.oc.GetPodNamespace())
+			}
 		}
 	}
 })
