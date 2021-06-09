@@ -49,6 +49,7 @@ const (
 	grubKernelCmdlineArgsIdentifierURL    = "http://test-network-function.com/tests/grubKernelCmdlineArgs"
 	sysctlConfigFilesListIdentifierURL    = "http://test-network-function.com/tests/sysctlConfigFilesList"
 	readRemoteFileIdentifierURL           = "http://test-network-function.com/tests/readRemoteFile"
+	uncordonNodeIdentifierURL             = "http://test-network-function.com/tests/node/uncordon"
 
 	versionOne = "v1.0.0"
 )
@@ -388,13 +389,18 @@ var Catalog = map[string]TestCatalogEntry{
 	deploymentsdrainIdentifierURL: {
 		Identifier:  DeploymentsNodesIdentifier,
 		Description: "A generic test used to drain node from its deployment pods",
+		Type:        Normative,
+		IntrusionSettings: IntrusionSettings{
+			ModifiesSystem:           true,
+			ModificationIsPersistent: true,
+		},
 		BinaryDependencies: []string{
 			dependencies.JqBinaryName,
 			dependencies.EchoBinaryName,
 		},
 	},
 	mckernelargumentsIdentifierURL: {
-		Identifier:  NodeMcNameIdentifier,
+		Identifier:  McKernelArgumentsIdentifier,
 		Description: "A generic test used to get an mc's kernel arguments",
 		Type:        Normative,
 		IntrusionSettings: IntrusionSettings{
@@ -420,7 +426,7 @@ var Catalog = map[string]TestCatalogEntry{
 		},
 	},
 	currentKernelCmdlineArgsIdentifierURL: {
-		Identifier:  NodeMcNameIdentifier,
+		Identifier:  CurrentKernelCmdlineArgsURLIdentifier,
 		Description: "A generic test used to get node's /proc/cmdline",
 		Type:        Normative,
 		IntrusionSettings: IntrusionSettings{
@@ -432,7 +438,7 @@ var Catalog = map[string]TestCatalogEntry{
 		},
 	},
 	grubKernelCmdlineArgsIdentifierURL: {
-		Identifier:  NodeMcNameIdentifier,
+		Identifier:  GrubKernelCmdlineArgsURLIdentifier,
 		Description: "A generic test used to get node's next boot kernel args",
 		Type:        Normative,
 		IntrusionSettings: IntrusionSettings{
@@ -469,6 +475,17 @@ var Catalog = map[string]TestCatalogEntry{
 		},
 		BinaryDependencies: []string{
 			dependencies.EchoBinaryName,
+		},
+	},
+	uncordonNodeIdentifierURL: {
+		Identifier:  UncordonNodeURLIdentifier,
+		Description: "A generic test used to uncordon a node",
+		Type:        Normative,
+		IntrusionSettings: IntrusionSettings{
+			ModifiesSystem:           true,
+			ModificationIsPersistent: true,
+		},
+		BinaryDependencies: []string{
 			dependencies.OcBinaryName,
 		},
 	},
@@ -651,5 +668,11 @@ var SysctlConfigFilesListURLIdentifier = Identifier{
 // ReadRemoteFileURLIdentifier is the Identifier used to represent the generic getCurrentKernelCmdlineArgs test.
 var ReadRemoteFileURLIdentifier = Identifier{
 	URL:             readRemoteFileIdentifierURL,
+	SemanticVersion: versionOne,
+}
+
+// UncordonNodeURLIdentifier is the Identifier used to represent a test that uncordons a node.
+var UncordonNodeURLIdentifier = Identifier{
+	URL:             uncordonNodeIdentifierURL,
 	SemanticVersion: versionOne,
 }

@@ -20,11 +20,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path"
 	"regexp"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/generic"
 
 	"github.com/test-network-function/test-network-function/test-network-function/identifiers"
 	"github.com/test-network-function/test-network-function/test-network-function/results"
@@ -75,6 +78,23 @@ const (
 	multusTestsKey                = "multus"
 	testsKey                      = "generic"
 	drainTimeoutMinutes           = 5
+)
+
+var (
+	// nodeUncordonTestPath is the file location of the uncordon.json test case relative to the project root.
+	nodeUncordonTestPath = path.Join("pkg", "tnf", "handlers", "nodeuncordon", "uncordon.json")
+
+	// pathRelativeToRoot is used to calculate relative filepaths for the `test-network-function` executable entrypoint.
+	pathRelativeToRoot = path.Join("..")
+
+	// relativeNodesTestPath is the relative path to the nodes.json test case.
+	relativeNodesTestPath = path.Join(pathRelativeToRoot, nodeUncordonTestPath)
+
+	// relativeSchemaPath is the relative path to the generic-test.schema.json JSON schema.
+	relativeSchemaPath = path.Join(pathRelativeToRoot, schemaPath)
+
+	// schemaPath is the path to the generic-test.schema.json JSON schema relative to the project root.
+	schemaPath = path.Join("schemas", "generic-test.schema.json")
 )
 
 // The default test timeout.
@@ -724,6 +744,7 @@ func testHugepages() {
 	})
 }
 
+//nolint:funlen // Function is long but is linear and hard to disassemble;  consider revisiting later.
 func testDeployments(namespace string) {
 	ready := true
 	var deployments dp.DeploymentMap
@@ -748,37 +769,45 @@ func testDeployments(namespace string) {
 			}
 			nodesSorted = getDeploymentsNodes(namespace)
 		})
-		ginkgo.It("should create new replicas when node is drained", func() {
-			defer results.RecordResult(identifiers.TestPodRecreationIdentifier)
-			if !ready {
-				ginkgo.Skip("Can not test when deployments are not ready")
-			}
-			testedDeployments := map[string]bool{}
-			for _, n := range nodesSorted {
-				oldLen := len(testedDeployments)
-				// mark tested deployments
-				for d := range n.deployments {
-					testedDeployments[d] = true
+		if !nonIntrusive() {
+			ginkgo.It("should create new replicas when node is drained", func() {
+				defer results.RecordResult(identifiers.TestPodRecreationIdentifier)
+				if !ready {
+					ginkgo.Skip("Can not test when deployments are not ready")
 				}
-				if oldLen == len(testedDeployments) {
-					// If node does not add new deployments then skip it
-					continue
+				testedDeployments := map[string]bool{}
+				for _, n := range nodesSorted {
+					oldLen := len(testedDeployments)
+					// mark tested deployments
+					for d := range n.deployments {
+						testedDeployments[d] = true
+					}
+					if oldLen == len(testedDeployments) {
+						// If node does not add new deployments then skip it
+						continue
+					}
+					// drain node
+					drainNode(n.name)
+					// verify deployments are ready again
+					_, notReadyDeployments = getDeployments(namespace)
+					gomega.Expect(notReadyDeployments).To(gomega.BeEmpty())
+					if len(testedDeployments) == len(deployments) {
+						break
+					}
+					uncordonNode(n.name)
 				}
-				// drain node
-				drainNode(n.name)
-				// verify deployments are ready again
-				_, notReadyDeployments = getDeployments(namespace)
-				gomega.Expect(notReadyDeployments).To(gomega.BeEmpty())
-				if len(testedDeployments) == len(deployments) {
-					break
-				}
-			}
-		})
+			})
+		}
 	})
 }
 
 func isMinikube() bool {
 	b, _ := strconv.ParseBool(os.Getenv("TNF_MINIKUBE_ONLY"))
+	return b
+}
+
+func nonIntrusive() bool {
+	b, _ := strconv.ParseBool(os.Getenv("TNF_NON_INTRUSIVE_ONLY"))
 	return b
 }
 
@@ -832,6 +861,28 @@ func drainNode(node string) {
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
 	runAndValidateTest(test)
+}
+
+// uncordonNode uncordons a Node.
+func uncordonNode(node string) {
+	context := getContext()
+	values := make(map[string]interface{})
+	values["NODE"] = node
+	test, handlers, result, err := generic.NewGenericFromMap(relativeNodesTestPath, relativeSchemaPath, values)
+	gomega.Expect(err).To(gomega.BeNil())
+	gomega.Expect(result).ToNot(gomega.BeNil())
+	gomega.Expect(result.Valid()).To(gomega.BeTrue())
+	gomega.Expect(handlers).ToNot(gomega.BeNil())
+	gomega.Expect(len(handlers)).To(gomega.Equal(1))
+	gomega.Expect(test).ToNot(gomega.BeNil())
+
+	tester, err := tnf.NewTest(context.GetExpecter(), *test, handlers, context.GetErrorChannel())
+	gomega.Expect(err).To(gomega.BeNil())
+	gomega.Expect(tester).ToNot(gomega.BeNil())
+
+	testResult, err := tester.Run()
+	gomega.Expect(err).To(gomega.BeNil())
+	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
 }
 
 func getContext() *interactive.Context {
