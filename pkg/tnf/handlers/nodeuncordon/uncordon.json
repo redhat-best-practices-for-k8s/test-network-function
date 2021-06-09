@@ -1,0 +1,22 @@
+{
+  "identifier": {
+    "url": "http://test-network-function.com/tests/node/uncordon",
+    "version": "v1.0.0"
+  },
+  "description": "uncordon a node.",
+  "testResult": 0,
+  "testTimeout": 10000000000,
+  "reelFirstStep": {
+    "execute": "oc adm uncordon {{.NODE}}\n",
+    "expect": [
+      "(?m).*uncordoned"
+    ],
+    "timeout": 10000000000
+  },
+  "resultContexts": [
+    {
+      "pattern": "(?m).*uncordoned",
+      "defaultResult": 1
+    }
+  ]
+}

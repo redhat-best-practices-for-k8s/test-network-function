@@ -224,13 +224,20 @@ func NewGenericFromTemplate(templateFile, schemaPath, valuesFile string) (*tnf.T
 	if err != nil {
 		return nil, nil, nil, err
 	}
-
 	values := make(map[string]interface{})
 	err = yaml.Unmarshal(tplBytes, values)
 	if err != nil {
 		return nil, nil, nil, err
 	}
+	return NewGenericFromMap(templateFile, schemaPath, values)
+}
 
+// NewGenericFromMap attempts to instantiate and initialize a Generic by rendering the supplied map values and
+// validating schema conformance based on generic-test.schema.json.  schemaPath should always be the path to
+// generic-test.schema.json relative to the execution entry-point, which will vary for unit tests, executables, and test
+// suites.  If the supplied values do not conform to the generic-test.schema.json schema, creation fails and the result
+// is returned to the caller for further inspection.
+func NewGenericFromMap(templateFile, schemaPath string, values map[string]interface{}) (*tnf.Tester, []reel.Handler, *gojsonschema.Result, error) {
 	templateBytes, err := ioutil.ReadFile(templateFile)
 	if err != nil {
 		return nil, nil, nil, err

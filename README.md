@@ -114,10 +114,23 @@ The 'General' tests are designed to test any commodity CNF running on OpenShift,
 include specifications such as issuing a `GET` request to a web server, or passing traffic through an IPSEC tunnel.
 
 ## Turn off openshift required tests when CNF run on kubernetes only environment
-when test on CNFs that run on k8s only envirnment, execute shell command below before compile tool and run test shell script.
+when test on CNFs that run on k8s only environment, execute shell command below before compile tool and run test shell script.
 
 ```shell-command
 export TNF_MINIKUBE_ONLY=true
+```
+
+## Disable intrusive tests
+If you would like to skip intrusive tests which may disrupt cluster operations, issue the following:
+
+```shell script
+export TNF_NON_INTRUSIVE_ONLY=true
+```
+
+Likewise, to enable intrusive tests, set the following:
+
+```shell-command
+export TNF_NON_INTRUSIVE_ONLY=false
 ```
 
 ## Execute test suites from openshift-kni/cnf-feature-deploy
