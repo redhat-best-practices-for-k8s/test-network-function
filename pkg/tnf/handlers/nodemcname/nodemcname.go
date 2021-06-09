@@ -42,7 +42,7 @@ func NewNodeMcName(timeout time.Duration, nodeName string) *NodeMcName {
 		timeout: timeout,
 		result:  tnf.ERROR,
 		args: []string{
-			"oc get node " + nodeName + " -o jsonpath=\"{.metadata.annotations}\" " + "| jq '.\"machineconfiguration.openshift.io/currentConfig\"' | xargs echo",
+			"oc get node " + nodeName + ` -o json | jq '.metadata.annotations."machineconfiguration.openshift.io/currentConfig"'`,
 		},
 	}
 }
