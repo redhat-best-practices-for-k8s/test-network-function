@@ -502,6 +502,34 @@ operator
 
 ```
 
+## Grading Tool
+
+### Overview
+
+A tool for processing the claim file and producing a quality grade for the CNF.
+The user supplies a policy conforming to [policy schema](schemas/gradetool-policy-schema.json).  For an example,
+consult [example_policy.json](./examples/policy/example_policy.json).
+
+A grade is considered `passed` if all its direct tests passed and its base grade passed.
+In the output we use the field `propose` to indicate grade passed or failed.
+See [policy example](pkg/gradetool/testdata/policy-good.json) for understanding the output of the grading tool.
+
+### How to build and execute
+
+```
+make build
+or
+make build-gradetool
+```
+Executable name is `gradetool`.
+
+### Create your own policy.json
+
+Sometimes, a CNF has good reason for not following a best practice.  In such cases, the input policy can be modified to
+exclude certain test cases for a given "grade".  For example, consider the fact that a CNF may have a good reason to
+require NodePort(s).  In this contrived case, one could edit the policy to not include the
+`http://test-network-function.com/tests/nodeport` test case requirement.
+
 ## CNF Developers
 
 Developers of CNFs, particularly those targeting 
