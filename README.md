@@ -473,6 +473,21 @@ operator
 
 ```
 
+## Grading Tool
+### Overview
+A tool for processing the claim file and producing a quality grade for the CNF.
+The user supplies a policy conforming to [policy schema](schemas/gradetool-policy-schema.json).
+A grade is considered `passed` if all its direct tests passed and its base grade passed.
+In the output we use the field `propose` to indicate grade passed or failed.
+See [policy example](pkg/gradetool/testdata/policy-good.json) for understanding the output of the grading tool.
+### How to build and execute
+```
+make build
+or
+make build-gradetool
+```
+Executable name is `gradetool`.
+
 ## CNF Developers
 
 Developers of CNFs, particularly those targeting 
