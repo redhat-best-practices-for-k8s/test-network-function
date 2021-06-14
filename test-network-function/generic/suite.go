@@ -744,60 +744,18 @@ func testHugepages() {
 	})
 }
 
-//nolint:funlen // Function is long but is linear and hard to disassemble;  consider revisiting later.
+// testDeployments ensures that each Deployment has the correct number of "Ready" replicas.
 func testDeployments(namespace string) {
-	ready := true
 	var deployments dp.DeploymentMap
 	var notReadyDeployments []string
-	var nodesSorted []node // A slice version of nodes sorted by number of deployments descending
 	ginkgo.When("Testing deployments in namespace", func() {
 		ginkgo.It("Should return list of deployments", func() {
 			deployments, notReadyDeployments = getDeployments(namespace)
 			if len(deployments) == 0 {
-				ready = false
 				return
-			}
-			// We require that all deployments have the desired number of replicas and are all up to date
-			if len(notReadyDeployments) != 0 {
-				ready = false
 			}
 			gomega.Expect(notReadyDeployments).To(gomega.BeEmpty())
 		})
-		ginkgo.It("Should return map of nodes to deployments", func() {
-			if !ready {
-				ginkgo.Skip("Can not test when deployments are not ready")
-			}
-			nodesSorted = getDeploymentsNodes(namespace)
-		})
-		if !nonIntrusive() {
-			ginkgo.It("should create new replicas when node is drained", func() {
-				defer results.RecordResult(identifiers.TestPodRecreationIdentifier)
-				if !ready {
-					ginkgo.Skip("Can not test when deployments are not ready")
-				}
-				testedDeployments := map[string]bool{}
-				for _, n := range nodesSorted {
-					oldLen := len(testedDeployments)
-					// mark tested deployments
-					for d := range n.deployments {
-						testedDeployments[d] = true
-					}
-					if oldLen == len(testedDeployments) {
-						// If node does not add new deployments then skip it
-						continue
-					}
-					// drain node
-					drainNode(n.name)
-					// verify deployments are ready again
-					_, notReadyDeployments = getDeployments(namespace)
-					gomega.Expect(notReadyDeployments).To(gomega.BeEmpty())
-					if len(testedDeployments) == len(deployments) {
-						break
-					}
-					uncordonNode(n.name)
-				}
-			})
-		}
 	})
 }
 
@@ -806,6 +764,7 @@ func isMinikube() bool {
 	return b
 }
 
+//nolint:deadcode // Taken out of v2.0.0 for CTONET-1022.
 func nonIntrusive() bool {
 	b, _ := strconv.ParseBool(os.Getenv("TNF_NON_INTRUSIVE_ONLY"))
 	return b
@@ -825,6 +784,7 @@ func sortNodesMap(nodesMap dn.NodesMap) []node {
 	return nodes
 }
 
+//nolint:deadcode // Taken out of v2.0.0 for CTONET-1022.
 func getDeploymentsNodes(namespace string) []node {
 	context := getContext()
 	tester := dn.NewDeploymentsNodes(defaultTimeout, namespace)
@@ -855,6 +815,7 @@ func getDeployments(namespace string) (deployments dp.DeploymentMap, notReadyDep
 	return deployments, notReadyDeployments
 }
 
+//nolint:deadcode // Taken out of v2.0.0 for CTONET-1022.
 func drainNode(node string) {
 	context := getContext()
 	tester := dd.NewDeploymentsDrain(drainTimeout, node)
@@ -864,6 +825,7 @@ func drainNode(node string) {
 }
 
 // uncordonNode uncordons a Node.
+//nolint:deadcode // Taken out of v2.0.0 for CTONET-1022.
 func uncordonNode(node string) {
 	context := getContext()
 	values := make(map[string]interface{})

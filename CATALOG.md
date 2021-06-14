@@ -150,15 +150,6 @@ Version|v1.0.0
 Description|http://test-network-function.com/testcases/generic/non-tainted-node-kernel ensures that the Node(s) hosting CNFs do not utilize tainted kernels. This test case is especially important to support Highly Available CNFs, since when a CNF is re-instantiated on a backup Node, that Node's kernel may not have the same hacks.'
 Result Type|normative
 Suggested Remediation|Test failure indicates that the underlying Node's' kernel is tainted.  Ensure that you have not altered underlying Node(s) kernels in order to run the CNF.
-### http://test-network-function.com/testcases/generic/pod-recreation
-
-Property|Description
----|---
-Version|v1.0.0
-Description|tests that a CNF is configured to support High Availability.  First, this test cordons and drains a Node that hosts the CNF Pod.  Next, the test ensures that OpenShift can re-instantiate the Pod on another Node, and that the actual replica count matches the desired replica count.
-Result Type|normative
-Suggested Remediation|Ensure that CNF Pod(s) utilize a configuration that supports High Availability.  Additionally, ensure that there are available Nodes in the OpenShift cluster that can be utilized in the event that a host Node fails.
-
 
 ## Test Case Building Blocks Catalog
 
