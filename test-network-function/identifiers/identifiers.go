@@ -107,6 +107,11 @@ var (
 		Url:     formTestURL(operatorSuite, "operator-is-certified"),
 		Version: versionOne,
 	}
+	// TestOperatorIsInstalledViaOLMIdentifier tests that an Operator is installed via OLM.
+	TestOperatorIsInstalledViaOLMIdentifier = claim.Identifier{
+		Url:     formTestURL(operatorSuite, "operator-is-installed-via-olm"),
+		Version: versionOne,
+	}
 	// TestPodNodeSelectorAndAffinityBestPractices is the test ensuring nodeSelector and nodeAffinity are not used by a
 	// Pod.
 	TestPodNodeSelectorAndAffinityBestPractices = claim.Identifier{
@@ -281,6 +286,14 @@ the same hacks.'`),
 			`tests whether CNF Operators have passed the Red Hat Operator Certification Program (OCP).`),
 	},
 
+	TestOperatorIsInstalledViaOLMIdentifier: {
+		Identifier:  TestOperatorIsInstalledViaOLMIdentifier,
+		Type:        normativeResult,
+		Remediation: `Ensure that your Operator is installed via OLM.`,
+		Description: formDescription(TestOperatorIsInstalledViaOLMIdentifier,
+			`tests whether a CNF Operator is installed via OLM.`),
+	},
+
 	TestPodNodeSelectorAndAffinityBestPractices: {
 		Identifier: TestPodNodeSelectorAndAffinityBestPractices,
 		Type:       informativeResult,
@@ -308,16 +321,6 @@ ClusterRoleBindings, if possible.`,
 		Remediation: `Deploy the CNF using DaemonSet or ReplicaSet.`,
 		Description: formDescription(TestPodDeploymentBestPracticesIdentifier,
 			`tests that CNF Pod(s) are deployed as part of either DaemonSet(s) or a ReplicaSet(s).`),
-	},
-
-	TestPodRecreationIdentifier: {
-		Identifier: TestPodRecreationIdentifier,
-		Type:       normativeResult,
-		Remediation: `Ensure that CNF Pod(s) utilize a configuration that supports High Availability.  Additionally, ensure that there are
-available Nodes in the OpenShift cluster that can be utilized in the event that a host Node fails.`,
-		Description: `tests that a CNF is configured to support High Availability.  First, this test cordons and drains a Node that hosts
-the CNF Pod.  Next, the test ensures that OpenShift can re-instantiate the Pod on another Node, and that the actual
-replica count matches the desired replica count.`,
 	},
 
 	TestPodRoleBindingsBestPracticesIdentifier: {

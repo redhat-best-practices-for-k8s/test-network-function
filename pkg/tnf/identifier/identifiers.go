@@ -50,6 +50,7 @@ const (
 	sysctlConfigFilesListIdentifierURL    = "http://test-network-function.com/tests/sysctlConfigFilesList"
 	readRemoteFileIdentifierURL           = "http://test-network-function.com/tests/readRemoteFile"
 	uncordonNodeIdentifierURL             = "http://test-network-function.com/tests/node/uncordon"
+	checkSubscriptionIdentifierURL        = "http://test-network-function.com/tests/operator/check-subscription"
 
 	versionOne = "v1.0.0"
 )
@@ -489,6 +490,18 @@ var Catalog = map[string]TestCatalogEntry{
 			dependencies.OcBinaryName,
 		},
 	},
+	checkSubscriptionIdentifierURL: {
+		Identifier:  CheckSubscriptionURLIdentifier,
+		Description: "A test used to check the subscription of a given operator",
+		Type:        Normative,
+		IntrusionSettings: IntrusionSettings{
+			ModifiesSystem:           false,
+			ModificationIsPersistent: false,
+		},
+		BinaryDependencies: []string{
+			dependencies.OcBinaryName,
+		},
+	},
 }
 
 // HostnameIdentifier is the Identifier used to represent the generic hostname test case.
@@ -674,5 +687,11 @@ var ReadRemoteFileURLIdentifier = Identifier{
 // UncordonNodeURLIdentifier is the Identifier used to represent a test that uncordons a node.
 var UncordonNodeURLIdentifier = Identifier{
 	URL:             uncordonNodeIdentifierURL,
+	SemanticVersion: versionOne,
+}
+
+// CheckSubscriptionURLIdentifier is the Identifier used to represent a test that checks the subscription of an operator.
+var CheckSubscriptionURLIdentifier = Identifier{
+	URL:             checkSubscriptionIdentifierURL,
 	SemanticVersion: versionOne,
 }

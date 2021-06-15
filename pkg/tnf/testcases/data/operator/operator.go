@@ -30,16 +30,6 @@ var OperatorJSON = string(`{
       ]
     },
     {
-      "name": "SUBSCRIPTION_INSTALLED",
-      "skiptest": true,
-      "command": "oc get subscription %s -n %s -ojson | jq -r '.spec.name'",
-      "action": "allow",
-      "resulttype": "string",
-      "expectedstatus": [
-        "etcd"
-      ]
-    },
-    {
       "name": "CSV_SCC",
       "skiptest": true,
       "command": "oc get csv %s -n %s -o json | jq -r 'if .spec.install.spec.clusterPermissions == null then null else . end ` +
