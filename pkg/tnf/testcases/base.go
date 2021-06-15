@@ -151,25 +151,25 @@ var OperatorTestTemplateFileMap = map[string]string{
 type RegExType string
 
 const (
-	// AllowEmpty - Allows the result to match empty string
+	// AllowEmpty Allows the result to match empty string
 	AllowEmpty RegExType = "ALLOW_EMPTY"
-	// AllowAll - Allows the result to match non empty string
+	// AllowAll Allows the result to match non empty string
 	AllowAll RegExType = "allowAll"
-	// EmptyNullFalse - Allows the result to match either empty,null or false string
+	// EmptyNullFalse Allows the result to match either empty,null or false string
 	EmptyNullFalse RegExType = "EMPTY_NULL_FALSE"
-	// NullFalse - Allows the result to match either null or false string
+	// NullFalse Allows the result to match either null or false string
 	NullFalse RegExType = "NULL_FALSE"
-	// True - Allows the result to match `true` string
+	// True Allows the result to match `true` string
 	True RegExType = "TRUE"
-	// Null - Allows the result to match `null` string
+	// Null Allows the result to match `null` string
 	Null RegExType = "NULL"
-	// Zero - Allows the result to match 0 number
+	// Zero Allows the result to match 0 number
 	Zero RegExType = "ZERO"
-	// NonZero - Allows the result to match non 0 number
+	// NonZero Allows the result to match non 0 number
 	NonZero RegExType = "NON_ZERO"
-	// Error - Allows the result to match error string
+	// Error Allows the result to match error string
 	Error RegExType = "ERROR"
-	// Digit - Allows the result to match any number
+	// Digit Allows the result to match any number
 	Digit RegExType = "DIGIT"
 )
 
