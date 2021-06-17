@@ -84,11 +84,17 @@ var (
 	// nodeUncordonTestPath is the file location of the uncordon.json test case relative to the project root.
 	nodeUncordonTestPath = path.Join("pkg", "tnf", "handlers", "nodeuncordon", "uncordon.json")
 
+	// loggingTestPath is the file location of the logging.json test case relative to the project root.
+	loggingTestPath = path.Join("pkg", "tnf", "handlers", "logging", "logging.json")
+
 	// pathRelativeToRoot is used to calculate relative filepaths for the `test-network-function` executable entrypoint.
 	pathRelativeToRoot = path.Join("..")
 
 	// relativeNodesTestPath is the relative path to the nodes.json test case.
 	relativeNodesTestPath = path.Join(pathRelativeToRoot, nodeUncordonTestPath)
+
+	// relativeLoggingTestPath is the relative path to the logging.json test case.
+	relativeLoggingTestPath = path.Join(pathRelativeToRoot, loggingTestPath)
 
 	// relativeSchemaPath is the relative path to the generic-test.schema.json JSON schema.
 	relativeSchemaPath = path.Join(pathRelativeToRoot, schemaPath)
@@ -247,6 +253,9 @@ var _ = ginkgo.Describe(testsKey, func() {
 			testGracePeriod(getContext(), containerUnderTest.oc.GetPodName(), containerUnderTest.oc.GetPodNamespace())
 		}
 
+		for _, containerUnderTest := range containersUnderTest {
+			testLogging(containerUnderTest.oc.GetPodNamespace(), containerUnderTest.oc.GetPodName(), containerUnderTest.oc.GetPodContainerName())
+		}
 		testTainted()
 		testHugepages()
 
@@ -822,6 +831,35 @@ func drainNode(node string) {
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
 	runAndValidateTest(test)
+}
+func testLogging(podNameSpace, podName, containerName string) {
+	ginkgo.When("Testing PUT is emitting logs to stdout/stderr", func() {
+		ginkgo.It("should return at least one line of log", func() {
+			defer results.RecordResult(identifiers.TestLoggingIdentifier)
+			loggingTest(podNameSpace, podName, containerName)
+		})
+	})
+}
+func loggingTest(podNamespace, podName, containerName string) {
+	context := getContext()
+	values := make(map[string]interface{})
+	values["POD_NAMESPACE"] = podNamespace
+	values["POD_NAME"] = podName
+	values["CONTAINER_NAME"] = containerName
+	test, handlers, result, err := generic.NewGenericFromMap(relativeLoggingTestPath, relativeSchemaPath, values)
+	gomega.Expect(err).To(gomega.BeNil())
+	gomega.Expect(result).ToNot(gomega.BeNil())
+	gomega.Expect(result.Valid()).To(gomega.BeTrue())
+	gomega.Expect(handlers).ToNot(gomega.BeNil())
+	gomega.Expect(handlers).ToNot(gomega.BeNil())
+	gomega.Expect(test).ToNot(gomega.BeNil())
+	tester, err := tnf.NewTest(context.GetExpecter(), *test, handlers, context.GetErrorChannel())
+	gomega.Expect(err).To(gomega.BeNil())
+	gomega.Expect(tester).ToNot(gomega.BeNil())
+
+	testResult, err := tester.Run()
+	gomega.Expect(err).To(gomega.BeNil())
+	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
 }
 
 // uncordonNode uncordons a Node.

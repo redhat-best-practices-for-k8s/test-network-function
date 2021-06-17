@@ -168,6 +168,11 @@ var (
 		Url:     formGenericTestURL("nodes-hw-info"),
 		Version: versionOne,
 	}
+	// TestLoggingIdentifier ensures stderr/stdout are used
+	TestLoggingIdentifier = claim.Identifier{
+		Url:     formGenericTestURL("pod-stderr-stdout-best-practices"),
+		Version: versionOne,
+	}
 )
 
 func formDescription(identifier claim.Identifier, description string) string {
