@@ -8,19 +8,21 @@ on:
   workflow_dispatch:
 env:
   REGISTRY: quay.io
+  REGISTRY_LOCAL: localhost
   IMAGE_NAME: testnetworkfunction/test-network-function
   IMAGE_TAG: unstable
+  TNF_CONTAINER_CLIENT: docker
   TNF_MINIKUBE_ONLY: true
   TNF_ENABLE_CONFIG_AUTODISCOVER: true
   TNF_CONFIG_DIR: /tmp/tnf/config
   TNF_OUTPUT_DIR: /tmp/tnf/output
   TNF_SRC_URL: 'https://github.com/${{ github.repository }}'
-  TESTING_CMD_PARAMS: '-n host -i $IMAGE_NAME:$IMAGE_TAG -t $TNF_CONFIG_DIR -o $TNF_OUTPUT_DIR'
+  TESTING_CMD_PARAMS: '-n host -i ${REGISTRY_LOCAL}/${IMAGE_NAME}:${IMAGE_TAG} -t ${TNF_CONFIG_DIR} -o ${TNF_OUTPUT_DIR}'
 
 jobs:
   lint:
     name: Run Linter
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     steps:
       - name: Set up Go 1.15
@@ -49,7 +51,7 @@ jobs:
 
   unit-tests:
     name: Run Unit Tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     steps:
       - name: Set up Go 1.15
@@ -70,7 +72,7 @@ jobs:
 
   smoke-tests:
     name: Run Smoke Tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     env:
       SHELL: /bin/bash
       KUBECONFIG: '/home/runner/.kube/config'
@@ -124,7 +126,7 @@ jobs:
       - name: Build the `test-network-function` image
         run: |
           docker build --no-cache \
-            -t ${IMAGE_NAME}:${IMAGE_TAG} \
+            -t ${REGISTRY_LOCAL}/${IMAGE_NAME}:${IMAGE_TAG} \
             -t ${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG} \
             --build-arg TNF_VERSION=${COMMIT_SHA} \
             --build-arg TNF_SRC_URL=${TNF_SRC_URL} .
