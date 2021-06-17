@@ -17,15 +17,17 @@ defaults:
     shell: bash
 env:
   REGISTRY: quay.io
+  REGISTRY_LOCAL: localhost
   IMAGE_NAME: testnetworkfunction/test-network-function
   IMAGE_TAG: latest
   CURRENT_VERSION_GENERIC_BRANCH: 2.0.x
+  TNF_CONTAINER_CLIENT: docker
   TNF_MINIKUBE_ONLY: true
   TNF_ENABLE_CONFIG_AUTODISCOVER: true
   TNF_CONFIG_DIR: /tmp/tnf/config
   TNF_OUTPUT_DIR: /tmp/tnf/output
   TNF_SRC_URL: 'https://github.com/${{ github.repository }}'
-  TESTING_CMD_PARAMS: '-n host -i $IMAGE_NAME:$IMAGE_TAG -t $TNF_CONFIG_DIR -o $TNF_OUTPUT_DIR'
+  TESTING_CMD_PARAMS: '-n host -i ${REGISTRY_LOCAL}/${IMAGE_NAME}:${IMAGE_TAG} -t ${TNF_CONFIG_DIR} -o ${TNF_OUTPUT_DIR}'
 
 jobs:
   get-latest-tnf-version-number:
@@ -81,7 +83,7 @@ jobs:
       - name: Build the `test-network-function` image
         run: |
           docker build --no-cache \
-            -t ${IMAGE_NAME}:${IMAGE_TAG} \
+            -t ${REGISTRY_LOCAL}/${IMAGE_NAME}:${IMAGE_TAG} \
             -t ${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG} \
             -t ${REGISTRY}/${IMAGE_NAME}:${TNF_VERSION} \
             --build-arg TNF_VERSION=${TNF_VERSION} \
