@@ -416,7 +416,7 @@ var Catalog = map[string]TestCatalogEntry{
 	},
 	ownersIdentifierURL: {
 		Identifier:  OwnersIdentifier,
-		Description: "A generic test used to test pod owners",
+		Description: "A generic test used to verify pod is managed by a ReplicaSet",
 		Type:        Normative,
 		IntrusionSettings: IntrusionSettings{
 			ModifiesSystem:           false,

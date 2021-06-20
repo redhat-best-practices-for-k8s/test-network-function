@@ -856,7 +856,7 @@ func getContext() *interactive.Context {
 
 func testOwner(podNamespace, podName string) {
 	ginkgo.When("Testing owners of CNF pod", func() {
-		ginkgo.It("Should contain at least one of kind DaemonSet/ReplicaSet", func() {
+		ginkgo.It("Should be only ReplicaSet", func() {
 			defer results.RecordResult(identifiers.TestPodDeploymentBestPracticesIdentifier)
 			context := getContext()
 			tester := owners.NewOwners(defaultTimeout, podNamespace, podName)

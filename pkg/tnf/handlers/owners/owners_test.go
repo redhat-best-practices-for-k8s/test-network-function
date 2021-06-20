@@ -89,11 +89,12 @@ const (
 
 var (
 	testInputFailureSlice = []string{
-		"NAME\n",
-		"NAME\nOwner\nOwner\n",
+		"OWNERKIND\n",
+		"OWNERKIND\nOwner\nOwner\n",
+		"OWNERKIND\nDaemonSet\nOWNERKIND\nReplicaSet\n",
 	}
 	testInputSuccessSlice = []string{
 		"OWNERKIND\nReplicaSet\n",
-		"OWNERKIND\nDaemonSet\n",
+		"OWNERKIND\nOwner\nOWNERKIND\nReplicaSet\n",
 	}
 )
