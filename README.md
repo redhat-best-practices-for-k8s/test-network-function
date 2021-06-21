@@ -150,7 +150,7 @@ Currently, these suites are skipped:
 * dpdk
 * ovn
 
-For more information on the test suites, refer to [the cnf-fature-deploy repository](https://github.com/openshift-kni/cnf-features-deploy/tree/release-4.6)
+For more information on the test suites, refer to [the cnf-features-deploy repository](https://github.com/openshift-kni/cnf-features-deploy/tree/release-4.6)
 
 ### General
 
