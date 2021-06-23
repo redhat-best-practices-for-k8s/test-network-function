@@ -118,6 +118,13 @@ var (
 		Url:     formGenericTestURL("pod-node-selector-node-affinity-best-practices"),
 		Version: versionOne,
 	}
+	// TestPodHighAvailabilityBestPractices is the test ensuring podAntiAffinity are used by a
+	// Pod when pod replica # are great than 1
+	TestPodHighAvailabilityBestPractices = claim.Identifier{
+		Url:     formGenericTestURL("pod-high-availabitiy-best-practices"),
+		Version: versionOne,
+	}
+
 	// TestPodClusterRoleBindingsBestPracticesIdentifier ensures Pod crb best practices.
 	TestPodClusterRoleBindingsBestPracticesIdentifier = claim.Identifier{
 		Url:     formGenericTestURL("pod-cluster-role-bindings-best-practices"),
@@ -314,11 +321,19 @@ the same hacks.'`),
 		Type:       informativeResult,
 		Remediation: `In most cases, Pod's should not specify their host Nodes through nodeSelector or nodeAffinity.  However, there are
 cases in which CNFs require specialized hardware specific to a particular class of Node.  As such, this test is purely
-informative,  and will not prevent a CNF from being certified.  However, one should have an appropriate justification as
+informative, and will not prevent a CNF from being certified. However, one should have an appropriate justification as
 to why nodeSelector and/or nodeAffinity is utilized by a CNF.`,
 		Description: formDescription(TestPodNodeSelectorAndAffinityBestPractices,
 			`ensures that CNF Pods do not specify nodeSelector or nodeAffinity.  In most cases, Pods should allow for
 instantiation on any underlying Node.`),
+	},
+
+	TestPodHighAvailabilityBestPractices: {
+		Identifier:  TestPodHighAvailabilityBestPractices,
+		Type:        informativeResult,
+		Remediation: `In high availability cases, Pod podAntiAffinity rule should be specified for pod scheduling and pod replica value is set more than 1 .`,
+		Description: formDescription(TestPodHighAvailabilityBestPractices,
+			`ensures that CNF Pods specify podAntiAffinity rules and replica value is set more than 1.`),
 	},
 
 	TestPodClusterRoleBindingsBestPracticesIdentifier: {
