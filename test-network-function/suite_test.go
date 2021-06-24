@@ -129,7 +129,7 @@ func TestTest(t *testing.T) {
 	resultMap := generateResultMap(junitMap)
 	claimData.Results = results.GetReconciledResults(resultMap)
 	configurations := marshalConfigurations()
-	claimData.Nodes = diagnostic.GetNodeSummary()
+	claimData.Nodes = generateNodes()
 	unmarshalConfigurations(configurations, claimData.Configurations)
 	claimData.Metadata.EndTime = endTime.UTC().Format(dateTimeFormatDirective)
 
@@ -210,4 +210,15 @@ func writeClaimOutput(claimOutputFile string, payload []byte) {
 	if err != nil {
 		log.Fatalf("Error writing claim data:\n%s", string(payload))
 	}
+}
+
+func generateNodes() map[string]interface{} {
+	const (
+		nodeSummaryField = "nodeSummary"
+		cniPluginsField  = "cniPlugins"
+	)
+	nodes := map[string]interface{}{}
+	nodes[nodeSummaryField] = diagnostic.GetNodeSummary()
+	nodes[cniPluginsField] = diagnostic.GetCniPlugins()
+	return nodes
 }

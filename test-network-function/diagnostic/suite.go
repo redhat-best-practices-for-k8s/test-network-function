@@ -2,7 +2,9 @@ package diagnostic
 
 import (
 	"encoding/json"
+	"os"
 	"path"
+	"strconv"
 	"time"
 
 	"github.com/test-network-function/test-network-function/test-network-function/identifiers"
@@ -12,7 +14,10 @@ import (
 	"github.com/onsi/gomega"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/generic"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodedebug"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodenames"
 	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
+	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
 )
 
 const (
@@ -28,6 +33,8 @@ var (
 
 	// nodeSummary stores the raw JSON output of `oc get nodes -o json`
 	nodeSummary = make(map[string]interface{})
+
+	cniPlugins = make([]CniPlugin, 0)
 
 	// nodesTestPath is the file location of the nodes.json test case relative to the project root.
 	nodesTestPath = path.Join("pkg", "tnf", "handlers", "node", "nodes.json")
@@ -82,10 +89,76 @@ var _ = ginkgo.Describe(testSuiteSpec, func() {
 			err = json.Unmarshal([]byte(match.Match), &nodeSummary)
 			gomega.Expect(err).To(gomega.BeNil())
 		})
+		ginkgo.It("should report all CNI plugins", func() {
+			defer results.RecordResult(identifiers.TestListCniPluginsIdentifier)
+			testCniPlugins()
+		})
 	})
 })
+
+// CniPlugin holds info about a CNI plugin
+type CniPlugin struct {
+	Name    string
+	version string
+}
 
 // GetNodeSummary returns the result of running `oc get nodes -o json`.
 func GetNodeSummary() map[string]interface{} {
 	return nodeSummary
+}
+
+// GetCniPlugins return the found plugins
+func GetCniPlugins() []CniPlugin {
+	return cniPlugins
+}
+
+func getMasterNodeName() string {
+	const masterNodeLabel = "node-role.kubernetes.io/master"
+	context := createShell()
+	tester := nodenames.NewNodeNames(defaultTestTimeout, map[string]*string{masterNodeLabel: nil})
+	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
+	gomega.Expect(err).To(gomega.BeNil())
+	testResult, err := test.Run()
+	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
+	gomega.Expect(err).To(gomega.BeNil())
+	nodeNames := tester.GetNodeNames()
+	gomega.Expect(nodeNames).NotTo(gomega.BeEmpty())
+	return nodeNames[0]
+}
+
+func listNodeCniPlugins(nodeName string) []CniPlugin {
+	const command = "jq -r .name,.cniVersion '/etc/cni/net.d/*'"
+	result := []CniPlugin{}
+	context := createShell()
+	tester := nodedebug.NewNodeDebug(defaultTestTimeout, nodeName, command, true, true)
+	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
+	gomega.Expect(err).To(gomega.BeNil())
+	testResult, err := test.Run()
+	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
+	gomega.Expect(err).To(gomega.BeNil())
+	gomega.Expect(len(tester.Processed)%2 == 0).To(gomega.BeTrue())
+	for i := 0; i < len(tester.Processed); i += 2 {
+		result = append(result, CniPlugin{
+			tester.Processed[i],
+			tester.Processed[i+1],
+		})
+	}
+	return result
+}
+
+func testCniPlugins() {
+	if isMinikube() {
+		ginkgo.Skip("can't use 'oc debug' in minikube")
+	}
+	// get name of a master node
+	nodeName := getMasterNodeName()
+	gomega.Expect(nodeName).ToNot(gomega.BeEmpty())
+	// get CNI plugins from node
+	cniPlugins = listNodeCniPlugins(nodeName)
+	gomega.Expect(cniPlugins).ToNot(gomega.BeNil())
+}
+
+func isMinikube() bool {
+	b, _ := strconv.ParseBool(os.Getenv("TNF_MINIKUBE_ONLY"))
+	return b
 }

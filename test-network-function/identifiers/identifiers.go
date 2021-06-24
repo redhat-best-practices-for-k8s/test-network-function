@@ -158,6 +158,11 @@ var (
 		Url:     formGenericTestURL("unaltered-startup-boot-params"),
 		Version: versionOne,
 	}
+	// TestListCniPluginsIdentifier retrieves list of CNI plugins.
+	TestListCniPluginsIdentifier = claim.Identifier{
+		Url:     formGenericTestURL("list-cni-plugins"),
+		Version: versionOne,
+	}
 )
 
 func formDescription(identifier claim.Identifier, description string) string {
@@ -386,5 +391,12 @@ PerfromanceAddonOperator.  Boot parameters should not be changed directly throug
 the changes for you.`,
 		Description: formDescription(TestUnalteredStartupBootParamsIdentifier,
 			`tests that boot parameters are set through the MachineConfigOperator, and not set manually on the Node.`),
+	},
+	TestListCniPluginsIdentifier: {
+		Identifier:  TestListCniPluginsIdentifier,
+		Type:        normativeResult,
+		Remediation: "",
+		Description: formDescription(TestListCniPluginsIdentifier,
+			`lists CNI plugins`),
 	},
 }
