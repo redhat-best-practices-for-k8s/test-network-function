@@ -34,7 +34,7 @@ var (
 // BuildCNFsConfig builds a `[]configsections.Cnf` from the current state of the cluster,
 // using labels and annotations to populate the data.
 func BuildCNFsConfig() (cnfs []configsections.Cnf) {
-	pods, err := GetPodsByLabel(cnfLabelName, AnyLabelValue)
+	pods, err := GetPodsByLabel(labelNamespace, cnfLabelName, anyLabelValue)
 	if err != nil {
 		log.Fatalf("found no CNFs to test while 'container' spec enabled: %s", err)
 	}

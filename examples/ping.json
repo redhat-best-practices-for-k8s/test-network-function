@@ -1,4 +1,8 @@
 {
+  "identifier": {
+    "url": "http://test-network-function.com/tests/example/ping",
+    "version": "v1.0.0"
+  },
   "description": "Pings www.redhat.com 5 times using the Unix ping executable.",
   "testResult": 0,
   "testTimeout": 10000000000,

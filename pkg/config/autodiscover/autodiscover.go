@@ -30,8 +30,8 @@ const (
 	labelNamespace           = "test-network-function.com"
 	labelTemplate            = "%s/%s"
 
-	// AnyLabelValue is the value that will allow any value for a label when building the label query.
-	AnyLabelValue = ""
+	// anyLabelValue is the value that will allow any value for a label when building the label query.
+	anyLabelValue = ""
 )
 
 // PerformAutoDiscovery checks the environment variable to see if autodiscovery should be performed
@@ -40,17 +40,20 @@ func PerformAutoDiscovery() (doAuto bool) {
 	return doAuto
 }
 
-func buildLabelName(labelName string) string {
-	return fmt.Sprintf(labelTemplate, labelNamespace, labelName)
+func buildLabelName(labelNS, labelName string) string {
+	if labelNS == "" {
+		return labelName
+	}
+	return fmt.Sprintf(labelTemplate, labelNS, labelName)
 }
 
 func buildAnnotationName(annotationName string) string {
-	return buildLabelName(annotationName)
+	return buildLabelName(labelNamespace, annotationName)
 }
 
-func buildLabelQuery(labelName, labelValue string) string {
-	namespacedLabel := buildLabelName(labelName)
-	if labelValue != AnyLabelValue {
+func buildLabelQuery(labelNS, labelName, labelValue string) string {
+	namespacedLabel := buildLabelName(labelNS, labelName)
+	if labelValue != anyLabelValue {
 		return fmt.Sprintf("%s=%s", namespacedLabel, labelValue)
 	}
 	return namespacedLabel

@@ -41,8 +41,18 @@ const (
 	operatorTestSpecName   = "operator"
 )
 
+// Label ns/name/value for resource lookup
+type Label struct {
+	Namespace string `yaml:"namespace" json:"namespace"`
+	Name      string `yaml:"name" json:"name"`
+	Value     string `yaml:"value" json:"value"`
+}
+
 // File is the top level of the config file. All new config sections must be added here
 type File struct {
+	// Custom Pod labels for discovering containers under test for generic and container suites
+	TargetPodLabels []Label `yaml:"targetPodLabels,omitempty" json:"targetPodLabels,omitempty"`
+
 	Generic configsections.TestConfiguration `yaml:"generic,omitempty" json:"generic,omitempty"`
 
 	// Operator is the list of operator objects that needs to be tested.
@@ -66,6 +76,8 @@ var (
 	configInstance File
 	// loaded tracks if the config has been loaded to prevent it being reloaded.
 	loaded = false
+	// set when an intrusive test has done something that would cause Pod/Container to be recreated
+	needsRefresh = false
 )
 
 // getConfigurationFilePathFromEnvironment returns the test configuration file.
@@ -122,10 +134,57 @@ func GetConfigInstance() File {
 			log.Fatalf("unable to load configuration file: %s", err)
 		}
 
-		if autodiscover.PerformAutoDiscovery() {
-			log.Warn("doing configuration autodiscovery. Currently this WILL override parts of the configuration file")
-			doAutodiscovery()
-		}
+		BuildConfig()
+	} else if needsRefresh {
+		BuildConfig()
 	}
 	return configInstance
+}
+
+func findContainersByLabels(labels []Label) (containers []configsections.Container) {
+	for _, l := range labels {
+		list, err := autodiscover.GetContainersByLabel(l.Namespace, l.Name, l.Value)
+		if err == nil {
+			containers = append(containers, list...)
+		} else {
+			log.Warnf("failed to query by label: %v %v", l, err)
+		}
+	}
+	return containers
+}
+
+func findPodsByLabels(labels []Label) (cnfs []configsections.Cnf) {
+	for _, l := range labels {
+		pods, err := autodiscover.GetPodsByLabel(l.Namespace, l.Name, l.Value)
+		if err == nil {
+			for i := range pods.Items {
+				cnfs = append(cnfs, autodiscover.BuildCnfFromPodResource(&pods.Items[i]))
+			}
+		} else {
+			log.Warnf("failed to query by label: %v %v", l, err)
+		}
+	}
+	return cnfs
+}
+
+// BuildConfig does auto discovery based on default labels if enabled and additional target pod/container
+// discovery based on custom labels
+func BuildConfig() {
+	if autodiscover.PerformAutoDiscovery() {
+		log.Warn("doing configuration autodiscovery. Currently this WILL override parts of the configuration file")
+		doAutodiscovery()
+	}
+	if testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusStrings, genericTestSpecName) ||
+		testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusStrings, diagnosticTestSpecName) {
+		configInstance.Generic.ContainersUnderTest = append(configInstance.Generic.ContainersUnderTest, findContainersByLabels(configInstance.TargetPodLabels)...)
+	}
+	if testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusStrings, containerTestSpecName) {
+		configInstance.CNFs = append(configInstance.CNFs, findPodsByLabels(configInstance.TargetPodLabels)...)
+	}
+	needsRefresh = false
+}
+
+// SetNeedsRefresh marks the config stale so that the next getInstance call will redo discovery
+func SetNeedsRefresh() {
+	needsRefresh = true
 }

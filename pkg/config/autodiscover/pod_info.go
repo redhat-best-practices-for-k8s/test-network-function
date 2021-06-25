@@ -148,8 +148,8 @@ func (pr *PodResource) annotationUnmarshalError(annotationKey string, err error)
 
 // GetPodsByLabel will return all pods with a given label value. If `labelValue` is an empty string, all pods with that
 // label will be returned, regardless of the labels value.
-func GetPodsByLabel(labelName, labelValue string) (*PodList, error) {
-	cmd := makeGetCommand(resourceTypePods, buildLabelQuery(labelName, labelValue))
+func GetPodsByLabel(labelNS, labelName, labelValue string) (*PodList, error) {
+	cmd := makeGetCommand(resourceTypePods, buildLabelQuery(labelNS, labelName, labelValue))
 
 	out, err := cmd.Output()
 	if err != nil {

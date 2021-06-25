@@ -67,7 +67,7 @@ func (csv *CSVResource) annotationUnmarshalError(annotationKey string, err error
 // GetCSVsByLabel will return all CSVs with a given label value. If `labelValue` is an empty string, all CSVs with that
 // label will be returned, regardless of the labels value.
 func GetCSVsByLabel(labelName, labelValue string) (*CSVList, error) {
-	cmd := makeGetCommand(resourceTypeCSV, buildLabelQuery(labelName, labelValue))
+	cmd := makeGetCommand(resourceTypeCSV, buildLabelQuery(labelNamespace, labelName, labelValue))
 
 	out, err := cmd.Output()
 	if err != nil {
