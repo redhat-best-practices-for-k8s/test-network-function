@@ -18,6 +18,6 @@ require (
 	github.com/stretchr/testify v1.7.0
 	github.com/test-network-function/test-network-function-claim v1.0.3
 	github.com/xeipuuv/gojsonschema v1.2.0
-	google.golang.org/grpc v1.38.0
+	google.golang.org/grpc v1.39.0
 	gopkg.in/yaml.v2 v2.4.0
 )
