@@ -216,9 +216,11 @@ func generateNodes() map[string]interface{} {
 	const (
 		nodeSummaryField = "nodeSummary"
 		cniPluginsField  = "cniPlugins"
+		nodesHwInfo      = "nodesHwInfo"
 	)
 	nodes := map[string]interface{}{}
 	nodes[nodeSummaryField] = diagnostic.GetNodeSummary()
 	nodes[cniPluginsField] = diagnostic.GetCniPlugins()
+	nodes[nodesHwInfo] = diagnostic.GetNodesHwInfo()
 	return nodes
 }
