@@ -163,6 +163,11 @@ var (
 		Url:     formGenericTestURL("list-cni-plugins"),
 		Version: versionOne,
 	}
+	// TestNodesHwInfoIdentifier retrieves nodes HW info.
+	TestNodesHwInfoIdentifier = claim.Identifier{
+		Url:     formGenericTestURL("nodes-hw-info"),
+		Version: versionOne,
+	}
 )
 
 func formDescription(identifier claim.Identifier, description string) string {
@@ -398,5 +403,12 @@ the changes for you.`,
 		Remediation: "",
 		Description: formDescription(TestListCniPluginsIdentifier,
 			`lists CNI plugins`),
+	},
+	TestNodesHwInfoIdentifier: {
+		Identifier:  TestNodesHwInfoIdentifier,
+		Type:        normativeResult,
+		Remediation: "",
+		Description: formDescription(TestNodesHwInfoIdentifier,
+			`list nodes HW info`),
 	},
 }
