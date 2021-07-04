@@ -108,9 +108,9 @@ var defaultTimeout = time.Duration(defaultTimeoutSeconds) * time.Second
 
 var drainTimeout = time.Duration(drainTimeoutMinutes) * time.Minute
 
-// containersToExcludeFromConnectivityTests is a set used for storing the containers that should be excluded from
+// podsToExcludeFromConnectivityTests is a set used for storing the pods that should be excluded from
 // connectivity testing.
-var containersToExcludeFromConnectivityTests = make(map[configsections.ContainerIdentifier]interface{})
+var podsToExcludeFromConnectivityTests = make(map[configsections.ContainerIdentifier]interface{})
 
 // Helper used to instantiate an OpenShift Client Session.
 func getOcSession(pod, container, namespace string, timeout time.Duration, options ...interactive.Option) *interactive.Oc {
@@ -160,9 +160,10 @@ type container struct {
 func createContainers(containerDefinitions []configsections.Container) map[configsections.ContainerIdentifier]*container {
 	createdContainers := make(map[configsections.ContainerIdentifier]*container)
 	for _, c := range containerDefinitions {
+		podKey := configsections.GetPodIDFromContainerID(c.ContainerIdentifier)
 		oc := getOcSession(c.PodName, c.ContainerName, c.Namespace, defaultTimeout, interactive.Verbose(true))
 		var defaultIPAddress = "UNKNOWN"
-		if _, ok := containersToExcludeFromConnectivityTests[c.ContainerIdentifier]; !ok {
+		if _, ok := podsToExcludeFromConnectivityTests[podKey]; !ok {
 			defaultIPAddress = getContainerDefaultNetworkIPAddress(oc, c.DefaultNetworkDevice)
 		}
 		createdContainers[c.ContainerIdentifier] = &container{
@@ -176,8 +177,15 @@ func createContainers(containerDefinitions []configsections.Container) map[confi
 }
 
 // createContainersUnderTest sets up the test containers.
-func createContainersUnderTest(conf *configsections.TestConfiguration) map[configsections.ContainerIdentifier]*container {
-	return createContainers(conf.ContainersUnderTest)
+func createContainersUnderTest(conf *configsections.TestConfiguration) (containersResult map[configsections.ContainerIdentifier]*container,
+	podsResult map[configsections.ContainerIdentifier]*container) {
+	containersResult = createContainers(conf.ContainersUnderTest)
+	podsResult = map[configsections.ContainerIdentifier]*container{}
+	for key, value := range containersResult {
+		podKey := configsections.GetPodIDFromContainerID(key)
+		podsResult[podKey] = value
+	}
+	return containersResult, podsResult
 }
 
 // createPartnerContainers sets up the partner containers.
@@ -196,17 +204,18 @@ var _ = ginkgo.Describe(testsKey, func() {
 		log.Infof("Test Configuration: %s", config)
 
 		for _, cid := range config.ExcludeContainersFromConnectivityTests {
-			containersToExcludeFromConnectivityTests[cid] = ""
+			cid.ContainerName = ""
+			podsToExcludeFromConnectivityTests[cid] = ""
 		}
-		containersUnderTest := createContainersUnderTest(config)
+		containersUnderTest, podsUnderTest := createContainersUnderTest(config)
 		partnerContainers := createPartnerContainers(config)
 		testOrchestrator := partnerContainers[config.TestOrchestrator]
 		fsDiffContainer := partnerContainers[config.FsDiffMasterContainer]
 		log.Info(testOrchestrator)
 		log.Info(containersUnderTest)
 
-		for _, containerUnderTest := range containersUnderTest {
-			testNodeSelector(getContext(), containerUnderTest.oc.GetPodName(), containerUnderTest.oc.GetPodNamespace())
+		for podUnderTest := range podsUnderTest {
+			testNodeSelector(getContext(), podUnderTest.PodName, podUnderTest.Namespace)
 		}
 
 		ginkgo.Context("Container does not have additional packages installed", func() {
@@ -223,11 +232,11 @@ var _ = ginkgo.Describe(testsKey, func() {
 		})
 
 		ginkgo.Context("Both Pods are on the Default network", func() {
-			// for each container under test, ensure bidirectional ICMP traffic between the container and the orchestrator.
-			for _, containerUnderTest := range containersUnderTest {
-				if _, ok := containersToExcludeFromConnectivityTests[containerUnderTest.containerIdentifier]; !ok {
-					testNetworkConnectivity(containerUnderTest.oc, testOrchestrator.oc, testOrchestrator.defaultNetworkIPAddress, defaultNumPings)
-					testNetworkConnectivity(testOrchestrator.oc, containerUnderTest.oc, containerUnderTest.defaultNetworkIPAddress, defaultNumPings)
+			// for each pod under test, ensure bidirectional ICMP traffic between the pod and the orchestrator.
+			for _, podUnderTest := range podsUnderTest {
+				if _, ok := podsToExcludeFromConnectivityTests[podUnderTest.containerIdentifier]; !ok {
+					testNetworkConnectivity(podUnderTest.oc, testOrchestrator.oc, testOrchestrator.defaultNetworkIPAddress, defaultNumPings)
+					testNetworkConnectivity(testOrchestrator.oc, podUnderTest.oc, podUnderTest.defaultNetworkIPAddress, defaultNumPings)
 				}
 			}
 		})
@@ -237,20 +246,20 @@ var _ = ginkgo.Describe(testsKey, func() {
 		}
 		testIsRedHatRelease(testOrchestrator.oc)
 
-		for _, containerUnderTest := range containersUnderTest {
-			testNamespace(containerUnderTest.oc)
+		for _, podUnderTest := range podsUnderTest {
+			testNamespace(podUnderTest.oc)
 		}
 
-		for _, containerUnderTest := range containersUnderTest {
-			testRoles(containerUnderTest.oc.GetPodName(), containerUnderTest.oc.GetPodNamespace())
+		for _, podUnderTest := range podsUnderTest {
+			testRoles(podUnderTest.oc.GetPodName(), podUnderTest.oc.GetPodNamespace())
 		}
 
-		for _, containerUnderTest := range containersUnderTest {
-			testNodePort(containerUnderTest.oc.GetPodNamespace())
+		for _, podUnderTest := range podsUnderTest {
+			testNodePort(podUnderTest.oc.GetPodNamespace())
 		}
 
-		for _, containerUnderTest := range containersUnderTest {
-			testGracePeriod(getContext(), containerUnderTest.oc.GetPodName(), containerUnderTest.oc.GetPodNamespace())
+		for _, podUnderTest := range podsUnderTest {
+			testGracePeriod(getContext(), podUnderTest.oc.GetPodName(), podUnderTest.oc.GetPodNamespace())
 		}
 
 		for _, containerUnderTest := range containersUnderTest {
@@ -260,24 +269,24 @@ var _ = ginkgo.Describe(testsKey, func() {
 		testHugepages()
 
 		if !isMinikube() {
-			for _, containersUnderTest := range containersUnderTest {
-				testDeployments(containersUnderTest.oc.GetPodNamespace())
+			for _, podUnderTest := range podsUnderTest {
+				testDeployments(podUnderTest.oc.GetPodNamespace())
 			}
 		}
 
-		for _, containerUnderTest := range containersUnderTest {
-			testOwner(containerUnderTest.oc.GetPodNamespace(), containerUnderTest.oc.GetPodName())
+		for _, podUnderTest := range podsUnderTest {
+			testOwner(podUnderTest.oc.GetPodNamespace(), podUnderTest.oc.GetPodName())
 		}
 
 		if !isMinikube() {
-			for _, containersUnderTest := range containersUnderTest {
-				testBootParams(getContext(), containersUnderTest.oc.GetPodName(), containersUnderTest.oc.GetPodNamespace(), containersUnderTest.oc)
+			for _, podUnderTest := range podsUnderTest {
+				testBootParams(getContext(), podUnderTest.oc.GetPodName(), podUnderTest.oc.GetPodNamespace(), podUnderTest.oc)
 			}
 		}
 
 		if !isMinikube() {
-			for _, containersUnderTest := range containersUnderTest {
-				testSysctlConfigs(getContext(), containersUnderTest.oc.GetPodName(), containersUnderTest.oc.GetPodNamespace())
+			for _, podUnderTest := range podsUnderTest {
+				testSysctlConfigs(getContext(), podUnderTest.oc.GetPodName(), podUnderTest.oc.GetPodNamespace())
 			}
 		}
 	}
@@ -306,15 +315,15 @@ var _ = ginkgo.Describe(multusTestsKey, func() {
 		config := GetTestConfiguration()
 		log.Infof("Test Configuration: %s", config)
 
-		containersUnderTest := createContainersUnderTest(config)
+		_, podsUnderTest := createContainersUnderTest(config)
 		partnerContainers := createPartnerContainers(config)
 		testOrchestrator := partnerContainers[config.TestOrchestrator]
 
 		ginkgo.Context("Both Pods are connected via a Multus Overlay Network", func() {
-			// Unidirectional test;  for each container under test, attempt to ping the target Multus IP addresses.
-			for _, containerUnderTest := range containersUnderTest {
-				for _, multusIPAddress := range containerUnderTest.containerConfiguration.MultusIPAddresses {
-					testNetworkConnectivity(testOrchestrator.oc, containerUnderTest.oc, multusIPAddress, defaultNumPings)
+			// Unidirectional test;  for each pod under test, attempt to ping the target Multus IP addresses.
+			for _, podUnderTest := range podsUnderTest {
+				for _, multusIPAddress := range podUnderTest.containerConfiguration.MultusIPAddresses {
+					testNetworkConnectivity(testOrchestrator.oc, podUnderTest.oc, multusIPAddress, defaultNumPings)
 				}
 			}
 		})

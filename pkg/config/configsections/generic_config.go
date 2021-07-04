@@ -41,3 +41,8 @@ type TestConfiguration struct {
 	// ExcludeContainersFromConnectivityTests excludes specific containers from network connectivity tests.  This is particularly useful for containers that don't have ping available.
 	ExcludeContainersFromConnectivityTests []ContainerIdentifier `yaml:"excludeContainersFromConnectivityTests" json:"excludeContainersFromConnectivityTests"`
 }
+
+// GetPodIDFromContainerID returns identifier to the pod containing the container
+func GetPodIDFromContainerID(cID ContainerIdentifier) ContainerIdentifier {
+	return ContainerIdentifier{Namespace: cID.Namespace, PodName: cID.PodName, ContainerName: ""}
+}
