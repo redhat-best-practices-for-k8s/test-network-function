@@ -26,9 +26,9 @@ import (
 )
 
 const (
-	enableAutodiscoverEnvVar = "TNF_ENABLE_CONFIG_AUTODISCOVER"
-	labelNamespace           = "test-network-function.com"
-	labelTemplate            = "%s/%s"
+	disableAutodiscoverEnvVar = "TNF_DISABLE_CONFIG_AUTODISCOVER"
+	labelNamespace            = "test-network-function.com"
+	labelTemplate             = "%s/%s"
 
 	// AnyLabelValue is the value that will allow any value for a label when building the label query.
 	AnyLabelValue = ""
@@ -36,8 +36,8 @@ const (
 
 // PerformAutoDiscovery checks the environment variable to see if autodiscovery should be performed
 func PerformAutoDiscovery() (doAuto bool) {
-	doAuto, _ = strconv.ParseBool(os.Getenv(enableAutodiscoverEnvVar))
-	return doAuto
+	doAuto, _ = strconv.ParseBool(os.Getenv(disableAutodiscoverEnvVar))
+	return !doAuto
 }
 
 func buildLabelName(labelName string) string {
