@@ -38,7 +38,7 @@ func BuildGenericConfig() (conf configsections.TestConfiguration) {
 	var partnerContainers []configsections.Container // PartnerContainers is built from all non-target containers
 
 	// an orchestrator must be identified
-	orchestrator, err := getContainerByLabel(labelNamespace, genericLabelName, orchestratorValue)
+	orchestrator, err := getContainerByLabel(configsections.Label{Namespace: tnfNamespace, Name: genericLabelName, Value: orchestratorValue})
 	if err != nil {
 		log.Fatalf("failed to identify a single test orchestrator container: %s", err)
 	}
@@ -46,14 +46,14 @@ func BuildGenericConfig() (conf configsections.TestConfiguration) {
 	conf.TestOrchestrator = orchestrator.ContainerIdentifier
 
 	// there must be containers to test
-	containersUnderTest, err := GetContainersByLabel(labelNamespace, genericLabelName, underTestValue)
+	containersUnderTest, err := GetContainersByLabel(configsections.Label{Namespace: tnfNamespace, Name: genericLabelName, Value: underTestValue})
 	if err != nil {
 		log.Fatalf("found no containers to test: %s", err)
 	}
 	conf.ContainersUnderTest = containersUnderTest
 
 	// the FS Diff master container is optional
-	fsDiffMasterContainer, err := getContainerByLabel(labelNamespace, genericLabelName, fsDiffMasterValue)
+	fsDiffMasterContainer, err := getContainerByLabel(configsections.Label{Namespace: tnfNamespace, Name: genericLabelName, Value: fsDiffMasterValue})
 	if err == nil {
 		partnerContainers = append(partnerContainers, fsDiffMasterContainer)
 		conf.FsDiffMasterContainer = fsDiffMasterContainer.ContainerIdentifier
@@ -62,7 +62,7 @@ func BuildGenericConfig() (conf configsections.TestConfiguration) {
 	}
 
 	// Containers to exclude from connectivity tests are optional
-	connectivityExcludedContainers, err := getContainerIdentifiersByLabel(labelNamespace, skipConnectivityTestsLabel, anyLabelValue)
+	connectivityExcludedContainers, err := getContainerIdentifiersByLabel(configsections.Label{Namespace: tnfNamespace, Name: skipConnectivityTestsLabel, Value: anyLabelValue})
 	if err != nil {
 		log.Warnf("an error (%s) occurred when getting the containers to exclude from connectivity tests. Attempting to continue", err)
 	}
@@ -74,8 +74,8 @@ func BuildGenericConfig() (conf configsections.TestConfiguration) {
 }
 
 // GetContainersByLabel builds `config.Container`s from containers in pods matching a label.
-func GetContainersByLabel(labelNS, labelName, labelValue string) (containers []configsections.Container, err error) {
-	pods, err := GetPodsByLabel(labelNS, labelName, labelValue)
+func GetContainersByLabel(label configsections.Label) (containers []configsections.Container, err error) {
+	pods, err := GetPodsByLabel(label)
 	if err != nil {
 		return nil, err
 	}
@@ -86,8 +86,8 @@ func GetContainersByLabel(labelNS, labelName, labelValue string) (containers []c
 }
 
 // getContainerIdentifiersByLabel builds `config.ContainerIdentifier`s from containers in pods matching a label.
-func getContainerIdentifiersByLabel(labelNS, labelName, labelValue string) (containerIDs []configsections.ContainerIdentifier, err error) {
-	containers, err := GetContainersByLabel(labelNS, labelName, labelValue)
+func getContainerIdentifiersByLabel(label configsections.Label) (containerIDs []configsections.ContainerIdentifier, err error) {
+	containers, err := GetContainersByLabel(label)
 	if err != nil {
 		return nil, err
 	}
@@ -99,13 +99,13 @@ func getContainerIdentifiersByLabel(labelNS, labelName, labelValue string) (cont
 
 // getContainerByLabel returns exactly one container with the given label. If any other number of containers is found
 // then an error is returned along with an empty `config.Container`.
-func getContainerByLabel(labelNS, labelName, labelValue string) (container configsections.Container, err error) {
-	containers, err := GetContainersByLabel(labelNS, labelName, labelValue)
+func getContainerByLabel(label configsections.Label) (container configsections.Container, err error) {
+	containers, err := GetContainersByLabel(label)
 	if err != nil {
 		return container, err
 	}
 	if len(containers) != 1 {
-		return container, fmt.Errorf("expected exactly one container, got %d for label %s=%s", len(containers), labelName, labelValue)
+		return container, fmt.Errorf("expected exactly one container, got %d for label %s/%s=%s", len(containers), label.Namespace, label.Name, label.Value)
 	}
 	return containers[0], nil
 }

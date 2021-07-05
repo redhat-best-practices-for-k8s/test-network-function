@@ -39,19 +39,13 @@ const (
 	diagnosticTestSpecName = "diagnostic"
 	genericTestSpecName    = "generic"
 	operatorTestSpecName   = "operator"
+	multusTestSpecName     = "multus"
 )
-
-// Label ns/name/value for resource lookup
-type Label struct {
-	Namespace string `yaml:"namespace" json:"namespace"`
-	Name      string `yaml:"name" json:"name"`
-	Value     string `yaml:"value" json:"value"`
-}
 
 // File is the top level of the config file. All new config sections must be added here
 type File struct {
 	// Custom Pod labels for discovering containers under test for generic and container suites
-	TargetPodLabels []Label `yaml:"targetPodLabels,omitempty" json:"targetPodLabels,omitempty"`
+	TargetPodLabels []configsections.Label `yaml:"targetPodLabels,omitempty" json:"targetPodLabels,omitempty"`
 
 	Generic configsections.TestConfiguration `yaml:"generic,omitempty" json:"generic,omitempty"`
 
@@ -112,11 +106,10 @@ func loadConfigFromFile(filePath string) error {
 // doAutodiscovery will autodiscover config for any enabled test spec. Specs which are not selected will be skipped to
 // avoid unnecessary noise in the logs.
 func doAutodiscovery() {
-	if testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusStrings, genericTestSpecName) ||
-		testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusStrings, diagnosticTestSpecName) {
+	if genericTestConfigRequired() {
 		configInstance.Generic = autodiscover.BuildGenericConfig()
 	}
-	if testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusStrings, containerTestSpecName) {
+	if podTestConfigRequired() {
 		configInstance.CNFs = autodiscover.BuildCNFsConfig()
 	}
 	if testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusStrings, operatorTestSpecName) {
@@ -141,9 +134,9 @@ func GetConfigInstance() File {
 	return configInstance
 }
 
-func findContainersByLabels(labels []Label) (containers []configsections.Container) {
+func findContainersByLabels(labels []configsections.Label) (containers []configsections.Container) {
 	for _, l := range labels {
-		list, err := autodiscover.GetContainersByLabel(l.Namespace, l.Name, l.Value)
+		list, err := autodiscover.GetContainersByLabel(l)
 		if err == nil {
 			containers = append(containers, list...)
 		} else {
@@ -153,9 +146,9 @@ func findContainersByLabels(labels []Label) (containers []configsections.Contain
 	return containers
 }
 
-func findPodsByLabels(labels []Label) (cnfs []configsections.Cnf) {
+func findPodsByLabels(labels []configsections.Label) (cnfs []configsections.Cnf) {
 	for _, l := range labels {
-		pods, err := autodiscover.GetPodsByLabel(l.Namespace, l.Name, l.Value)
+		pods, err := autodiscover.GetPodsByLabel(l)
 		if err == nil {
 			for i := range pods.Items {
 				cnfs = append(cnfs, autodiscover.BuildCnfFromPodResource(&pods.Items[i]))
@@ -174,14 +167,23 @@ func BuildConfig() {
 		log.Warn("doing configuration autodiscovery. Currently this WILL override parts of the configuration file")
 		doAutodiscovery()
 	}
-	if testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusStrings, genericTestSpecName) ||
-		testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusStrings, diagnosticTestSpecName) {
+	if genericTestConfigRequired() {
 		configInstance.Generic.ContainersUnderTest = append(configInstance.Generic.ContainersUnderTest, findContainersByLabels(configInstance.TargetPodLabels)...)
 	}
-	if testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusStrings, containerTestSpecName) {
+	if podTestConfigRequired() {
 		configInstance.CNFs = append(configInstance.CNFs, findPodsByLabels(configInstance.TargetPodLabels)...)
 	}
 	needsRefresh = false
+}
+
+func genericTestConfigRequired() bool {
+	return testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusStrings, genericTestSpecName) ||
+		testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusStrings, diagnosticTestSpecName) ||
+		testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusStrings, multusTestSpecName)
+}
+
+func podTestConfigRequired() bool {
+	return testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusStrings, containerTestSpecName)
 }
 
 // SetNeedsRefresh marks the config stale so that the next getInstance call will redo discovery

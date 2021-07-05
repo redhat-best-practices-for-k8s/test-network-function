@@ -23,11 +23,12 @@ import (
 	"strconv"
 
 	log "github.com/sirupsen/logrus"
+	"github.com/test-network-function/test-network-function/pkg/config/configsections"
 )
 
 const (
 	enableAutodiscoverEnvVar = "TNF_ENABLE_CONFIG_AUTODISCOVER"
-	labelNamespace           = "test-network-function.com"
+	tnfNamespace             = "test-network-function.com"
 	labelTemplate            = "%s/%s"
 
 	// anyLabelValue is the value that will allow any value for a label when building the label query.
@@ -48,13 +49,13 @@ func buildLabelName(labelNS, labelName string) string {
 }
 
 func buildAnnotationName(annotationName string) string {
-	return buildLabelName(labelNamespace, annotationName)
+	return buildLabelName(tnfNamespace, annotationName)
 }
 
-func buildLabelQuery(labelNS, labelName, labelValue string) string {
-	namespacedLabel := buildLabelName(labelNS, labelName)
-	if labelValue != anyLabelValue {
-		return fmt.Sprintf("%s=%s", namespacedLabel, labelValue)
+func buildLabelQuery(label configsections.Label) string {
+	namespacedLabel := buildLabelName(label.Namespace, label.Name)
+	if label.Value != anyLabelValue {
+		return fmt.Sprintf("%s=%s", namespacedLabel, label.Value)
 	}
 	return namespacedLabel
 }

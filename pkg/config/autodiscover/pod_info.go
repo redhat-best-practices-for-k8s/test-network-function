@@ -21,6 +21,7 @@ import (
 	"fmt"
 
 	log "github.com/sirupsen/logrus"
+	"github.com/test-network-function/test-network-function/pkg/config/configsections"
 )
 
 const (
@@ -148,8 +149,8 @@ func (pr *PodResource) annotationUnmarshalError(annotationKey string, err error)
 
 // GetPodsByLabel will return all pods with a given label value. If `labelValue` is an empty string, all pods with that
 // label will be returned, regardless of the labels value.
-func GetPodsByLabel(labelNS, labelName, labelValue string) (*PodList, error) {
-	cmd := makeGetCommand(resourceTypePods, buildLabelQuery(labelNS, labelName, labelValue))
+func GetPodsByLabel(label configsections.Label) (*PodList, error) {
+	cmd := makeGetCommand(resourceTypePods, buildLabelQuery(label))
 
 	out, err := cmd.Output()
 	if err != nil {
