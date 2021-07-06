@@ -13,7 +13,7 @@ env:
   IMAGE_TAG: unstable
   TNF_CONTAINER_CLIENT: docker
   TNF_MINIKUBE_ONLY: true
-  TNF_ENABLE_CONFIG_AUTODISCOVER: true
+  TNF_DISABLE_CONFIG_AUTODISCOVER: false
   TNF_CONFIG_DIR: /tmp/tnf/config
   TNF_OUTPUT_DIR: /tmp/tnf/output
   TNF_SRC_URL: 'https://github.com/${{ github.repository }}'

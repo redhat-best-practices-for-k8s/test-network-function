@@ -287,11 +287,10 @@ for a future version.
 
 Detailed configuration of the individual specs is explained in [config.md](docs/config.md).
 
-We are currently transitioning to using resource labels to automate as much configuration as possible. Automatic
-configuration will only happen if the environment variable `TNF_ENABLE_CONFIG_AUTODISCOVER` is set:
+By leveraging resource labels. Automoatic configuration will happen by default, that being said, it can be disabled if the environment variable `TNF_DISABLE_CONFIG_AUTODISCOVER` is set
 
 ```shell
-TNF_ENABLE_CONFIG_AUTODISCOVER=true
+TNF_DISABLE_CONFIG_AUTODISCOVER=true
 ```
 
 Pods can be labelled at creation by including the label in their definition, or at any time using the `oc label`
@@ -312,6 +311,9 @@ Autodiscovery is currently only supported in the generic spec, where the followi
 single pod with a single container. This is equivalent to having an entry listed under `partnerContainers` in the config file.
 * Each pod under is identified by the label `test-network-function.com/generic=target`. There must be at least
 one such pod. This is equivalent to having a pod listed under `containersUnderTest` in the config file.
+* If intrusive test is NOT disabled (refer to [intrusive tests](#Disable intrusive tests), the pod under test may get
+recreated with a different name and lose the "target" label. It's **important** to populate the matching labels from the
+deployment in the targetPodLabels section of the config file.
 * If an FS Diff Master Pod is present it should be identified with,  `test-network-function.com/generic=fs_diff_master`. This
 is equivalent to listing the pod under `fsDiffMasterContainer` in the config file.
 * If a pod is not suitable for network connectivity tests because it lacks binaries (e.g. `ping`), it should be
