@@ -287,11 +287,10 @@ for a future version.
 
 Detailed configuration of the individual specs is explained in [config.md](docs/config.md).
 
-We are currently transitioning to using resource labels to automate as much configuration as possible. Automatic
-configuration will only happen if the environment variable `TNF_ENABLE_CONFIG_AUTODISCOVER` is set:
+By leveraging resource labels. Automoatic configuration will happen by default, that being said, it can be disabled if the environment variable `TNF_DISABLE_CONFIG_AUTODISCOVER` is set
 
 ```shell
-TNF_ENABLE_CONFIG_AUTODISCOVER=true
+TNF_DISABLE_CONFIG_AUTODISCOVER=true
 ```
 
 Pods can be labelled at creation by including the label in their definition, or at any time using the `oc label`
