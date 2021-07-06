@@ -28,8 +28,8 @@ import (
 
 const (
 	disableAutodiscoverEnvVar = "TNF_DISABLE_CONFIG_AUTODISCOVER"
-	tnfNamespace             = "test-network-function.com"
-	labelTemplate            = "%s/%s"
+	tnfNamespace              = "test-network-function.com"
+	labelTemplate             = "%s/%s"
 
 	// anyLabelValue is the value that will allow any value for a label when building the label query.
 	anyLabelValue = ""
