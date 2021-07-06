@@ -1,3 +1,7 @@
+targetPodLabels:
+  - namespace: example-cnf.com
+    name: example-cnf-deployment
+    value: example-app
 generic:
   containersUnderTest:
     - namespace: tnf

@@ -7,6 +7,7 @@ This config file contains several sections, each of which configures one or more
 
 Config Section|Purpose
 ---|---
+tagetPodLabels|A list of labels that will be used to discover the pods/containers under test
 generic|Describes containers to be tested with the `generic` and `multus` specs, if they are run.
 cnfs|Defines which containers are to be tested by the `container` spec.
 operators|Defines which containers are to be tested by the `operator` spec.
@@ -15,6 +16,11 @@ certifiedoperatorinfo|Describes operator names and organisations to be checked f
 
 `testconfigure.yml` defines roles, and which tests are appropriate for which roles. It should not be necessary to modify this.
 
+### targetPodLabels
+
+This section contains a list of labels that will be used to discover the pods/containers under test **in addition to** the ones
+explicitly configured in the sections below or discovered through the default labels used by auto discovery. The containers
+discovered in this way will be targeted for `generic`/`multus`/`container` specs if they are in focus.
 
 ### generic
 
@@ -34,18 +40,18 @@ orchestrator.
 to send various types of traffic to each container under test.  For example the orchestrator is used to ping a container
 under test, and to be the ping target of a container under test.
 
-The [included default](test-network-function/tnf_config.yml) defines a single container to be tested,
+The [included default](../test-network-function/tnf_config.yml) defines a single container to be tested,
 and a single partner to do the testing.
 
 ### cnfs and operators
 
 The `cnfs` and `operators` sections define the roles under which operators and containers are to be tested.
 
-[The default config](test-network-function/tnf_config.yml) is set up with some examples of this:
+[The default config](../test-network-function/tnf_config.yml) is set up with some examples of this:
 It will run the `"OPERATOR_STATUS"` tests (as defined in `testconfigure.yml`) against an etcd operator, and the
 `"PRIVILEGED_POD"` and `"PRIVILEGED_ROLE"` tests against an nginx container.
 
-A more extensive example of all these sections is provided in [example/example_config.yaml](example/example_config.yaml)
+A more extensive example of all these sections is provided in [example/example_config.yaml](../example/example_config.yaml)
 
 ### certifiedcontainerinfo and certifiedoperatorinfo
 

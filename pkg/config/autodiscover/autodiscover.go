@@ -23,35 +23,39 @@ import (
 	"strconv"
 
 	log "github.com/sirupsen/logrus"
+	"github.com/test-network-function/test-network-function/pkg/config/configsections"
 )
 
 const (
-	enableAutodiscoverEnvVar = "TNF_ENABLE_CONFIG_AUTODISCOVER"
-	labelNamespace           = "test-network-function.com"
-	labelTemplate            = "%s/%s"
+	disableAutodiscoverEnvVar = "TNF_DISABLE_CONFIG_AUTODISCOVER"
+	tnfNamespace              = "test-network-function.com"
+	labelTemplate             = "%s/%s"
 
-	// AnyLabelValue is the value that will allow any value for a label when building the label query.
-	AnyLabelValue = ""
+	// anyLabelValue is the value that will allow any value for a label when building the label query.
+	anyLabelValue = ""
 )
 
 // PerformAutoDiscovery checks the environment variable to see if autodiscovery should be performed
 func PerformAutoDiscovery() (doAuto bool) {
-	doAuto, _ = strconv.ParseBool(os.Getenv(enableAutodiscoverEnvVar))
-	return doAuto
+	doAuto, _ = strconv.ParseBool(os.Getenv(disableAutodiscoverEnvVar))
+	return !doAuto
 }
 
-func buildLabelName(labelName string) string {
-	return fmt.Sprintf(labelTemplate, labelNamespace, labelName)
+func buildLabelName(labelNS, labelName string) string {
+	if labelNS == "" {
+		return labelName
+	}
+	return fmt.Sprintf(labelTemplate, labelNS, labelName)
 }
 
 func buildAnnotationName(annotationName string) string {
-	return buildLabelName(annotationName)
+	return buildLabelName(tnfNamespace, annotationName)
 }
 
-func buildLabelQuery(labelName, labelValue string) string {
-	namespacedLabel := buildLabelName(labelName)
-	if labelValue != AnyLabelValue {
-		return fmt.Sprintf("%s=%s", namespacedLabel, labelValue)
+func buildLabelQuery(label configsections.Label) string {
+	namespacedLabel := buildLabelName(label.Namespace, label.Name)
+	if label.Value != anyLabelValue {
+		return fmt.Sprintf("%s=%s", namespacedLabel, label.Value)
 	}
 	return namespacedLabel
 }

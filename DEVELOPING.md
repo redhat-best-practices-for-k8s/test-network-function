@@ -175,8 +175,8 @@ the ICMP summary regular expression:
 `composedAssertions` above, then the mere fact that the ping summary matched would result in `tnf.SUCCESS`.  However,
 since `composedAssertions` is provided, we must do further inspection.
 
-In this case, only one `composedAssertion` is provided.  In other cases, all `composedAssertion` instances must evaluate
-as `true`.  Here is the single `composedAssertion` that we make in the test:
+In this case, only one `composedAssertion` is provided.  In case multiple `composedAssertion` are provided, each `composedAssertion` instances must evaluate
+as `true`. Here is the single `composedAssertion` that we make in the test:
 
 ```json
 {
