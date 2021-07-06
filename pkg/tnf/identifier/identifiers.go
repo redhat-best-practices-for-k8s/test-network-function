@@ -51,6 +51,7 @@ const (
 	readRemoteFileIdentifierURL           = "http://test-network-function.com/tests/readRemoteFile"
 	uncordonNodeIdentifierURL             = "http://test-network-function.com/tests/node/uncordon"
 	checkSubscriptionIdentifierURL        = "http://test-network-function.com/tests/operator/check-subscription"
+	nodeDebugIdentifierURL                = "http://test-network-function.com/tests/nodedebug"
 
 	versionOne = "v1.0.0"
 )
@@ -502,6 +503,19 @@ var Catalog = map[string]TestCatalogEntry{
 			dependencies.OcBinaryName,
 		},
 	},
+	nodeDebugIdentifierURL: {
+		Identifier:  NodeDebugIdentifier,
+		Description: "A generic test used to execute a command in a node",
+		Type:        Normative,
+		IntrusionSettings: IntrusionSettings{
+			ModifiesSystem:           false,
+			ModificationIsPersistent: false,
+		},
+		BinaryDependencies: []string{
+			dependencies.OcBinaryName,
+			dependencies.EchoBinaryName,
+		},
+	},
 }
 
 // HostnameIdentifier is the Identifier used to represent the generic hostname test case.
@@ -693,5 +707,11 @@ var UncordonNodeURLIdentifier = Identifier{
 // CheckSubscriptionURLIdentifier is the Identifier used to represent a test that checks the subscription of an operator.
 var CheckSubscriptionURLIdentifier = Identifier{
 	URL:             checkSubscriptionIdentifierURL,
+	SemanticVersion: versionOne,
+}
+
+// NodeDebugIdentifier is the Identifier used to represent the generic NodeDebug test.
+var NodeDebugIdentifier = Identifier{
+	URL:             nodeDebugIdentifierURL,
 	SemanticVersion: versionOne,
 }
