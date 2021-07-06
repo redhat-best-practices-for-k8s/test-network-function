@@ -34,7 +34,7 @@ var (
 // BuildOperatorConfig builds a `[]configsections.Operator` from the current state of the cluster,
 // using labels and annotations to populate the data.
 func BuildOperatorConfig() (operatorsToTest []configsections.Operator) {
-	csvs, err := GetCSVsByLabel(operatorLabelName, AnyLabelValue)
+	csvs, err := GetCSVsByLabel(operatorLabelName, anyLabelValue)
 	if err != nil {
 		log.Fatalf("found no CSVs to test while 'operator' spec enabled: %s", err)
 	}
