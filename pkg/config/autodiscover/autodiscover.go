@@ -27,7 +27,7 @@ import (
 )
 
 const (
-	disableAutodiscoverEnvVar = "TNF_DISABLE_CONFIG_AUTODISCOVE
+	disableAutodiscoverEnvVar = "TNF_DISABLE_CONFIG_AUTODISCOVER"
 	tnfNamespace             = "test-network-function.com"
 	labelTemplate            = "%s/%s"
 
