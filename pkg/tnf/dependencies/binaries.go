@@ -64,4 +64,7 @@ const (
 
 	// EchoBinaryName is the name of the Unix `echo` command
 	EchoBinaryName = "echo"
+
+	// WcBinaryName is the name of the Unix `wc` command
+	WcBinaryName = "wc"
 )

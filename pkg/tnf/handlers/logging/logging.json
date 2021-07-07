@@ -1,0 +1,30 @@
+{
+  "identifier" : {
+    "url" :  "http://test-network-function.com/tests/logging",
+    "version": "v1.0.0"
+  },
+  "description": "Test if PUT emits output to stdout/stderr",
+  "testResult": 0,
+  "testTimeout": 5000000000,
+  "reelFirstStep": {
+    "execute": "oc logs -n {{.POD_NAMESPACE}} {{.POD_NAME}} {{.CONTAINER_NAME}} --tail 5 | wc -l",
+    "expect":[ "(?m)[1-9]",
+               "(?m)[0]",
+               "(?m)[.*]"],
+    "timeout": 5000000000
+  },
+  "resultContexts":[
+    {
+      "pattern": "(?m)[1-9]",
+      "defaultResult": 1
+    },
+    {
+      "pattern": "(?m)[0]",
+      "defaultResult": 2
+    },
+    {
+      "pattern": "(?m)[.*]",
+      "defaultResult": 0
+    }
+  ]
+}

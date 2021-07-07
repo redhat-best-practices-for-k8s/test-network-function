@@ -286,7 +286,7 @@
     },
     "testResult": {
       "type": "integer",
-      "description": "testResult is the result of running the tnf.Test.  0 indicates SUCCESS, 1 indicates FAILURE, 2 indicates ERROR."
+      "description": "testResult is the result of running the tnf.Test.  0 indicates ERROR, 1 indicates SUCCESS, 2 indicates FAILURE."
     },
     "testTimeout": {
       "type": "integer",
