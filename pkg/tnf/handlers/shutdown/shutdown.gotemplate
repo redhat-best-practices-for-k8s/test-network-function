@@ -1,0 +1,3 @@
+{{- range .spec.containers -}}
+  {{ if .lifecycle.preStop }} {{"prestop-defined\n"}} {{- else -}} {{"prestop-not-defined\n"}}{{- end -}}
+{{- end -}}

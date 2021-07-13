@@ -173,6 +173,11 @@ var (
 		Url:     formGenericTestURL("pod-stderr-stdout-best-practices"),
 		Version: versionOne,
 	}
+	// TestShudtownIdentifier ensures pre-stop lifecycle is defined
+	TestShudtownIdentifier = claim.Identifier{
+		Url:     formGenericTestURL("pod-lifecycle-pre-stop"),
+		Version: versionOne,
+	}
 )
 
 func formDescription(identifier claim.Identifier, description string) string {

@@ -53,6 +53,7 @@ const (
 	checkSubscriptionIdentifierURL        = "http://test-network-function.com/tests/operator/check-subscription"
 	nodeDebugIdentifierURL                = "http://test-network-function.com/tests/nodedebug"
 	loggingIdentifierURL                  = "http://test-network-function.com/tests/logging"
+	shutdownIdentifierURL                 = "http://test-network-function.com/tests/shutdown"
 
 	versionOne = "v1.0.0"
 )
@@ -530,6 +531,18 @@ var Catalog = map[string]TestCatalogEntry{
 			dependencies.WcBinaryName,
 		},
 	},
+	shutdownIdentifierURL: {
+		Identifier:  ShutdownURLIdentifier,
+		Description: "A test used to check pre-stop lifecycle is defined",
+		Type:        Normative,
+		IntrusionSettings: IntrusionSettings{
+			ModifiesSystem:           false,
+			ModificationIsPersistent: false,
+		},
+		BinaryDependencies: []string{
+			dependencies.OcBinaryName,
+		},
+	},
 }
 
 // HostnameIdentifier is the Identifier used to represent the generic hostname test case.
@@ -733,5 +746,11 @@ var NodeDebugIdentifier = Identifier{
 // LoggingURLIdentifier is the Identifier used to represent a test that checks if the stdout/stderr is used
 var LoggingURLIdentifier = Identifier{
 	URL:             loggingIdentifierURL,
+	SemanticVersion: versionOne,
+}
+
+// ShutdownURLIdentifier is the Identifier used to represent a test that checks if pre-stop lifecyle is defined
+var ShutdownURLIdentifier = Identifier{
+	URL:             shutdownIdentifierURL,
 	SemanticVersion: versionOne,
 }
