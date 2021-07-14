@@ -171,6 +171,13 @@ func (g *Generic) ReelMatch(pattern, before, match string) *reel.Step {
 				return nil
 			}
 		}
+	} else {
+		regex := regexp.MustCompile(pattern)
+		matched := regex.FindStringSubmatch(match)
+		if matched == nil {
+			g.TestResult = tnf.ERROR
+			return nil
+		}
 	}
 
 	// Else, see if we have more work to do.  If not, return defaultResult.

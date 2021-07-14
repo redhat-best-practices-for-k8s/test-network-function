@@ -122,5 +122,5 @@ func TestNodes_ReelMatch(t *testing.T) {
 
 	step := handler.ReelMatch(expectedPattern, "", "anythingMatches")
 	assert.Nil(t, step)
-	assert.Equal(t, tnf.SUCCESS, (*tester).Result())
+	assert.Equal(t, tnf.ERROR, (*tester).Result())
 }
