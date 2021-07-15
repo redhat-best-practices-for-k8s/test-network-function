@@ -1,0 +1,537 @@
+{
+  "http://test-network-function.com/tests/clusterrolebinding": {
+    "identifier": {
+      "url": "http://test-network-function.com/tests/clusterrolebinding",
+      "version": "v1.0.0"
+    },
+    "description": "A generic test used to test ClusterRoleBindings of CNF pod's ServiceAccount.",
+    "type": "normative",
+    "intrusionSettings": {
+      "modifiesSystem": false,
+      "modificationIsPersistent": false
+    },
+    "binaryDependencies": [
+      "oc"
+    ]
+  },
+  "http://test-network-function.com/tests/container/pod": {
+    "identifier": {
+      "url": "http://test-network-function.com/tests/container/pod",
+      "version": "v1.0.0"
+    },
+    "description": "A container-specific test suite used to verify various aspects of the underlying container.",
+    "type": "normative",
+    "intrusionSettings": {
+      "modifiesSystem": false,
+      "modificationIsPersistent": false
+    },
+    "binaryDependencies": [
+      "jq",
+      "oc"
+    ]
+  },
+  "http://test-network-function.com/tests/currentKernelCmdlineArgs": {
+    "identifier": {
+      "url": "http://test-network-function.com/tests/currentKernelCmdlineArgs",
+      "version": "v1.0.0"
+    },
+    "description": "A generic test used to get node's /proc/cmdline",
+    "type": "normative",
+    "intrusionSettings": {
+      "modifiesSystem": false,
+      "modificationIsPersistent": false
+    },
+    "binaryDependencies": [
+      "cat"
+    ]
+  },
+  "http://test-network-function.com/tests/deployments": {
+    "identifier": {
+      "url": "http://test-network-function.com/tests/deployments",
+      "version": "v1.0.0"
+    },
+    "description": "A generic test used to read namespace's deployments",
+    "type": "normative",
+    "intrusionSettings": {
+      "modifiesSystem": false,
+      "modificationIsPersistent": false
+    },
+    "binaryDependencies": [
+      "oc"
+    ]
+  },
+  "http://test-network-function.com/tests/deploymentsdrain": {
+    "identifier": {
+      "url": "http://test-network-function.com/tests/deploymentsnodes",
+      "version": "v1.0.0"
+    },
+    "description": "A generic test used to drain node from its deployment pods",
+    "type": "normative",
+    "intrusionSettings": {
+      "modifiesSystem": true,
+      "modificationIsPersistent": true
+    },
+    "binaryDependencies": [
+      "jq",
+      "echo"
+    ]
+  },
+  "http://test-network-function.com/tests/deploymentsnodes": {
+    "identifier": {
+      "url": "http://test-network-function.com/tests/deploymentsnodes",
+      "version": "v1.0.0"
+    },
+    "description": "A generic test used to read node names of pods owned by deployments in namespace",
+    "type": "normative",
+    "intrusionSettings": {
+      "modifiesSystem": false,
+      "modificationIsPersistent": false
+    },
+    "binaryDependencies": [
+      "oc",
+      "grep"
+    ]
+  },
+  "http://test-network-function.com/tests/generic/cnf_fs_diff": {
+    "identifier": {
+      "url": "http://test-network-function.com/tests/generic/cnf_fs_diff",
+      "version": "v1.0.0"
+    },
+    "description": "A test used to check if there were no installation during container runtime",
+    "type": "normative",
+    "intrusionSettings": {
+      "modifiesSystem": false,
+      "modificationIsPersistent": false
+    },
+    "binaryDependencies": [
+      "grep",
+      "cut"
+    ]
+  },
+  "http://test-network-function.com/tests/generic/containerId": {
+    "identifier": {
+      "url": "http://test-network-function.com/tests/generic/containerId",
+      "version": "v1.0.0"
+    },
+    "description": "A test used to check what is the id of the crio generated container this command is run from",
+    "type": "normative",
+    "intrusionSettings": {
+      "modifiesSystem": false,
+      "modificationIsPersistent": false
+    },
+    "binaryDependencies": [
+      "cat"
+    ]
+  },
+  "http://test-network-function.com/tests/generic/version": {
+    "identifier": {
+      "url": "http://test-network-function.com/tests/generic/version",
+      "version": "v1.0.0"
+    },
+    "description": "A generic test used to determine if a target container/machine is based on RHEL.",
+    "type": "normative",
+    "intrusionSettings": {
+      "modifiesSystem": false,
+      "modificationIsPersistent": false
+    },
+    "binaryDependencies": [
+      "cat"
+    ]
+  },
+  "http://test-network-function.com/tests/gracePeriod": {
+    "identifier": {
+      "url": "http://test-network-function.com/tests/gracePeriod",
+      "version": "v1.0.0"
+    },
+    "description": "A generic test used to extract the CNF pod's terminationGracePeriod.",
+    "type": "normative",
+    "intrusionSettings": {
+      "modifiesSystem": false,
+      "modificationIsPersistent": false
+    },
+    "binaryDependencies": [
+      "grep",
+      "cut"
+    ]
+  },
+  "http://test-network-function.com/tests/grubKernelCmdlineArgs": {
+    "identifier": {
+      "url": "http://test-network-function.com/tests/grubKernelCmdlineArgs",
+      "version": "v1.0.0"
+    },
+    "description": "A generic test used to get node's next boot kernel args",
+    "type": "normative",
+    "intrusionSettings": {
+      "modifiesSystem": false,
+      "modificationIsPersistent": false
+    },
+    "binaryDependencies": [
+      "ls",
+      "sort",
+      "head",
+      "cut",
+      "oc"
+    ]
+  },
+  "http://test-network-function.com/tests/hostname": {
+    "identifier": {
+      "url": "http://test-network-function.com/tests/hostname",
+      "version": "v1.0.0"
+    },
+    "description": "A generic test used to check the hostname of a target machine/container.",
+    "type": "normative",
+    "intrusionSettings": {
+      "modifiesSystem": false,
+      "modificationIsPersistent": false
+    },
+    "binaryDependencies": [
+      "hostname"
+    ]
+  },
+  "http://test-network-function.com/tests/hugepages": {
+    "identifier": {
+      "url": "http://test-network-function.com/tests/hugepages",
+      "version": "v1.0.0"
+    },
+    "description": "A generic test used to read cluster's hugepages configuration",
+    "type": "normative",
+    "intrusionSettings": {
+      "modifiesSystem": false,
+      "modificationIsPersistent": false
+    },
+    "binaryDependencies": [
+      "grep",
+      "cut",
+      "oc",
+      "grep"
+    ]
+  },
+  "http://test-network-function.com/tests/ipaddr": {
+    "identifier": {
+      "url": "http://test-network-function.com/tests/ipaddr",
+      "version": "v1.0.0"
+    },
+    "description": "A generic test used to derive the default network interface IP address of a target container.",
+    "type": "normative",
+    "intrusionSettings": {
+      "modifiesSystem": false,
+      "modificationIsPersistent": false
+    },
+    "binaryDependencies": [
+      "ip"
+    ]
+  },
+  "http://test-network-function.com/tests/logging": {
+    "identifier": {
+      "url": "http://test-network-function.com/tests/logging",
+      "version": "v1.0.0"
+    },
+    "description": "A test used to check logs are redirected to stderr/stdout",
+    "type": "normative",
+    "intrusionSettings": {
+      "modifiesSystem": false,
+      "modificationIsPersistent": false
+    },
+    "binaryDependencies": [
+      "oc",
+      "wc"
+    ]
+  },
+  "http://test-network-function.com/tests/mckernelarguments": {
+    "identifier": {
+      "url": "http://test-network-function.com/tests/mckernelarguments",
+      "version": "v1.0.0"
+    },
+    "description": "A generic test used to get an mc's kernel arguments",
+    "type": "normative",
+    "intrusionSettings": {
+      "modifiesSystem": false,
+      "modificationIsPersistent": false
+    },
+    "binaryDependencies": [
+      "oc",
+      "jq",
+      "echo"
+    ]
+  },
+  "http://test-network-function.com/tests/node/uncordon": {
+    "identifier": {
+      "url": "http://test-network-function.com/tests/node/uncordon",
+      "version": "v1.0.0"
+    },
+    "description": "A generic test used to uncordon a node",
+    "type": "normative",
+    "intrusionSettings": {
+      "modifiesSystem": true,
+      "modificationIsPersistent": true
+    },
+    "binaryDependencies": [
+      "oc"
+    ]
+  },
+  "http://test-network-function.com/tests/nodedebug": {
+    "identifier": {
+      "url": "http://test-network-function.com/tests/nodedebug",
+      "version": "v1.0.0"
+    },
+    "description": "A generic test used to execute a command in a node",
+    "type": "normative",
+    "intrusionSettings": {
+      "modifiesSystem": false,
+      "modificationIsPersistent": false
+    },
+    "binaryDependencies": [
+      "oc",
+      "echo"
+    ]
+  },
+  "http://test-network-function.com/tests/nodehugepages": {
+    "identifier": {
+      "url": "http://test-network-function.com/tests/nodehugepages",
+      "version": "v1.0.0"
+    },
+    "description": "A generic test used to verify a node's hugepages configuration",
+    "type": "normative",
+    "intrusionSettings": {
+      "modifiesSystem": false,
+      "modificationIsPersistent": false
+    },
+    "binaryDependencies": [
+      "oc",
+      "grep"
+    ]
+  },
+  "http://test-network-function.com/tests/nodemcname": {
+    "identifier": {
+      "url": "http://test-network-function.com/tests/nodemcname",
+      "version": "v1.0.0"
+    },
+    "description": "A generic test used to get a node's current mc",
+    "type": "normative",
+    "intrusionSettings": {
+      "modifiesSystem": false,
+      "modificationIsPersistent": false
+    },
+    "binaryDependencies": [
+      "oc",
+      "grep"
+    ]
+  },
+  "http://test-network-function.com/tests/nodenames": {
+    "identifier": {
+      "url": "http://test-network-function.com/tests/nodenames",
+      "version": "v1.0.0"
+    },
+    "description": "A generic test used to get node names",
+    "type": "normative",
+    "intrusionSettings": {
+      "modifiesSystem": false,
+      "modificationIsPersistent": false
+    },
+    "binaryDependencies": [
+      "oc"
+    ]
+  },
+  "http://test-network-function.com/tests/nodeport": {
+    "identifier": {
+      "url": "http://test-network-function.com/tests/nodeport",
+      "version": "v1.0.0"
+    },
+    "description": "A generic test used to test services of CNF pod's namespace.",
+    "type": "normative",
+    "intrusionSettings": {
+      "modifiesSystem": false,
+      "modificationIsPersistent": false
+    },
+    "binaryDependencies": [
+      "oc",
+      "grep"
+    ]
+  },
+  "http://test-network-function.com/tests/nodes": {
+    "identifier": {
+      "url": "http://test-network-function.com/tests/nodes",
+      "version": "v1.0.0"
+    },
+    "description": "Polls the state of the OpenShift cluster nodes using \"oc get nodes -o json\".",
+    "type": "",
+    "intrusionSettings": {
+      "modifiesSystem": false,
+      "modificationIsPersistent": false
+    },
+    "binaryDependencies": [
+      "oc"
+    ]
+  },
+  "http://test-network-function.com/tests/nodeselector": {
+    "identifier": {
+      "url": "http://test-network-function.com/tests/nodehugepages",
+      "version": "v1.0.0"
+    },
+    "description": "A generic test used to verify a pod's nodeSelector and nodeAffinity configuration",
+    "type": "normative",
+    "intrusionSettings": {
+      "modifiesSystem": false,
+      "modificationIsPersistent": false
+    },
+    "binaryDependencies": [
+      "oc",
+      "grep"
+    ]
+  },
+  "http://test-network-function.com/tests/nodetainted": {
+    "identifier": {
+      "url": "http://test-network-function.com/tests/nodetainted",
+      "version": "v1.0.0"
+    },
+    "description": "A generic test used to test whether node is tainted",
+    "type": "normative",
+    "intrusionSettings": {
+      "modifiesSystem": false,
+      "modificationIsPersistent": false
+    },
+    "binaryDependencies": [
+      "oc",
+      "cat",
+      "echo"
+    ]
+  },
+  "http://test-network-function.com/tests/operator": {
+    "identifier": {
+      "url": "http://test-network-function.com/tests/operator",
+      "version": "v1.0.0"
+    },
+    "description": "An operator-specific test used to exercise the behavior of a given operator.  In the current offering, we check if the operator ClusterServiceVersion (CSV) is installed properly.  A CSV is a YAML manifest created from Operator metadata that assists the Operator Lifecycle Manager (OLM) in running the Operator.",
+    "type": "normative",
+    "intrusionSettings": {
+      "modifiesSystem": false,
+      "modificationIsPersistent": false
+    },
+    "binaryDependencies": [
+      "jq",
+      "oc"
+    ]
+  },
+  "http://test-network-function.com/tests/operator/check-subscription": {
+    "identifier": {
+      "url": "http://test-network-function.com/tests/operator/check-subscription",
+      "version": "v1.0.0"
+    },
+    "description": "A test used to check the subscription of a given operator",
+    "type": "normative",
+    "intrusionSettings": {
+      "modifiesSystem": false,
+      "modificationIsPersistent": false
+    },
+    "binaryDependencies": [
+      "oc"
+    ]
+  },
+  "http://test-network-function.com/tests/owners": {
+    "identifier": {
+      "url": "http://test-network-function.com/tests/owners",
+      "version": "v1.0.0"
+    },
+    "description": "A generic test used to verify pod is managed by a ReplicaSet",
+    "type": "normative",
+    "intrusionSettings": {
+      "modifiesSystem": false,
+      "modificationIsPersistent": false
+    },
+    "binaryDependencies": [
+      "cat"
+    ]
+  },
+  "http://test-network-function.com/tests/ping": {
+    "identifier": {
+      "url": "http://test-network-function.com/tests/ping",
+      "version": "v1.0.0"
+    },
+    "description": "A generic test used to test ICMP connectivity from a source machine/container to a target destination.",
+    "type": "normative",
+    "intrusionSettings": {
+      "modifiesSystem": false,
+      "modificationIsPersistent": false
+    },
+    "binaryDependencies": [
+      "ping"
+    ]
+  },
+  "http://test-network-function.com/tests/podnodename": {
+    "identifier": {
+      "url": "http://test-network-function.com/tests/podnodename",
+      "version": "v1.0.0"
+    },
+    "description": "A generic test used to get a pod's node",
+    "type": "normative",
+    "intrusionSettings": {
+      "modifiesSystem": false,
+      "modificationIsPersistent": false
+    },
+    "binaryDependencies": [
+      "oc"
+    ]
+  },
+  "http://test-network-function.com/tests/readRemoteFile": {
+    "identifier": {
+      "url": "http://test-network-function.com/tests/readRemoteFile",
+      "version": "v1.0.0"
+    },
+    "description": "A generic test used to read a specified file at a specified node",
+    "type": "normative",
+    "intrusionSettings": {
+      "modifiesSystem": false,
+      "modificationIsPersistent": false
+    },
+    "binaryDependencies": [
+      "echo"
+    ]
+  },
+  "http://test-network-function.com/tests/rolebinding": {
+    "identifier": {
+      "url": "http://test-network-function.com/tests/rolebinding",
+      "version": "v1.0.0"
+    },
+    "description": "A generic test used to test RoleBindings of CNF pod's ServiceAccount.",
+    "type": "normative",
+    "intrusionSettings": {
+      "modifiesSystem": false,
+      "modificationIsPersistent": false
+    },
+    "binaryDependencies": [
+      "cat",
+      "oc"
+    ]
+  },
+  "http://test-network-function.com/tests/serviceaccount": {
+    "identifier": {
+      "url": "http://test-network-function.com/tests/serviceaccount",
+      "version": "v1.0.0"
+    },
+    "description": "A generic test used to extract the CNF pod's ServiceAccount name.",
+    "type": "normative",
+    "intrusionSettings": {
+      "modifiesSystem": false,
+      "modificationIsPersistent": false
+    },
+    "binaryDependencies": [
+      "grep",
+      "cut"
+    ]
+  },
+  "http://test-network-function.com/tests/sysctlConfigFilesList": {
+    "identifier": {
+      "url": "http://test-network-function.com/tests/sysctlConfigFilesList",
+      "version": "v1.0.0"
+    },
+    "description": "A generic test used to get node's list of sysctl config files",
+    "type": "normative",
+    "intrusionSettings": {
+      "modifiesSystem": false,
+      "modificationIsPersistent": false
+    },
+    "binaryDependencies": [
+      "cat"
+    ]
+  }
+}
