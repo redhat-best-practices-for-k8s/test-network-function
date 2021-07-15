@@ -196,7 +196,7 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "github-actions"
-          git add CATALOG.md catalog.json
+          git add -f CATALOG.md catalog.json
           if [-z "$(git status --porcelain)"]; then
             echo "::set-output name=push::false"
           else
