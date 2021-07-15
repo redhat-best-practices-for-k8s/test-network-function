@@ -160,3 +160,53 @@ jobs:
       - name: (if on main and upstream) Push the newly built image to Quay.io
         if: ${{ github.ref == 'refs/heads/main' && github.repository_owner == 'test-network-function' }}
         run: docker push --all-tags ${REGISTRY}/${IMAGE_NAME}
+ 
+  catalog:
+    name: Update catalog
+    needs: [lint, unit-tests, smoke-tests]
+    runs-on: ubuntu-20.04
+    env:
+      SHELL: /bin/bash
+      KUBECONFIG: '/home/runner/.kube/config'
+
+    steps:
+      - name: Set up Go 1.15
+        uses: actions/setup-go@v2
+        with:
+          go-version: ^1.15
+
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.sha }}
+
+      - name: Install ginkgo
+        run: go get -u github.com/onsi/ginkgo/ginkgo
+
+      - name: Create catalog .md file
+        id: catalog-md
+        run: |   
+          make build-catalog-md
+      - name: Create catalog .json file
+        id: catalog-json
+        run: |   
+          make build-catalog-json
+      - name: Commit files
+        id: commit
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "github-actions"
+          git add CATALOG.md catalog.json
+          if [-z "$(git status --porcelain)"]; then
+            echo "::set-output name=push::false"
+          else
+            git commit -m "Catalog update changes" -a
+            echo "::set-output name=push::true"
+          fi
+        shell: bash
+
+      - name: Push changes
+        if: steps.commit.outputs.push == 'true'
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
