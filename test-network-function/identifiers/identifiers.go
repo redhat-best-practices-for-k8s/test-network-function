@@ -23,14 +23,15 @@ import (
 )
 
 const (
-	containerSuite    = "container"
-	diagnosticSuite   = "diagnostic"
-	genericSuite      = "generic"
-	informativeResult = "informative"
-	normativeResult   = "normative"
-	operatorSuite     = "operator"
-	url               = "http://test-network-function.com/testcases"
-	versionOne        = "v1.0.0"
+	accessControlSuite           = "access-control"
+	affiliatedCertificationSuite = "affiliated-certification"
+	diagnosticSuite              = "diagnostic"
+	genericSuite                 = "generic"
+	informativeResult            = "informative"
+	normativeResult              = "normative"
+	operatorSuite                = "operator"
+	url                          = "http://test-network-function.com/testcases"
+	versionOne                   = "v1.0.0"
 )
 
 // TestCaseDescription describes a JUnit test case.
@@ -57,14 +58,14 @@ func formGenericTestURL(name string) string {
 }
 
 var (
-	// TestContainerBestPracticesIdentifier tests container best practices.
-	TestContainerBestPracticesIdentifier = claim.Identifier{
-		Url:     formTestURL(containerSuite, "container-best-practices"),
+	// TestHostResourceIdentifier tests container best practices.
+	TestHostResourceIdentifier = claim.Identifier{
+		Url:     formTestURL(accessControlSuite, "host-resource"),
 		Version: versionOne,
 	}
 	// TestContainerIsCertifiedIdentifier tests whether the container has passed Container Certification.
 	TestContainerIsCertifiedIdentifier = claim.Identifier{
-		Url:     formTestURL(containerSuite, "container-is-certified"),
+		Url:     formTestURL(affiliatedCertificationSuite, "container-is-certified"),
 		Version: versionOne,
 	}
 	// TestExtractNodeInformationIdentifier is a test which extracts Node information.
@@ -84,7 +85,7 @@ var (
 	}
 	// TestNamespaceBestPracticesIdentifier ensures the namespace has followed best namespace practices.
 	TestNamespaceBestPracticesIdentifier = claim.Identifier{
-		Url:     formGenericTestURL("namespace-best-practices"),
+		Url:     formTestURL(accessControlSuite, "namespace"),
 		Version: versionOne,
 	}
 	// TestNonDefaultGracePeriodIdentifier tests best grace period practices.
@@ -127,7 +128,7 @@ var (
 
 	// TestPodClusterRoleBindingsBestPracticesIdentifier ensures Pod crb best practices.
 	TestPodClusterRoleBindingsBestPracticesIdentifier = claim.Identifier{
-		Url:     formGenericTestURL("pod-cluster-role-bindings-best-practices"),
+		Url:     formTestURL(accessControlSuite, "cluster-role-bindings"),
 		Version: versionOne,
 	}
 	// TestPodDeploymentBestPracticesIdentifier ensures a CNF follows best Deployment practices.
@@ -142,12 +143,12 @@ var (
 	}
 	// TestPodRoleBindingsBestPracticesIdentifier represents rb best practices.
 	TestPodRoleBindingsBestPracticesIdentifier = claim.Identifier{
-		Url:     formGenericTestURL("pod-role-bindings-best-practices"),
+		Url:     formTestURL(accessControlSuite, "pod-role-bindings"),
 		Version: versionOne,
 	}
 	// TestPodServiceAccountBestPracticesIdentifier tests Pod SA best practices.
 	TestPodServiceAccountBestPracticesIdentifier = claim.Identifier{
-		Url:     formGenericTestURL("pod-service-account-best-practices"),
+		Url:     formTestURL(accessControlSuite, "pod-service-account"),
 		Version: versionOne,
 	}
 	// TestServicesDoNotUseNodeportsIdentifier ensures Services don't utilize NodePorts.
@@ -194,14 +195,14 @@ func formDescription(identifier claim.Identifier, description string) string {
 // Catalog is the JUnit testcase catalog of tests.
 var Catalog = map[claim.Identifier]TestCaseDescription{
 
-	TestContainerBestPracticesIdentifier: {
-		Identifier: TestContainerBestPracticesIdentifier,
+	TestHostResourceIdentifier: {
+		Identifier: TestHostResourceIdentifier,
 		Type:       normativeResult,
 		Remediation: `Ensure that each Pod in the CNF abides by the suggested best practices listed in the test description.  In some rare
 cases, not all best practices can be followed.  For example, some CNFs may be required to run as root.  Such exceptions
 should be handled on a case-by-case basis, and should provide a proper justification as to why the best practice(s)
 cannot be followed.`,
-		Description: formDescription(TestContainerBestPracticesIdentifier,
+		Description: formDescription(TestHostResourceIdentifier,
 			`tests several aspects of CNF best practices, including:
 1. The Pod does not have access to Host Node Networking.
 2. The Pod does not have access to Host Node Ports.

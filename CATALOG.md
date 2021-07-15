@@ -6,20 +6,52 @@ test-network-function contains a variety of `Test Cases`, as well as `Test Case 
 ## Test Case Catalog
 
 Test Cases are the specifications used to perform a meaningful test.  Test cases may run once, or several times against several targets.  CNF Certification includes a number of normative and informative tests to ensure CNFs follow best practices.  Here is the list of available Test Cases:
-### http://test-network-function.com/testcases/container/container-best-practices
+### http://test-network-function.com/testcases/access-control/cluster-role-bindings
 
 Property|Description
 ---|---
 Version|v1.0.0
-Description|http://test-network-function.com/testcases/container/container-best-practices tests several aspects of CNF best practices, including: 1. The Pod does not have access to Host Node Networking. 2. The Pod does not have access to Host Node Ports. 3. The Pod cannot access Host Node IPC space. 4. The Pod cannot access Host Node PID space. 5. The Pod is not granted NET_ADMIN SCC. 6. The Pod is not granted SYS_ADMIN SCC. 7. The Pod does not run as root. 8. The Pod does not allow privileged escalation. 
+Description|http://test-network-function.com/testcases/access-control/cluster-role-bindings tests that a Pod does not specify ClusterRoleBindings.
+Result Type|normative
+Suggested Remediation|In most cases, Pod's should not have ClusterRoleBindings.  The suggested remediation is to remove the need for ClusterRoleBindings, if possible.
+### http://test-network-function.com/testcases/access-control/host-resource
+
+Property|Description
+---|---
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/access-control/host-resource tests several aspects of CNF best practices, including: 1. The Pod does not have access to Host Node Networking. 2. The Pod does not have access to Host Node Ports. 3. The Pod cannot access Host Node IPC space. 4. The Pod cannot access Host Node PID space. 5. The Pod is not granted NET_ADMIN SCC. 6. The Pod is not granted SYS_ADMIN SCC. 7. The Pod does not run as root. 8. The Pod does not allow privileged escalation. 
 Result Type|normative
 Suggested Remediation|Ensure that each Pod in the CNF abides by the suggested best practices listed in the test description.  In some rare cases, not all best practices can be followed.  For example, some CNFs may be required to run as root.  Such exceptions should be handled on a case-by-case basis, and should provide a proper justification as to why the best practice(s) cannot be followed.
-### http://test-network-function.com/testcases/container/container-is-certified
+### http://test-network-function.com/testcases/access-control/namespace
 
 Property|Description
 ---|---
 Version|v1.0.0
-Description|http://test-network-function.com/testcases/container/container-is-certified tests whether container images have passed the Red Hat Container Certification Program (CCP).
+Description|http://test-network-function.com/testcases/access-control/namespace tests that CNFs utilize a CNF-specific namespace, and that the namespace does not start with "openshift-". OpenShift may host a variety of CNF and software applications, and multi-tenancy of such applications is supported through namespaces.  As such, each CNF should be a good neighbor, and utilize an appropriate, unique namespace.
+Result Type|normative
+Suggested Remediation|Ensure that your CNF utilizes a CNF-specific namespace.  Additionally, the CNF-specific namespace should not start with "openshift-", except in rare cases.
+### http://test-network-function.com/testcases/access-control/pod-role-bindings
+
+Property|Description
+---|---
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/access-control/pod-role-bindings ensures that a CNF does not utilize RoleBinding(s) in a non-CNF Namespace.
+Result Type|normative
+Suggested Remediation|Ensure the CNF is not configured to use RoleBinding(s) in a non-CNF Namespace.
+### http://test-network-function.com/testcases/access-control/pod-service-account
+
+Property|Description
+---|---
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/access-control/pod-service-account tests that each CNF Pod utilizes a valid Service Account.
+Result Type|normative
+Suggested Remediation|Ensure that the each CNF Pod is configured to use a valid Service Account
+### http://test-network-function.com/testcases/affiliated-certification/container-is-certified
+
+Property|Description
+---|---
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/affiliated-certification/container-is-certified tests whether container images have passed the Red Hat Container Certification Program (CCP).
 Result Type|normative
 Suggested Remediation|Ensure that your container has passed the Red Hat Container Certification Program (CCP).
 ### http://test-network-function.com/testcases/diagnostic/extract-node-information
@@ -54,14 +86,6 @@ Version|v1.0.0
 Description|http://test-network-function.com/testcases/generic/list-cni-plugins lists CNI plugins
 Result Type|normative
 Suggested Remediation|
-### http://test-network-function.com/testcases/generic/namespace-best-practices
-
-Property|Description
----|---
-Version|v1.0.0
-Description|http://test-network-function.com/testcases/generic/namespace-best-practices tests that CNFs utilize a CNF-specific namespace, and that the namespace does not start with "openshift-". OpenShift may host a variety of CNF and software applications, and multi-tenancy of such applications is supported through namespaces.  As such, each CNF should be a good neighbor, and utilize an appropriate, unique namespace.
-Result Type|normative
-Suggested Remediation|Ensure that your CNF utilizes a CNF-specific namespace.  Additionally, the CNF-specific namespace should not start with "openshift-", except in rare cases.
 ### http://test-network-function.com/testcases/generic/nodes-hw-info
 
 Property|Description
@@ -86,14 +110,6 @@ Version|v1.0.0
 Description|http://test-network-function.com/testcases/generic/non-tainted-node-kernel ensures that the Node(s) hosting CNFs do not utilize tainted kernels. This test case is especially important to support Highly Available CNFs, since when a CNF is re-instantiated on a backup Node, that Node's kernel may not have the same hacks.'
 Result Type|normative
 Suggested Remediation|Test failure indicates that the underlying Node's' kernel is tainted.  Ensure that you have not altered underlying Node(s) kernels in order to run the CNF.
-### http://test-network-function.com/testcases/generic/pod-cluster-role-bindings-best-practices
-
-Property|Description
----|---
-Version|v1.0.0
-Description|http://test-network-function.com/testcases/generic/pod-cluster-role-bindings-best-practices tests that a Pod does not specify ClusterRoleBindings.
-Result Type|normative
-Suggested Remediation|In most cases, Pod's should not have ClusterRoleBindings.  The suggested remediation is to remove the need for ClusterRoleBindings, if possible.
 ### http://test-network-function.com/testcases/generic/pod-deployment-best-practices
 
 Property|Description
@@ -126,22 +142,6 @@ Version|v1.0.0
 Description|http://test-network-function.com/testcases/generic/pod-node-selector-node-affinity-best-practices ensures that CNF Pods do not specify nodeSelector or nodeAffinity.  In most cases, Pods should allow for instantiation on any underlying Node.
 Result Type|informative
 Suggested Remediation|In most cases, Pod's should not specify their host Nodes through nodeSelector or nodeAffinity.  However, there are cases in which CNFs require specialized hardware specific to a particular class of Node.  As such, this test is purely informative, and will not prevent a CNF from being certified. However, one should have an appropriate justification as to why nodeSelector and/or nodeAffinity is utilized by a CNF.
-### http://test-network-function.com/testcases/generic/pod-role-bindings-best-practices
-
-Property|Description
----|---
-Version|v1.0.0
-Description|http://test-network-function.com/testcases/generic/pod-role-bindings-best-practices ensures that a CNF does not utilize RoleBinding(s) in a non-CNF Namespace.
-Result Type|normative
-Suggested Remediation|Ensure the CNF is not configured to use RoleBinding(s) in a non-CNF Namespace.
-### http://test-network-function.com/testcases/generic/pod-service-account-best-practices
-
-Property|Description
----|---
-Version|v1.0.0
-Description|http://test-network-function.com/testcases/generic/pod-service-account-best-practices tests that each CNF Pod utilizes a valid Service Account.
-Result Type|normative
-Suggested Remediation|Ensure that the each CNF Pod is configured to use a valid Service Account
 ### http://test-network-function.com/testcases/generic/services-do-not-use-nodeports
 
 Property|Description
