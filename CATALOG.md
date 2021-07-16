@@ -102,6 +102,14 @@ Version|v1.0.0
 Description|http://test-network-function.com/testcases/generic/pod-deployment-best-practices tests that CNF Pod(s) are deployed as part of either DaemonSet(s) or a ReplicaSet(s).
 Result Type|normative
 Suggested Remediation|Deploy the CNF using DaemonSet or ReplicaSet.
+### http://test-network-function.com/testcases/generic/pod-high-availabitiy-best-practices
+
+Property|Description
+---|---
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/generic/pod-high-availabitiy-best-practices ensures that CNF Pods specify podAntiAffinity rules and replica value is set more than 1.
+Result Type|informative
+Suggested Remediation|In high availability cases, Pod podAntiAffinity rule should be specified for pod scheduling and pod replica value is set more than 1 .
 ### http://test-network-function.com/testcases/generic/pod-node-selector-node-affinity-best-practices
 
 Property|Description
@@ -109,7 +117,7 @@ Property|Description
 Version|v1.0.0
 Description|http://test-network-function.com/testcases/generic/pod-node-selector-node-affinity-best-practices ensures that CNF Pods do not specify nodeSelector or nodeAffinity.  In most cases, Pods should allow for instantiation on any underlying Node.
 Result Type|informative
-Suggested Remediation|In most cases, Pod's should not specify their host Nodes through nodeSelector or nodeAffinity.  However, there are cases in which CNFs require specialized hardware specific to a particular class of Node.  As such, this test is purely informative,  and will not prevent a CNF from being certified.  However, one should have an appropriate justification as to why nodeSelector and/or nodeAffinity is utilized by a CNF.
+Suggested Remediation|In most cases, Pod's should not specify their host Nodes through nodeSelector or nodeAffinity.  However, there are cases in which CNFs require specialized hardware specific to a particular class of Node.  As such, this test is purely informative, and will not prevent a CNF from being certified. However, one should have an appropriate justification as to why nodeSelector and/or nodeAffinity is utilized by a CNF.
 ### http://test-network-function.com/testcases/generic/pod-role-bindings-best-practices
 
 Property|Description
@@ -139,10 +147,10 @@ Suggested Remediation|Ensure Services are not configured to not use NodePort(s).
 Property|Description
 ---|---
 Version|v1.0.0
-Description|http://test-network-function.com/testcases/container/container-best-practices tests several aspects of CNF best practices, including: 1. The Pod does not have access to Host Node Networking. 2. The Pod does not have access to Host Node Ports. 3. The Pod cannot access Host Node IPC space. 4. The Pod cannot access Host Node PID space. 5. The Pod is not granted NET_ADMIN SCC. 6. The Pod is not granted SYS_ADMIN SCC. 7. The Pod does not run as root. 8. The Pod does not allow privileged escalation. 
+Description|http://test-network-function.com/testcases/generic/unaltered-base-image ensures that the Container Base Image is not altered post-startup.  This test is a heuristic, and ensures that there are no changes to the following directories: 1) /var/lib/rpm 2) /var/lib/dpkg 3) /bin 4) /sbin 5) /lib 6) /lib64 7) /usr/bin 8) /usr/sbin 9) /usr/lib 10) /usr/lib64
 Result Type|normative
-Suggested Remediation|Ensure that each Pod in the CNF abides by the suggested best practices listed in the test description.  In some rare cases, not all best practices can be followed.  For example, some CNFs may be required to run as root.  Such exceptions should be handled on a case-by-case basis, and should provide a proper justification as to why the best practice(s) cannot be followed.
-### http://test-network-function.com/testcases/diagnostic/extract-node-information
+Suggested Remediation|Ensure that Container applications do not modify the Container Base Image.  In particular, ensure that the following directories are not modified: 1) /var/lib/rpm 2) /var/lib/dpkg 3) /bin 4) /sbin 5) /lib 6) /lib64 7) /usr/bin 8) /usr/sbin 9) /usr/lib 10) /usr/lib64 Ensure that all required binaries are built directly into the container image, and are not installed post startup.
+### http://test-network-function.com/testcases/generic/unaltered-startup-boot-params
 
 Property|Description
 ---|---
@@ -395,9 +403,9 @@ Property|Description
 Version|v1.0.0
 Description|A generic test used to test services of CNF pod's namespace.
 Result Type|normative
-Intrusive|true
-Modifications Persist After Test|true
-Runtime Binaries Required|`jq`, `echo`
+Intrusive|false
+Modifications Persist After Test|false
+Runtime Binaries Required|`oc`, `grep`
 
 ### http://test-network-function.com/tests/nodes
 Property|Description
@@ -419,15 +427,15 @@ Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`oc`, `grep`
 
-### http://test-network-function.com/tests/nodedebug
+### http://test-network-function.com/tests/nodetainted
 Property|Description
 ---|---
 Version|v1.0.0
-Description|A generic test used to execute a command in a node
+Description|A generic test used to test whether node is tainted
 Result Type|normative
 Intrusive|false
 Modifications Persist After Test|false
-Runtime Binaries Required|`oc`, `echo`
+Runtime Binaries Required|`oc`, `cat`, `echo`
 
 ### http://test-network-function.com/tests/operator
 Property|Description
@@ -447,7 +455,7 @@ Description|A test used to check the subscription of a given operator
 Result Type|normative
 Intrusive|false
 Modifications Persist After Test|false
-Runtime Binaries Required|`grep`, `cut`
+Runtime Binaries Required|`oc`
 
 ### http://test-network-function.com/tests/owners
 Property|Description
@@ -518,4 +526,14 @@ Result Type|normative
 Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`cat`
+
+### http://test-network-function.com/tests/testPodHighAvailability
+Property|Description
+---|---
+Version|v1.0.0
+Description|A generic test used to check pod's replica and podAntiAffinity configuration in high availability mode
+Result Type|normative
+Intrusive|false
+Modifications Persist After Test|false
+Runtime Binaries Required|`oc`
 
