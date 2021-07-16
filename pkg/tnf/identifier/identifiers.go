@@ -53,6 +53,7 @@ const (
 	checkSubscriptionIdentifierURL        = "http://test-network-function.com/tests/operator/check-subscription"
 	nodeDebugIdentifierURL                = "http://test-network-function.com/tests/nodedebug"
 	loggingIdentifierURL                  = "http://test-network-function.com/tests/logging"
+	podantiaffinityIdentifierURL          = "http://test-network-function.com/tests/testPodHighAvailability"
 
 	versionOne = "v1.0.0"
 )
@@ -530,6 +531,18 @@ var Catalog = map[string]TestCatalogEntry{
 			dependencies.WcBinaryName,
 		},
 	},
+	podantiaffinityIdentifierURL: {
+		Identifier:  PodAntiAffinityIdentifier,
+		Description: "A generic test used to check pod's replica and podAntiAffinity configuration in high availability mode",
+		Type:        Normative,
+		IntrusionSettings: IntrusionSettings{
+			ModifiesSystem:           false,
+			ModificationIsPersistent: false,
+		},
+		BinaryDependencies: []string{
+			dependencies.OcBinaryName,
+		},
+	},
 }
 
 // HostnameIdentifier is the Identifier used to represent the generic hostname test case.
@@ -733,5 +746,11 @@ var NodeDebugIdentifier = Identifier{
 // LoggingURLIdentifier is the Identifier used to represent a test that checks if the stdout/stderr is used
 var LoggingURLIdentifier = Identifier{
 	URL:             loggingIdentifierURL,
+	SemanticVersion: versionOne,
+}
+
+// PodAntiAffinityIdentifier is the Identifier used to represent the generic podAffinity test.
+var PodAntiAffinityIdentifier = Identifier{
+	URL:             podantiaffinityIdentifierURL,
 	SemanticVersion: versionOne,
 }
