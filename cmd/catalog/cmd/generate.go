@@ -125,7 +125,7 @@ func emitTextFromFile(filename string) error {
 
 // outputTestCases outputs the Markdown representation for test cases from the catalog to stdout.
 func outputTestCases() {
-	// Buildind a separate data structure to store the key order for the map
+	// Building a separate data structure to store the key order for the map
 	keys := make([]claim.Identifier, 0, len(identifiers.Catalog))
 	for k := range identifiers.Catalog {
 		keys = append(keys, k)
@@ -154,7 +154,7 @@ func outputTestCases() {
 // outputTestCaseBuildingBlocks outputs the Markdown representation for the test case building blocks from the catalog
 // to stdout.
 func outputTestCaseBuildingBlocks() {
-	// Buildind a separate data structure to store the key order for the map
+	// Building a separate data structure to store the key order for the map
 	keys := make([]string, 0, len(identifier.Catalog))
 	for k := range identifier.Catalog {
 		keys = append(keys, k)
