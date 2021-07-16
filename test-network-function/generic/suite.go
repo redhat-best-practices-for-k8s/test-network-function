@@ -78,6 +78,7 @@ const (
 	multusTestsKey                = "multus"
 	testsKey                      = "generic"
 	drainTimeoutMinutes           = 5
+	partnerPod                    = "partner"
 )
 
 var (
@@ -101,6 +102,12 @@ var (
 
 	// schemaPath is the path to the generic-test.schema.json JSON schema relative to the project root.
 	schemaPath = path.Join("schemas", "generic-test.schema.json")
+
+	// podAntiAffinityTestPath is the file location of the podantiaffinity.json test case relative to the project root.
+	podAntiAffinityTestPath = path.Join("pkg", "tnf", "handlers", "podantiaffinity", "podantiaffinity.json")
+
+	// relativePodTestPath is the relative path to the podantiaffinity.json test case.
+	relativePodTestPath = path.Join(pathRelativeToRoot, podAntiAffinityTestPath)
 )
 
 // The default test timeout.
@@ -279,6 +286,10 @@ var _ = ginkgo.Describe(testsKey, func() {
 			for _, containersUnderTest := range containersUnderTest {
 				testSysctlConfigs(getContext(), containersUnderTest.oc.GetPodName(), containersUnderTest.oc.GetPodNamespace())
 			}
+		}
+		for _, containerUnderTest := range containersUnderTest {
+			testPodAntiAffinity(containerUnderTest.oc.GetPodNamespace())
+
 		}
 	}
 })
@@ -885,6 +896,61 @@ func uncordonNode(node string) {
 	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
 }
 
+// Pod antiaffinity test for all deployments
+func testPodAntiAffinity(podNamespace string) {
+	var deployments dp.DeploymentMap
+	ginkgo.When("CNF is designed in high availability mode ", func() {
+		ginkgo.It("Should set pod replica number greater than 1 and corresponding pod anti-affinity rules in deployment", func() {
+			defer results.RecordResult(identifiers.TestPodHighAvailabilityBestPractices)
+			deployments, _ = getDeployments(podNamespace)
+			if len(deployments) == 0 {
+				return
+			}
+			for name, d := range deployments {
+				if name != partnerPod {
+					podAntiAffinity(name, podNamespace, d.Replicas)
+				}
+			}
+		})
+	})
+}
+
+// check pod antiaffinity definition for a deployment
+func podAntiAffinity(deployment, podNamespace string, replica int) {
+	context := getContext()
+	values := make(map[string]interface{})
+	values["DEPLOYMENT_NAME"] = deployment
+	values["DEPLOYMENT_NAMESPACE"] = podNamespace
+	infoWriter := tnf.CreateTestExtraInfoWriter()
+	test, handlers, result, err := generic.NewGenericFromMap(relativePodTestPath, relativeSchemaPath, values)
+	gomega.Expect(err).To(gomega.BeNil())
+	gomega.Expect(result).ToNot(gomega.BeNil())
+	gomega.Expect(result.Valid()).To(gomega.BeTrue())
+	gomega.Expect(handlers).ToNot(gomega.BeNil())
+	gomega.Expect(len(handlers)).To(gomega.Equal(1))
+	gomega.Expect(test).ToNot(gomega.BeNil())
+	tester, err := tnf.NewTest(context.GetExpecter(), *test, handlers, context.GetErrorChannel())
+	gomega.Expect(err).To(gomega.BeNil())
+	gomega.Expect(tester).ToNot(gomega.BeNil())
+
+	testResult, err := tester.Run()
+	if testResult != tnf.SUCCESS {
+		if replica > 1 {
+			msg := fmt.Sprintf("The deployment replica count is %d, but a podAntiAffinity rule is not defined, "+
+				"you might want to change it in deployment %s in namespace %s", replica, deployment, podNamespace)
+			log.Warn(msg)
+			infoWriter(msg)
+		} else {
+			msg := fmt.Sprintf("The deployment replica count is %d. Pod replica should be > 1 with an "+
+				"podAntiAffinity rule defined . You might want to change it in deployment %s in namespace %s",
+				replica, deployment, podNamespace)
+			log.Warn(msg)
+			infoWriter(msg)
+		}
+	}
+	gomega.Expect(err).To(gomega.BeNil())
+	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
+}
 func getContext() *interactive.Context {
 	context, err := interactive.SpawnShell(interactive.CreateGoExpectSpawner(), defaultTimeout, interactive.Verbose(true))
 	gomega.Expect(err).To(gomega.BeNil())
