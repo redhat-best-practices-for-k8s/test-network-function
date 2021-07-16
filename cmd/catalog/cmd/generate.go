@@ -125,19 +125,18 @@ func emitTextFromFile(filename string) error {
 
 // outputTestCases outputs the Markdown representation for test cases from the catalog to stdout.
 func outputTestCases() {
-
-	//Buildind a separate data structure to store the key order for the map
+	// Buildind a separate data structure to store the key order for the map
 	keys := make([]claim.Identifier, 0, len(identifiers.Catalog))
 	for k := range identifiers.Catalog {
 		keys = append(keys, k)
 	}
 
-	//Sorting the map by identifier URL 
+	// Sorting the map by identifier URL
 	sort.Slice(keys, func(i, j int) bool {
-	return keys[i].Url < keys[j].Url
+		return keys[i].Url < keys[j].Url
 	})
-	
-	//Iterating the map by sorted identifier URL
+
+	// Iterating the map by sorted identifier URL
 	for _, k := range keys {
 		fmt.Fprintf(os.Stdout, "### %s\n", identifiers.Catalog[k].Identifier.Url)
 		fmt.Println()
@@ -155,17 +154,16 @@ func outputTestCases() {
 // outputTestCaseBuildingBlocks outputs the Markdown representation for the test case building blocks from the catalog
 // to stdout.
 func outputTestCaseBuildingBlocks() {
-
-	//Buildind a separate data structure to store the key order for the map
+	// Buildind a separate data structure to store the key order for the map
 	keys := make([]string, 0, len(identifier.Catalog))
 	for k := range identifier.Catalog {
 		keys = append(keys, k)
 	}
 
-	//Sorting the map by identifier URL
+	// Sorting the map by identifier URL
 	sort.Strings(keys)
-	
-	//Iterating the map by sorted identifier URL
+
+	// Iterating the map by sorted identifier URL
 	for _, k := range keys {
 		fmt.Fprintf(os.Stdout, "### %s", identifier.Catalog[k].Identifier.URL)
 		fmt.Println()
