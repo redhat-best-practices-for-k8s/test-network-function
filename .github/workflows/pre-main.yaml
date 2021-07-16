@@ -182,12 +182,14 @@ jobs:
 
       - name: Install ginkgo
         run: go get -u github.com/onsi/ginkgo/ginkgo
-
+      
+      # make the catalog .md file
       - name: Create catalog .md file
         id: catalog-md
         run: |   
           make build-catalog-md
-          
+      
+      # if there is any changes in the catalog .md file, commit them and schedule a push
       - name: Commit files
         id: commit
         run: |
@@ -201,7 +203,8 @@ jobs:
             echo "::set-output name=push::true"
           fi
         shell: bash
-
+      
+      # if changes to .md file were commited, push them
       - name: Push changes
         if: steps.commit.outputs.push == 'true'
         uses: ad-m/github-push-action@master
