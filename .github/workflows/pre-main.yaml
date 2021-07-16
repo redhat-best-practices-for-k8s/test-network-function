@@ -160,4 +160,3 @@ jobs:
       - name: (if on main and upstream) Push the newly built image to Quay.io
         if: ${{ github.ref == 'refs/heads/main' && github.repository_owner == 'test-network-function' }}
         run: docker push --all-tags ${REGISTRY}/${IMAGE_NAME}
-   
