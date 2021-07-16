@@ -22,8 +22,10 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"sort"
 	"strings"
 
+	"github.com/test-network-function/test-network-function-claim/pkg/claim"
 	"github.com/test-network-function/test-network-function/test-network-function/identifiers"
 
 	"github.com/spf13/cobra"
@@ -123,15 +125,28 @@ func emitTextFromFile(filename string) error {
 
 // outputTestCases outputs the Markdown representation for test cases from the catalog to stdout.
 func outputTestCases() {
-	for _, catalogEntry := range identifiers.Catalog {
-		fmt.Fprintf(os.Stdout, "### %s\n", catalogEntry.Identifier.Url)
+
+	//Buildind a separate data structure to store the key order for the map
+	keys := make([]claim.Identifier, 0, len(identifiers.Catalog))
+	for k := range identifiers.Catalog {
+		keys = append(keys, k)
+	}
+
+	//Sorting the map by identifier URL 
+	sort.Slice(keys, func(i, j int) bool {
+	return keys[i].Url < keys[j].Url
+	})
+	
+	//Iterating the map by sorted identifier URL
+	for _, k := range keys {
+		fmt.Fprintf(os.Stdout, "### %s\n", identifiers.Catalog[k].Identifier.Url)
 		fmt.Println()
 		fmt.Println("Property|Description")
 		fmt.Println("---|---")
-		fmt.Fprintf(os.Stdout, "Version|%s\n", catalogEntry.Identifier.Version)
-		fmt.Fprintf(os.Stdout, "Description|%s\n", strings.ReplaceAll(catalogEntry.Description, "\n", " "))
-		fmt.Fprintf(os.Stdout, "Result Type|%s\n", catalogEntry.Type)
-		fmt.Fprintf(os.Stdout, "Suggested Remediation|%s\n", strings.ReplaceAll(catalogEntry.Remediation, "\n", " "))
+		fmt.Fprintf(os.Stdout, "Version|%s\n", identifiers.Catalog[k].Identifier.Version)
+		fmt.Fprintf(os.Stdout, "Description|%s\n", strings.ReplaceAll(identifiers.Catalog[k].Description, "\n", " "))
+		fmt.Fprintf(os.Stdout, "Result Type|%s\n", identifiers.Catalog[k].Type)
+		fmt.Fprintf(os.Stdout, "Suggested Remediation|%s\n", strings.ReplaceAll(identifiers.Catalog[k].Remediation, "\n", " "))
 	}
 	fmt.Println()
 	fmt.Println()
@@ -140,17 +155,28 @@ func outputTestCases() {
 // outputTestCaseBuildingBlocks outputs the Markdown representation for the test case building blocks from the catalog
 // to stdout.
 func outputTestCaseBuildingBlocks() {
-	for _, catalogEntry := range identifier.Catalog {
-		fmt.Fprintf(os.Stdout, "### %s", catalogEntry.Identifier.URL)
+
+	//Buildind a separate data structure to store the key order for the map
+	keys := make([]string, 0, len(identifier.Catalog))
+	for k := range identifier.Catalog {
+		keys = append(keys, k)
+	}
+
+	//Sorting the map by identifier URL
+	sort.Strings(keys)
+	
+	//Iterating the map by sorted identifier URL
+	for _, k := range keys {
+		fmt.Fprintf(os.Stdout, "### %s", identifier.Catalog[k].Identifier.URL)
 		fmt.Println()
 		fmt.Println("Property|Description")
 		fmt.Println("---|---")
-		fmt.Fprintf(os.Stdout, "Version|%s\n", catalogEntry.Identifier.SemanticVersion)
-		fmt.Fprintf(os.Stdout, "Description|%s\n", catalogEntry.Description)
-		fmt.Fprintf(os.Stdout, "Result Type|%s\n", catalogEntry.Type)
-		fmt.Fprintf(os.Stdout, "Intrusive|%t\n", catalogEntry.IntrusionSettings.ModifiesSystem)
-		fmt.Fprintf(os.Stdout, "Modifications Persist After Test|%t\n", catalogEntry.IntrusionSettings.ModificationIsPersistent)
-		fmt.Fprintf(os.Stdout, "Runtime Binaries Required|%s\n", cmdJoin(catalogEntry.BinaryDependencies, ", "))
+		fmt.Fprintf(os.Stdout, "Version|%s\n", identifier.Catalog[k].Identifier.SemanticVersion)
+		fmt.Fprintf(os.Stdout, "Description|%s\n", identifier.Catalog[k].Description)
+		fmt.Fprintf(os.Stdout, "Result Type|%s\n", identifier.Catalog[k].Type)
+		fmt.Fprintf(os.Stdout, "Intrusive|%t\n", identifier.Catalog[k].IntrusionSettings.ModifiesSystem)
+		fmt.Fprintf(os.Stdout, "Modifications Persist After Test|%t\n", identifier.Catalog[k].IntrusionSettings.ModificationIsPersistent)
+		fmt.Fprintf(os.Stdout, "Runtime Binaries Required|%s\n", cmdJoin(identifier.Catalog[k].BinaryDependencies, ", "))
 		fmt.Println()
 	}
 }
