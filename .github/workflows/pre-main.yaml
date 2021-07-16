@@ -167,7 +167,6 @@ jobs:
     runs-on: ubuntu-20.04
     env:
       SHELL: /bin/bash
-      KUBECONFIG: '/home/runner/.kube/config'
 
     steps:
       - name: Set up Go 1.15
