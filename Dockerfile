@@ -63,6 +63,8 @@ RUN mkdir ${TNF_BIN_DIR} && \
 	cp run-cnf-suites.sh ${TNF_DIR} && \
 	# copy all JSON files to allow tests to run
 	cp --parents `find -name \*.json*` ${TNF_DIR} && \
+  # copy all go template files to allow tests to run
+	cp --parents `find -name \*.gotemplate*` ${TNF_DIR} && \
 	cp test-network-function/test-network-function.test ${TNF_BIN_DIR}
 
 WORKDIR ${TNF_DIR}
