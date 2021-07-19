@@ -27,37 +27,37 @@ var (
 			handlername = args[len(args)-1]
 			pathrelativetoroot = path.Join("..", "..")
 			handlerDirectory = path.Join(pathrelativetoroot, "pkg", "tnf", "handlers")
-			new_handler_directory := path.Join(handlerDirectory, handlername)
+			newHandlerDirectory := path.Join(handlerDirectory, handlername)
 
-			os.Mkdir(new_handler_directory, 0755)
+			os.Mkdir(newHandlerDirectory, 0755)
 
 			// create 3 files by template
 
-			my_handler := handler{X: handlername}
+			myhandler := handler{X: handlername}
 
-			path_file := path.Join(handlerDirectory, "handler_template", "doc.tmpl")
+			pathfile := path.Join(handlerDirectory, "handler_template", "doc.tmpl")
 			namefile := "doc.tmpl"
-			createfile(path_file, namefile, my_handler, new_handler_directory)
+			createfile(pathfile, namefile, myhandler, newHandlerDirectory)
 
-			path_file = path.Join(handlerDirectory, "handler_template", "template_test.tmpl")
+			pathfile = path.Join(handlerDirectory, "handler_template", "template_test.tmpl")
 			namefile = "" + handlername + "_test.tmpl"
-			createfile(path_file, namefile, my_handler, new_handler_directory)
+			createfile(pathfile, namefile, myhandler, newHandlerDirectory)
 
-			path_file = path.Join(handlerDirectory, "handler_template", "template.tmpl")
+			pathfile = path.Join(handlerDirectory, "handler_template", "template.tmpl")
 			namefile = "" + handlername
-			createfile(path_file, namefile, my_handler, new_handler_directory)
+			createfile(pathfile, namefile, myhandler, newHandlerDirectory)
 
 		},
 	}
 )
 
-func createfile(path_file string, namefile string, my_handler handler, new_handler_directory string) {
-	f_tpl, err := template.ParseFiles(path_file)
+func createfile(pathfile string, namefile string, myhandler handler, newHandlerDirectory string) {
+	ftpl, err := template.ParseFiles(pathfile)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	temp := path.Join(new_handler_directory, namefile)
+	temp := path.Join(newHandlerDirectory, namefile)
 
 	f, err := os.Create(temp)
 	if err != nil {
@@ -66,7 +66,7 @@ func createfile(path_file string, namefile string, my_handler handler, new_handl
 	defer f.Close()
 	w := bufio.NewWriter(f)
 
-	err = f_tpl.Execute(w, my_handler)
+	err = ftpl.Execute(w, myhandler)
 	if err != nil {
 		panic(err)
 	}
