@@ -180,6 +180,11 @@ var (
 		Url:     formGenericTestURL("pod-stderr-stdout-best-practices"),
 		Version: versionOne,
 	}
+	// TestShudtownIdentifier ensures pre-stop lifecycle is defined
+	TestShudtownIdentifier = claim.Identifier{
+		Url:     formGenericTestURL("pod-lifecycle-pre-stop"),
+		Version: versionOne,
+	}
 )
 
 func formDescription(identifier claim.Identifier, description string) string {
@@ -430,5 +435,25 @@ the changes for you.`,
 		Remediation: "",
 		Description: formDescription(TestNodesHwInfoIdentifier,
 			`list nodes HW info`),
+	},
+
+	TestShudtownIdentifier: {
+		Identifier: TestShudtownIdentifier,
+		Type:       normativeResult,
+		Description: formDescription(TestShudtownIdentifier,
+			`Ensure that the containers lifecycle pre-stop management feature is configured.`),
+		Remediation: `
+		It's considered best-practices to define prestop for proper management of container lifecycle.
+		The prestop can be used to gracefully stop the container and clean resources (e.g., DB connexion).
+		
+		The prestop can be configured using :
+		 1) Exec : executes the supplied command inside the container
+		 2) HTTP : executes HTTP request against the specified endpoint.
+		
+		When defined. K8s will handle shutdown of the container using the following:
+		1) K8s first execute the preStop hook inside the container.
+		2) K8s will wait for a grace perdiod.
+		3) K8s will clean the remaining processes using KILL signal.		
+			`,
 	},
 }

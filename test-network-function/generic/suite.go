@@ -28,6 +28,7 @@ import (
 	"time"
 
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/generic"
+	"github.com/test-network-function/test-network-function/pkg/tnf/testcases"
 
 	"github.com/test-network-function/test-network-function/test-network-function/identifiers"
 	"github.com/test-network-function/test-network-function/test-network-function/results"
@@ -67,7 +68,6 @@ import (
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/sysctlallconfigsargs"
 	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
-	"github.com/test-network-function/test-network-function/pkg/tnf/testcases"
 	utils "github.com/test-network-function/test-network-function/pkg/utils"
 )
 
@@ -88,6 +88,12 @@ var (
 	// loggingTestPath is the file location of the logging.json test case relative to the project root.
 	loggingTestPath = path.Join("pkg", "tnf", "handlers", "logging", "logging.json")
 
+	// shutdownTestPath is the file location of shutdown.json test case relative to the project root.
+	shutdownTestPath = path.Join("pkg", "tnf", "handlers", "shutdown", "shutdown.json")
+
+	// shutdownTestDirectoryPath is the directory of the shutdown test
+	shutdownTestDirectoryPath = path.Join("pkg", "tnf", "handlers", "shutdown")
+
 	// pathRelativeToRoot is used to calculate relative filepaths for the `test-network-function` executable entrypoint.
 	pathRelativeToRoot = path.Join("..")
 
@@ -96,6 +102,12 @@ var (
 
 	// relativeLoggingTestPath is the relative path to the logging.json test case.
 	relativeLoggingTestPath = path.Join(pathRelativeToRoot, loggingTestPath)
+
+	// relativeShutdownTestPath is the relative path to the shutdown.json test case.
+	relativeShutdownTestPath = path.Join(pathRelativeToRoot, shutdownTestPath)
+
+	// relativeShutdownTestDirectoryPath is the directory of the shutdown directory
+	relativeShutdownTestDirectoryPath = path.Join(pathRelativeToRoot, shutdownTestDirectoryPath)
 
 	// relativeSchemaPath is the relative path to the generic-test.schema.json JSON schema.
 	relativeSchemaPath = path.Join(pathRelativeToRoot, schemaPath)
@@ -263,6 +275,10 @@ var _ = ginkgo.Describe(testsKey, func() {
 		for _, containerUnderTest := range containersUnderTest {
 			testLogging(containerUnderTest.oc.GetPodNamespace(), containerUnderTest.oc.GetPodName(), containerUnderTest.oc.GetPodContainerName())
 		}
+		for _, containerUnderTest := range containersUnderTest {
+			testShutdown(containerUnderTest.oc.GetPodNamespace(), containerUnderTest.oc.GetPodName())
+		}
+
 		testTainted()
 		testHugepages()
 
@@ -870,6 +886,37 @@ func loggingTest(podNamespace, podName, containerName string) {
 
 	testResult, err := tester.Run()
 	gomega.Expect(err).To(gomega.BeNil())
+	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
+}
+
+func testShutdown(podNamespace, podName string) {
+	ginkgo.When("Testing PUT is configured with pre-stop lifecycle", func() {
+		ginkgo.It("should have pre-stop configured", func() {
+			defer results.RecordResult(identifiers.TestShudtownIdentifier)
+			shutdownTest(podNamespace, podName)
+		})
+	})
+}
+func shutdownTest(podNamespace, podName string) {
+	context := getContext()
+	values := make(map[string]interface{})
+	values["POD_NAMESPACE"] = podNamespace
+	values["POD_NAME"] = podName
+	values["GO_TEMPLATE_PATH"] = relativeShutdownTestDirectoryPath
+	test, handlers, result, err := generic.NewGenericFromMap(relativeShutdownTestPath, relativeSchemaPath, values)
+	gomega.Expect(err).To(gomega.BeNil())
+	gomega.Expect(result).ToNot(gomega.BeNil())
+	gomega.Expect(result.Valid()).To(gomega.BeTrue())
+	gomega.Expect(handlers).ToNot(gomega.BeNil())
+	gomega.Expect(handlers).ToNot(gomega.BeNil())
+	gomega.Expect(test).ToNot(gomega.BeNil())
+	tester, err := tnf.NewTest(context.GetExpecter(), *test, handlers, context.GetErrorChannel())
+	gomega.Expect(err).To(gomega.BeNil())
+	gomega.Expect(tester).ToNot(gomega.BeNil())
+
+	testResult, err := tester.Run()
+	gomega.Expect(err).To(gomega.BeNil())
+	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
 	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
 }
 
