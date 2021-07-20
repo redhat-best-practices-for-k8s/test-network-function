@@ -15,15 +15,19 @@ type handler struct {
 }
 
 var (
+	tnf                string
+	generate           string
+	myhandler          string
 	pathrelativetoroot string
 	handlerDirectory   string
 	handlername        string
 	rootCmd            = &cobra.Command{
-		Use:   "kind",
-		Short: "kind is a tool for managing local Kubernetes clusters",
-		Long:  "kind creates and manages local Kubernetes clusters using Docker container 'nodes'",
+		Use:   "handler",
+		Short: "adding new handler",
 		Run: func(cmd *cobra.Command, args []string) {
-
+			tnf = args[0]
+			generate = args[1]
+			myhandler = args[2]
 			handlername = args[len(args)-1]
 			pathrelativetoroot = path.Join("..", "..")
 			handlerDirectory = path.Join(pathrelativetoroot, "pkg", "tnf", "handlers")
