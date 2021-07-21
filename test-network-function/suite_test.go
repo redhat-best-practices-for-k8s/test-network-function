@@ -35,7 +35,7 @@ import (
 	"github.com/test-network-function/test-network-function/pkg/junit"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
 
-	_ "github.com/test-network-function/test-network-function/test-network-function/container"
+	_ "github.com/test-network-function/test-network-function/test-network-function/access-control"
 	"github.com/test-network-function/test-network-function/test-network-function/diagnostic"
 	_ "github.com/test-network-function/test-network-function/test-network-function/generic"
 

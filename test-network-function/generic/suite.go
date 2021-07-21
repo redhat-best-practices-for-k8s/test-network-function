@@ -42,7 +42,6 @@ import (
 	"github.com/test-network-function/test-network-function/pkg/tnf"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/base/redhat"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/bootconfigentries"
-	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/clusterrolebinding"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/cnffsdiff"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/containerid"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/currentkernelcmdlineargs"
@@ -63,18 +62,15 @@ import (
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/ping"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/podnodename"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/readbootconfig"
-	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/rolebinding"
-	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/serviceaccount"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/sysctlallconfigsargs"
 	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
 	utils "github.com/test-network-function/test-network-function/pkg/utils"
+	utilspods "github.com/test-network-function/test-network-function/utilspods"
 )
 
 const (
 	defaultNumPings               = 5
-	defaultTimeoutSeconds         = 10
-	defaultTerminationGracePeriod = 30
 	multusTestsKey                = "multus"
 	testsKey                      = "generic"
 	drainTimeoutMinutes           = 5
@@ -122,87 +118,10 @@ var (
 	relativePodTestPath = path.Join(pathRelativeToRoot, podAntiAffinityTestPath)
 )
 
-// The default test timeout.
-var defaultTimeout = time.Duration(defaultTimeoutSeconds) * time.Second
 
-var drainTimeout = time.Duration(drainTimeoutMinutes) * time.Minute
 
-// containersToExcludeFromConnectivityTests is a set used for storing the containers that should be excluded from
-// connectivity testing.
-var containersToExcludeFromConnectivityTests = make(map[configsections.ContainerIdentifier]interface{})
 
-// Helper used to instantiate an OpenShift Client Session.
-func getOcSession(pod, container, namespace string, timeout time.Duration, options ...interactive.Option) *interactive.Oc {
-	// Spawn an interactive OC shell using a goroutine (needed to avoid cross expect.Expecter interaction).  Extract the
-	// Oc reference from the goroutine through a channel.  Performs basic sanity checking that the Oc session is set up
-	// correctly.
-	var containerOc *interactive.Oc
-	ocChan := make(chan *interactive.Oc)
-	var chOut <-chan error
 
-	goExpectSpawner := interactive.NewGoExpectSpawner()
-	var spawner interactive.Spawner = goExpectSpawner
-
-	go func() {
-		oc, outCh, err := interactive.SpawnOc(&spawner, pod, container, namespace, timeout, options...)
-		gomega.Expect(outCh).ToNot(gomega.BeNil())
-		gomega.Expect(err).To(gomega.BeNil())
-		ocChan <- oc
-	}()
-
-	// Set up a go routine which reads from the error channel
-	go func() {
-		err := <-chOut
-		gomega.Expect(err).To(gomega.BeNil())
-	}()
-
-	containerOc = <-ocChan
-
-	gomega.Expect(containerOc).ToNot(gomega.BeNil())
-
-	return containerOc
-}
-
-// container is an internal construct which follows the Container design pattern.  Essentially, a container holds the
-// pertinent information to perform a test against or using an Operating System container.  This includes facets such
-// as the reference to the interactive.Oc instance, the reference to the test configuration, and the default network
-// IP address.
-type container struct {
-	containerConfiguration  configsections.Container
-	oc                      *interactive.Oc
-	defaultNetworkIPAddress string
-	containerIdentifier     configsections.ContainerIdentifier
-}
-
-// createContainers contains the general steps involved in creating "oc" sessions and other configuration. A map of the
-// aggregate information is returned.
-func createContainers(containerDefinitions []configsections.Container) map[configsections.ContainerIdentifier]*container {
-	createdContainers := make(map[configsections.ContainerIdentifier]*container)
-	for _, c := range containerDefinitions {
-		oc := getOcSession(c.PodName, c.ContainerName, c.Namespace, defaultTimeout, interactive.Verbose(true))
-		var defaultIPAddress = "UNKNOWN"
-		if _, ok := containersToExcludeFromConnectivityTests[c.ContainerIdentifier]; !ok {
-			defaultIPAddress = getContainerDefaultNetworkIPAddress(oc, c.DefaultNetworkDevice)
-		}
-		createdContainers[c.ContainerIdentifier] = &container{
-			containerConfiguration:  c,
-			oc:                      oc,
-			defaultNetworkIPAddress: defaultIPAddress,
-			containerIdentifier:     c.ContainerIdentifier,
-		}
-	}
-	return createdContainers
-}
-
-// createContainersUnderTest sets up the test containers.
-func createContainersUnderTest(conf *configsections.TestConfiguration) map[configsections.ContainerIdentifier]*container {
-	return createContainers(conf.ContainersUnderTest)
-}
-
-// createPartnerContainers sets up the partner containers.
-func createPartnerContainers(conf *configsections.TestConfiguration) map[configsections.ContainerIdentifier]*container {
-	return createContainers(conf.PartnerContainers)
-}
 
 //
 // All actual test code belongs below here.  Utilities belong above.
@@ -255,14 +174,6 @@ var _ = ginkgo.Describe(testsKey, func() {
 			testIsRedHatRelease(containerUnderTest.oc)
 		}
 		testIsRedHatRelease(testOrchestrator.oc)
-
-		for _, containerUnderTest := range containersUnderTest {
-			testNamespace(containerUnderTest.oc)
-		}
-
-		for _, containerUnderTest := range containersUnderTest {
-			testRoles(containerUnderTest.oc.GetPodName(), containerUnderTest.oc.GetPodNamespace())
-		}
 
 		for _, containerUnderTest := range containersUnderTest {
 			testNodePort(containerUnderTest.oc.GetPodNamespace())
@@ -403,33 +314,6 @@ func getContainerDefaultNetworkIPAddress(oc *interactive.Oc, dev string) string 
 	gomega.Expect(err).To(gomega.BeNil())
 	runAndValidateTest(test)
 	return ipTester.GetIPv4Address()
-}
-
-// GetTestConfiguration returns the cnf-certification-generic-tests test configuration.
-func GetTestConfiguration() *configsections.TestConfiguration {
-	conf := config.GetConfigInstance()
-	return &conf.Generic
-}
-
-func testNamespace(oc *interactive.Oc) {
-	pod := oc.GetPodName()
-	container := oc.GetPodContainerName()
-	ginkgo.When(fmt.Sprintf("Reading namespace of %s/%s", pod, container), func() {
-		ginkgo.It("Should not be 'default' and should not begin with 'openshift-'", func() {
-			defer results.RecordResult(identifiers.TestNamespaceBestPracticesIdentifier)
-			gomega.Expect(oc.GetPodNamespace()).To(gomega.Not(gomega.Equal("default")))
-			gomega.Expect(oc.GetPodNamespace()).To(gomega.Not(gomega.HavePrefix("openshift-")))
-		})
-	})
-}
-
-func testRoles(podName, podNamespace string) {
-	var serviceAccountName string
-	ginkgo.When(fmt.Sprintf("Testing roles and privileges of %s/%s", podNamespace, podName), func() {
-		testServiceAccount(podName, podNamespace, &serviceAccountName)
-		testRoleBindings(podNamespace, &serviceAccountName)
-		testClusterRoleBindings(podNamespace, &serviceAccountName)
-	})
 }
 
 func testGracePeriod(context *interactive.Context, podName, podNamespace string) {
@@ -623,58 +507,6 @@ func testSysctlConfigs(context *interactive.Context, podName, podNamespace strin
 	})
 }
 
-func testServiceAccount(podName, podNamespace string, serviceAccountName *string) {
-	ginkgo.It("Should have a valid ServiceAccount name", func() {
-		defer results.RecordResult(identifiers.TestPodServiceAccountBestPracticesIdentifier)
-		context := getContext()
-		tester := serviceaccount.NewServiceAccount(defaultTimeout, podName, podNamespace)
-		test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
-		gomega.Expect(err).To(gomega.BeNil())
-		testResult, err := test.Run()
-		gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
-		gomega.Expect(err).To(gomega.BeNil())
-		*serviceAccountName = tester.GetServiceAccountName()
-		gomega.Expect(*serviceAccountName).ToNot(gomega.BeEmpty())
-	})
-}
-
-func testRoleBindings(podNamespace string, serviceAccountName *string) {
-	ginkgo.It("Should not have RoleBinding in other namespaces", func() {
-		defer results.RecordResult(identifiers.TestPodRoleBindingsBestPracticesIdentifier)
-		if *serviceAccountName == "" {
-			ginkgo.Skip("Can not test when serviceAccountName is empty. Please check previous tests for failures")
-		}
-		context := getContext()
-		rbTester := rolebinding.NewRoleBinding(defaultTimeout, *serviceAccountName, podNamespace)
-		test, err := tnf.NewTest(context.GetExpecter(), rbTester, []reel.Handler{rbTester}, context.GetErrorChannel())
-		gomega.Expect(err).To(gomega.BeNil())
-		testResult, err := test.Run()
-		if rbTester.Result() == tnf.FAILURE {
-			log.Info("RoleBindings: ", rbTester.GetRoleBindings())
-		}
-		gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
-		gomega.Expect(err).To(gomega.BeNil())
-	})
-}
-
-func testClusterRoleBindings(podNamespace string, serviceAccountName *string) {
-	ginkgo.It("Should not have ClusterRoleBindings", func() {
-		defer results.RecordResult(identifiers.TestPodClusterRoleBindingsBestPracticesIdentifier)
-		if *serviceAccountName == "" {
-			ginkgo.Skip("Can not test when serviceAccountName is empty. Please check previous tests for failures")
-		}
-		context := getContext()
-		crbTester := clusterrolebinding.NewClusterRoleBinding(defaultTimeout, *serviceAccountName, podNamespace)
-		test, err := tnf.NewTest(context.GetExpecter(), crbTester, []reel.Handler{crbTester}, context.GetErrorChannel())
-		gomega.Expect(err).To(gomega.BeNil())
-		testResult, err := test.Run()
-		if crbTester.Result() == tnf.FAILURE {
-			log.Info("ClusterRoleBindings: ", crbTester.GetClusterRoleBindings())
-		}
-		gomega.Expect(err).To(gomega.BeNil())
-		gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
-	})
-}
 
 func testNodePort(podNamespace string) {
 	ginkgo.When(fmt.Sprintf("Testing services in namespace %s", podNamespace), func() {
@@ -795,10 +627,6 @@ func testDeployments(namespace string) {
 	})
 }
 
-func isMinikube() bool {
-	b, _ := strconv.ParseBool(os.Getenv("TNF_MINIKUBE_ONLY"))
-	return b
-}
 
 //nolint:deadcode // Taken out of v2.0.0 for CTONET-1022.
 func nonIntrusive() bool {
