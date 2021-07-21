@@ -119,7 +119,7 @@ jobs:
         run: ./run-cnf-suites.sh diagnostic
 
       - name: 'Test: Run generic test suite'
-        run: ./run-cnf-suites.sh generic
+        run: ./run-cnf-suites.sh generic access-control
 
       # Perform smoke tests using a TNF container.
 
@@ -143,7 +143,7 @@ jobs:
         run: ./run-tnf-container.sh ${{ env.TESTING_CMD_PARAMS }} diagnostic
 
       - name: 'Test: Run generic test suite in a TNF container'
-        run: ./run-tnf-container.sh ${{ env.TESTING_CMD_PARAMS }} generic
+        run: ./run-tnf-container.sh ${{ env.TESTING_CMD_PARAMS }} generic access-control
 
       # Push the new unstable TNF image to Quay.io.
 
