@@ -14,7 +14,7 @@
 // with this program; if not, write to the Free Software Foundation, Inc.,
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-package {{ .X }}
+package {{ .Handlername }}
 
 import (
 	"testing"
@@ -30,7 +30,7 @@ const (
 	testTimeoutDuration = time.Second * 2
 )
 
-func {{ .X }}_Args(t *testing.T) {
+func {{ .Handlername }}_Args(t *testing.T) {
 	h := hostname.NewHostname(testTimeoutDuration)
 	assert.Equal(t, []string{"hostname"}, h.Args())
 }

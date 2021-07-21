@@ -11,7 +11,7 @@ import (
 )
 
 type myHandler struct {
-	X string
+	Handlername string
 }
 
 var (
@@ -21,22 +21,22 @@ var (
 
 	rootCmd = &cobra.Command{
 		Use:   "rootCmd",
-		Short: "test network function command line tools",
+		Short: "A CLI for creating, validating, and test-network-function tests.",
 	}
 
 	generate = &cobra.Command{
 		Use:   "generate",
-		Short: "generator tool for various tnf artifacts, such as handler code, catalog etc",
+		Short: "generator tool for various tnf artifacts.",
 	}
 
 	handler = &cobra.Command{
 		Use:   "handler",
-		Short: "adding new handler",
-		Run:   addingHandler,
+		Short: "adding new handler.",
+		Run:   generateHandlerFiles,
 	}
 )
 
-func addingHandler(cmd *cobra.Command, args []string) {
+func generateHandlerFiles(cmd *cobra.Command, args []string) {
 
 	handlername = args[0]
 	pathrelativetoroot = path.Join("..", "..")
@@ -45,21 +45,21 @@ func addingHandler(cmd *cobra.Command, args []string) {
 
 	os.Mkdir(newHandlerDirectory, 0755)
 
-	// create 3 files by template
+	myhandler := myHandler{Handlername: handlername}
 
-	myhandler := myHandler{X: handlername}
+	//pathfile this is the path of the file from template file that will creat
 
 	pathfile := path.Join(handlerDirectory, "handler_template", "doc.tmpl")
 	namefile := "doc.tmpl"
-	createfile(pathfile, namefile, myhandler, newHandlerDirectory)
+	createfile(pathfile, namefile, myhandler, newHandlerDirectory) // here creating file by doc.tmpl
 
 	pathfile = path.Join(handlerDirectory, "handler_template", "template_test.tmpl")
 	namefile = "" + handlername + "_test.tmpl"
-	createfile(pathfile, namefile, myhandler, newHandlerDirectory)
+	createfile(pathfile, namefile, myhandler, newHandlerDirectory) // here creating file by template_test.tmpl
 
 	pathfile = path.Join(handlerDirectory, "handler_template", "template.tmpl")
 	namefile = "" + handlername
-	createfile(pathfile, namefile, myhandler, newHandlerDirectory)
+	createfile(pathfile, namefile, myhandler, newHandlerDirectory) //here creating file by template.tmpl
 }
 
 func createfile(pathfile string, namefile string, myhandler myHandler, newHandlerDirectory string) {
@@ -70,7 +70,6 @@ func createfile(pathfile string, namefile string, myhandler myHandler, newHandle
 	}
 
 	temp := path.Join(newHandlerDirectory, namefile)
-
 	f, err := os.Create(temp)
 	if err != nil {
 		panic(err)
