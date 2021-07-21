@@ -72,6 +72,16 @@ var (
 		Url:     formTestURL(diagnosticSuite, "extract-node-information"),
 		Version: versionOne,
 	}
+	// TestListCniPluginsIdentifier retrieves list of CNI plugins.
+	TestListCniPluginsIdentifier = claim.Identifier{
+		Url:     formTestURL(diagnosticSuite, "list-cni-plugins"),
+		Version: versionOne,
+	}
+	// TestNodesHwInfoIdentifier retrieves nodes HW info.
+	TestNodesHwInfoIdentifier = claim.Identifier{
+		Url:     formTestURL(diagnosticSuite, "nodes-hw-info"),
+		Version: versionOne,
+	}
 	// TestHugepagesNotManuallyManipulated represents the test identifier testing hugepages have not been manipulated.
 	TestHugepagesNotManuallyManipulated = claim.Identifier{
 		Url:     formGenericTestURL("hugepages-not-manually-manipulated"),
@@ -163,16 +173,6 @@ var (
 	// TestUnalteredStartupBootParamsIdentifier ensures startup boot params are not altered.
 	TestUnalteredStartupBootParamsIdentifier = claim.Identifier{
 		Url:     formGenericTestURL("unaltered-startup-boot-params"),
-		Version: versionOne,
-	}
-	// TestListCniPluginsIdentifier retrieves list of CNI plugins.
-	TestListCniPluginsIdentifier = claim.Identifier{
-		Url:     formGenericTestURL("list-cni-plugins"),
-		Version: versionOne,
-	}
-	// TestNodesHwInfoIdentifier retrieves nodes HW info.
-	TestNodesHwInfoIdentifier = claim.Identifier{
-		Url:     formGenericTestURL("nodes-hw-info"),
 		Version: versionOne,
 	}
 	// TestLoggingIdentifier ensures stderr/stdout are used
