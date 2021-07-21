@@ -6,7 +6,11 @@
       "gradeName": "better",
       "requiredPassingTests": [
         {
-          "url": "http://test-network-function.com/testcases/generic/icmpv4-connectivity",
+          "url": "http://test-network-function.com/testcases/container/container-is-certified",
+          "version": "v1.0.0"
+        },
+        {
+          "url": "http://test-network-function.com/testcases/operator/operator-is-certified",
           "version": "v1.0.0"
         }
       ],
