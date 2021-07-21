@@ -20,3 +20,5 @@ pkg/tnf/reel/mocks/mock_reel.go
 # NOTE: mock_expect.go is tracked, as it is generated from source externally.
 pkg/tnf/interactive/mocks/mock_spawner.go
 temp/
+go.mod
+go.mod
