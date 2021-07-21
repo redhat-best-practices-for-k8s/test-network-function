@@ -170,7 +170,7 @@ func getOcSession(pod, container, namespace string, timeout time.Duration, optio
 // pertinent information to perform a test against or using an Operating System container.  This includes facets such
 // as the reference to the interactive.Oc instance, the reference to the test configuration, and the default network
 // IP address.
-type container struct {
+type container1 struct {
 	containerConfiguration  configsections.Container
 	oc                      *interactive.Oc
 	defaultNetworkIPAddress string
@@ -179,15 +179,15 @@ type container struct {
 
 // createContainers contains the general steps involved in creating "oc" sessions and other configuration. A map of the
 // aggregate information is returned.
-func createContainers(containerDefinitions []configsections.Container) map[configsections.ContainerIdentifier]*container {
-	createdContainers := make(map[configsections.ContainerIdentifier]*container)
+func createContainers(containerDefinitions []configsections.Container) map[configsections.ContainerIdentifier]*container1 {
+	createdContainers := make(map[configsections.ContainerIdentifier]*container1)
 	for _, c := range containerDefinitions {
 		oc := getOcSession(c.PodName, c.ContainerName, c.Namespace, defaultTimeout, interactive.Verbose(true))
 		var defaultIPAddress = "UNKNOWN"
 		if _, ok := containersToExcludeFromConnectivityTests[c.ContainerIdentifier]; !ok {
 			defaultIPAddress = getContainerDefaultNetworkIPAddress(oc, c.DefaultNetworkDevice)
 		}
-		createdContainers[c.ContainerIdentifier] = &container{
+		createdContainers[c.ContainerIdentifier] = &container1{
 			containerConfiguration:  c,
 			oc:                      oc,
 			defaultNetworkIPAddress: defaultIPAddress,
@@ -198,12 +198,12 @@ func createContainers(containerDefinitions []configsections.Container) map[confi
 }
 
 // createContainersUnderTest sets up the test containers.
-func createContainersUnderTest(conf *configsections.TestConfiguration) map[configsections.ContainerIdentifier]*container {
+func createContainersUnderTest(conf *configsections.TestConfiguration) map[configsections.ContainerIdentifier]*container1 {
 	return createContainers(conf.ContainersUnderTest)
 }
 
 // createPartnerContainers sets up the partner containers.
-func createPartnerContainers(conf *configsections.TestConfiguration) map[configsections.ContainerIdentifier]*container {
+func createPartnerContainers(conf *configsections.TestConfiguration) map[configsections.ContainerIdentifier]*container1 {
 	return createContainers(conf.PartnerContainers)
 }
 
