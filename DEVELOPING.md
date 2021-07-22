@@ -606,8 +606,9 @@ oc get pod %s -n %s -o go-template='{{len .spec.containers}}{{"\n"}}'
 
 ## Adding new handler
 
-When we want to creat new handler, we need to write this command: "go run main.go generate handler <<"new handler">>", we need to running this command when we in folder "cmd/tnf/"
+When we want to creat new handler, we need to write this command: "tnf generate handler <<"new handler">>", we need to running this command when we in folder "cmd/tnf/"
 The result is folder "new handler" that include 3 files by handler template.
+For example: the new handler name is : "xyz" , so will create one folder- "xyz" and create 3 files: doc.go, xyz_test.go, xyz.go.
 
 ## Adding information to claim file
 

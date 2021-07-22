@@ -51,15 +51,15 @@ func generateHandlerFiles(cmd *cobra.Command, args []string) {
 	// pathfile this is the path of the file from template file that will creat
 
 	pathfile := path.Join(handlerDirectory, "handler_template", "doc.tmpl")
-	namefile := "" + "doc.tmpl"
+	namefile := "" + "doc.go"
 	createfile(pathfile, namefile, myhandler, newHandlerDirectory) // here creating file by doc.tmpl
 
-	pathfile = path.Join(handlerDirectory, "handler_template", "template_test.tmpl")
-	namefile = "" + handlername + "_test.tmpl"
+	pathfile = path.Join(handlerDirectory, "handler_template", "handler_test.tmpl")
+	namefile = "" + handlername + "_test.go"
 	createfile(pathfile, namefile, myhandler, newHandlerDirectory) // here creating file by template_test.tmpl
 
-	pathfile = path.Join(handlerDirectory, "handler_template", "template.tmpl")
-	namefile = "" + handlername
+	pathfile = path.Join(handlerDirectory, "handler_template", "handler.tmpl")
+	namefile = "" + handlername + ".go"
 	createfile(pathfile, namefile, myhandler, newHandlerDirectory) // here creating file by template.tmpl
 }
 
