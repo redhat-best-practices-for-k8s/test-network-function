@@ -42,7 +42,6 @@ import (
 	"github.com/test-network-function/test-network-function/pkg/tnf"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/base/redhat"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/bootconfigentries"
-	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/clusterrolebinding"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/cnffsdiff"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/containerid"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/currentkernelcmdlineargs"
@@ -63,8 +62,6 @@ import (
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/ping"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/podnodename"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/readbootconfig"
-	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/rolebinding"
-	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/serviceaccount"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/sysctlallconfigsargs"
 	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
@@ -77,8 +74,14 @@ const (
 	defaultTerminationGracePeriod = 30
 	multusTestsKey                = "multus"
 	testsKey                      = "generic"
-	drainTimeoutMinutes           = 5
-	partnerPod                    = "partner"
+	accessControlTestKey          = "access-control"
+	// lifecycleTestKey              = "lifecycle"
+	// affiliatedCertTestKey         = "affiliated-certification"
+	// networkingTestKey             = "networking"
+	// observabilityTestKey          = "observability"
+	// platformAlterationTestKey     = "platform-alteration"
+	drainTimeoutMinutes = 5
+	partnerPod          = "partner"
 )
 
 var (
@@ -257,14 +260,6 @@ var _ = ginkgo.Describe(testsKey, func() {
 		testIsRedHatRelease(testOrchestrator.oc)
 
 		for _, containerUnderTest := range containersUnderTest {
-			testNamespace(containerUnderTest.oc)
-		}
-
-		for _, containerUnderTest := range containersUnderTest {
-			testRoles(containerUnderTest.oc.GetPodName(), containerUnderTest.oc.GetPodNamespace())
-		}
-
-		for _, containerUnderTest := range containersUnderTest {
 			testNodePort(containerUnderTest.oc.GetPodNamespace())
 		}
 
@@ -409,27 +404,6 @@ func getContainerDefaultNetworkIPAddress(oc *interactive.Oc, dev string) string 
 func GetTestConfiguration() *configsections.TestConfiguration {
 	conf := config.GetConfigInstance()
 	return &conf.Generic
-}
-
-func testNamespace(oc *interactive.Oc) {
-	pod := oc.GetPodName()
-	container := oc.GetPodContainerName()
-	ginkgo.When(fmt.Sprintf("Reading namespace of %s/%s", pod, container), func() {
-		ginkgo.It("Should not be 'default' and should not begin with 'openshift-'", func() {
-			defer results.RecordResult(identifiers.TestNamespaceBestPracticesIdentifier)
-			gomega.Expect(oc.GetPodNamespace()).To(gomega.Not(gomega.Equal("default")))
-			gomega.Expect(oc.GetPodNamespace()).To(gomega.Not(gomega.HavePrefix("openshift-")))
-		})
-	})
-}
-
-func testRoles(podName, podNamespace string) {
-	var serviceAccountName string
-	ginkgo.When(fmt.Sprintf("Testing roles and privileges of %s/%s", podNamespace, podName), func() {
-		testServiceAccount(podName, podNamespace, &serviceAccountName)
-		testRoleBindings(podNamespace, &serviceAccountName)
-		testClusterRoleBindings(podNamespace, &serviceAccountName)
-	})
 }
 
 func testGracePeriod(context *interactive.Context, podName, podNamespace string) {
@@ -620,59 +594,6 @@ func testSysctlConfigs(context *interactive.Context, podName, podNamespace strin
 				gomega.Expect(mcVal).To(gomega.Equal(sysctlConfigVal))
 			}
 		}
-	})
-}
-
-func testServiceAccount(podName, podNamespace string, serviceAccountName *string) {
-	ginkgo.It("Should have a valid ServiceAccount name", func() {
-		defer results.RecordResult(identifiers.TestPodServiceAccountBestPracticesIdentifier)
-		context := getContext()
-		tester := serviceaccount.NewServiceAccount(defaultTimeout, podName, podNamespace)
-		test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
-		gomega.Expect(err).To(gomega.BeNil())
-		testResult, err := test.Run()
-		gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
-		gomega.Expect(err).To(gomega.BeNil())
-		*serviceAccountName = tester.GetServiceAccountName()
-		gomega.Expect(*serviceAccountName).ToNot(gomega.BeEmpty())
-	})
-}
-
-func testRoleBindings(podNamespace string, serviceAccountName *string) {
-	ginkgo.It("Should not have RoleBinding in other namespaces", func() {
-		defer results.RecordResult(identifiers.TestPodRoleBindingsBestPracticesIdentifier)
-		if *serviceAccountName == "" {
-			ginkgo.Skip("Can not test when serviceAccountName is empty. Please check previous tests for failures")
-		}
-		context := getContext()
-		rbTester := rolebinding.NewRoleBinding(defaultTimeout, *serviceAccountName, podNamespace)
-		test, err := tnf.NewTest(context.GetExpecter(), rbTester, []reel.Handler{rbTester}, context.GetErrorChannel())
-		gomega.Expect(err).To(gomega.BeNil())
-		testResult, err := test.Run()
-		if rbTester.Result() == tnf.FAILURE {
-			log.Info("RoleBindings: ", rbTester.GetRoleBindings())
-		}
-		gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
-		gomega.Expect(err).To(gomega.BeNil())
-	})
-}
-
-func testClusterRoleBindings(podNamespace string, serviceAccountName *string) {
-	ginkgo.It("Should not have ClusterRoleBindings", func() {
-		defer results.RecordResult(identifiers.TestPodClusterRoleBindingsBestPracticesIdentifier)
-		if *serviceAccountName == "" {
-			ginkgo.Skip("Can not test when serviceAccountName is empty. Please check previous tests for failures")
-		}
-		context := getContext()
-		crbTester := clusterrolebinding.NewClusterRoleBinding(defaultTimeout, *serviceAccountName, podNamespace)
-		test, err := tnf.NewTest(context.GetExpecter(), crbTester, []reel.Handler{crbTester}, context.GetErrorChannel())
-		gomega.Expect(err).To(gomega.BeNil())
-		testResult, err := test.Run()
-		if crbTester.Result() == tnf.FAILURE {
-			log.Info("ClusterRoleBindings: ", crbTester.GetClusterRoleBindings())
-		}
-		gomega.Expect(err).To(gomega.BeNil())
-		gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
 	})
 }
 

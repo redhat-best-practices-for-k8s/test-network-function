@@ -35,11 +35,8 @@ const (
 )
 
 const (
-	containerTestSpecName  = "container"
-	diagnosticTestSpecName = "diagnostic"
-	genericTestSpecName    = "generic"
-	operatorTestSpecName   = "operator"
-	multusTestSpecName     = "multus"
+	containerTestSpecName = "container"
+	operatorTestSpecName  = "operator"
 )
 
 // File is the top level of the config file. All new config sections must be added here
@@ -177,9 +174,8 @@ func BuildConfig() {
 }
 
 func genericTestConfigRequired() bool {
-	return testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusStrings, genericTestSpecName) ||
-		testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusStrings, diagnosticTestSpecName) ||
-		testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusStrings, multusTestSpecName)
+	// TODO clean up as part of config api refactoring task
+	return true
 }
 
 func podTestConfigRequired() bool {

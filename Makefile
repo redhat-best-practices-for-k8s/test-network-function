@@ -92,10 +92,11 @@ build-catalog-md:
 # build the CNF test binary
 build-cnf-tests:
 	PATH=${PATH}:${GOBIN} ginkgo build ./test-network-function
+	make build-catalog-md
 
 build-cnf-tests-debug:
 	PATH=${PATH}:${GOBIN} ginkgo build -gcflags "all=-N -l" -ldflags "-extldflags '-z relro -z now'" ./test-network-function
-
+	make build-catalog-md
 
 # run all CNF tests
 run-cnf-tests: build-cnf-tests
