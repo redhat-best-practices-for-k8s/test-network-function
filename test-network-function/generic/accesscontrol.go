@@ -30,7 +30,7 @@ import (
 	"github.com/test-network-function/test-network-function/pkg/config/configsections"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/clusterrolebinding"
-	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/container"
+	containerpkg "github.com/test-network-function/test-network-function/pkg/tnf/handlers/container"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/rolebinding"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/serviceaccount"
 	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
@@ -121,7 +121,7 @@ var _ = ginkgo.Describe(accessControlTestKey, func() {
 				// Collect container facts
 				for _, factsTest := range podFacts.TestCase {
 					args := strings.Split(fmt.Sprintf(factsTest.Command, cnf.Name, cnf.Namespace), " ")
-					cnfInTest := container.NewPod(args, cnf.Name, cnf.Namespace, factsTest.ExpectedStatus, factsTest.ResultType, factsTest.Action, defaultTimeout)
+					cnfInTest := containerpkg.NewPod(args, cnf.Name, cnf.Namespace, factsTest.ExpectedStatus, factsTest.ResultType, factsTest.Action, defaultTimeout)
 					test, err := tnf.NewTest(context.GetExpecter(), cnfInTest, []reel.Handler{cnfInTest}, context.GetErrorChannel())
 					gomega.Expect(err).To(gomega.BeNil())
 					gomega.Expect(test).ToNot(gomega.BeNil())
@@ -195,7 +195,7 @@ func runTestsOnCNF(containerCount int, testCmd testcases.BaseTestCase,
 			for count < containerCount {
 				argsCount := append(args, count)
 				cmdArgs := strings.Split(fmt.Sprintf(testCmd.Command, argsCount...), " ")
-				cnfInTest := container.NewPod(cmdArgs, facts.Name, facts.Namespace, testCmd.ExpectedStatus, testCmd.ResultType, testCmd.Action, defaultTimeout)
+				cnfInTest := containerpkg.NewPod(cmdArgs, facts.Name, facts.Namespace, testCmd.ExpectedStatus, testCmd.ResultType, testCmd.Action, defaultTimeout)
 				gomega.Expect(cnfInTest).ToNot(gomega.BeNil())
 				test, err := tnf.NewTest(context.GetExpecter(), cnfInTest, []reel.Handler{cnfInTest}, context.GetErrorChannel())
 				gomega.Expect(err).To(gomega.BeNil())
@@ -207,7 +207,7 @@ func runTestsOnCNF(containerCount int, testCmd testcases.BaseTestCase,
 			}
 		} else {
 			cmdArgs := strings.Split(fmt.Sprintf(testCmd.Command, args...), " ")
-			cnfInTest := container.NewPod(cmdArgs, facts.Name, facts.Namespace, testCmd.ExpectedStatus, testCmd.ResultType, testCmd.Action, defaultTimeout)
+			cnfInTest := containerpkg.NewPod(cmdArgs, facts.Name, facts.Namespace, testCmd.ExpectedStatus, testCmd.ResultType, testCmd.Action, defaultTimeout)
 			gomega.Expect(cnfInTest).ToNot(gomega.BeNil())
 			test, err := tnf.NewTest(context.GetExpecter(), cnfInTest, []reel.Handler{cnfInTest}, context.GetErrorChannel())
 			gomega.Expect(err).To(gomega.BeNil())
