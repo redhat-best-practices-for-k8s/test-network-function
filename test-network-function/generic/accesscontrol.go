@@ -46,7 +46,6 @@ const (
 	// interval of time
 	interval           = 1
 	configuredTestFile = "testconfigure.yml"
-	testSpecName       = "container"
 )
 
 var (
@@ -76,7 +75,7 @@ var _ = ginkgo.Describe(accessControlTestKey, func() {
 			testRoles(containerUnderTest.oc.GetPodName(), containerUnderTest.oc.GetPodNamespace())
 		}
 
-		//Former container tests
+		// Former "container" tests
 
 		defer ginkgo.GinkgoRecover()
 		ginkgo.When("a local shell is spawned", func() {
