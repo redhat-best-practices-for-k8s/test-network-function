@@ -26,7 +26,7 @@ import (
 	"github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
 	"github.com/test-network-function/test-network-function/internal/api"
-	"github.com/test-network-function/test-network-function/pkg/config"
+	configpkg "github.com/test-network-function/test-network-function/pkg/config"
 	"github.com/test-network-function/test-network-function/pkg/config/configsections"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/clusterrolebinding"
@@ -57,10 +57,10 @@ var (
 
 var _ = ginkgo.Describe(accessControlTestKey, func() {
 	if testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusStrings, accessControlTestKey) {
-		config1 := GetTestConfiguration()
-		log.Infof("Test Configuration: %s", config1)
+		config := GetTestConfiguration()
+		log.Infof("Test Configuration: %s", config)
 
-		containersUnderTest := createContainersUnderTest(config1)
+		containersUnderTest := createContainersUnderTest(config)
 		// partnerContainers := createPartnerContainers(config)
 		// testOrchestrator := partnerContainers[config.TestOrchestrator]
 
@@ -76,7 +76,6 @@ var _ = ginkgo.Describe(accessControlTestKey, func() {
 		}
 
 		// Former "container" tests
-
 		defer ginkgo.GinkgoRecover()
 		ginkgo.When("a local shell is spawned", func() {
 			goExpectSpawner := interactive.NewGoExpectSpawner()
@@ -88,7 +87,7 @@ var _ = ginkgo.Describe(accessControlTestKey, func() {
 		})
 		// Query API for certification status of listed containers
 		ginkgo.When("getting certification status", func() {
-			conf := config.GetConfigInstance()
+			conf := configpkg.GetConfigInstance()
 			cnfsToQuery := conf.CertifiedContainerInfo
 			if len(cnfsToQuery) > 0 {
 				certAPIClient = api.NewHTTPClient()
@@ -108,7 +107,7 @@ var _ = ginkgo.Describe(accessControlTestKey, func() {
 		})
 		// Run the tests that interact with the containers
 		ginkgo.When("under test", func() {
-			conf := config.GetConfigInstance()
+			conf := configpkg.GetConfigInstance()
 			cnfsInTest = conf.CNFs
 			gomega.Expect(cnfsInTest).ToNot(gomega.BeNil())
 			for _, cnf := range cnfsInTest {
