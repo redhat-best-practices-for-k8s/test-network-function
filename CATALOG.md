@@ -62,6 +62,22 @@ Version|v1.0.0
 Description|http://test-network-function.com/testcases/diagnostic/extract-node-information extracts informational information about the cluster.
 Result Type|informative
 Suggested Remediation|
+### http://test-network-function.com/testcases/diagnostic/list-cni-plugins
+
+Property|Description
+---|---
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/diagnostic/list-cni-plugins lists CNI plugins
+Result Type|normative
+Suggested Remediation|
+### http://test-network-function.com/testcases/diagnostic/nodes-hw-info
+
+Property|Description
+---|---
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/diagnostic/nodes-hw-info list nodes HW info
+Result Type|normative
+Suggested Remediation|
 ### http://test-network-function.com/testcases/generic/hugepages-not-manually-manipulated
 
 Property|Description
@@ -78,22 +94,14 @@ Version|v1.0.0
 Description|http://test-network-function.com/testcases/generic/icmpv4-connectivity checks that each CNF Container is able to communicate via ICMPv4 on the Default OpenShift network.  This test case requires the Deployment of the [CNF Certification Test Partner](https://github.com/test-network-function/cnf-certification-test-partner/blob/main/test-partner/partner.yaml). The test ensures that all CNF containers respond to ICMPv4 requests from the Partner Pod, and vice-versa. 
 Result Type|normative
 Suggested Remediation|Ensure that the CNF is able to communicate via the Default OpenShift network.  In some rare cases, CNFs may require routing table changes in order to communicate over the Default network.  In other cases, if the Container base image does not provide the "ip" or "ping" binaries, this test may not be applicable.  For instructions on how to exclude a particular container from ICMPv4 connectivity tests, consult: [README.md](https://github.com/test-network-function/test-network-function#issue-161-some-containers-under-test-do-nto-contain-ping-or-ip-binary-utilities).
-### http://test-network-function.com/testcases/generic/list-cni-plugins
+### http://test-network-function.com/testcases/generic/namespace-best-practices
 
 Property|Description
 ---|---
 Version|v1.0.0
-Description|http://test-network-function.com/testcases/generic/list-cni-plugins lists CNI plugins
+Description|http://test-network-function.com/testcases/generic/namespace-best-practices tests that CNFs utilize a CNF-specific namespace, and that the namespace does not start with "openshift-". OpenShift may host a variety of CNF and software applications, and multi-tenancy of such applications is supported through namespaces.  As such, each CNF should be a good neighbor, and utilize an appropriate, unique namespace.
 Result Type|normative
-Suggested Remediation|
-### http://test-network-function.com/testcases/generic/nodes-hw-info
-
-Property|Description
----|---
-Version|v1.0.0
-Description|http://test-network-function.com/testcases/generic/nodes-hw-info list nodes HW info
-Result Type|normative
-Suggested Remediation|
+Suggested Remediation|Ensure that your CNF utilizes a CNF-specific namespace.  Additionally, the CNF-specific namespace should not start with "openshift-", except in rare cases.
 ### http://test-network-function.com/testcases/generic/non-default-grace-period
 
 Property|Description
