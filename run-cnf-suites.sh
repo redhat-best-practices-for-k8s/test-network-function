@@ -38,16 +38,19 @@ FOCUS=""
 
 for var in "$@"
 do
-	case "$var" in
-		diagnostic) FOCUS="diagnostic|$FOCUS";;
-		access-control) FOCUS="access-control|$FOCUS";;
-		affiliated-certification) FOCUS="affiliated-certification|$FOCUS";;
-		generic) FOCUS="generic|$FOCUS";;
-		multus) FOCUS="multus|$FOCUS";;
-		operator) FOCUS="operator|$FOCUS";;
-		container) FOCUS="container|$FOCUS";;
-		*) usage_error;;
-	esac
+	FOCUS="$var|$FOCUS"
+	# case "$var" in
+	# 	diagnostic) FOCUS="diagnostic|$FOCUS";;
+	# 	access-control) FOCUS="ac|$FOCUS";;
+	# 	affiliated-certification) FOCUS="affiliated-certification|$FOCUS";;
+	# 	lifecycle) FOCUS="lifecycle|$FOCUS";;
+	# 	platform-alteration) FOCUS="platform-alteration|$FOCUS";;
+	# 	generic) FOCUS="generic|$FOCUS";;
+	# 	observability) FOCUS="observability|$FOCUS";;
+	# 	operator) FOCUS="operator|$FOCUS";;
+	# 	networking) FOCUS="networking|$FOCUS";;
+	# 	*) usage_error;;
+	# esac
 done
 
 # If no focus is set then display usage and quit with a non-zero exit code.

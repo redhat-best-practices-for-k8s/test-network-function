@@ -19,17 +19,12 @@ package generic
 import (
 	"encoding/json"
 	"fmt"
-	"os"
-	"path"
-	"regexp"
-	"sort"
 	"strconv"
 	"strings"
-	"time"
 
-	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/generic"
 	"github.com/test-network-function/test-network-function/pkg/tnf/testcases"
 
+	"github.com/test-network-function/test-network-function/test-network-function/common"
 	"github.com/test-network-function/test-network-function/test-network-function/identifiers"
 	"github.com/test-network-function/test-network-function/test-network-function/results"
 
@@ -37,175 +32,22 @@ import (
 	ginkgoconfig "github.com/onsi/ginkgo/config"
 	"github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
-	"github.com/test-network-function/test-network-function/pkg/config"
-	"github.com/test-network-function/test-network-function/pkg/config/configsections"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/base/redhat"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/bootconfigentries"
-	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/cnffsdiff"
-	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/containerid"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/currentkernelcmdlineargs"
-	dp "github.com/test-network-function/test-network-function/pkg/tnf/handlers/deployments"
-	dd "github.com/test-network-function/test-network-function/pkg/tnf/handlers/deploymentsdrain"
-	dn "github.com/test-network-function/test-network-function/pkg/tnf/handlers/deploymentsnodes"
-	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/graceperiod"
-	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/hugepages"
-	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/ipaddr"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/mckernelarguments"
-	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodehugepages"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodemcname"
-	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodenames"
-	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodeport"
-	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodeselector"
-	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodetainted"
-	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/owners"
-	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/ping"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/podnodename"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/readbootconfig"
-	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/sysctlallconfigsargs"
 	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
 	utils "github.com/test-network-function/test-network-function/pkg/utils"
 )
 
 const (
-	defaultNumPings               = 5
-	defaultTimeoutSeconds         = 10
-	defaultTerminationGracePeriod = 30
-	multusTestsKey                = "multus"
-	testsKey                      = "generic"
-	accessControlTestKey          = "access-control"
-	// lifecycleTestKey              = "lifecycle"
-	affiliatedCertTestKey = "affiliated-certification"
-	// networkingTestKey             = "networking"
-	// observabilityTestKey          = "observability"
-	// platformAlterationTestKey     = "platform-alteration"
-	drainTimeoutMinutes = 5
-	partnerPod          = "partner"
+	testsKey = "generic"
 )
-
-var (
-	// nodeUncordonTestPath is the file location of the uncordon.json test case relative to the project root.
-	nodeUncordonTestPath = path.Join("pkg", "tnf", "handlers", "nodeuncordon", "uncordon.json")
-
-	// loggingTestPath is the file location of the logging.json test case relative to the project root.
-	loggingTestPath = path.Join("pkg", "tnf", "handlers", "logging", "logging.json")
-
-	// shutdownTestPath is the file location of shutdown.json test case relative to the project root.
-	shutdownTestPath = path.Join("pkg", "tnf", "handlers", "shutdown", "shutdown.json")
-
-	// shutdownTestDirectoryPath is the directory of the shutdown test
-	shutdownTestDirectoryPath = path.Join("pkg", "tnf", "handlers", "shutdown")
-
-	// pathRelativeToRoot is used to calculate relative filepaths for the `test-network-function` executable entrypoint.
-	pathRelativeToRoot = path.Join("..")
-
-	// relativeNodesTestPath is the relative path to the nodes.json test case.
-	relativeNodesTestPath = path.Join(pathRelativeToRoot, nodeUncordonTestPath)
-
-	// relativeLoggingTestPath is the relative path to the logging.json test case.
-	relativeLoggingTestPath = path.Join(pathRelativeToRoot, loggingTestPath)
-
-	// relativeShutdownTestPath is the relative path to the shutdown.json test case.
-	relativeShutdownTestPath = path.Join(pathRelativeToRoot, shutdownTestPath)
-
-	// relativeShutdownTestDirectoryPath is the directory of the shutdown directory
-	relativeShutdownTestDirectoryPath = path.Join(pathRelativeToRoot, shutdownTestDirectoryPath)
-
-	// relativeSchemaPath is the relative path to the generic-test.schema.json JSON schema.
-	relativeSchemaPath = path.Join(pathRelativeToRoot, schemaPath)
-
-	// schemaPath is the path to the generic-test.schema.json JSON schema relative to the project root.
-	schemaPath = path.Join("schemas", "generic-test.schema.json")
-
-	// podAntiAffinityTestPath is the file location of the podantiaffinity.json test case relative to the project root.
-	podAntiAffinityTestPath = path.Join("pkg", "tnf", "handlers", "podantiaffinity", "podantiaffinity.json")
-
-	// relativePodTestPath is the relative path to the podantiaffinity.json test case.
-	relativePodTestPath = path.Join(pathRelativeToRoot, podAntiAffinityTestPath)
-)
-
-// The default test timeout.
-var defaultTimeout = time.Duration(defaultTimeoutSeconds) * time.Second
-
-var drainTimeout = time.Duration(drainTimeoutMinutes) * time.Minute
-
-// containersToExcludeFromConnectivityTests is a set used for storing the containers that should be excluded from
-// connectivity testing.
-var containersToExcludeFromConnectivityTests = make(map[configsections.ContainerIdentifier]interface{})
-
-// Helper used to instantiate an OpenShift Client Session.
-func getOcSession(pod, container, namespace string, timeout time.Duration, options ...interactive.Option) *interactive.Oc {
-	// Spawn an interactive OC shell using a goroutine (needed to avoid cross expect.Expecter interaction).  Extract the
-	// Oc reference from the goroutine through a channel.  Performs basic sanity checking that the Oc session is set up
-	// correctly.
-	var containerOc *interactive.Oc
-	ocChan := make(chan *interactive.Oc)
-	var chOut <-chan error
-
-	goExpectSpawner := interactive.NewGoExpectSpawner()
-	var spawner interactive.Spawner = goExpectSpawner
-
-	go func() {
-		oc, outCh, err := interactive.SpawnOc(&spawner, pod, container, namespace, timeout, options...)
-		gomega.Expect(outCh).ToNot(gomega.BeNil())
-		gomega.Expect(err).To(gomega.BeNil())
-		ocChan <- oc
-	}()
-
-	// Set up a go routine which reads from the error channel
-	go func() {
-		err := <-chOut
-		gomega.Expect(err).To(gomega.BeNil())
-	}()
-
-	containerOc = <-ocChan
-
-	gomega.Expect(containerOc).ToNot(gomega.BeNil())
-
-	return containerOc
-}
-
-// container is an internal construct which follows the Container design pattern.  Essentially, a container holds the
-// pertinent information to perform a test against or using an Operating System container.  This includes facets such
-// as the reference to the interactive.Oc instance, the reference to the test configuration, and the default network
-// IP address.
-type container struct {
-	containerConfiguration  configsections.Container
-	oc                      *interactive.Oc
-	defaultNetworkIPAddress string
-	containerIdentifier     configsections.ContainerIdentifier
-}
-
-// createContainers contains the general steps involved in creating "oc" sessions and other configuration. A map of the
-// aggregate information is returned.
-func createContainers(containerDefinitions []configsections.Container) map[configsections.ContainerIdentifier]*container {
-	createdContainers := make(map[configsections.ContainerIdentifier]*container)
-	for _, c := range containerDefinitions {
-		oc := getOcSession(c.PodName, c.ContainerName, c.Namespace, defaultTimeout, interactive.Verbose(true))
-		var defaultIPAddress = "UNKNOWN"
-		if _, ok := containersToExcludeFromConnectivityTests[c.ContainerIdentifier]; !ok {
-			defaultIPAddress = getContainerDefaultNetworkIPAddress(oc, c.DefaultNetworkDevice)
-		}
-		createdContainers[c.ContainerIdentifier] = &container{
-			containerConfiguration:  c,
-			oc:                      oc,
-			defaultNetworkIPAddress: defaultIPAddress,
-			containerIdentifier:     c.ContainerIdentifier,
-		}
-	}
-	return createdContainers
-}
-
-// createContainersUnderTest sets up the test containers.
-func createContainersUnderTest(conf *configsections.TestConfiguration) map[configsections.ContainerIdentifier]*container {
-	return createContainers(conf.ContainersUnderTest)
-}
-
-// createPartnerContainers sets up the partner containers.
-func createPartnerContainers(conf *configsections.TestConfiguration) map[configsections.ContainerIdentifier]*container {
-	return createContainers(conf.PartnerContainers)
-}
 
 //
 // All actual test code belongs below here.  Utilities belong above.
@@ -214,94 +56,30 @@ func createPartnerContainers(conf *configsections.TestConfiguration) map[configs
 // Runs the "generic" CNF test cases.
 var _ = ginkgo.Describe(testsKey, func() {
 	if testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusStrings, testsKey) {
-		config := GetTestConfiguration()
+		config := common.GetTestConfiguration()
 		log.Infof("Test Configuration: %s", config)
 
 		for _, cid := range config.ExcludeContainersFromConnectivityTests {
-			containersToExcludeFromConnectivityTests[cid] = ""
+			common.ContainersToExcludeFromConnectivityTests[cid] = ""
 		}
-		containersUnderTest := createContainersUnderTest(config)
-		partnerContainers := createPartnerContainers(config)
+		containersUnderTest := common.CreateContainersUnderTest(config)
+		partnerContainers := common.CreatePartnerContainers(config)
 		testOrchestrator := partnerContainers[config.TestOrchestrator]
-		fsDiffContainer := partnerContainers[config.FsDiffMasterContainer]
 		log.Info(testOrchestrator)
 		log.Info(containersUnderTest)
 
 		for _, containerUnderTest := range containersUnderTest {
-			testNodeSelector(getContext(), containerUnderTest.oc.GetPodName(), containerUnderTest.oc.GetPodNamespace())
+			testIsRedHatRelease(containerUnderTest.Oc)
 		}
+		testIsRedHatRelease(testOrchestrator.Oc)
 
-		ginkgo.Context("Container does not have additional packages installed", func() {
-			// use this boolean to turn off tests that require OS packages
-			if !isMinikube() {
-				if fsDiffContainer != nil {
-					for _, containerUnderTest := range containersUnderTest {
-						testFsDiff(fsDiffContainer.oc, containerUnderTest.oc)
-					}
-				} else {
-					log.Warn("no fs diff container is configured, cannot run fs diff test")
-				}
-			}
-		})
-
-		ginkgo.Context("Both Pods are on the Default network", func() {
-			// for each container under test, ensure bidirectional ICMP traffic between the container and the orchestrator.
-			for _, containerUnderTest := range containersUnderTest {
-				if _, ok := containersToExcludeFromConnectivityTests[containerUnderTest.containerIdentifier]; !ok {
-					testNetworkConnectivity(containerUnderTest.oc, testOrchestrator.oc, testOrchestrator.defaultNetworkIPAddress, defaultNumPings)
-					testNetworkConnectivity(testOrchestrator.oc, containerUnderTest.oc, containerUnderTest.defaultNetworkIPAddress, defaultNumPings)
-				}
-			}
-		})
-
-		for _, containerUnderTest := range containersUnderTest {
-			testIsRedHatRelease(containerUnderTest.oc)
-		}
-		testIsRedHatRelease(testOrchestrator.oc)
-
-		for _, containerUnderTest := range containersUnderTest {
-			testNodePort(containerUnderTest.oc.GetPodNamespace())
-		}
-
-		for _, containerUnderTest := range containersUnderTest {
-			testGracePeriod(getContext(), containerUnderTest.oc.GetPodName(), containerUnderTest.oc.GetPodNamespace())
-		}
-
-		for _, containerUnderTest := range containersUnderTest {
-			testLogging(containerUnderTest.oc.GetPodNamespace(), containerUnderTest.oc.GetPodName(), containerUnderTest.oc.GetPodContainerName())
-		}
-		for _, containerUnderTest := range containersUnderTest {
-			testShutdown(containerUnderTest.oc.GetPodNamespace(), containerUnderTest.oc.GetPodName())
-		}
-
-		testTainted()
-		testHugepages()
-
-		if !isMinikube() {
+		if !common.IsMinikube() {
 			for _, containersUnderTest := range containersUnderTest {
-				testDeployments(containersUnderTest.oc.GetPodNamespace())
+				// To be removed once Isaac's fix is merged
+				testBootParams(common.GetContext(), containersUnderTest.Oc.GetPodName(), containersUnderTest.Oc.GetPodNamespace(), containersUnderTest.Oc)
 			}
 		}
 
-		for _, containerUnderTest := range containersUnderTest {
-			testOwner(containerUnderTest.oc.GetPodNamespace(), containerUnderTest.oc.GetPodName())
-		}
-
-		if !isMinikube() {
-			for _, containersUnderTest := range containersUnderTest {
-				testBootParams(getContext(), containersUnderTest.oc.GetPodName(), containersUnderTest.oc.GetPodNamespace(), containersUnderTest.oc)
-			}
-		}
-
-		if !isMinikube() {
-			for _, containersUnderTest := range containersUnderTest {
-				testSysctlConfigs(getContext(), containersUnderTest.oc.GetPodName(), containersUnderTest.oc.GetPodNamespace())
-			}
-		}
-		for _, containerUnderTest := range containersUnderTest {
-			testPodAntiAffinity(containerUnderTest.oc.GetPodNamespace())
-
-		}
 	}
 })
 
@@ -311,7 +89,7 @@ func testIsRedHatRelease(oc *interactive.Oc) {
 	container := oc.GetPodContainerName()
 	ginkgo.When(fmt.Sprintf("%s(%s) is checked for Red Hat version", pod, container), func() {
 		ginkgo.It("Should report a proper Red Hat version", func() {
-			versionTester := redhat.NewRelease(defaultTimeout)
+			versionTester := redhat.NewRelease(common.DefaultTimeout)
 			test, err := tnf.NewTest(oc.GetExpecter(), versionTester, []reel.Handler{versionTester}, oc.GetErrorChannel())
 			gomega.Expect(err).To(gomega.BeNil())
 			testResult, err := test.Run()
@@ -321,133 +99,11 @@ func testIsRedHatRelease(oc *interactive.Oc) {
 	})
 }
 
-// TODO: Multus is not applicable to every CNF, so in some regards it is CNF-specific.  On the other hand, it is likely
-// a useful test across most CNFs.  Should "multus" be considered generic, cnf_specific, or somewhere in between.
-var _ = ginkgo.Describe(multusTestsKey, func() {
-	if testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusStrings, multusTestsKey) {
-		config := GetTestConfiguration()
-		log.Infof("Test Configuration: %s", config)
-
-		containersUnderTest := createContainersUnderTest(config)
-		partnerContainers := createPartnerContainers(config)
-		testOrchestrator := partnerContainers[config.TestOrchestrator]
-
-		ginkgo.Context("Both Pods are connected via a Multus Overlay Network", func() {
-			// Unidirectional test;  for each container under test, attempt to ping the target Multus IP addresses.
-			for _, containerUnderTest := range containersUnderTest {
-				for _, multusIPAddress := range containerUnderTest.containerConfiguration.MultusIPAddresses {
-					testNetworkConnectivity(testOrchestrator.oc, containerUnderTest.oc, multusIPAddress, defaultNumPings)
-				}
-			}
-		})
-	}
-})
-
-// Helper to test that the PUT didn't install new packages after starting, and report through Ginkgo.
-func testFsDiff(masterPodOc, targetPodOc *interactive.Oc) {
-	ginkgo.It(fmt.Sprintf("%s(%s) should not install new packages after starting", targetPodOc.GetPodName(), targetPodOc.GetPodContainerName()), func() {
-		defer results.RecordResult(identifiers.TestUnalteredBaseImageIdentifier)
-		targetPodOc.GetExpecter()
-		containerIDTester := containerid.NewContainerID(defaultTimeout)
-		test, err := tnf.NewTest(targetPodOc.GetExpecter(), containerIDTester, []reel.Handler{containerIDTester}, targetPodOc.GetErrorChannel())
-		gomega.Expect(err).To(gomega.BeNil())
-		testResult, err := test.Run()
-		gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
-		gomega.Expect(err).To(gomega.BeNil())
-		containerID := containerIDTester.GetID()
-
-		fsDiffTester := cnffsdiff.NewFsDiff(defaultTimeout, containerID)
-		test, err = tnf.NewTest(masterPodOc.GetExpecter(), fsDiffTester, []reel.Handler{fsDiffTester}, masterPodOc.GetErrorChannel())
-		gomega.Expect(err).To(gomega.BeNil())
-		testResult, err = test.Run()
-		gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
-		gomega.Expect(err).To(gomega.BeNil())
-	})
-}
-
-// Helper to test that a container can ping a target IP address, and report through Ginkgo.
-func testNetworkConnectivity(initiatingPodOc, targetPodOc *interactive.Oc, targetPodIPAddress string, count int) {
-	ginkgo.When(fmt.Sprintf("a Ping is issued from %s(%s) to %s(%s) %s", initiatingPodOc.GetPodName(),
-		initiatingPodOc.GetPodContainerName(), targetPodOc.GetPodName(), targetPodOc.GetPodContainerName(),
-		targetPodIPAddress), func() {
-		ginkgo.It(fmt.Sprintf("%s(%s) should reply", targetPodOc.GetPodName(), targetPodOc.GetPodContainerName()), func() {
-			defer results.RecordResult(identifiers.TestICMPv4ConnectivityIdentifier)
-			testPing(initiatingPodOc, targetPodIPAddress, count)
-		})
-	})
-}
-
-// Test that a container can ping a target IP address.
-func testPing(initiatingPodOc *interactive.Oc, targetPodIPAddress string, count int) {
-	log.Infof("Sending ICMP traffic(%s to %s)", initiatingPodOc.GetPodName(), targetPodIPAddress)
-	pingTester := ping.NewPing(defaultTimeout, targetPodIPAddress, count)
-	test, err := tnf.NewTest(initiatingPodOc.GetExpecter(), pingTester, []reel.Handler{pingTester}, initiatingPodOc.GetErrorChannel())
-	gomega.Expect(err).To(gomega.BeNil())
-	runAndValidateTest(test)
-	transmitted, received, errors := pingTester.GetStats()
-	gomega.Expect(received).To(gomega.Equal(transmitted))
-	gomega.Expect(errors).To(gomega.BeZero())
-}
-
-// Extract a container IP address for a particular device.  This is needed since container default network IP address
-// is served by dhcp, and thus is ephemeral.
-func getContainerDefaultNetworkIPAddress(oc *interactive.Oc, dev string) string {
-	log.Infof("Getting IP Information for: %s(%s) in ns=%s", oc.GetPodName(), oc.GetPodContainerName(), oc.GetPodNamespace())
-	ipTester := ipaddr.NewIPAddr(defaultTimeout, dev)
-	test, err := tnf.NewTest(oc.GetExpecter(), ipTester, []reel.Handler{ipTester}, oc.GetErrorChannel())
-	gomega.Expect(err).To(gomega.BeNil())
-	runAndValidateTest(test)
-	return ipTester.GetIPv4Address()
-}
-
-// GetTestConfiguration returns the cnf-certification-generic-tests test configuration.
-func GetTestConfiguration() *configsections.TestConfiguration {
-	conf := config.GetConfigInstance()
-	return &conf.Generic
-}
-
-func testGracePeriod(context *interactive.Context, podName, podNamespace string) {
-	ginkgo.It(fmt.Sprintf("Testing pod terminationGracePeriod %s/%s", podNamespace, podName), func() {
-		defer results.RecordResult(identifiers.TestNonDefaultGracePeriodIdentifier)
-		infoWriter := tnf.CreateTestExtraInfoWriter()
-		tester := graceperiod.NewGracePeriod(defaultTimeout, podName, podNamespace)
-		test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
-		gomega.Expect(err).To(gomega.BeNil())
-		testResult, err := test.Run()
-		gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
-		gomega.Expect(err).To(gomega.BeNil())
-		gracePeriod := tester.GetGracePeriod()
-		if gracePeriod == defaultTerminationGracePeriod {
-			msg := fmt.Sprintf("%s %s has terminationGracePeriod set to 30, you might want to change it", podName, podNamespace)
-			log.Warn(msg)
-			infoWriter(msg)
-		}
-	})
-}
-
-func testNodeSelector(context *interactive.Context, podName, podNamespace string) {
-	ginkgo.It(fmt.Sprintf("Testing pod nodeSelector %s/%s", podNamespace, podName), func() {
-		defer results.RecordResult(identifiers.TestPodNodeSelectorAndAffinityBestPractices)
-		infoWriter := tnf.CreateTestExtraInfoWriter()
-		tester := nodeselector.NewNodeSelector(defaultTimeout, podName, podNamespace)
-		test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
-		gomega.Expect(err).To(gomega.BeNil())
-		testResult, err := test.Run()
-
-		gomega.Expect(err).To(gomega.BeNil())
-		if testResult != tnf.SUCCESS {
-			msg := fmt.Sprintf("The pod specifies nodeSelector/nodeAffinity field, you might want to change it, %s %s", podName, podNamespace)
-			log.Warn(msg)
-			infoWriter(msg)
-		}
-	})
-}
-
 func getMcKernelArguments(context *interactive.Context, mcName string) map[string]string {
-	mcKernelArgumentsTester := mckernelarguments.NewMcKernelArguments(defaultTimeout, mcName)
+	mcKernelArgumentsTester := mckernelarguments.NewMcKernelArguments(common.DefaultTimeout, mcName)
 	test, err := tnf.NewTest(context.GetExpecter(), mcKernelArgumentsTester, []reel.Handler{mcKernelArgumentsTester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
-	runAndValidateTest(test)
+	common.RunAndValidateTest(test)
 	mcKernelArguments := mcKernelArgumentsTester.GetKernelArguments()
 	var mcKernelArgumentsJSON []string
 	err = json.Unmarshal([]byte(mcKernelArguments), &mcKernelArgumentsJSON)
@@ -457,26 +113,26 @@ func getMcKernelArguments(context *interactive.Context, mcName string) map[strin
 }
 
 func getMcName(context *interactive.Context, nodeName string) string {
-	mcNameTester := nodemcname.NewNodeMcName(defaultTimeout, nodeName)
+	mcNameTester := nodemcname.NewNodeMcName(common.DefaultTimeout, nodeName)
 	test, err := tnf.NewTest(context.GetExpecter(), mcNameTester, []reel.Handler{mcNameTester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
-	runAndValidateTest(test)
+	common.RunAndValidateTest(test)
 	return mcNameTester.GetMcName()
 }
 
 func getPodNodeName(context *interactive.Context, podName, podNamespace string) string {
-	podNameTester := podnodename.NewPodNodeName(defaultTimeout, podName, podNamespace)
+	podNameTester := podnodename.NewPodNodeName(common.DefaultTimeout, podName, podNamespace)
 	test, err := tnf.NewTest(context.GetExpecter(), podNameTester, []reel.Handler{podNameTester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
-	runAndValidateTest(test)
+	common.RunAndValidateTest(test)
 	return podNameTester.GetNodeName()
 }
 
 func getCurrentKernelCmdlineArgs(targetPodOc *interactive.Oc) map[string]string {
-	currentKernelCmdlineArgsTester := currentkernelcmdlineargs.NewCurrentKernelCmdlineArgs(defaultTimeout)
+	currentKernelCmdlineArgsTester := currentkernelcmdlineargs.NewCurrentKernelCmdlineArgs(common.DefaultTimeout)
 	test, err := tnf.NewTest(targetPodOc.GetExpecter(), currentKernelCmdlineArgsTester, []reel.Handler{currentKernelCmdlineArgsTester}, targetPodOc.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
-	runAndValidateTest(test)
+	common.RunAndValidateTest(test)
 	currnetKernelCmdlineArgs := currentKernelCmdlineArgsTester.GetKernelArguments()
 	currentSplitKernelCmdlineArgs := strings.Split(currnetKernelCmdlineArgs, " ")
 	return utils.ArgListToMap(currentSplitKernelCmdlineArgs)
@@ -502,18 +158,18 @@ func getMaxIndexEntry(bootConfigEntries []string) string {
 }
 
 func getGrubKernelArgs(context *interactive.Context, nodeName string) map[string]string {
-	bootConfigEntriesTester := bootconfigentries.NewBootConfigEntries(defaultTimeout, nodeName)
+	bootConfigEntriesTester := bootconfigentries.NewBootConfigEntries(common.DefaultTimeout, nodeName)
 	test, err := tnf.NewTest(context.GetExpecter(), bootConfigEntriesTester, []reel.Handler{bootConfigEntriesTester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
-	runAndValidateTest(test)
+	common.RunAndValidateTest(test)
 	bootConfigEntries := bootConfigEntriesTester.GetBootConfigEntries()
 
 	maxIndexEntryName := getMaxIndexEntry(bootConfigEntries)
 
-	readBootConfigTester := readbootconfig.NewReadBootConfig(defaultTimeout, nodeName, maxIndexEntryName)
+	readBootConfigTester := readbootconfig.NewReadBootConfig(common.DefaultTimeout, nodeName, maxIndexEntryName)
 	test, err = tnf.NewTest(context.GetExpecter(), readBootConfigTester, []reel.Handler{readBootConfigTester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
-	runAndValidateTest(test)
+	common.RunAndValidateTest(test)
 	bootConfig := readBootConfigTester.GetBootConfig()
 
 	splitBootConfig := strings.Split(bootConfig, "\n")
@@ -525,41 +181,6 @@ func getGrubKernelArgs(context *interactive.Context, nodeName string) map[string
 	grubSplitKernelConfig := strings.Split(grubKernelConfig, " ")
 	grubSplitKernelConfig = grubSplitKernelConfig[1:]
 	return utils.ArgListToMap(grubSplitKernelConfig)
-}
-
-// Creates a map describing the final sysctl key-value pair out of the results of "sysctl --system"
-func parseSysctlSystemOutput(sysctlSystemOutput string) map[string]string {
-	retval := make(map[string]string)
-	splitConfig := strings.Split(sysctlSystemOutput, "\n")
-	for _, line := range splitConfig {
-		if line == "" {
-			continue
-		}
-
-		if strings.HasPrefix(line, "*") {
-			continue
-		}
-
-		keyValRegexp := regexp.MustCompile(`( \S+)(\s*)=(\s*)(\S+)`) // A line is of the form "kernel.yama.ptrace_scope = 0"
-		if !keyValRegexp.MatchString(line) {
-			continue
-		}
-		regexResults := keyValRegexp.FindStringSubmatch(line)
-		key := regexResults[1]
-		val := regexResults[4]
-		retval[key] = val
-	}
-	return retval
-}
-
-func getSysctlConfigArgs(context *interactive.Context, nodeName string) map[string]string {
-	sysctlAllConfigsArgsTester := sysctlallconfigsargs.NewSysctlAllConfigsArgs(defaultTimeout, nodeName)
-	test, err := tnf.NewTest(context.GetExpecter(), sysctlAllConfigsArgsTester, []reel.Handler{sysctlAllConfigsArgsTester}, context.GetErrorChannel())
-	gomega.Expect(err).To(gomega.BeNil())
-	runAndValidateTest(test)
-	sysctlAllConfigsArgs := sysctlAllConfigsArgsTester.GetSysctlAllConfigsArgs()
-
-	return parseSysctlSystemOutput(sysctlAllConfigsArgs)
 }
 
 func testBootParams(context *interactive.Context, podName, podNamespace string, targetPodOc *interactive.Oc) {
@@ -580,369 +201,4 @@ func testBootParams(context *interactive.Context, podName, podNamespace string, 
 			}
 		}
 	})
-}
-
-func testSysctlConfigs(context *interactive.Context, podName, podNamespace string) {
-	ginkgo.It(fmt.Sprintf("Testing sysctl config files for the pod's node %s/%s", podNamespace, podName), func() {
-		nodeName := getPodNodeName(context, podName, podNamespace)
-		combinedSysctlSettings := getSysctlConfigArgs(context, nodeName)
-		mcName := getMcName(context, nodeName)
-		mcKernelArgumentsMap := getMcKernelArguments(context, mcName)
-
-		for key, sysctlConfigVal := range combinedSysctlSettings {
-			if mcVal, ok := mcKernelArgumentsMap[key]; ok {
-				gomega.Expect(mcVal).To(gomega.Equal(sysctlConfigVal))
-			}
-		}
-	})
-}
-
-func testNodePort(podNamespace string) {
-	ginkgo.When(fmt.Sprintf("Testing services in namespace %s", podNamespace), func() {
-		ginkgo.It("Should not have services of type NodePort", func() {
-			defer results.RecordResult(identifiers.TestServicesDoNotUseNodeportsIdentifier)
-			context := getContext()
-			tester := nodeport.NewNodePort(defaultTimeout, podNamespace)
-			test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
-			gomega.Expect(err).To(gomega.BeNil())
-			testResult, err := test.Run()
-			gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
-			gomega.Expect(err).To(gomega.BeNil())
-		})
-	})
-}
-
-func testTainted() {
-	if isMinikube() {
-		return
-	}
-	var nodeNames []string
-	ginkgo.When("Testing tainted nodes in cluster", func() {
-		ginkgo.It("Should return list of node names", func() {
-			context := getContext()
-			tester := nodenames.NewNodeNames(defaultTimeout, nil)
-			test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
-			gomega.Expect(err).To(gomega.BeNil())
-			testResult, err := test.Run()
-			gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
-			gomega.Expect(err).To(gomega.BeNil())
-			nodeNames = tester.GetNodeNames()
-			gomega.Expect(nodeNames).NotTo(gomega.BeNil())
-		})
-
-		ginkgo.It("Should not have tainted nodes", func() {
-			defer results.RecordResult(identifiers.TestNonTaintedNodeKernelsIdentifier)
-			if len(nodeNames) == 0 {
-				ginkgo.Skip("Can't test tainted nodes when list of nodes is empty. Please check previous tests.")
-			}
-			var taintedNodes []string
-			for _, node := range nodeNames {
-				context := getContext()
-				tester := nodetainted.NewNodeTainted(defaultTimeout, node)
-				test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
-				gomega.Expect(err).To(gomega.BeNil())
-				testResult, err := test.Run()
-				gomega.Expect(testResult).NotTo(gomega.Equal(tnf.ERROR))
-				gomega.Expect(err).To(gomega.BeNil())
-				if testResult == tnf.FAILURE {
-					taintedNodes = append(taintedNodes, node)
-				}
-			}
-			gomega.Expect(taintedNodes).To(gomega.BeNil())
-		})
-	})
-}
-
-func testHugepages() {
-	if isMinikube() {
-		return
-	}
-	var nodeNames []string
-	var clusterHugepages, clusterHugepagesz int
-	ginkgo.When("Testing worker nodes' hugepages configuration", func() {
-		ginkgo.It("Should return list of worker node names", func() {
-			context := getContext()
-			tester := nodenames.NewNodeNames(defaultTimeout, map[string]*string{"node-role.kubernetes.io/worker": nil})
-			test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
-			gomega.Expect(err).To(gomega.BeNil())
-			testResult, err := test.Run()
-			gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
-			gomega.Expect(err).To(gomega.BeNil())
-			nodeNames = tester.GetNodeNames()
-			gomega.Expect(nodeNames).NotTo(gomega.BeNil())
-		})
-		ginkgo.It("Should return cluster's hugepages configuration", func() {
-			context := getContext()
-			tester := hugepages.NewHugepages(defaultTimeout)
-			test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
-			gomega.Expect(err).To(gomega.BeNil())
-			testResult, err := test.Run()
-			gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
-			gomega.Expect(err).To(gomega.BeNil())
-			clusterHugepages = tester.GetHugepages()
-			clusterHugepagesz = tester.GetHugepagesz()
-		})
-		ginkgo.It("Should have same configuration as cluster", func() {
-			defer results.RecordResult(identifiers.TestHugepagesNotManuallyManipulated)
-			var badNodes []string
-			for _, node := range nodeNames {
-				context := getContext()
-				tester := nodehugepages.NewNodeHugepages(defaultTimeout, node, clusterHugepagesz, clusterHugepages)
-				test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
-				gomega.Expect(err).To(gomega.BeNil())
-				testResult, err := test.Run()
-				gomega.Expect(err).To(gomega.BeNil())
-				if testResult != tnf.SUCCESS {
-					badNodes = append(badNodes, node)
-				}
-			}
-			gomega.Expect(badNodes).To(gomega.BeNil())
-		})
-	})
-}
-
-// testDeployments ensures that each Deployment has the correct number of "Ready" replicas.
-func testDeployments(namespace string) {
-	var deployments dp.DeploymentMap
-	var notReadyDeployments []string
-	ginkgo.When("Testing deployments in namespace", func() {
-		ginkgo.It("Should return list of deployments", func() {
-			deployments, notReadyDeployments = getDeployments(namespace)
-			if len(deployments) == 0 {
-				return
-			}
-			gomega.Expect(notReadyDeployments).To(gomega.BeEmpty())
-		})
-	})
-}
-
-func isMinikube() bool {
-	b, _ := strconv.ParseBool(os.Getenv("TNF_MINIKUBE_ONLY"))
-	return b
-}
-
-//nolint:deadcode // Taken out of v2.0.0 for CTONET-1022.
-func nonIntrusive() bool {
-	b, _ := strconv.ParseBool(os.Getenv("TNF_NON_INTRUSIVE_ONLY"))
-	return b
-}
-
-type node struct {
-	name        string
-	deployments map[string]bool
-}
-
-func sortNodesMap(nodesMap dn.NodesMap) []node {
-	nodes := make([]node, 0, len(nodesMap))
-	for n, d := range nodesMap {
-		nodes = append(nodes, node{n, d})
-	}
-	sort.Slice(nodes, func(i, j int) bool { return len(nodes[i].deployments) > len(nodes[j].deployments) })
-	return nodes
-}
-
-//nolint:deadcode // Taken out of v2.0.0 for CTONET-1022.
-func getDeploymentsNodes(namespace string) []node {
-	context := getContext()
-	tester := dn.NewDeploymentsNodes(defaultTimeout, namespace)
-	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
-	gomega.Expect(err).To(gomega.BeNil())
-	runAndValidateTest(test)
-	nodes := tester.GetNodes()
-	gomega.Expect(nodes).NotTo(gomega.BeEmpty())
-	return sortNodesMap(nodes)
-}
-
-// getDeployments returns map of deployments and names of not-ready deployments
-func getDeployments(namespace string) (deployments dp.DeploymentMap, notReadyDeployments []string) {
-	context := getContext()
-	tester := dp.NewDeployments(defaultTimeout, namespace)
-	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
-	gomega.Expect(err).To(gomega.BeNil())
-	runAndValidateTest(test)
-
-	deployments = tester.GetDeployments()
-
-	for name, d := range deployments {
-		if d.Unavailable != 0 || d.Ready != d.Replicas || d.Available != d.Replicas || d.UpToDate != d.Replicas {
-			notReadyDeployments = append(notReadyDeployments, name)
-		}
-	}
-
-	return deployments, notReadyDeployments
-}
-
-//nolint:deadcode // Taken out of v2.0.0 for CTONET-1022.
-func drainNode(node string) {
-	context := getContext()
-	tester := dd.NewDeploymentsDrain(drainTimeout, node)
-	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
-	gomega.Expect(err).To(gomega.BeNil())
-	runAndValidateTest(test)
-}
-func testLogging(podNameSpace, podName, containerName string) {
-	ginkgo.When("Testing PUT is emitting logs to stdout/stderr", func() {
-		ginkgo.It("should return at least one line of log", func() {
-			defer results.RecordResult(identifiers.TestLoggingIdentifier)
-			loggingTest(podNameSpace, podName, containerName)
-		})
-	})
-}
-func loggingTest(podNamespace, podName, containerName string) {
-	context := getContext()
-	values := make(map[string]interface{})
-	values["POD_NAMESPACE"] = podNamespace
-	values["POD_NAME"] = podName
-	values["CONTAINER_NAME"] = containerName
-	test, handlers, result, err := generic.NewGenericFromMap(relativeLoggingTestPath, relativeSchemaPath, values)
-	gomega.Expect(err).To(gomega.BeNil())
-	gomega.Expect(result).ToNot(gomega.BeNil())
-	gomega.Expect(result.Valid()).To(gomega.BeTrue())
-	gomega.Expect(handlers).ToNot(gomega.BeNil())
-	gomega.Expect(handlers).ToNot(gomega.BeNil())
-	gomega.Expect(test).ToNot(gomega.BeNil())
-	tester, err := tnf.NewTest(context.GetExpecter(), *test, handlers, context.GetErrorChannel())
-	gomega.Expect(err).To(gomega.BeNil())
-	gomega.Expect(tester).ToNot(gomega.BeNil())
-
-	testResult, err := tester.Run()
-	gomega.Expect(err).To(gomega.BeNil())
-	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
-}
-
-func testShutdown(podNamespace, podName string) {
-	ginkgo.When("Testing PUT is configured with pre-stop lifecycle", func() {
-		ginkgo.It("should have pre-stop configured", func() {
-			defer results.RecordResult(identifiers.TestShudtownIdentifier)
-			shutdownTest(podNamespace, podName)
-		})
-	})
-}
-func shutdownTest(podNamespace, podName string) {
-	context := getContext()
-	values := make(map[string]interface{})
-	values["POD_NAMESPACE"] = podNamespace
-	values["POD_NAME"] = podName
-	values["GO_TEMPLATE_PATH"] = relativeShutdownTestDirectoryPath
-	test, handlers, result, err := generic.NewGenericFromMap(relativeShutdownTestPath, relativeSchemaPath, values)
-	gomega.Expect(err).To(gomega.BeNil())
-	gomega.Expect(result).ToNot(gomega.BeNil())
-	gomega.Expect(result.Valid()).To(gomega.BeTrue())
-	gomega.Expect(handlers).ToNot(gomega.BeNil())
-	gomega.Expect(handlers).ToNot(gomega.BeNil())
-	gomega.Expect(test).ToNot(gomega.BeNil())
-	tester, err := tnf.NewTest(context.GetExpecter(), *test, handlers, context.GetErrorChannel())
-	gomega.Expect(err).To(gomega.BeNil())
-	gomega.Expect(tester).ToNot(gomega.BeNil())
-
-	testResult, err := tester.Run()
-	gomega.Expect(err).To(gomega.BeNil())
-	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
-	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
-}
-
-// uncordonNode uncordons a Node.
-//nolint:deadcode // Taken out of v2.0.0 for CTONET-1022.
-func uncordonNode(node string) {
-	context := getContext()
-	values := make(map[string]interface{})
-	values["NODE"] = node
-	test, handlers, result, err := generic.NewGenericFromMap(relativeNodesTestPath, relativeSchemaPath, values)
-	gomega.Expect(err).To(gomega.BeNil())
-	gomega.Expect(result).ToNot(gomega.BeNil())
-	gomega.Expect(result.Valid()).To(gomega.BeTrue())
-	gomega.Expect(handlers).ToNot(gomega.BeNil())
-	gomega.Expect(len(handlers)).To(gomega.Equal(1))
-	gomega.Expect(test).ToNot(gomega.BeNil())
-
-	tester, err := tnf.NewTest(context.GetExpecter(), *test, handlers, context.GetErrorChannel())
-	gomega.Expect(err).To(gomega.BeNil())
-	gomega.Expect(tester).ToNot(gomega.BeNil())
-
-	testResult, err := tester.Run()
-	gomega.Expect(err).To(gomega.BeNil())
-	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
-}
-
-// Pod antiaffinity test for all deployments
-func testPodAntiAffinity(podNamespace string) {
-	var deployments dp.DeploymentMap
-	ginkgo.When("CNF is designed in high availability mode ", func() {
-		ginkgo.It("Should set pod replica number greater than 1 and corresponding pod anti-affinity rules in deployment", func() {
-			defer results.RecordResult(identifiers.TestPodHighAvailabilityBestPractices)
-			deployments, _ = getDeployments(podNamespace)
-			if len(deployments) == 0 {
-				return
-			}
-			for name, d := range deployments {
-				if name != partnerPod {
-					podAntiAffinity(name, podNamespace, d.Replicas)
-				}
-			}
-		})
-	})
-}
-
-// check pod antiaffinity definition for a deployment
-func podAntiAffinity(deployment, podNamespace string, replica int) {
-	context := getContext()
-	values := make(map[string]interface{})
-	values["DEPLOYMENT_NAME"] = deployment
-	values["DEPLOYMENT_NAMESPACE"] = podNamespace
-	infoWriter := tnf.CreateTestExtraInfoWriter()
-	test, handlers, result, err := generic.NewGenericFromMap(relativePodTestPath, relativeSchemaPath, values)
-	gomega.Expect(err).To(gomega.BeNil())
-	gomega.Expect(result).ToNot(gomega.BeNil())
-	gomega.Expect(result.Valid()).To(gomega.BeTrue())
-	gomega.Expect(handlers).ToNot(gomega.BeNil())
-	gomega.Expect(len(handlers)).To(gomega.Equal(1))
-	gomega.Expect(test).ToNot(gomega.BeNil())
-	tester, err := tnf.NewTest(context.GetExpecter(), *test, handlers, context.GetErrorChannel())
-	gomega.Expect(err).To(gomega.BeNil())
-	gomega.Expect(tester).ToNot(gomega.BeNil())
-
-	testResult, err := tester.Run()
-	if testResult != tnf.SUCCESS {
-		if replica > 1 {
-			msg := fmt.Sprintf("The deployment replica count is %d, but a podAntiAffinity rule is not defined, "+
-				"you might want to change it in deployment %s in namespace %s", replica, deployment, podNamespace)
-			log.Warn(msg)
-			infoWriter(msg)
-		} else {
-			msg := fmt.Sprintf("The deployment replica count is %d. Pod replica should be > 1 with an "+
-				"podAntiAffinity rule defined . You might want to change it in deployment %s in namespace %s",
-				replica, deployment, podNamespace)
-			log.Warn(msg)
-			infoWriter(msg)
-		}
-	}
-	gomega.Expect(err).To(gomega.BeNil())
-	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
-}
-func getContext() *interactive.Context {
-	context, err := interactive.SpawnShell(interactive.CreateGoExpectSpawner(), defaultTimeout, interactive.Verbose(true))
-	gomega.Expect(err).To(gomega.BeNil())
-	gomega.Expect(context).ToNot(gomega.BeNil())
-	return context
-}
-
-func testOwner(podNamespace, podName string) {
-	ginkgo.When("Testing owners of CNF pod", func() {
-		ginkgo.It("Should be only ReplicaSet", func() {
-			defer results.RecordResult(identifiers.TestPodDeploymentBestPracticesIdentifier)
-			context := getContext()
-			tester := owners.NewOwners(defaultTimeout, podNamespace, podName)
-			test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
-			gomega.Expect(err).To(gomega.BeNil())
-			testResult, err := test.Run()
-			gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
-			gomega.Expect(err).To(gomega.BeNil())
-		})
-	})
-}
-
-func runAndValidateTest(test *tnf.Test) {
-	testResult, err := test.Run()
-	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
-	gomega.Expect(err).To(gomega.BeNil())
 }

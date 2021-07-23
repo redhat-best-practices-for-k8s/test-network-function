@@ -54,6 +54,14 @@ Version|v1.0.0
 Description|http://test-network-function.com/testcases/affiliated-certification/container-is-certified tests whether container images have passed the Red Hat Container Certification Program (CCP).
 Result Type|normative
 Suggested Remediation|Ensure that your container has passed the Red Hat Container Certification Program (CCP).
+### http://test-network-function.com/testcases/affiliated-certification/operator-is-certified
+
+Property|Description
+---|---
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/affiliated-certification/operator-is-certified tests whether CNF Operators have passed the Red Hat Operator Certification Program (OCP).
+Result Type|normative
+Suggested Remediation|Ensure that your Operator has passed Red Hat's Operator Certification Program (OCP).
 ### http://test-network-function.com/testcases/diagnostic/extract-node-information
 
 Property|Description
@@ -78,126 +86,110 @@ Version|v1.0.0
 Description|http://test-network-function.com/testcases/diagnostic/nodes-hw-info list nodes HW info
 Result Type|normative
 Suggested Remediation|
-### http://test-network-function.com/testcases/generic/hugepages-not-manually-manipulated
+### http://test-network-function.com/testcases/lifecycle/container-shutdown
 
 Property|Description
 ---|---
 Version|v1.0.0
-Description|http://test-network-function.com/testcases/generic/hugepages-not-manually-manipulated checks to see that HugePage settings have been configured through MachineConfig, and not manually on the underlying Node.  This test case applies only to Nodes that are configured with the "worker" MachineConfigSet.  First, the "worker" MachineConfig is polled, and the Hugepage settings are extracted.  Next, the underlying Nodes are polled for configured HugePages through inspection of /proc/meminfo.  The results are compared, and the test passes only if they are the same.
-Result Type|normative
-Suggested Remediation|HugePage settings should be configured either directly through the MachineConfigOperator or indirectly using the PeformanceAddonOperator.  This ensures that OpenShift is aware of the special MachineConfig requirements, and can provision your CNF on a Node that is part of the corresponding MachineConfigSet.  Avoid making changes directly to an underlying Node, and let OpenShift handle the heavy lifting of configuring advanced settings.
-### http://test-network-function.com/testcases/generic/icmpv4-connectivity
-
-Property|Description
----|---
-Version|v1.0.0
-Description|http://test-network-function.com/testcases/generic/icmpv4-connectivity checks that each CNF Container is able to communicate via ICMPv4 on the Default OpenShift network.  This test case requires the Deployment of the [CNF Certification Test Partner](https://github.com/test-network-function/cnf-certification-test-partner/blob/main/test-partner/partner.yaml). The test ensures that all CNF containers respond to ICMPv4 requests from the Partner Pod, and vice-versa. 
-Result Type|normative
-Suggested Remediation|Ensure that the CNF is able to communicate via the Default OpenShift network.  In some rare cases, CNFs may require routing table changes in order to communicate over the Default network.  In other cases, if the Container base image does not provide the "ip" or "ping" binaries, this test may not be applicable.  For instructions on how to exclude a particular container from ICMPv4 connectivity tests, consult: [README.md](https://github.com/test-network-function/test-network-function#issue-161-some-containers-under-test-do-nto-contain-ping-or-ip-binary-utilities).
-### http://test-network-function.com/testcases/generic/namespace-best-practices
-
-Property|Description
----|---
-Version|v1.0.0
-Description|http://test-network-function.com/testcases/generic/namespace-best-practices tests that CNFs utilize a CNF-specific namespace, and that the namespace does not start with "openshift-". OpenShift may host a variety of CNF and software applications, and multi-tenancy of such applications is supported through namespaces.  As such, each CNF should be a good neighbor, and utilize an appropriate, unique namespace.
-Result Type|normative
-Suggested Remediation|Ensure that your CNF utilizes a CNF-specific namespace.  Additionally, the CNF-specific namespace should not start with "openshift-", except in rare cases.
-### http://test-network-function.com/testcases/generic/non-default-grace-period
-
-Property|Description
----|---
-Version|v1.0.0
-Description|http://test-network-function.com/testcases/generic/non-default-grace-period tests whether the terminationGracePeriod is CNF-specific, or if the default (30s) is utilized.  This test is informative, and will not affect CNF Certification.  In many cases, the default terminationGracePeriod is perfectly acceptable for a CNF.
-Result Type|informative
-Suggested Remediation|Choose a terminationGracePeriod that is appropriate for your given CNF.  If the default (30s) is appropriate, then feel free to ignore this informative message.  This test is meant to raise awareness around how Pods are terminated, and to suggest that a CNF is configured based on its requirements.  In addition to a terminationGracePeriod, consider utilizing a termination hook in the case that your application requires special shutdown instructions.
-### http://test-network-function.com/testcases/generic/non-tainted-node-kernel
-
-Property|Description
----|---
-Version|v1.0.0
-Description|http://test-network-function.com/testcases/generic/non-tainted-node-kernel ensures that the Node(s) hosting CNFs do not utilize tainted kernels. This test case is especially important to support Highly Available CNFs, since when a CNF is re-instantiated on a backup Node, that Node's kernel may not have the same hacks.'
-Result Type|normative
-Suggested Remediation|Test failure indicates that the underlying Node's' kernel is tainted.  Ensure that you have not altered underlying Node(s) kernels in order to run the CNF.
-### http://test-network-function.com/testcases/generic/pod-deployment-best-practices
-
-Property|Description
----|---
-Version|v1.0.0
-Description|http://test-network-function.com/testcases/generic/pod-deployment-best-practices tests that CNF Pod(s) are deployed as part of either DaemonSet(s) or a ReplicaSet(s).
-Result Type|normative
-Suggested Remediation|Deploy the CNF using DaemonSet or ReplicaSet.
-### http://test-network-function.com/testcases/generic/pod-high-availabitiy-best-practices
-
-Property|Description
----|---
-Version|v1.0.0
-Description|http://test-network-function.com/testcases/generic/pod-high-availabitiy-best-practices ensures that CNF Pods specify podAntiAffinity rules and replica value is set more than 1.
-Result Type|informative
-Suggested Remediation|In high availability cases, Pod podAntiAffinity rule should be specified for pod scheduling and pod replica value is set more than 1 .
-### http://test-network-function.com/testcases/generic/pod-lifecycle-pre-stop
-
-Property|Description
----|---
-Version|v1.0.0
-Description|http://test-network-function.com/testcases/generic/pod-lifecycle-pre-stop Ensure that the containers lifecycle pre-stop management feature is configured.
+Description|http://test-network-function.com/testcases/lifecycle/container-shutdown Ensure that the containers lifecycle pre-stop management feature is configured.
 Result Type|normative
 Suggested Remediation| 		It's considered best-practices to define prestop for proper management of container lifecycle. 		The prestop can be used to gracefully stop the container and clean resources (e.g., DB connexion). 		 		The prestop can be configured using : 		 1) Exec : executes the supplied command inside the container 		 2) HTTP : executes HTTP request against the specified endpoint. 		 		When defined. K8s will handle shutdown of the container using the following: 		1) K8s first execute the preStop hook inside the container. 		2) K8s will wait for a grace perdiod. 		3) K8s will clean the remaining processes using KILL signal.		 			
-### http://test-network-function.com/testcases/generic/pod-node-selector-node-affinity-best-practices
+### http://test-network-function.com/testcases/lifecycle/pod-high-availability
 
 Property|Description
 ---|---
 Version|v1.0.0
-Description|http://test-network-function.com/testcases/generic/pod-node-selector-node-affinity-best-practices ensures that CNF Pods do not specify nodeSelector or nodeAffinity.  In most cases, Pods should allow for instantiation on any underlying Node.
+Description|http://test-network-function.com/testcases/lifecycle/pod-high-availability ensures that CNF Pods specify podAntiAffinity rules and replica value is set more than 1.
+Result Type|informative
+Suggested Remediation|In high availability cases, Pod podAntiAffinity rule should be specified for pod scheduling and pod replica value is set more than 1 .
+### http://test-network-function.com/testcases/lifecycle/pod-owner-type
+
+Property|Description
+---|---
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/lifecycle/pod-owner-type tests that CNF Pod(s) are deployed as part of a ReplicaSet(s).
+Result Type|normative
+Suggested Remediation|Deploy the CNF using DaemonSet or ReplicaSet.
+### http://test-network-function.com/testcases/lifecycle/pod-scheduling
+
+Property|Description
+---|---
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/lifecycle/pod-scheduling ensures that CNF Pods do not specify nodeSelector or nodeAffinity.  In most cases, Pods should allow for instantiation on any underlying Node.
 Result Type|informative
 Suggested Remediation|In most cases, Pod's should not specify their host Nodes through nodeSelector or nodeAffinity.  However, there are cases in which CNFs require specialized hardware specific to a particular class of Node.  As such, this test is purely informative, and will not prevent a CNF from being certified. However, one should have an appropriate justification as to why nodeSelector and/or nodeAffinity is utilized by a CNF.
-### http://test-network-function.com/testcases/generic/services-do-not-use-nodeports
+### http://test-network-function.com/testcases/lifecycle/pod-termination-grace-period
 
 Property|Description
 ---|---
 Version|v1.0.0
-Description|http://test-network-function.com/testcases/generic/services-do-not-use-nodeports tests that each CNF Service does not utilize NodePort(s).
+Description|http://test-network-function.com/testcases/lifecycle/pod-termination-grace-period tests whether the terminationGracePeriod is CNF-specific, or if the default (30s) is utilized.  This test is informative, and will not affect CNF Certification.  In many cases, the default terminationGracePeriod is perfectly acceptable for a CNF.
+Result Type|informative
+Suggested Remediation|Choose a terminationGracePeriod that is appropriate for your given CNF.  If the default (30s) is appropriate, then feel free to ignore this informative message.  This test is meant to raise awareness around how Pods are terminated, and to suggest that a CNF is configured based on its requirements.  In addition to a terminationGracePeriod, consider utilizing a termination hook in the case that your application requires special shutdown instructions.
+### http://test-network-function.com/testcases/networking/icmpv4-connectivity
+
+Property|Description
+---|---
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/networking/icmpv4-connectivity checks that each CNF Container is able to communicate via ICMPv4 on the Default OpenShift network.  This test case requires the Deployment of the [CNF Certification Test Partner](https://github.com/test-network-function/cnf-certification-test-partner/blob/main/test-partner/partner.yaml). The test ensures that all CNF containers respond to ICMPv4 requests from the Partner Pod, and vice-versa. 
+Result Type|normative
+Suggested Remediation|Ensure that the CNF is able to communicate via the Default OpenShift network.  In some rare cases, CNFs may require routing table changes in order to communicate over the Default network.  In other cases, if the Container base image does not provide the "ip" or "ping" binaries, this test may not be applicable.  For instructions on how to exclude a particular container from ICMPv4 connectivity tests, consult: [README.md](https://github.com/test-network-function/test-network-function#issue-161-some-containers-under-test-do-nto-contain-ping-or-ip-binary-utilities).
+### http://test-network-function.com/testcases/networking/service-type
+
+Property|Description
+---|---
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/networking/service-type tests that each CNF Service does not utilize NodePort(s).
 Result Type|normative
 Suggested Remediation|Ensure Services are not configured to not use NodePort(s).
-### http://test-network-function.com/testcases/generic/unaltered-base-image
+### http://test-network-function.com/testcases/operator/install-source
 
 Property|Description
 ---|---
 Version|v1.0.0
-Description|http://test-network-function.com/testcases/generic/unaltered-base-image ensures that the Container Base Image is not altered post-startup.  This test is a heuristic, and ensures that there are no changes to the following directories: 1) /var/lib/rpm 2) /var/lib/dpkg 3) /bin 4) /sbin 5) /lib 6) /lib64 7) /usr/bin 8) /usr/sbin 9) /usr/lib 10) /usr/lib64
-Result Type|normative
-Suggested Remediation|Ensure that Container applications do not modify the Container Base Image.  In particular, ensure that the following directories are not modified: 1) /var/lib/rpm 2) /var/lib/dpkg 3) /bin 4) /sbin 5) /lib 6) /lib64 7) /usr/bin 8) /usr/sbin 9) /usr/lib 10) /usr/lib64 Ensure that all required binaries are built directly into the container image, and are not installed post startup.
-### http://test-network-function.com/testcases/generic/unaltered-startup-boot-params
-
-Property|Description
----|---
-Version|v1.0.0
-Description|http://test-network-function.com/testcases/generic/unaltered-startup-boot-params tests that boot parameters are set through the MachineConfigOperator, and not set manually on the Node.
-Result Type|normative
-Suggested Remediation|Ensure that boot parameters are set directly through the MachineConfigOperator, or indirectly through the PerfromanceAddonOperator.  Boot parameters should not be changed directly through the Node, as OpenShift should manage the changes for you.
-### http://test-network-function.com/testcases/operator/operator-best-practices
-
-Property|Description
----|---
-Version|v1.0.0
-Description|http://test-network-function.com/testcases/operator/operator-best-practices Ensures that CNF Operators abide by best practices.  The following is tested: 1. The Operator CSV reports "Installed" status. 2. The Operator is installed using through an Operator subscription catalog.
-Result Type|normative
-Suggested Remediation|Ensure that your Operator abides by the Operator Best Practices mentioned in the description.
-### http://test-network-function.com/testcases/operator/operator-is-certified
-
-Property|Description
----|---
-Version|v1.0.0
-Description|http://test-network-function.com/testcases/operator/operator-is-certified tests whether CNF Operators have passed the Red Hat Operator Certification Program (OCP).
-Result Type|normative
-Suggested Remediation|Ensure that your Operator has passed Red Hat's Operator Certification Program (OCP).
-### http://test-network-function.com/testcases/operator/operator-is-installed-via-olm
-
-Property|Description
----|---
-Version|v1.0.0
-Description|http://test-network-function.com/testcases/operator/operator-is-installed-via-olm tests whether a CNF Operator is installed via OLM.
+Description|http://test-network-function.com/testcases/operator/install-source tests whether a CNF Operator is installed via OLM.
 Result Type|normative
 Suggested Remediation|Ensure that your Operator is installed via OLM.
+### http://test-network-function.com/testcases/operator/install-status
+
+Property|Description
+---|---
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/operator/install-status Ensures that CNF Operators abide by best practices.  The following is tested: 1. The Operator CSV reports "Installed" status. 2. TODO: Describe operator scc check.
+Result Type|normative
+Suggested Remediation|Ensure that your Operator abides by the Operator Best Practices mentioned in the description.
+### http://test-network-function.com/testcases/platform-alteration/base-image
+
+Property|Description
+---|---
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/platform-alteration/base-image ensures that the Container Base Image is not altered post-startup.  This test is a heuristic, and ensures that there are no changes to the following directories: 1) /var/lib/rpm 2) /var/lib/dpkg 3) /bin 4) /sbin 5) /lib 6) /lib64 7) /usr/bin 8) /usr/sbin 9) /usr/lib 10) /usr/lib64
+Result Type|normative
+Suggested Remediation|Ensure that Container applications do not modify the Container Base Image.  In particular, ensure that the following directories are not modified: 1) /var/lib/rpm 2) /var/lib/dpkg 3) /bin 4) /sbin 5) /lib 6) /lib64 7) /usr/bin 8) /usr/sbin 9) /usr/lib 10) /usr/lib64 Ensure that all required binaries are built directly into the container image, and are not installed post startup.
+### http://test-network-function.com/testcases/platform-alteration/boot-params
+
+Property|Description
+---|---
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/platform-alteration/boot-params tests that boot parameters are set through the MachineConfigOperator, and not set manually on the Node.
+Result Type|normative
+Suggested Remediation|Ensure that boot parameters are set directly through the MachineConfigOperator, or indirectly through the PerfromanceAddonOperator.  Boot parameters should not be changed directly through the Node, as OpenShift should manage the changes for you.
+### http://test-network-function.com/testcases/platform-alteration/hugepages-config
+
+Property|Description
+---|---
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/platform-alteration/hugepages-config checks to see that HugePage settings have been configured through MachineConfig, and not manually on the underlying Node.  This test case applies only to Nodes that are configured with the "worker" MachineConfigSet.  First, the "worker" MachineConfig is polled, and the Hugepage settings are extracted.  Next, the underlying Nodes are polled for configured HugePages through inspection of /proc/meminfo.  The results are compared, and the test passes only if they are the same.
+Result Type|normative
+Suggested Remediation|HugePage settings should be configured either directly through the MachineConfigOperator or indirectly using the PeformanceAddonOperator.  This ensures that OpenShift is aware of the special MachineConfig requirements, and can provision your CNF on a Node that is part of the corresponding MachineConfigSet.  Avoid making changes directly to an underlying Node, and let OpenShift handle the heavy lifting of configuring advanced settings.
+### http://test-network-function.com/testcases/platform-alteration/tainted-node-kernel
+
+Property|Description
+---|---
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/platform-alteration/tainted-node-kernel ensures that the Node(s) hosting CNFs do not utilize tainted kernels. This test case is especially important to support Highly Available CNFs, since when a CNF is re-instantiated on a backup Node, that Node's kernel may not have the same hacks.'
+Result Type|normative
+Suggested Remediation|Test failure indicates that the underlying Node's' kernel is tainted.  Ensure that you have not altered underlying Node(s) kernels in order to run the CNF.
 
 
 ## Test Case Building Blocks Catalog
