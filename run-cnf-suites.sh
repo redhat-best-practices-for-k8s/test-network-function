@@ -40,6 +40,8 @@ for var in "$@"
 do
 	case "$var" in
 		diagnostic) FOCUS="diagnostic|$FOCUS";;
+		access-control) FOCUS="access-control|$FOCUS";;
+		affiliated-certification) FOCUS="affiliated-certification|$FOCUS";;
 		generic) FOCUS="generic|$FOCUS";;
 		multus) FOCUS="multus|$FOCUS";;
 		operator) FOCUS="operator|$FOCUS";;
