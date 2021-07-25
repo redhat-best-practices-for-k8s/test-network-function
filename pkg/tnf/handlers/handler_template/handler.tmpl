@@ -17,15 +17,10 @@
 package {{ .Handlername }}
 
 import (
-	"time"
-
-	"github.com/test-network-function/test-network-function/pkg/tnf"
-	"github.com/test-network-function/test-network-function/pkg/tnf/dependencies"
-	"github.com/test-network-function/test-network-function/pkg/tnf/identifier"
-	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
 )
-
+//TODO
 // Hostname provides a hostname test implemented using command line tool "hostname".
+/*
 type {{ .Handlername }} struct {
 	result  int
 	timeout time.Duration
@@ -40,8 +35,7 @@ const (
 	// SuccessfulOutputRegex is the regular expression match for hostname output.
 	SuccessfulOutputRegex = `.+`
 )
-//TODO
-/*
+
 // Args returns the command line args for the test.
 func (h *{{ .Handlername }}) Args() []string {
 	return h.args

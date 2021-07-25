@@ -20,7 +20,7 @@ var (
 	handlername        string
 
 	rootCmd = &cobra.Command{
-		Use:   "rootCmd",
+		Use:   "tnf",
 		Short: "A CLI for creating, validating, and test-network-function tests.",
 	}
 
@@ -72,7 +72,7 @@ func createfile(pathfile, namefile string, myhandler myHandler, newHandlerDirect
 	temp := path.Join(newHandlerDirectory, namefile)
 	f, err := os.Create(temp)
 	if err != nil {
-		panic(err)
+		log.Println(err)
 	}
 
 	defer f.Close()
@@ -80,7 +80,7 @@ func createfile(pathfile, namefile string, myhandler myHandler, newHandlerDirect
 
 	err = ftpl.Execute(w, myhandler)
 	if err != nil {
-		panic(err)
+		log.Println(err)
 	}
 
 	w.Flush()
