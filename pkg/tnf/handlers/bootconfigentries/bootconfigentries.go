@@ -43,7 +43,7 @@ func NewBootConfigEntries(timeout time.Duration, nodeName string) *BootConfigEnt
 		timeout: timeout,
 		result:  tnf.ERROR,
 		args: []string{
-			"echo", "\"ls /host/boot/loader/entries/\"", "|", "oc", "debug", "-q", "node/" + nodeName,
+			"echo", "\"ls /host/boot/loader/entries/\"", "|", "oc", "debug", "--preserve-pod=true", "node/" + nodeName,
 		},
 	}
 }
