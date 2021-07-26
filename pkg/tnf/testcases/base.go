@@ -182,7 +182,7 @@ var outRegExp = map[RegExType]string{
 	True:           `^\b(true)\b$`,
 	Null:           `^\b(null)\b$`,
 	Zero:           `0`,
-	NonZero:        `^(\d([^0]+)|null)$`,
+	NonZero:        `^(0*([1-9]\d*)|null)$`,
 	Error:          "error",
 	Digit:          `\d`,
 }
