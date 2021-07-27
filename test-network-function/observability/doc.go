@@ -14,4 +14,8 @@
 // with this program; if not, write to the Free Software Foundation, Inc.,
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-package generic
+/*
+Package observability contains tests related to the observability of the
+CNF workloads under test, such as logging, status reporting etc
+*/
+package observability
