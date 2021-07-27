@@ -55,26 +55,24 @@ func generateHandlerFiles(cmd *cobra.Command, args []string) error {
 	pathfile := path.Join(handlerDirectory, "handler_template", "doc.tmpl")
 	namefile := "" + "doc.go"
 	err = createfile(pathfile, namefile, myhandler, newHandlerDirectory) // here creating file by doc.tmpl
-	if err != nil {
+	if err.Error() != "success" {
 		return err
 	}
 
 	pathfile = path.Join(handlerDirectory, "handler_template", "handler_test.tmpl")
 	namefile = "" + handlername + "_test.go"
 	err = createfile(pathfile, namefile, myhandler, newHandlerDirectory) // here creating file by template_test.tmpl
-	if err != nil {
+	if err.Error() != "success" {
 		return err
 	}
 
 	pathfile = path.Join(handlerDirectory, "handler_template", "handler.tmpl")
 	namefile = "" + handlername + ".go"
 	err = createfile(pathfile, namefile, myhandler, newHandlerDirectory) // here creating file by template.tmpl
-	if err != nil {
+	if err.Error() != "success" {
 		return err
 	}
-
-	return fmt.Errorf("Success!")
-
+	return fmt.Errorf("success")
 }
 
 func createfile(pathfile, namefile string, myhandler myHandler, newHandlerDirectory string) error {
@@ -96,9 +94,8 @@ func createfile(pathfile, namefile string, myhandler myHandler, newHandlerDirect
 	if err != nil {
 		return err
 	}
-
 	w.Flush()
-	return fmt.Errorf("Success!")
+	return fmt.Errorf("success")
 }
 
 func main() {
