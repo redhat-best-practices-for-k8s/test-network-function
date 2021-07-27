@@ -76,7 +76,7 @@ const (
 	testsKey                      = "generic"
 	accessControlTestKey          = "access-control"
 	// lifecycleTestKey              = "lifecycle"
-	// affiliatedCertTestKey         = "affiliated-certification"
+	affiliatedCertTestKey = "affiliated-certification"
 	// networkingTestKey             = "networking"
 	// observabilityTestKey          = "observability"
 	// platformAlterationTestKey     = "platform-alteration"
