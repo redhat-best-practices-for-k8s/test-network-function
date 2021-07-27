@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"fmt"
 	"log"
 	"os"
 	"path"
@@ -32,11 +33,11 @@ var (
 	handler = &cobra.Command{
 		Use:   "handler",
 		Short: "adding new handler.",
-		Run:   generateHandlerFiles,
+		RunE:  generateHandlerFiles,
 	}
 )
 
-func generateHandlerFiles(cmd *cobra.Command, args []string) {
+func generateHandlerFiles(cmd *cobra.Command, args []string) error {
 	handlername = args[0]
 	pathrelativetoroot = path.Join("..", "..")
 	handlerDirectory = path.Join(pathrelativetoroot, "pkg", "tnf", "handlers")
@@ -44,35 +45,48 @@ func generateHandlerFiles(cmd *cobra.Command, args []string) {
 
 	err := os.Mkdir(newHandlerDirectory, 0755)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
+
 	myhandler := myHandler{Handlername: handlername}
 
 	// pathfile this is the path of the file from template file that will creat
 
 	pathfile := path.Join(handlerDirectory, "handler_template", "doc.tmpl")
 	namefile := "" + "doc.go"
-	createfile(pathfile, namefile, myhandler, newHandlerDirectory) // here creating file by doc.tmpl
+	err = createfile(pathfile, namefile, myhandler, newHandlerDirectory) // here creating file by doc.tmpl
+	if err != nil {
+		return err
+	}
 
 	pathfile = path.Join(handlerDirectory, "handler_template", "handler_test.tmpl")
 	namefile = "" + handlername + "_test.go"
-	createfile(pathfile, namefile, myhandler, newHandlerDirectory) // here creating file by template_test.tmpl
+	err = createfile(pathfile, namefile, myhandler, newHandlerDirectory) // here creating file by template_test.tmpl
+	if err != nil {
+		return err
+	}
 
 	pathfile = path.Join(handlerDirectory, "handler_template", "handler.tmpl")
 	namefile = "" + handlername + ".go"
-	createfile(pathfile, namefile, myhandler, newHandlerDirectory) // here creating file by template.tmpl
+	err = createfile(pathfile, namefile, myhandler, newHandlerDirectory) // here creating file by template.tmpl
+	if err != nil {
+		return err
+	}
+
+	return fmt.Errorf("Success!")
+
 }
 
-func createfile(pathfile, namefile string, myhandler myHandler, newHandlerDirectory string) {
+func createfile(pathfile, namefile string, myhandler myHandler, newHandlerDirectory string) error {
 	ftpl, err := template.ParseFiles(pathfile)
 	if err != nil {
-		log.Fatalln(err)
+		return err
 	}
 
 	temp := path.Join(newHandlerDirectory, namefile)
 	f, err := os.Create(temp)
 	if err != nil {
-		log.Println(err)
+		return err
 	}
 
 	defer f.Close()
@@ -80,10 +94,11 @@ func createfile(pathfile, namefile string, myhandler myHandler, newHandlerDirect
 
 	err = ftpl.Execute(w, myhandler)
 	if err != nil {
-		log.Println(err)
+		return err
 	}
 
 	w.Flush()
+	return fmt.Errorf("Success!")
 }
 
 func main() {
