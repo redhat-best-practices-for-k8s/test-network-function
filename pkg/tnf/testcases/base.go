@@ -165,7 +165,7 @@ const (
 	Null RegExType = "NULL"
 	// Zero Allows the result to match 0 number
 	Zero RegExType = "ZERO"
-	// NonZero Allows the result to match non 0 number
+	// NonZeroNumber Allows the result to match non 0 number
 	NonZeroNumber RegExType = "NON_ZERO_NUMBER"
 	// Error Allows the result to match error string
 	Error RegExType = "ERROR"
