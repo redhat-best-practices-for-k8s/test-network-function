@@ -25,9 +25,7 @@ type {{ .Handlername }} struct {
 }
 
 const (
-	// Command is the command name for the unix "hostname" command.
 	Command = {{ .Handlername }}
-	// SuccessfulOutputRegex is the regular expression match for hostname output.
 	SuccessfulOutputRegex = `.+`
 )
 
@@ -66,10 +64,10 @@ func (h *{{ .Handlername }}) ReelEOF() {
 	//fill the stub
 }
 
-func (h *{{ .Handlername }}) GetHostname() string {
+func (h *{{ .Handlername }}) Get{{ .Handlername }}() string {
 	//fill the stub
 }
 
-func NewHostname(timeout time.Duration) *{{ .Handlername }} {
+func New{{ .Handlername }}(timeout time.Duration) *{{ .Handlername }} {
 	//fill the stub
 }
