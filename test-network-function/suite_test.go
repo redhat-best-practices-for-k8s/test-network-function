@@ -35,10 +35,15 @@ import (
 	"github.com/test-network-function/test-network-function/pkg/junit"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
 
+	_ "github.com/test-network-function/test-network-function/test-network-function/accesscontrol"
+	_ "github.com/test-network-function/test-network-function/test-network-function/certification"
 	"github.com/test-network-function/test-network-function/test-network-function/diagnostic"
 	_ "github.com/test-network-function/test-network-function/test-network-function/generic"
-
+	_ "github.com/test-network-function/test-network-function/test-network-function/lifecycle"
+	_ "github.com/test-network-function/test-network-function/test-network-function/networking"
+	_ "github.com/test-network-function/test-network-function/test-network-function/observability"
 	_ "github.com/test-network-function/test-network-function/test-network-function/operator"
+	_ "github.com/test-network-function/test-network-function/test-network-function/platform"
 	"github.com/test-network-function/test-network-function/test-network-function/version"
 )
 
