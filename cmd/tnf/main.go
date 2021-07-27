@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"fmt"
 	"log"
 	"os"
 	"path"
@@ -10,8 +9,6 @@ import (
 
 	"github.com/spf13/cobra"
 )
-
-const success = "success"
 
 type myHandler struct {
 	Handlername string
@@ -57,24 +54,24 @@ func generateHandlerFiles(cmd *cobra.Command, args []string) error {
 	pathfile := path.Join(handlerDirectory, "handler_template", "doc.tmpl")
 	namefile := "" + "doc.go"
 	err = createfile(pathfile, namefile, myhandler, newHandlerDirectory) // here creating file by doc.tmpl
-	if err.Error() != success {
+	if err != nil {
 		return err
 	}
 
 	pathfile = path.Join(handlerDirectory, "handler_template", "handler_test.tmpl")
 	namefile = "" + handlername + "_test.go"
 	err = createfile(pathfile, namefile, myhandler, newHandlerDirectory) // here creating file by template_test.tmpl
-	if err.Error() != success {
+	if err != nil {
 		return err
 	}
 
 	pathfile = path.Join(handlerDirectory, "handler_template", "handler.tmpl")
 	namefile = "" + handlername + ".go"
 	err = createfile(pathfile, namefile, myhandler, newHandlerDirectory) // here creating file by template.tmpl
-	if err.Error() != success {
+	if err != nil {
 		return err
 	}
-	return fmt.Errorf(success)
+	return err
 }
 
 func createfile(pathfile, namefile string, myhandler myHandler, newHandlerDirectory string) error {
@@ -97,7 +94,8 @@ func createfile(pathfile, namefile string, myhandler myHandler, newHandlerDirect
 		return err
 	}
 	w.Flush()
-	return fmt.Errorf(success)
+
+	return nil
 }
 
 func main() {

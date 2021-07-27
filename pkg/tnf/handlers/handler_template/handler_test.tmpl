@@ -24,50 +24,32 @@ const (
 	testTimeoutDuration = time.Second * 2
 )
 
-/*
+
 //TODO:
-func {{ .Handlername }}_Args(t *testing.T) {
-	h := hostname.NewHostname(testTimeoutDuration)
-	assert.Equal(t, []string{"hostname"}, h.Args())
+func {{ .Handlername }}_Args{
+	//fill the stub
 }
 
-func TestHostname_GetIdentifier(t *testing.T) {
-	h := hostname.NewHostname(testTimeoutDuration)
-	assert.Equal(t, identifier.HostnameIdentifier, h.GetIdentifier())
+func Test{{ .Handlername }}_getIdentifier{
+	// fill the stub
 }
 
-func TestHostname_ReelFirst(t *testing.T) {
-	h := hostname.NewHostname(testTimeoutDuration)
-	step := h.ReelFirst()
-	assert.Equal(t, "", step.Execute)
-	assert.Equal(t, []string{hostname.SuccessfulOutputRegex}, step.Expect)
-	assert.Equal(t, testTimeoutDuration, step.Timeout)
+func Test{{ .Handlername }}_ReelFirst{
+	// fill the stub
 }
 
-func TestHostname_ReelEof(t *testing.T) {
-	h := hostname.NewHostname(testTimeoutDuration)
-	// just ensures lack of panic
-	h.ReelEOF()
+func Test{{ .Handlername }}_ReelEof{
+	// fill the stub
 }
 
-func TestHostname_ReelTimeout(t *testing.T) {
-	h := hostname.NewHostname(testTimeoutDuration)
-	step := h.ReelTimeout()
-	assert.Nil(t, step)
+func Test{{ .Handlername }}_Timeout{
+	// fill the stub
 }
 
-// Also tests GetHostname() and Result()
-func TestHostname_ReelMatch(t *testing.T) {
-	h := hostname.NewHostname(testTimeoutDuration)
-	matchHostname := "testHostname"
-	step := h.ReelMatch("", "", matchHostname)
-	assert.Nil(t, step)
-	assert.Equal(t, matchHostname, h.GetHostname())
-	assert.Equal(t, tnf.SUCCESS, h.Result())
+func Test{{ .Handlername }}_ReelMatch{
+	// fill the stub
 }
 
-func TestNewHostname(t *testing.T) {
-	h := hostname.NewHostname(testTimeoutDuration)
-	assert.Equal(t, tnf.ERROR, h.Result())
-	assert.Equal(t, testTimeoutDuration, h.Timeout())
-}*/
+func TestNew{{ .Handlername }}{
+	// fill the stub
+}

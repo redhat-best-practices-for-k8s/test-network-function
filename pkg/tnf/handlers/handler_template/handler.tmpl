@@ -18,15 +18,10 @@ package {{ .Handlername }}
 
 import (
 )
-//TODO
-// Hostname provides a hostname test implemented using command line tool "hostname".
-/*
+
+//TODO:
 type {{ .Handlername }} struct {
-	result  int
-	timeout time.Duration
-	args    []string
-	// The hostname
-	hostname string
+	//fill the stub
 }
 
 const (
@@ -36,61 +31,45 @@ const (
 	SuccessfulOutputRegex = `.+`
 )
 
-// Args returns the command line args for the test.
 func (h *{{ .Handlername }}) Args() []string {
-	return h.args
+	//fill the stub
 }
 
 // GetIdentifier returns the tnf.Test specific identifier.
 func (h *{{ .Handlername }}) GetIdentifier() identifier.Identifier {
-	return identifier.HostnameIdentifier
+	//fill the stub
 }
 
 // Timeout return the timeout for the test.
 func (h *{{ .Handlername }}) Timeout() time.Duration {
-	return h.timeout
+	//fill the stub
 }
 
 // Result returns the test result.
 func (h *{{ .Handlername }}) Result() int {
-	return h.result
+	//fill the stub
 }
 
-// ReelFirst returns a step which expects an hostname summary for the given device.
 func (h *{{ .Handlername }}) ReelFirst() *reel.Step {
-	return &reel.Step{
-		Expect:  []string{SuccessfulOutputRegex},
-		Timeout: h.timeout,
-	}
+	//fill the stub
 }
 
-// ReelMatch parses the hostname output and set the test result on match.
-// Returns no step; the test is complete.
 func (h *{{ .Handlername }}) ReelMatch(_, _, match string) *reel.Step {
-	h.hostname = match
-	h.result = tnf.SUCCESS
-	return nil
+	//fill the stub
 }
 
-// ReelTimeout does nothing;  hostname requires no explicit intervention for a timeout.
 func (h *{{ .Handlername }}) ReelTimeout() *reel.Step {
-	return nil
+	//fill the stub
 }
 
-// ReelEOF does nothing;  hostname requires no explicit intervention for EOF.
 func (h *{{ .Handlername }}) ReelEOF() {
+	//fill the stub
 }
 
-// GetHostname returns the extracted hostname, if one is extracted.
 func (h *{{ .Handlername }}) GetHostname() string {
-	return h.hostname
+	//fill the stub
 }
 
-// NewHostname creates a new `Hostname` test which runs the "hostname" command.
 func NewHostname(timeout time.Duration) *{{ .Handlername }} {
-	return &{{ .Handlername }}{
-		result:  tnf.ERROR,
-		timeout: timeout,
-		args:    []string{Command},
-	}
-}*/
+	//fill the stub
+}
