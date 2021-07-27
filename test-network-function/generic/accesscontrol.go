@@ -18,13 +18,19 @@ package generic
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
 
 	"github.com/onsi/ginkgo"
 	ginkgoconfig "github.com/onsi/ginkgo/config"
 	"github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
+	"github.com/test-network-function/test-network-function/internal/api"
+	configpkg "github.com/test-network-function/test-network-function/pkg/config"
+	"github.com/test-network-function/test-network-function/pkg/config/configsections"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/clusterrolebinding"
+	containerpkg "github.com/test-network-function/test-network-function/pkg/tnf/handlers/container"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/rolebinding"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/serviceaccount"
 	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
@@ -32,6 +38,21 @@ import (
 	"github.com/test-network-function/test-network-function/pkg/tnf/testcases"
 	"github.com/test-network-function/test-network-function/test-network-function/identifiers"
 	"github.com/test-network-function/test-network-function/test-network-function/results"
+)
+
+const (
+	// timeout for eventually call
+	eventuallyTimeoutSeconds = 30
+	// interval of time
+	interval           = 1
+	configuredTestFile = "testconfigure.yml"
+)
+
+var (
+	context       *interactive.Context
+	err           error
+	cnfsInTest    []configsections.Cnf
+	certAPIClient api.CertAPIClient
 )
 
 var _ = ginkgo.Describe(accessControlTestKey, func() {
@@ -44,7 +65,7 @@ var _ = ginkgo.Describe(accessControlTestKey, func() {
 		// testOrchestrator := partnerContainers[config.TestOrchestrator]
 
 		// log.Info(testOrchestrator)
-		// log.Info(containersUnderTest)
+		log.Info(containersUnderTest)
 
 		for _, containerUnderTest := range containersUnderTest {
 			testNamespace(containerUnderTest.oc)
@@ -54,8 +75,127 @@ var _ = ginkgo.Describe(accessControlTestKey, func() {
 			testRoles(containerUnderTest.oc.GetPodName(), containerUnderTest.oc.GetPodNamespace())
 		}
 
+		// Former "container" tests
+		defer ginkgo.GinkgoRecover()
+		ginkgo.When("a local shell is spawned", func() {
+			goExpectSpawner := interactive.NewGoExpectSpawner()
+			var spawner interactive.Spawner = goExpectSpawner
+			context, err = interactive.SpawnShell(&spawner, defaultTimeout, interactive.Verbose(true))
+			gomega.Expect(err).To(gomega.BeNil())
+			gomega.Expect(context).ToNot(gomega.BeNil())
+			gomega.Expect(context.GetExpecter()).ToNot(gomega.BeNil())
+		})
+		// Run the tests that interact with the containers
+		ginkgo.When("under test", func() {
+			conf := configpkg.GetConfigInstance()
+			cnfsInTest = conf.CNFs
+			gomega.Expect(cnfsInTest).ToNot(gomega.BeNil())
+			for _, cnf := range cnfsInTest {
+				cnf := cnf
+				var containerFact = testcases.ContainerFact{Namespace: cnf.Namespace, Name: cnf.Name, ContainerCount: 0, HasClusterRole: false, Exists: true}
+				// Gather facts for containers
+				podFacts, err := testcases.LoadCnfTestCaseSpecs(testcases.GatherFacts)
+				gomega.Expect(err).To(gomega.BeNil())
+				// Collect container facts
+				for _, factsTest := range podFacts.TestCase {
+					args := strings.Split(fmt.Sprintf(factsTest.Command, cnf.Name, cnf.Namespace), " ")
+					cnfInTest := containerpkg.NewPod(args, cnf.Name, cnf.Namespace, factsTest.ExpectedStatus, factsTest.ResultType, factsTest.Action, defaultTimeout)
+					test, err := tnf.NewTest(context.GetExpecter(), cnfInTest, []reel.Handler{cnfInTest}, context.GetErrorChannel())
+					gomega.Expect(err).To(gomega.BeNil())
+					gomega.Expect(test).ToNot(gomega.BeNil())
+					_, err = test.Run()
+					gomega.Expect(err).To(gomega.BeNil())
+					if factsTest.Name == string(testcases.ContainerCount) {
+						containerFact.ContainerCount, _ = strconv.Atoi(cnfInTest.Facts())
+					} else if factsTest.Name == string(testcases.ServiceAccountName) {
+						containerFact.ServiceAccount = cnfInTest.Facts()
+					} else if factsTest.Name == string(testcases.Name) {
+						containerFact.Name = cnfInTest.Facts()
+						gomega.Expect(containerFact.Name).To(gomega.Equal(cnf.Name))
+						if strings.Compare(containerFact.Name, cnf.Name) > 0 {
+							containerFact.Exists = true
+						}
+					}
+				}
+				// loop through various cnfs test
+				if !containerFact.Exists {
+					ginkgo.It(fmt.Sprintf("is running test pod exists : %s/%s for test command :  %s", containerFact.Namespace, containerFact.Name, "POD EXISTS"), func() {
+						gomega.Expect(containerFact.Exists).To(gomega.BeTrue())
+					})
+					continue
+				}
+				for _, testType := range cnf.Tests {
+					testFile, err := testcases.LoadConfiguredTestFile(configuredTestFile)
+					gomega.Expect(testFile).ToNot(gomega.BeNil())
+					gomega.Expect(err).To(gomega.BeNil())
+					testConfigure := testcases.ContainsConfiguredTest(testFile.CnfTest, testType)
+					renderedTestCase, err := testConfigure.RenderTestCaseSpec(testcases.Cnf, testType)
+					gomega.Expect(err).To(gomega.BeNil())
+					gomega.Expect(renderedTestCase).ToNot(gomega.BeNil())
+					for _, testCase := range renderedTestCase.TestCase {
+						if !testCase.SkipTest {
+							if testCase.ExpectedType == testcases.Function {
+								for _, val := range testCase.ExpectedStatus {
+									testCase.ExpectedStatusFn(cnf.Name, testcases.StatusFunctionType(val))
+								}
+							}
+							if testCase.Loop > 0 {
+								runTestsOnCNF(containerFact.ContainerCount, testCase, testType, containerFact)
+							} else {
+								runTestsOnCNF(testCase.Loop, testCase, testType, containerFact)
+							}
+						}
+					}
+				}
+			}
+		})
+
 	}
 })
+
+//nolint:gocritic // ignore hugeParam error. Pointers to loop iterator vars are bad and `testCmd` is likely to be such.
+func runTestsOnCNF(containerCount int, testCmd testcases.BaseTestCase,
+	testType string, facts testcases.ContainerFact) {
+	ginkgo.It(fmt.Sprintf("is running test for : %s/%s for test command :  %s", facts.Namespace, facts.Name, testCmd.Name), func() {
+		defer results.RecordResult(identifiers.TestHostResourceIdentifier)
+		containerCount := containerCount
+		testType := testType
+		facts := facts
+		testCmd := testCmd
+		var args []interface{}
+		if testType == testcases.PrivilegedRoles {
+			args = []interface{}{facts.Namespace, facts.Namespace, facts.ServiceAccount}
+		} else {
+			args = []interface{}{facts.Name, facts.Namespace}
+		}
+		if containerCount > 0 {
+			count := 0
+			for count < containerCount {
+				argsCount := append(args, count)
+				cmdArgs := strings.Split(fmt.Sprintf(testCmd.Command, argsCount...), " ")
+				cnfInTest := containerpkg.NewPod(cmdArgs, facts.Name, facts.Namespace, testCmd.ExpectedStatus, testCmd.ResultType, testCmd.Action, defaultTimeout)
+				gomega.Expect(cnfInTest).ToNot(gomega.BeNil())
+				test, err := tnf.NewTest(context.GetExpecter(), cnfInTest, []reel.Handler{cnfInTest}, context.GetErrorChannel())
+				gomega.Expect(err).To(gomega.BeNil())
+				gomega.Expect(test).ToNot(gomega.BeNil())
+				testResult, err := test.Run()
+				gomega.Expect(err).To(gomega.BeNil())
+				gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
+				count++
+			}
+		} else {
+			cmdArgs := strings.Split(fmt.Sprintf(testCmd.Command, args...), " ")
+			cnfInTest := containerpkg.NewPod(cmdArgs, facts.Name, facts.Namespace, testCmd.ExpectedStatus, testCmd.ResultType, testCmd.Action, defaultTimeout)
+			gomega.Expect(cnfInTest).ToNot(gomega.BeNil())
+			test, err := tnf.NewTest(context.GetExpecter(), cnfInTest, []reel.Handler{cnfInTest}, context.GetErrorChannel())
+			gomega.Expect(err).To(gomega.BeNil())
+			gomega.Expect(test).ToNot(gomega.BeNil())
+			testResult, err := test.Run()
+			gomega.Expect(err).To(gomega.BeNil())
+			gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
+		}
+	})
+}
 
 func testNamespace(oc *interactive.Oc) {
 	pod := oc.GetPodName()

@@ -35,7 +35,7 @@ const (
 )
 
 const (
-	containerTestSpecName = "container"
+	containerTestSpecName = "access-control"
 	operatorTestSpecName  = "operator"
 )
 
