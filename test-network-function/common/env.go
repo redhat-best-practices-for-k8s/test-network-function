@@ -167,3 +167,52 @@ func NonIntrusive() bool {
 	b, _ := strconv.ParseBool(os.Getenv("TNF_NON_INTRUSIVE_ONLY"))
 	return b
 }
+
+// ConfigurationData is used to host test configuration
+type ConfigurationData struct {
+	ContainersUnderTest map[configsections.ContainerIdentifier]*Container
+	PartnerContainers   map[configsections.ContainerIdentifier]*Container
+	TestOrchestrator    *Container
+	FsDiffContainer     *Container
+	needsRefresh        bool
+}
+
+// createContainersUnderTest sets up the test containers.
+func createContainersUnderTest(conf *configsections.TestConfiguration) map[configsections.ContainerIdentifier]*Container {
+	return createContainers(conf.ContainersUnderTest)
+}
+
+// createPartnerContainers sets up the partner containers.
+func createPartnerContainers(conf *configsections.TestConfiguration) map[configsections.ContainerIdentifier]*Container {
+	return createContainers(conf.PartnerContainers)
+}
+
+// Loadconfiguration the configuration into ConfigurationData
+func Loadconfiguration(configData *ConfigurationData) {
+	conf := GetTestConfiguration()
+	log.Infof("Test Configuration: %s", conf)
+
+	for _, cid := range conf.ExcludeContainersFromConnectivityTests {
+		ContainersToExcludeFromConnectivityTests[cid] = ""
+	}
+	configData.ContainersUnderTest = createContainersUnderTest(conf)
+	configData.PartnerContainers = createPartnerContainers(conf)
+	configData.TestOrchestrator = configData.PartnerContainers[conf.TestOrchestrator]
+	configData.FsDiffContainer = configData.PartnerContainers[conf.FsDiffMasterContainer]
+	log.Info(configData.TestOrchestrator)
+	log.Info(configData.ContainersUnderTest)
+}
+
+// ReloadConfiguration force the autodiscovery to run again
+func ReloadConfiguration(configData *ConfigurationData) {
+	if configData.needsRefresh {
+		config.SetNeedsRefresh()
+		Loadconfiguration(configData)
+	}
+	configData.needsRefresh = false
+}
+
+// SetNeedsRefresh indicate the config should be reloaded after this test
+func (configData *ConfigurationData) SetNeedsRefresh() {
+	configData.needsRefresh = true
+}
