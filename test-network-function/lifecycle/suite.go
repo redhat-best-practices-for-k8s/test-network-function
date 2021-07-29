@@ -98,8 +98,9 @@ var _ = ginkgo.Describe(common.LifecycleTestKey, func() {
 		testShutdown(&configData)
 
 		testPodAntiAffinity(&configData)
-
-		testPodsRecreation(&configData)
+		if common.NonIntrusive() {
+			testPodsRecreation(&configData)
+		}
 
 		testOwner(&configData)
 	}
