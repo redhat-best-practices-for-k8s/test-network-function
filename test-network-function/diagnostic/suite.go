@@ -2,9 +2,7 @@ package diagnostic
 
 import (
 	"encoding/json"
-	"os"
 	"path"
-	"strconv"
 	"strings"
 	"time"
 
@@ -173,7 +171,7 @@ func listNodeCniPlugins(nodeName string) []CniPlugin {
 }
 
 func testCniPlugins() {
-	if isMinikube() {
+	if common.IsMinikube() {
 		ginkgo.Skip("can't use 'oc debug' in minikube")
 	}
 	// get name of a master node
@@ -184,13 +182,8 @@ func testCniPlugins() {
 	gomega.Expect(cniPlugins).ToNot(gomega.BeNil())
 }
 
-func isMinikube() bool {
-	b, _ := strconv.ParseBool(os.Getenv("TNF_MINIKUBE_ONLY"))
-	return b
-}
-
 func testNodesHwInfo() {
-	if isMinikube() {
+	if common.IsMinikube() {
 		ginkgo.Skip("can't use 'oc debug' in minikube")
 	}
 
