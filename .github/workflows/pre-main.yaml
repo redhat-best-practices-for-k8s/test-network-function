@@ -118,8 +118,8 @@ jobs:
       - name: 'Test: Run diagnostic test suite'
         run: ./run-cnf-suites.sh diagnostic
 
-      - name: 'Test: Run generic test suite'
-        run: ./run-cnf-suites.sh generic access-control
+      - name: 'Test: Run test suites'
+        run: ./run-cnf-suites.sh access-control lifecycle platform observablility networking
 
       # Perform smoke tests using a TNF container.
 
