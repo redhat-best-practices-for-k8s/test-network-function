@@ -21,7 +21,10 @@ import (
 
 //TODO:
 type {{ .Handlername }} struct {
-	//fill the stub
+	result  int
+	timeout time.Duration
+	args    []string
+	//add special paramter
 }
 
 const (
@@ -30,25 +33,28 @@ const (
 )
 
 func (h *{{ .Handlername }}) Args() []string {
-	//fill the stub
+	return h.args
 }
 
 // GetIdentifier returns the tnf.Test specific identifier.
 func (h *{{ .Handlername }}) GetIdentifier() identifier.Identifier {
-	//fill the stub
+	// TODO create identifier.{{ .Handlername}}Identifier;
+
+	// return identifier.{{ .Handlername}}Identifier	
 }
 
 // Timeout return the timeout for the test.
 func (h *{{ .Handlername }}) Timeout() time.Duration {
-	//fill the stub
+	return h.timeout
 }
 
 // Result returns the test result.
 func (h *{{ .Handlername }}) Result() int {
-	//fill the stub
+	return h.result
 }
 
 func (h *{{ .Handlername }}) ReelFirst() *reel.Step {
+	return nil
 	//fill the stub
 }
 
@@ -57,14 +63,11 @@ func (h *{{ .Handlername }}) ReelMatch(_, _, match string) *reel.Step {
 }
 
 func (h *{{ .Handlername }}) ReelTimeout() *reel.Step {
+	return nil
 	//fill the stub
 }
 
 func (h *{{ .Handlername }}) ReelEOF() {
-	//fill the stub
-}
-
-func (h *{{ .Handlername }}) Get{{ .Handlername }}() string {
 	//fill the stub
 }
 

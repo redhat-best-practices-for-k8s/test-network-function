@@ -27,7 +27,7 @@ const (
 
 //TODO:
 func {{ .Handlername }}_Args{
-	//fill the stub
+	assert.Equal(t, []string{""}, h.Args())
 }
 
 func Test{{ .Handlername }}_getIdentifier{
