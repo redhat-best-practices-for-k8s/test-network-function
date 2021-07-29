@@ -1,4 +1,5 @@
 // Copyright (C) 2021 Red Hat, Inc.
+// Copyright (C) 2021 Red Hat, Inc.
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -448,5 +449,16 @@ the changes for you.`,
 		2) K8s will wait for a grace perdiod.
 		3) K8s will clean the remaining processes using KILL signal.		
 			`,
+	},
+	TestPodRecreationIdentifier: {
+		Identifier: TestPodRecreationIdentifier,
+		Type:       normativeResult,
+		Description: formDescription(TestPodRecreationIdentifier,
+			`tests that a CNF is configured to support High Availability.  
+			First, this test cordons and drains a Node that hosts the CNF Pod.  
+			Next, the test ensures that OpenShift can re-instantiate the Pod on another Node, 
+			and that the actual replica count matches the desired replica count.`),
+		Remediation: `Ensure that CNF Pod(s) utilize a configuration that supports High Availability.  
+			Additionally, ensure that there are available Nodes in the OpenShift cluster that can be utilized in the event that a host Node fails.`,
 	},
 }
