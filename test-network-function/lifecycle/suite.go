@@ -98,7 +98,8 @@ var _ = ginkgo.Describe(common.LifecycleTestKey, func() {
 		testShutdown(&configData)
 
 		testPodAntiAffinity(&configData)
-		if common.NonIntrusive() {
+
+		if !common.NonIntrusive() {
 			testPodsRecreation(&configData)
 		}
 
@@ -196,7 +197,7 @@ func testPodsRecreation(configData *common.ConfigurationData) {
 	var deployments dp.DeploymentMap
 	var notReadyDeployments []string
 	var nodesSorted []node // A slice version of nodes sorted by number of deployments descending
-	ginkgo.It("Testing node draining effect of deplyment", func() {
+	ginkgo.It("Testing node draining effect of deployment", func() {
 		configData.SetNeedsRefresh()
 		for _, cut := range configData.ContainersUnderTest {
 			namespace := cut.Oc.GetPodNamespace()
@@ -206,35 +207,33 @@ func testPodsRecreation(configData *common.ConfigurationData) {
 				return
 			}
 			// We require that all deployments have the desired number of replicas and are all up to date
-			if len(notReadyDeployments) == 0 {
+			if len(notReadyDeployments) != 0 {
 				ginkgo.Skip("Can not test when deployments are not ready")
 			}
 			gomega.Expect(notReadyDeployments).To(gomega.BeEmpty())
 			ginkgo.By("Should return map of nodes to deployments")
 			nodesSorted = getDeploymentsNodes(namespace)
-			if !common.NonIntrusive() {
-				ginkgo.By("should create new replicas when node is drained")
-				defer results.RecordResult(identifiers.TestPodRecreationIdentifier)
-				testedDeployments := map[string]bool{}
-				for _, n := range nodesSorted {
-					oldLen := len(testedDeployments) // this starts with zero
-					// mark tested deployments
-					for d := range n.deployments {
-						testedDeployments[d] = true
-					}
-					if oldLen == len(testedDeployments) {
-						// If node does not add new deployments then skip it
-						continue
-					}
-					// drain node
-					drainNode(n.name) // should go in this
-					// verify deployments are ready again
-					_, notReadyDeployments = getDeployments(namespace)
-					gomega.Expect(notReadyDeployments).To(gomega.BeEmpty()) // this is to make sure pods are created again
-					uncordonNode(n.name)
-					if len(testedDeployments) == len(deployments) {
-						break
-					}
+			ginkgo.By("should create new replicas when node is drained")
+			defer results.RecordResult(identifiers.TestPodRecreationIdentifier)
+			testedDeployments := map[string]bool{}
+			for _, n := range nodesSorted {
+				oldLen := len(testedDeployments) // this starts with zero
+				// mark tested deployments
+				for d := range n.deployments {
+					testedDeployments[d] = true
+				}
+				if oldLen == len(testedDeployments) {
+					// If node does not add new deployments then skip it
+					continue
+				}
+				// drain node
+				drainNode(n.name) // should go in this
+				// verify deployments are ready again
+				_, notReadyDeployments = getDeployments(namespace)
+				gomega.Expect(notReadyDeployments).To(gomega.BeEmpty()) // this is to make sure pods are created again
+				uncordonNode(n.name)
+				if len(testedDeployments) == len(deployments) {
+					break
 				}
 			}
 		}
