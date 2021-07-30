@@ -165,8 +165,8 @@ const (
 	Null RegExType = "NULL"
 	// Zero Allows the result to match 0 number
 	Zero RegExType = "ZERO"
-	// NonZero Allows the result to match non 0 number
-	NonZero RegExType = "NON_ZERO"
+	// NonZeroNumber Allows the result to match non 0 number
+	NonZeroNumber RegExType = "NON_ZERO_NUMBER"
 	// Error Allows the result to match error string
 	Error RegExType = "ERROR"
 	// Digit Allows the result to match any number
@@ -182,7 +182,7 @@ var outRegExp = map[RegExType]string{
 	True:           `^\b(true)\b$`,
 	Null:           `^\b(null)\b$`,
 	Zero:           `0`,
-	NonZero:        `^(\d([^0]+)|null)$`,
+	NonZeroNumber:  `^(0*([1-9]\d*)|null)$`,
 	Error:          "error",
 	Digit:          `\d`,
 }
