@@ -320,7 +320,7 @@ Suite|Test Spec Description|Minimum OpenShift Version
 `access-control`|The access-control test suite is used to test  service account, namespace and cluster/pod role binding for the pods under test. It also tests the pods/containers configuration.|4.4.3
 `affiliated-certification`|The affiliated-certification test suite verifies that the containers in the pod under test and operator under test are certified by Redhat|4.4.3
 `diagnostic`|The diagnostic test suite is used to gather node information from an OpenShift cluster.  The diagnostic test suite should be run whenever generating a claim.json file.|4.4.3
-`lifecycle`| The lifecycle test suite verifies that the pod deployment, creation, shutdown and  survivability. |4.4.3
+`lifecycle`| The lifecycle test suite verifies the pods deployment, creation, shutdown and  survivability. |4.4.3
 `networking`|The networking test suite contains tests that check connectivity and networking config related best practices.|4.4.3
 `operator`|The operator test suite is designed to test basic Kubernetes Operator functionality.|4.4.3
 `platform-alteration`| verifies that key platform configuration is not modified by the CNF under test|4.4.3
@@ -381,7 +381,7 @@ Here's an example of a Test pass.  It verifies that the CNF is using a replica s
 ------------------------------
 lifecycle when Testing owners of CNF pod 
   Should be only ReplicaSet
-  /home/deliedit/redhat/github/david/ssh/test-network-function/test-network-function/lifecycle/suite.go:339
+  /Users/$USER/cnf-cert/test-network-function/test-network-function/lifecycle/suite.go:339
 2021/07/27 11:41:25 Sent: "oc -n tnf get pods test-697ff58f87-d55zx -o custom-columns=OWNERKIND:.metadata.ownerReferences\\[\\*\\].kind && echo END_OF_TEST_SENTINEL\n"
 2021/07/27 11:41:26 Match for RE: "(?s)OWNERKIND\n.+((.|\n)*END_OF_TEST_SENTINEL\n)" found: ["OWNERKIND\nReplicaSet\nEND_OF_TEST_SENTINEL\n" "END_OF_TEST_SENTINEL\n" ""] Buffer: "OWNERKIND\nReplicaSet\nEND_OF_TEST_SENTINEL\n"
 •
@@ -451,22 +451,22 @@ specific CSV, but does not find it (the operator was not present on the cluster 
 ------------------------------
 operator Runs test on operators 
   should eventually be verified as certified (operator redhat-marketplace/etcd-operator)
-  /home/deliedit/redhat/github/david/ssh/test-network-function/test-network-function/operator/suite.go:146
+  /Users/$USER/cnf-cert/test-network-function/test-network-function/operator/suite.go:146
 
 • Failure [30.002 seconds]
 operator
-/home/deliedit/redhat/github/david/ssh/test-network-function/test-network-function/operator/suite.go:76
+/Users/$USER/cnf-cert/test-network-function/test-network-function/operator/suite.go:76
   Runs test on operators
-  /home/deliedit/redhat/github/david/ssh/test-network-function/test-network-function/operator/suite.go:89
+  /Users/$USER/cnf-cert/test-network-function/test-network-function/operator/suite.go:89
     should eventually be verified as certified (operator redhat-marketplace/etcd-operator) [It]
-    /home/deliedit/redhat/github/david/ssh/test-network-function/test-network-function/operator/suite.go:146
+    /Users/$USER/cnf-cert/test-network-function/test-network-function/operator/suite.go:146
 
     Timed out after 30.001s.
     Expected
         <bool>: false
     to be true
 
-    /home/deliedit/redhat/github/david/ssh/test-network-function/test-network-function/operator/suite.go:152
+    /Users/$USER/cnf-cert/test-network-function/test-network-function/operator/suite.go:152
 ```
 
 ## Grading Tool
