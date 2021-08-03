@@ -20,9 +20,11 @@ import (
 	"fmt"
 	"path"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/generic"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/scaling"
 	"github.com/test-network-function/test-network-function/pkg/tnf/testcases"
 
 	"github.com/test-network-function/test-network-function/test-network-function/common"
@@ -47,6 +49,8 @@ const (
 	defaultTerminationGracePeriod = 30
 	drainTimeoutMinutes           = 5
 	partnerPod                    = "partner"
+	scalingTimeout                = 60 * time.Second
+	scalingPollingPeriod          = 1 * time.Second
 )
 
 var (
@@ -104,8 +108,64 @@ var _ = ginkgo.Describe(common.LifecycleTestKey, func() {
 		}
 
 		testOwner(&configData)
+
+		testScaling(&configData)
 	}
 })
+
+func waitForAllDeploymentsReady(namespace string, timeout, pollingPeriod time.Duration) {
+	gomega.Eventually(func() []string {
+		_, notReadyDeployments := getDeployments(namespace)
+		return notReadyDeployments
+	}, timeout, pollingPeriod).Should(gomega.HaveLen(0))
+}
+
+func testScaling(configData *common.ConfigurationData) {
+	ginkgo.It("Testing deployment scaling", func() {
+		defer results.RecordResult(identifiers.TestScalingIdentifier)
+
+		// Map to register the deployments that have been already tested
+		deploymentNames := make(map[string]bool)
+
+		for _, cut := range configData.ContainersUnderTest {
+			namespace := cut.Oc.GetPodNamespace()
+
+			// Get deployment name and check whether it was already tested.
+			// ToDo: Proper way (helper/handler) to do this.
+			podNameParts := strings.Split(cut.Oc.GetPodName(), "-")
+			deploymentName := podNameParts[0]
+
+			if _, alreadyTested := deploymentNames[deploymentName]; alreadyTested {
+				continue
+			}
+
+			// Get deployment's current replicaCount
+			deployments, _ := getDeployments(namespace)
+			replicaCount := deployments[deploymentName].Replicas
+
+			// ScaleIn, removing one pod from the replicaCount
+			scaleInHandler := scaling.NewScaling(common.DefaultTimeout, namespace, deploymentName, (replicaCount - 1))
+			testScaleIn, errScaleIn := tnf.NewTest(common.GetContext().GetExpecter(), scaleInHandler, []reel.Handler{scaleInHandler}, common.GetContext().GetErrorChannel())
+			gomega.Expect(errScaleIn).To(gomega.BeNil())
+			common.RunAndValidateTest(testScaleIn)
+
+			// Wait until the deployment is ready
+			waitForAllDeploymentsReady(namespace, scalingTimeout, scalingPollingPeriod)
+
+			// Scaleout, restoring the original replicaCount number
+			scaleOutHandler := scaling.NewScaling(common.DefaultTimeout, namespace, deploymentName, replicaCount)
+			testScaleOut, errScaleOut := tnf.NewTest(common.GetContext().GetExpecter(), scaleOutHandler, []reel.Handler{scaleOutHandler}, common.GetContext().GetErrorChannel())
+			gomega.Expect(errScaleOut).To(gomega.BeNil())
+			common.RunAndValidateTest(testScaleOut)
+
+			//  Wait until the deployment is ready
+			waitForAllDeploymentsReady(namespace, scalingTimeout, scalingPollingPeriod)
+
+			// Set this deployment as tested
+			deploymentNames[deploymentName] = true
+		}
+	})
+}
 
 func testNodeSelector(configData *common.ConfigurationData) {
 	ginkgo.It("Testing pod nodeSelector", func() {

@@ -179,6 +179,12 @@ var (
 		Url:     formTestURL(common.LifecycleTestKey, "container-shutdown"),
 		Version: versionOne,
 	}
+
+	// TestScalingIdentifier ensures pre-stop lifecycle is defined
+	TestScalingIdentifier = claim.Identifier{
+		Url:     formTestURL(common.LifecycleTestKey, "lifecycle"),
+		Version: versionOne,
+	}
 )
 
 func formDescription(identifier claim.Identifier, description string) string {

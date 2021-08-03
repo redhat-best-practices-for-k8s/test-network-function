@@ -523,6 +523,16 @@ Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`cat`, `oc`
 
+### http://test-network-function.com/tests/scaling
+Property|Description
+---|---
+Version|v1.0.0
+Description|A test to check the deployments scale in/out
+Result Type|normative
+Intrusive|true
+Modifications Persist After Test|false
+Runtime Binaries Required|`oc`
+
 ### http://test-network-function.com/tests/serviceaccount
 Property|Description
 ---|---
