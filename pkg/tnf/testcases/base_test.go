@@ -122,7 +122,7 @@ func TestLoadInvalidPathCNFTestCaseSpecsFromFile(t *testing.T) {
 }
 
 func TestBaseTestCase_CNFExpectedStatusFn(t *testing.T) {
-	var facts = testcases.ContainerFact{}
+	var facts = testcases.PodFact{}
 	facts.Name = name
 	facts.ServiceAccount = "TEST_SERVICE_ACCOUNT_NAME"
 	testCase, err := testcases.LoadTestCaseSpecsFromFile(testcases.PrivilegedRoles, cnfFilePath, testcases.Cnf)

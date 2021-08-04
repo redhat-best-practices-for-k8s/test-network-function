@@ -14,7 +14,7 @@
 // with this program; if not, write to the Free Software Foundation, Inc.,
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-package configsections_test
+package configsections
 
 import (
 	"encoding/json"
@@ -24,8 +24,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/test-network-function/test-network-function/pkg/config"
-	"github.com/test-network-function/test-network-function/pkg/config/configsections"
 	"github.com/test-network-function/test-network-function/pkg/tnf/testcases"
 	"gopkg.in/yaml.v2"
 )
@@ -34,7 +32,7 @@ var (
 	file     *os.File
 	jsonFile *os.File
 	err      error
-	test     config.File
+	test     TestConfiguration
 )
 
 const (
@@ -71,7 +69,7 @@ const (
 	filePerm = 0644
 )
 
-func saveConfig(c *config.File, configPath string) (err error) {
+func saveConfig(c *TestConfiguration, configPath string) (err error) {
 	bytes, _ := yaml.Marshal(c)
 	if err != nil {
 		return
@@ -80,7 +78,7 @@ func saveConfig(c *config.File, configPath string) (err error) {
 	return
 }
 
-func saveConfigAsJSON(c *config.File, configPath string) (err error) {
+func saveConfigAsJSON(c *TestConfiguration, configPath string) (err error) {
 	bytes, err := json.Marshal(c)
 	if err != nil {
 		return
@@ -90,9 +88,9 @@ func saveConfigAsJSON(c *config.File, configPath string) (err error) {
 }
 
 // newConfig  returns a new decoded TnfContainerOperatorTestConfig struct
-func newConfig(configPath string) (*config.File, error) {
+func newConfig(configPath string) (*TestConfiguration, error) {
 	// Create config structure
-	conf := &config.File{}
+	conf := &TestConfiguration{}
 	// Open config file
 	if file, err = os.Open(configPath); err != nil {
 		return nil, err
@@ -107,53 +105,47 @@ func newConfig(configPath string) (*config.File, error) {
 	return conf, nil
 }
 
-func loadCnfConfig() {
-	// CNF only
-	test.CNFs = []configsections.Cnf{
+func loadPodConfig() {
+	test.PodsUnderTest = []Pod{
 		{
 			Name:      cnfName,
 			Namespace: testNameSpace,
 			Tests:     []string{testcases.PrivilegedPod},
 		},
 	}
-	test.CnfAvailableTestCases = nil
-	for key := range testcases.CnfTestTemplateFileMap {
-		test.CnfAvailableTestCases = append(test.CnfAvailableTestCases, key)
-	}
 }
 
 func loadOperatorConfig() {
-	operator := configsections.Operator{}
+	operator := Operator{}
 	operator.Name = operatorName
 	operator.Namespace = operatorNameSpace
 	setCrdsAndInstances()
-	dep := configsections.Deployment{}
+	dep := Deployment{}
 	dep.Name = deploymentName
 	dep.Replicas = deploymentReplicas
 	operator.Tests = []string{testcases.OperatorStatus}
 	test.Operators = append(test.Operators, operator)
-	// CNF only
-	loadCnfConfig()
+	loadPodConfig()
 }
 
 func setCrdsAndInstances() {
-	crd := configsections.Crd{}
+	crd := Crd{}
 	crd.Name = crdNameOne
 	crd.Namespace = testNameSpace
-	instance := configsections.Instance{}
+	instance := Instance{}
 	instance.Name = instanceNameOne
 	crd.Instances = append(crd.Instances, instance)
-	crd2 := configsections.Crd{}
+	crd2 := Crd{}
 	crd2.Name = crdNameTwo
 	crd2.Namespace = testNameSpace
-	instance2 := configsections.Instance{}
+	instance2 := Instance{}
 	instance2.Name = instanceNameTwo
 	crd2.Instances = append(crd2.Instances, instance2)
 }
 
 func loadFullConfig() {
 	loadOperatorConfig()
-	loadCnfConfig()
+	loadPodConfig()
 }
 
 func setup(configType string) {
@@ -161,12 +153,12 @@ func setup(configType string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	test = config.File{}
+	test = TestConfiguration{}
 	switch configType {
 	case fullConfig:
 		loadFullConfig()
 	case cnfConfig:
-		loadCnfConfig()
+		loadPodConfig()
 	case operatorConfig:
 		loadOperatorConfig()
 	}
@@ -181,12 +173,12 @@ func setupJSON(configType string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	test = config.File{}
+	test = TestConfiguration{}
 	switch configType {
 	case fullConfig:
 		loadFullConfig()
 	case cnfConfig:
-		loadCnfConfig()
+		loadPodConfig()
 	case operatorConfig:
 		loadOperatorConfig()
 	}
@@ -211,16 +203,16 @@ func TestFullConfigLoad(t *testing.T) {
 	cfg, err := newConfig(file.Name())
 	assert.NotNil(t, cfg)
 	assert.Equal(t, len(cfg.Operators), 1)
-	assert.Equal(t, cfg.CNFs[0].Name, cnfName)
+	assert.Equal(t, cfg.PodsUnderTest[0].Name, cnfName)
 	assert.Nil(t, err)
 }
 
-func TestCnfConfigLoad(t *testing.T) {
+func TestPodConfigLoad(t *testing.T) {
 	setup(cnfConfig)
 	defer (teardown)()
 	cfg, err := newConfig(file.Name())
 	assert.NotNil(t, cfg)
-	assert.Equal(t, cfg.CNFs[0].Name, cnfName)
+	assert.Equal(t, cfg.PodsUnderTest[0].Name, cnfName)
 	assert.Nil(t, err)
 }
 
@@ -246,7 +238,7 @@ func TestFullJsonConfig(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, yamlCfg)
 	assert.Equal(t, yamlCfg.Operators, jsonCfg.Operators)
-	assert.Equal(t, yamlCfg.CNFs, jsonCfg.CNFs)
+	assert.Equal(t, yamlCfg.PodsUnderTest, jsonCfg.PodsUnderTest)
 }
 
 func TestCnfJsonConfig(t *testing.T) {
@@ -261,7 +253,7 @@ func TestCnfJsonConfig(t *testing.T) {
 	yamlCfg, err := newConfig(file.Name())
 	assert.Nil(t, err)
 	assert.NotNil(t, yamlCfg)
-	assert.Equal(t, yamlCfg.CNFs, jsonCfg.CNFs)
+	assert.Equal(t, yamlCfg.PodsUnderTest, jsonCfg.PodsUnderTest)
 }
 
 func TestOperatorJsonConfig(t *testing.T) {
