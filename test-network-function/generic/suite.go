@@ -31,7 +31,6 @@ import (
 	"github.com/onsi/ginkgo"
 	ginkgoconfig "github.com/onsi/ginkgo/config"
 	"github.com/onsi/gomega"
-	log "github.com/sirupsen/logrus"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/base/redhat"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/bootconfigentries"
@@ -56,48 +55,44 @@ const (
 // Runs the "generic" CNF test cases.
 var _ = ginkgo.Describe(testsKey, func() {
 	if testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusStrings, testsKey) {
+		configData := common.ConfigurationData{}
+		configData.SetNeedsRefresh()
+		ginkgo.BeforeEach(func() {
+			common.ReloadConfiguration(&configData)
+		})
 
-		config := common.GetTestConfiguration()
-		log.Infof("Test Configuration: %s", config)
-
-		for _, cid := range config.ExcludeContainersFromConnectivityTests {
-			common.ContainersToExcludeFromConnectivityTests[cid] = ""
-		}
-		containersUnderTest := common.CreateContainersUnderTest(config)
-		partnerContainers := common.CreatePartnerContainers(config)
-		testOrchestrator := partnerContainers[config.TestOrchestrator]
-		log.Info(testOrchestrator)
-		log.Info(containersUnderTest)
-
-		for _, containerUnderTest := range containersUnderTest {
-			testIsRedHatRelease(containerUnderTest.Oc)
-		}
-		testIsRedHatRelease(testOrchestrator.Oc)
+		testIsRedHatRelease(&configData)
 
 		if !common.IsMinikube() {
-			for _, containersUnderTest := range containersUnderTest {
-				// To be removed once Isaac's fix is merged
-				testBootParams(common.GetContext(), containersUnderTest.Oc.GetPodName(), containersUnderTest.Oc.GetPodNamespace(), containersUnderTest.Oc)
-			}
+			// To be removed once Isaac's fix
+			// is merged
+			testBootParams(&configData)
 		}
-
 	}
 })
 
-// testIsRedHatRelease tests whether the container attached to oc is Red Hat based.
-func testIsRedHatRelease(oc *interactive.Oc) {
-	pod := oc.GetPodName()
-	container := oc.GetPodContainerName()
-	ginkgo.When(fmt.Sprintf("%s(%s) is checked for Red Hat version", pod, container), func() {
-		ginkgo.It("Should report a proper Red Hat version", func() {
-			versionTester := redhat.NewRelease(common.DefaultTimeout)
-			test, err := tnf.NewTest(oc.GetExpecter(), versionTester, []reel.Handler{versionTester}, oc.GetErrorChannel())
-			gomega.Expect(err).To(gomega.BeNil())
-			testResult, err := test.Run()
-			gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
-			gomega.Expect(err).To(gomega.BeNil())
-		})
+// testIsRedHatRelease fetch the configuration and test containers attached to oc is Red Hat based.
+func testIsRedHatRelease(configData *common.ConfigurationData) {
+	ginkgo.It("Should report a proper Red Hat version", func() {
+		for _, cut := range configData.ContainersUnderTest {
+			testContainerIsRedHatRelease(cut)
+		}
+		testContainerIsRedHatRelease(configData.TestOrchestrator)
 	})
+}
+
+// testContainerIsRedHatRelease tests whether the container attached to oc is Red Hat based.
+func testContainerIsRedHatRelease(cut *common.Container) {
+	podName := cut.Oc.GetPodName()
+	containerName := cut.Oc.GetPodContainerName()
+	context := cut.Oc
+	ginkgo.By(fmt.Sprintf("%s(%s) is checked for Red Hat version", podName, containerName))
+	versionTester := redhat.NewRelease(common.DefaultTimeout)
+	test, err := tnf.NewTest(context.GetExpecter(), versionTester, []reel.Handler{versionTester}, context.GetErrorChannel())
+	gomega.Expect(err).To(gomega.BeNil())
+	testResult, err := test.Run()
+	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
+	gomega.Expect(err).To(gomega.BeNil())
 }
 
 func getMcKernelArguments(context *interactive.Context, mcName string) map[string]string {
@@ -184,21 +179,28 @@ func getGrubKernelArgs(context *interactive.Context, nodeName string) map[string
 	return utils.ArgListToMap(grubSplitKernelConfig)
 }
 
-func testBootParams(context *interactive.Context, podName, podNamespace string, targetPodOc *interactive.Oc) {
-	ginkgo.It(fmt.Sprintf("Testing boot params for the pod's node %s/%s", podNamespace, podName), func() {
-		defer results.RecordResult(identifiers.TestUnalteredStartupBootParamsIdentifier)
-		nodeName := getPodNodeName(context, podName, podNamespace)
-		mcName := getMcName(context, nodeName)
-		mcKernelArgumentsMap := getMcKernelArguments(context, mcName)
-		currentKernelArgsMap := getCurrentKernelCmdlineArgs(targetPodOc)
-		grubKernelConfigMap := getGrubKernelArgs(context, nodeName)
-
-		for key, mcVal := range mcKernelArgumentsMap {
-			if currentVal, ok := currentKernelArgsMap[key]; ok {
-				gomega.Expect(currentVal).To(gomega.Equal(mcVal))
-			}
-			if grubVal, ok := grubKernelConfigMap[key]; ok {
-				gomega.Expect(grubVal).To(gomega.Equal(mcVal))
+// testBootParams test Boot parameters of nodes
+func testBootParams(configData *common.ConfigurationData) {
+	ginkgo.It("generic-boot-param", func() {
+		for _, cut := range configData.ContainersUnderTest {
+			context := common.GetContext()
+			podName := cut.Oc.GetPodName()
+			podNamespace := cut.Oc.GetPodNamespace()
+			targetPodOc := cut.Oc
+			defer results.RecordResult(identifiers.TestUnalteredStartupBootParamsIdentifier)
+			ginkgo.By(fmt.Sprintf("Testing boot params for the pod's node %s/%s", podNamespace, podName))
+			nodeName := getPodNodeName(context, podName, podNamespace)
+			mcName := getMcName(context, nodeName)
+			mcKernelArgumentsMap := getMcKernelArguments(context, mcName)
+			currentKernelArgsMap := getCurrentKernelCmdlineArgs(targetPodOc)
+			grubKernelConfigMap := getGrubKernelArgs(context, nodeName)
+			for key, mcVal := range mcKernelArgumentsMap {
+				if currentVal, ok := currentKernelArgsMap[key]; ok {
+					gomega.Expect(currentVal).To(gomega.Equal(mcVal))
+				}
+				if grubVal, ok := grubKernelConfigMap[key]; ok {
+					gomega.Expect(grubVal).To(gomega.Equal(mcVal))
+				}
 			}
 		}
 	})

@@ -95,17 +95,14 @@ var _ = ginkgo.Describe(testSpecName, func() {
 
 // testOperatorsAreInstalledViaOLM ensures all configured operators have a proper OLM subscription.
 func testOperatorsAreInstalledViaOLM() {
-	_, operatorsInTest := getConfig()
-	for _, operatorInTest := range operatorsInTest {
-		ginkgo.Context("an operator is installed", func() {
-			ginkgo.When("subscriptions are polled", func() {
-				ginkgo.It(fmt.Sprintf("%s in namespace %s Should have a valid subscription", operatorInTest.SubscriptionName, operatorInTest.Namespace), func() {
-					defer results.RecordResult(identifiers.TestOperatorIsInstalledViaOLMIdentifier)
-					testOperatorIsInstalledViaOLM(operatorInTest.SubscriptionName, operatorInTest.Namespace)
-				})
-			})
-		})
-	}
+	ginkgo.It("operator-olm-installed", func() {
+		_, operatorsInTest := getConfig()
+		for _, operatorInTest := range operatorsInTest {
+			defer results.RecordResult(identifiers.TestOperatorIsInstalledViaOLMIdentifier)
+			ginkgo.By(fmt.Sprintf("%s in namespace %s Should have a valid subscription", operatorInTest.SubscriptionName, operatorInTest.Namespace))
+			testOperatorIsInstalledViaOLM(operatorInTest.SubscriptionName, operatorInTest.Namespace)
+		}
+	})
 }
 
 // testOperatorIsInstalledViaOLM tests that an operator is installed via OLM.
@@ -138,47 +135,48 @@ func getConfig() ([]configsections.CertifiedOperatorRequestInfo, []configsection
 }
 
 func itRunsTestsOnOperator() {
-	operatorsToQuery, operatorsInTest := getConfig()
-	if len(operatorsToQuery) > 0 {
-		certAPIClient := api.NewHTTPClient()
-		for _, certified := range operatorsToQuery {
-			// Care: this test takes some time to run, failures at later points while before this has finished may be reported as a failure here. Read the failure reason carefully.
-			ginkgo.It(fmt.Sprintf("should eventually be verified as certified (operator %s/%s)", certified.Organization, certified.Name), func() {
+	ginkgo.It("operator-certification", func() {
+		operatorsToQuery, operatorsInTest := getConfig()
+		if len(operatorsToQuery) > 0 {
+			certAPIClient := api.NewHTTPClient()
+			for _, certified := range operatorsToQuery {
+				// Care: this test takes some time to run, failures at later points while before this has finished may be reported as a failure here. Read the failure reason carefully.
+				ginkgo.By(fmt.Sprintf("should eventually be verified as certified (operator %s/%s)", certified.Organization, certified.Name))
 				defer results.RecordResult(identifiers.TestOperatorIsCertifiedIdentifier)
 				certified := certified // pin
 				gomega.Eventually(func() bool {
 					isCertified := certAPIClient.IsOperatorCertified(certified.Organization, certified.Name)
 					return isCertified
 				}, eventuallyTimeoutSeconds, interval).Should(gomega.BeTrue())
-			})
-		}
-	}
-	gomega.Expect(operatorsInTest).ToNot(gomega.BeNil())
-	for _, op := range operatorsInTest {
-		// TODO: Gather facts for operator
-		for _, testType := range op.Tests {
-			testFile, err := testcases.LoadConfiguredTestFile(configuredTestFile)
-			gomega.Expect(testFile).ToNot(gomega.BeNil())
-			gomega.Expect(err).To(gomega.BeNil())
-			testConfigure := testcases.ContainsConfiguredTest(testFile.OperatorTest, testType)
-			renderedTestCase, err := testConfigure.RenderTestCaseSpec(testcases.Operator, testType)
-			gomega.Expect(err).To(gomega.BeNil())
-			gomega.Expect(renderedTestCase).ToNot(gomega.BeNil())
-			for _, testCase := range renderedTestCase.TestCase {
-				if testCase.SkipTest {
-					continue
-				}
-				if testCase.ExpectedType == testcases.Function {
-					for _, val := range testCase.ExpectedStatus {
-						testCase.ExpectedStatusFn(op.Name, testcases.StatusFunctionType(val))
-					}
-				}
-				name := agrName(op.Name, op.SubscriptionName, testCase.Name)
-				args := []interface{}{name, op.Namespace}
-				runTestsOnOperator(args, name, op.Namespace, testCase)
 			}
 		}
-	}
+		gomega.Expect(operatorsInTest).ToNot(gomega.BeNil())
+		for _, op := range operatorsInTest {
+			// TODO: Gather facts for operator
+			for _, testType := range op.Tests {
+				testFile, err := testcases.LoadConfiguredTestFile(configuredTestFile)
+				gomega.Expect(testFile).ToNot(gomega.BeNil())
+				gomega.Expect(err).To(gomega.BeNil())
+				testConfigure := testcases.ContainsConfiguredTest(testFile.OperatorTest, testType)
+				renderedTestCase, err := testConfigure.RenderTestCaseSpec(testcases.Operator, testType)
+				gomega.Expect(err).To(gomega.BeNil())
+				gomega.Expect(renderedTestCase).ToNot(gomega.BeNil())
+				for _, testCase := range renderedTestCase.TestCase {
+					if testCase.SkipTest {
+						continue
+					}
+					if testCase.ExpectedType == testcases.Function {
+						for _, val := range testCase.ExpectedStatus {
+							testCase.ExpectedStatusFn(op.Name, testcases.StatusFunctionType(val))
+						}
+					}
+					name := agrName(op.Name, op.SubscriptionName, testCase.Name)
+					args := []interface{}{name, op.Namespace}
+					runTestsOnOperator(args, name, op.Namespace, testCase)
+				}
+			}
+		}
+	})
 }
 
 func agrName(operatorName, subName, testName string) string {
