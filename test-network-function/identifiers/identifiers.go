@@ -180,7 +180,7 @@ var (
 		Version: versionOne,
 	}
 
-	// TestScalingIdentifier ensures pre-stop lifecycle is defined
+	// TestScalingIdentifier ensures deployment scale in/out operations work correctly.
 	TestScalingIdentifier = claim.Identifier{
 		Url:     formTestURL(common.LifecycleTestKey, "lifecycle"),
 		Version: versionOne,

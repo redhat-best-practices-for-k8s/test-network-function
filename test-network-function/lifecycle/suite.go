@@ -145,8 +145,8 @@ func testScaling(configData *common.ConfigurationData) {
 
 			// ScaleIn, removing one pod from the replicaCount
 			scaleInHandler := scaling.NewScaling(common.DefaultTimeout, namespace, deploymentName, (replicaCount - 1))
-			testScaleIn, errScaleIn := tnf.NewTest(common.GetContext().GetExpecter(), scaleInHandler, []reel.Handler{scaleInHandler}, common.GetContext().GetErrorChannel())
-			gomega.Expect(errScaleIn).To(gomega.BeNil())
+			testScaleIn, err := tnf.NewTest(common.GetContext().GetExpecter(), scaleInHandler, []reel.Handler{scaleInHandler}, common.GetContext().GetErrorChannel())
+			gomega.Expect(err).To(gomega.BeNil())
 			common.RunAndValidateTest(testScaleIn)
 
 			// Wait until the deployment is ready
@@ -154,8 +154,8 @@ func testScaling(configData *common.ConfigurationData) {
 
 			// Scaleout, restoring the original replicaCount number
 			scaleOutHandler := scaling.NewScaling(common.DefaultTimeout, namespace, deploymentName, replicaCount)
-			testScaleOut, errScaleOut := tnf.NewTest(common.GetContext().GetExpecter(), scaleOutHandler, []reel.Handler{scaleOutHandler}, common.GetContext().GetErrorChannel())
-			gomega.Expect(errScaleOut).To(gomega.BeNil())
+			testScaleOut, err := tnf.NewTest(common.GetContext().GetExpecter(), scaleOutHandler, []reel.Handler{scaleOutHandler}, common.GetContext().GetErrorChannel())
+			gomega.Expect(err).To(gomega.BeNil())
 			common.RunAndValidateTest(testScaleOut)
 
 			//  Wait until the deployment is ready

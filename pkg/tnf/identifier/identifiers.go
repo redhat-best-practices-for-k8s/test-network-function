@@ -558,9 +558,12 @@ var Catalog = map[string]TestCatalogEntry{
 		},
 	},
 	scalingIdentifierURL: {
-		Identifier:  ScalingIdentifier,
-		Description: "A test to check the deployments scale in/out",
-		Type:        Normative,
+		Identifier: ScalingIdentifier,
+		Description: "A test to check the deployments scale in/out. The test starts getting the current " +
+			"replicaCount (N) of the deployment/s with the Pod Under Test. Then, it executes the " +
+			"scale-in oc command for (N-1) replicas. Lastly, it executes the scale-out oc command, " +
+			"restoring the original replicaCount of the deployment/s.",
+		Type: Normative,
 		IntrusionSettings: IntrusionSettings{
 			ModifiesSystem:           true,
 			ModificationIsPersistent: false,

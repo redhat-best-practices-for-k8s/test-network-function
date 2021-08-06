@@ -527,7 +527,7 @@ Runtime Binaries Required|`cat`, `oc`
 Property|Description
 ---|---
 Version|v1.0.0
-Description|A test to check the deployments scale in/out
+Description|A test to check the deployments scale in/out. The test starts getting the current replicaCount (N) of the deployment/s with the Pod Under Test. Then, it executes the scale-in oc command for (N-1) replicas. Lastly, it executes the scale-out oc command, restoring the original replicaCount of the deployment/s.
 Result Type|normative
 Intrusive|true
 Modifications Persist After Test|false

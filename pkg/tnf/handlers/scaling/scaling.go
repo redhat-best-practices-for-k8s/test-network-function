@@ -31,7 +31,7 @@ const (
 	regex     = "^deployment.*/%s scaled"
 )
 
-// Scaling holds information derived from running "oc -n <namespace> get deployments" on the command line.
+// Scaling holds the Scaling handler parameters.
 type Scaling struct {
 	result  int
 	timeout time.Duration
@@ -39,7 +39,7 @@ type Scaling struct {
 	regex   string
 }
 
-// NewScaling creates a new Scaling handler
+// NewScaling creates a new Scaling handler.
 func NewScaling(timeout time.Duration, namespace, deploymentName string, replicaCount int) *Scaling {
 	command := fmt.Sprintf(ocCommand, replicaCount, deploymentName, namespace)
 	return &Scaling{
@@ -70,7 +70,7 @@ func (scaling *Scaling) Result() int {
 	return scaling.result
 }
 
-// ReelFirst returns a step which expects the ping statistics within the test timeout.
+// ReelFirst returns a step which expects the scale command output within the test timeout.
 func (scaling *Scaling) ReelFirst() *reel.Step {
 	return &reel.Step{
 		Execute: "",
