@@ -17,19 +17,21 @@
 package {{ .Handlername }}
 
 import (
+	"time"
+	"github.com/test-network-function/test-network-function/pkg/tnf"
+	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
 )
 
-//TODO:
+// TODO:
 type {{ .Handlername }} struct {
 	result  int
 	timeout time.Duration
 	args    []string
-	//adding special paramters
+	// adding special parameters
 }
 
 const (
-	Command = {{ .Handlername }}
-	SuccessfulOutputRegex = `.+`
+	// adding special variables
 )
 
 func (h *{{ .Handlername }}) Args() []string {
@@ -37,10 +39,8 @@ func (h *{{ .Handlername }}) Args() []string {
 }
 
 // GetIdentifier returns the tnf.Test specific identifier.
-func (h *{{ .Handlername }}) GetIdentifier() identifier.Identifier {
-	// TODO create identifier.{{ .Handlername}}Identifier;
-
-	// return identifier.{{ .Handlername}}Identifier	
+func (h *{{ .Handlername }}) GetIdentifier() {
+	// TODO : create identifier.{{ .Handlername}}Identifier.	
 }
 
 // Timeout return the timeout for the test.
@@ -56,31 +56,25 @@ func (h *{{ .Handlername }}) Result() int {
 // ReelFirst returns a step which expects an Handlername summary for the given device.
 func (h *{{ .Handlername }}) ReelFirst() *reel.Step {
 	return &reel.Step{
-		Expect: []string{""}, //TODO : pass the list of possible regex in here
+		Expect: []string{""}, // TODO : pass the list of possible regex in here
 		Timeout: h.timeout,
 	}
 }
 
 // ReelMatch parses the Handlername output and set the test result on match.
-// Returns no step; the test is complete.
 func (h *{{ .Handlername }}) ReelMatch(_, _, match string) *reel.Step {
 	h.result = tnf.ERROR
 	return nil
-	//TODO : add the matching logic in here
+	// TODO : add the matching logic in here
 }
 
 // ReelTimeout does nothing; Handlername requires no explicit intervention for a timeout.
 func (h *{{ .Handlername }}) ReelTimeout() *reel.Step {
 	return nil
-	//fill the stub
+	// TODO : fill the stub
 }
 
 // ReelEOF does nothing; Handlername requires no explicit intervention for EOF.
 func (h *{{ .Handlername }}) ReelEOF() {
-	//fill the stub
-}
-
-// New Handler name creates a new `Handlername` test which runs the Handlername command.
-func New{{ .Handlername }}(timeout time.Duration) *{{ .Handlername }} {
-	//fill the stub
+	// TODO : fill the stub
 }

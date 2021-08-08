@@ -17,38 +17,44 @@
 package {{ .Handlername }}
 
 import (
-	"time"
+	"testing"
 )
 
 const (
-	testTimeoutDuration = time.Second * 2
+	// adding special variable
 )
 
-//TODO:
-func {{ .Handlername }}_Args{
-	assert.Equal(t, []string{""}, h.Args())
+// {{ .Handlername }}_Args()
+func Test{{ .Handlername }}_Args(){
+	// Todo : write test for function {{ .Handlername }}_Args()
 }
 
-func Test{{ .Handlername }}_getIdentifier{
-	// fill the stub
+// {{ .Handlername }}_GetIdentifier
+func Test{{ .Handlername }}_GetIdentifier(){
+	// Todo : write test for function {{ .Handlername }}_GetIdentifier
 }
 
-func Test{{ .Handlername }}_ReelFirst{
-	// fill the stub
+// {{ .Handlername }}_ReelFirst
+func Test{{ .Handlername }}_ReelFirst(){
+	// Todo : write test for function {{ .Handlername }}_ReelFirst
 }
 
-func Test{{ .Handlername }}_ReelEof{
-	// fill the stub
+// {{ .Handlername }}_ReelEof
+func Test{{ .Handlername }}_ReelEof(){
+	// Todo : write test for function {{ .Handlername }}_ReelEof
 }
 
-func Test{{ .Handlername }}_Timeout{
-	// fill the stub
+// {{ .Handlername }}_ReelTimeout
+func Test{{ .Handlername }}_ReelTimeout(){
+	// Todo : write test for function {{ .Handlername }}_ReelTimeout
 }
 
-func Test{{ .Handlername }}_ReelMatch{
-	// fill the stub
+// {{ .Handlername }}_ReelMatch
+func Test{{ .Handlername }}_ReelMatch(){
+	// Todo : write test for function {{ .Handlername }}_ReelMatch
 }
 
-func TestNew{{ .Handlername }}{
-	// fill the stub
+// New{{ .Handlername }}
+func TestNew{{ .Handlername }}(t *testing.T){
+	// Todo : write test for function TestNew{{ .Handlername }}
 }
