@@ -17,19 +17,15 @@ targetPodLabels:
 #       defaultNetworkDevice: eth0
 #       multusIpAddresses:
 #         - 10.217.0.8
+#   podsUnderTest:
+#     - name: test
+#       namespace: tnf
 #   operators:
 #     - name: etcdoperator.v0.9.4
 #       namespace: default
 #       subscriptionName: etcd
 #       autogenerate: false
-#       tests:
-#         - OPERATOR_STATUS
-#   podsUnderTest:
-#     - name: test
-#       namespace: tnf
-#       tests:
-#         - PRIVILEGED_POD
-#         - PRIVILEGED_ROLE
+
 
 # The following section does not require manual configuration as autodiscovery is on by default.
 # Partner pods deployed automatically from the cnf-test-partner-repo should have all the labels

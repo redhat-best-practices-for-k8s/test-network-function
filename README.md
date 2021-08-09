@@ -1,3 +1,4 @@
+
 # Test Network Function ![build](https://github.com/test-network-function/test-network-function/actions/workflows/merge.yaml/badge.svg) [![Go Report Card](https://goreportcard.com/badge/github.com/test-network-function/test-network-function)](https://goreportcard.com/report/github.com/test-network-function/test-network-function)
 
 
@@ -21,12 +22,25 @@ In the diagram above:
 
 ## Test Configuration
 
-A sample config file can be found [here](test-network-function/tnf_config.yml). It consists of the following sections:
+The Test Network Function support auto-configuration using labels and annotations, but also a static configuration using a file. The following sections describe how to configure the TNF via labels/annotation and the corresponding settings in the config file. A sample config file can be found [here](test-network-function/tnf_config.yml).
 
 ### targetPodLabels
+The goal of this section is to specify the label to be used to identify the cnf under test pods. So for example, with the default configuration:
+```shell script
+targetPodLabels:
+  - namespace: test-network-function.com
+    name: generic
+    value: target
+```
 
-This section contains a list of labels that will be used to discover the pods and their containers to be tested **in addition to** the ones
-explicitly configured in the testTarget sections.
+The corresponding label prefix is: 
+```shell script
+test-network-function.com/generic: target 
+```
+
+When labelling a pod to be discovered and tested, the discoered pods are **in addition to** the ones
+explicitly configured in the testTarget sections of the config file.
+
 ### testTarget
 #### podsUnderTest / containersUnderTest
 This section is usually not required if labels defined in the section above cover all resources that should be tested. It's highly recommended that the labels shoud be defined in pod definition rather than added after pod is created, as labels added later on will be lost in case the pod gets rescheduled. In case of pods defined as part a deployment, it's best to use the same label as the one defined in the `spec.selector.matchLabels` section of the deployment yaml.
