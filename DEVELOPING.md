@@ -604,6 +604,14 @@ The same result could be achieved using a Go Template:
 oc get pod %s -n %s -o go-template='{{len .spec.containers}}{{"\n"}}'
 ```
 
+## Adding new handler
+
+To facilitate adding new handlers, the developers can leverage existing infrastructure to generate repetitive code.
+As an example, to generate handler with name Xyz, the command generate handler Xyz can be used(we need to run this command 
+in the folder "cmd/tnf/" and we run the command directly here).
+The generated code has a template and creates the necessary headers.
+The result is folder "new handler" located in /pkg/tnf/handlers/"new handler" that includes 3 files by handler template.
+
 ## Adding information to claim file
 
 The result of each test execution is included in the claim file.
