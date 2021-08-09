@@ -25,8 +25,8 @@ targetPodLabels:
 #       tests:
 #         - OPERATOR_STATUS
 #   podsUnderTest:
-#     - name: ubuntu
-#       namespace: default
+#     - name: test
+#       namespace: tnf
 #       tests:
 #         - PRIVILEGED_POD
 #         - PRIVILEGED_ROLE
