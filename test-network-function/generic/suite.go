@@ -56,6 +56,7 @@ const (
 // Runs the "generic" CNF test cases.
 var _ = ginkgo.Describe(testsKey, func() {
 	if testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusStrings, testsKey) {
+
 		config := common.GetTestConfiguration()
 		log.Infof("Test Configuration: %s", config)
 

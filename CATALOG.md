@@ -99,9 +99,9 @@ Suggested Remediation| 		It's considered best-practices to define prestop for pr
 Property|Description
 ---|---
 Version|v1.0.0
-Description|http://test-network-function.com/testcases/lifecycle/pod-high-availability ensures that CNF Pods specify podAntiAffinity rules and replica value is set more than 1.
+Description|http://test-network-function.com/testcases/lifecycle/pod-high-availability ensures that CNF Pods specify podAntiAffinity rules and replica value is set to more than 1.
 Result Type|informative
-Suggested Remediation|In high availability cases, Pod podAntiAffinity rule should be specified for pod scheduling and pod replica value is set more than 1 .
+Suggested Remediation|In high availability cases, Pod podAntiAffinity rule should be specified for pod scheduling and pod replica value is set to more than 1 .
 ### http://test-network-function.com/testcases/lifecycle/pod-owner-type
 
 Property|Description
@@ -110,6 +110,14 @@ Version|v1.0.0
 Description|http://test-network-function.com/testcases/lifecycle/pod-owner-type tests that CNF Pod(s) are deployed as part of a ReplicaSet(s).
 Result Type|normative
 Suggested Remediation|Deploy the CNF using DaemonSet or ReplicaSet.
+### http://test-network-function.com/testcases/lifecycle/pod-recreation
+
+Property|Description
+---|---
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/lifecycle/pod-recreation tests that a CNF is configured to support High Availability.   			First, this test cordons and drains a Node that hosts the CNF Pod.   			Next, the test ensures that OpenShift can re-instantiate the Pod on another Node,  			and that the actual replica count matches the desired replica count.
+Result Type|normative
+Suggested Remediation|Ensure that CNF Pod(s) utilize a configuration that supports High Availability.   			Additionally, ensure that there are available Nodes in the OpenShift cluster that can be utilized in the event that a host Node fails.
 ### http://test-network-function.com/testcases/lifecycle/pod-scheduling
 
 Property|Description

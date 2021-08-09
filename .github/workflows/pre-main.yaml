@@ -13,6 +13,7 @@ env:
   IMAGE_TAG: unstable
   TNF_CONTAINER_CLIENT: docker
   TNF_MINIKUBE_ONLY: true
+  TNF_NON_INTRUSIVE_ONLY: true
   TNF_DISABLE_CONFIG_AUTODISCOVER: false
   TNF_CONFIG_DIR: /tmp/tnf/config
   TNF_OUTPUT_DIR: /tmp/tnf/output
