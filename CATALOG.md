@@ -141,7 +141,7 @@ Property|Description
 Version|v1.0.0
 Description|http://test-network-function.com/testcases/lifecycle/scaling tests that CNF deployments support scale in/out operations.  			First, The test starts getting the current replicaCount (N) of the deployment/s with the Pod Under Test. Then, it executes the  			scale-in oc command for (N-1) replicas. Lastly, it executes the scale-out oc command, restoring the original replicaCount of the deployment/s.
 Result Type|normative
-Suggested Remediation|
+Suggested Remediation|Make sure CNF deployments/replica sets can scale in/out successfully.
 ### http://test-network-function.com/testcases/networking/icmpv4-connectivity
 
 Property|Description

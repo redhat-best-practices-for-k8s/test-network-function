@@ -474,6 +474,6 @@ the changes for you.`,
 			`tests that CNF deployments support scale in/out operations. 
 			First, The test starts getting the current replicaCount (N) of the deployment/s with the Pod Under Test. Then, it executes the 
 			scale-in oc command for (N-1) replicas. Lastly, it executes the scale-out oc command, restoring the original replicaCount of the deployment/s.`),
-		Remediation: "",
+		Remediation: `Make sure CNF deployments/replica sets can scale in/out successfully.`,
 	},
 }
