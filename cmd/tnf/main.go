@@ -5,13 +5,15 @@ import (
 	"log"
 	"os"
 	"path"
+	"strings"
 	"text/template"
 
 	"github.com/spf13/cobra"
 )
 
 type myHandler struct {
-	Handlername string
+	Handlername  string
+	Shandlername string
 }
 
 var (
@@ -47,7 +49,7 @@ func generateHandlerFiles(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	myhandler := myHandler{Handlername: handlername}
+	myhandler := myHandler{Shandlername: handlername, Handlername: strings.Title(handlername)}
 
 	// pathfile this is the path of the file from template file that will creat
 
@@ -59,14 +61,14 @@ func generateHandlerFiles(cmd *cobra.Command, args []string) error {
 	}
 
 	pathfile = path.Join(handlerDirectory, "handler_template", "handler_test.tmpl")
-	namefile = "" + handlername + "_test.go"
+	namefile = "" + myhandler.Shandlername + "_test.go"
 	err = createfile(pathfile, namefile, myhandler, newHandlerDirectory) // here creating file by template_test.tmpl
 	if err != nil {
 		return err
 	}
 
 	pathfile = path.Join(handlerDirectory, "handler_template", "handler.tmpl")
-	namefile = "" + handlername + ".go"
+	namefile = "" + myhandler.Shandlername + ".go"
 	err = createfile(pathfile, namefile, myhandler, newHandlerDirectory) // here creating file by template.tmpl
 	if err != nil {
 		return err
