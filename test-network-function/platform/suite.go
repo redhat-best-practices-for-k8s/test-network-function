@@ -183,9 +183,6 @@ func getGrubKernelArgs(context *interactive.Context, nodeName string) map[string
 	gomega.Expect(err).To(gomega.BeNil())
 	common.RunAndValidateTest(test)
 	bootConfigEntries := bootConfigEntriesTester.GetBootConfigEntries()
-
-	maxIndexEntryName := getMaxIndexEntry(bootConfigEntries)
-
 	readBootConfigTester := readbootconfig.NewReadBootConfig(common.DefaultTimeout, nodeName)
 	test, err = tnf.NewTest(context.GetExpecter(), readBootConfigTester, []reel.Handler{readBootConfigTester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
