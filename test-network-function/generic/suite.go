@@ -33,8 +33,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/base/redhat"
-	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/cnffsdiff"
-
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/currentkernelcmdlineargs"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/mckernelarguments"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodemcname"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/podnodename"
