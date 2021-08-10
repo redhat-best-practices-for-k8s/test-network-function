@@ -47,9 +47,11 @@ type PodResource struct {
 		Name        string            `json:"name"`
 		Namespace   string            `json:"namespace"`
 		Labels      map[string]string `json:"labels"`
-		Annotations map[string]string `json:"annotations"`
+		Annotations map[string]string `json:"annotations"` 
+		ServiceAccount string `json:"serviceaccountname"`
 	} `json:"metadata"`
 	Spec struct {
+		ServiceAccount string `json:"serviceaccountname"`
 		Containers []struct {
 			Name string `json:"name"`
 		} `json:"containers"`

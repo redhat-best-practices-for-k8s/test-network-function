@@ -94,6 +94,15 @@ type Cnf struct {
 	// Namespace where the Pod is deployed
 	Namespace string `yaml:"namespace" json:"namespace"`
 
+	// ServiceAccount name used by the pod
+	ServiceAccount string  `yaml:"serviceaccount" json:"serviceaccount"`
+
+	// HasClusterRole if pod has cluster role
+	HasClusterRole bool `yaml:"hasclusterrole" json:"hasclusterrole"`
+
+	// ContainerCount is the count of containers inside the pod
+	ContainerCount int `yaml:"containercount" json:"containercount"`
+
 	// Tests this is list of test that need to run against the Pod.
 	Tests []string `yaml:"tests" json:"tests"`
 }

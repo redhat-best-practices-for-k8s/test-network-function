@@ -7,12 +7,14 @@ require (
 	github.com/basgys/goxml2json v1.1.0
 	github.com/bitly/go-simplejson v0.5.0 // indirect
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869 // indirect
+	github.com/go-delve/delve v1.7.0 // indirect
 	github.com/golang/mock v1.6.0
 	github.com/google/goexpect v0.0.0-20210330220015-096e5d1cbd97
 	github.com/google/goterm v0.0.0-20190703233501-fc88cf888a3f
 	github.com/kr/pretty v0.2.1 // indirect
 	github.com/onsi/ginkgo v1.16.4
 	github.com/onsi/gomega v1.14.0
+	github.com/pkg/profile v0.0.0-20170413231811-06b906832ed0 // indirect
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.2.1
 	github.com/stretchr/testify v1.7.0
@@ -21,5 +23,7 @@ require (
 	golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c // indirect
 	golang.org/x/tools v0.1.5 // indirect
 	google.golang.org/grpc v1.39.0
+	gopkg.in/airbrake/gobrake.v2 v2.0.9 // indirect
+	gopkg.in/gemnasium/logrus-airbrake-hook.v2 v2.1.2 // indirect
 	gopkg.in/yaml.v2 v2.4.0
 )

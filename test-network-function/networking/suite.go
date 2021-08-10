@@ -34,6 +34,7 @@ import (
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/ping"
 	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
+	configpkg "github.com/test-network-function/test-network-function/pkg/config"
 )
 
 const (
@@ -78,8 +79,11 @@ var _ = ginkgo.Describe(common.NetworkingTestKey, func() {
 			}
 		})
 
-		for _, containerUnderTest := range containersUnderTest {
-			testNodePort(containerUnderTest.Oc.GetPodNamespace())
+		conf := configpkg.GetConfigInstance()
+
+		log.Info(conf.CNFs )
+		for _, podUnderTest := range conf.CNFs {
+			testNodePort(podUnderTest.Namespace)
 		}
 
 	}

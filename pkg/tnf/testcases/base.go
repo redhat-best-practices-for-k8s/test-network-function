@@ -80,8 +80,6 @@ const (
 	Cnf TestSpecType = "CNF"
 )
 const (
-	// GatherFacts is name of the test case template for  gathering pod facts
-	GatherFacts = "GATHER_FACTS_POD"
 	// PrivilegedPod is name of the test case template for running pod privilege tests
 	PrivilegedPod = "PRIVILEGED_POD"
 	// PrivilegedRoles is name of the test case template for running cluster roles and permission tests
@@ -124,7 +122,6 @@ type ContainerFact struct {
 
 // CnfTestTemplateDataMap  is map of available json data test case templates
 var CnfTestTemplateDataMap = map[string]string{
-	GatherFacts:     cnf.GatherPodFactsJSON,
 	PrivilegedPod:   cnf.PrivilegedPodJSON,
 	PrivilegedRoles: cnf.RolesJSON,
 }

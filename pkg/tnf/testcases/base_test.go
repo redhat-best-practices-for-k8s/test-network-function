@@ -88,12 +88,6 @@ func TestLoadCNFPodPrivilegedRolesTestCaseSpecs(t *testing.T) {
 	assert.NotNil(t, testCase)
 }
 
-func TestLoadCNFPodGatherFactsTestCaseSpecs(t *testing.T) {
-	testCase, err := testcases.LoadCnfTestCaseSpecs(testcases.GatherFacts)
-	assert.Nil(t, err)
-	assert.NotNil(t, testCase)
-}
-
 func TestLoadOperatorOperatorStatusTestCaseSpecs(t *testing.T) {
 	testCase, err := testcases.LoadOperatorTestCaseSpecs(testcases.OperatorStatus)
 	assert.Nil(t, err)

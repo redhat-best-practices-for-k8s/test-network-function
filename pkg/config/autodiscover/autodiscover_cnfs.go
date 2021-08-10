@@ -49,7 +49,8 @@ func BuildCnfFromPodResource(pr *PodResource) (cnf configsections.Cnf) {
 	var err error
 	cnf.Namespace = pr.Metadata.Namespace
 	cnf.Name = pr.Metadata.Name
-
+  cnf.ServiceAccount = pr.Spec.ServiceAccount
+	cnf.ContainerCount = len(pr.Spec.Containers)
 	var tests []string
 	err = pr.GetAnnotationValue(cnfTestsAnnotationName, &tests)
 	if err != nil {

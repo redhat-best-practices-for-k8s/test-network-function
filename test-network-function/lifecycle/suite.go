@@ -42,6 +42,7 @@ import (
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/owners"
 	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
+	configpkg "github.com/test-network-function/test-network-function/pkg/config"
 )
 
 const (
@@ -83,35 +84,33 @@ var drainTimeout = time.Duration(drainTimeoutMinutes) * time.Minute
 //
 var _ = ginkgo.Describe(common.LifecycleTestKey, func() {
 	if testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusStrings, common.LifecycleTestKey) {
-		config := common.GetTestConfiguration()
-		log.Infof("Test Configuration: %s", config)
 
-		containersUnderTest := common.CreateContainersUnderTest(config)
+		conf := configpkg.GetConfigInstance()
 
-		log.Info(containersUnderTest)
+		log.Info(conf.CNFs )
 
-		for _, containerUnderTest := range containersUnderTest {
-			testNodeSelector(common.GetContext(), containerUnderTest.Oc.GetPodName(), containerUnderTest.Oc.GetPodNamespace())
+		for _, podUnderTest := range conf.CNFs {
+			testNodeSelector(common.GetContext(), podUnderTest.Name, podUnderTest.Namespace)
 		}
 
-		for _, containerUnderTest := range containersUnderTest {
-			testGracePeriod(common.GetContext(), containerUnderTest.Oc.GetPodName(), containerUnderTest.Oc.GetPodNamespace())
+		for _, podUnderTest := range conf.CNFs  {
+			testGracePeriod(common.GetContext(), podUnderTest.Name, podUnderTest.Namespace)
 		}
 
-		for _, containerUnderTest := range containersUnderTest {
-			testShutdown(containerUnderTest.Oc.GetPodNamespace(), containerUnderTest.Oc.GetPodName())
+		for _, podUnderTest := range conf.CNFs  {
+			testShutdown(podUnderTest.Namespace, podUnderTest.Name)
 		}
 
-		for _, containersUnderTest := range containersUnderTest {
-			testDeployments(containersUnderTest.Oc.GetPodNamespace())
+		for _, podUnderTest := range conf.CNFs  {
+			testDeployments(podUnderTest.Namespace)
 		}
 
-		for _, containerUnderTest := range containersUnderTest {
-			testOwner(containerUnderTest.Oc.GetPodNamespace(), containerUnderTest.Oc.GetPodName())
+		for _, podUnderTest := range conf.CNFs  {
+			testOwner(podUnderTest.Namespace, podUnderTest.Name)
 		}
 
-		for _, containerUnderTest := range containersUnderTest {
-			testPodAntiAffinity(containerUnderTest.Oc.GetPodNamespace())
+		for _, podUnderTest := range conf.CNFs  {
+			testPodAntiAffinity(podUnderTest.Namespace)
 
 		}
 	}
