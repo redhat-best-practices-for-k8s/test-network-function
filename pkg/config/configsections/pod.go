@@ -14,4 +14,16 @@
 // with this program; if not, write to the Free Software Foundation, Inc.,
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-package generic
+package configsections
+
+// Pod defines cloud network function in the cluster
+type Pod struct {
+	// Name is the name of a single Pod to test
+	Name string `yaml:"name" json:"name"`
+
+	// Namespace where the Pod is deployed
+	Namespace string `yaml:"namespace" json:"namespace"`
+
+	// Tests this is list of test that need to run against the Pod.
+	Tests []string `yaml:"tests" json:"tests"`
+}

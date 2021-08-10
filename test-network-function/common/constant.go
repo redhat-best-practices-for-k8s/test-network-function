@@ -14,29 +14,18 @@
 // with this program; if not, write to the Free Software Foundation, Inc.,
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-package config
+package common
 
-import (
-	"testing"
-
-	"github.com/stretchr/testify/assert"
-)
-
+// Constants shared by multiple test suite packages
 const (
-	filePath = "testdata/tnf_test_config.yml"
+	ConfiguredTestFile        = "testconfigure.yml"
+	defaultTimeoutSeconds     = 10
+	AccessControlTestKey      = "access-control"
+	DiagnosticTestKey         = "diagnostic"
+	LifecycleTestKey          = "lifecycle"
+	AffiliatedCertTestKey     = "affiliated-certification"
+	NetworkingTestKey         = "networking"
+	ObservabilityTestKey      = "observability"
+	OperatorTestKey           = "operator"
+	PlatformAlterationTestKey = "platform-alteration"
 )
-
-func TestLoadConfigFromFile(t *testing.T) {
-	assert.Nil(t, loadConfigFromFile(filePath))
-	assert.NotNil(t, loadConfigFromFile(filePath)) // Loading when already loaded is an error case
-	conf := GetConfigInstance()
-	assert.Equal(t, conf.TestOrchestrator.Namespace, "default")
-	assert.Equal(t, conf.TestOrchestrator.ContainerName, "partner")
-	assert.Equal(t, conf.TestOrchestrator.PodName, "partner")
-}
-
-func TestGetConfigInstance(t *testing.T) {
-	_ = loadConfigFromFile(filePath)
-	assert.NotNil(t, GetConfigInstance())
-	assert.Equal(t, GetConfigInstance(), GetConfigInstance())
-}

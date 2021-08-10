@@ -31,13 +31,3 @@ type Container struct {
 	// MultusIPAddresses are the overlay IPs.
 	MultusIPAddresses []string `yaml:"multusIpAddresses" json:"multusIpAddresses"`
 }
-
-// TestConfiguration provides generic test related configuration
-type TestConfiguration struct {
-	ContainersUnderTest   []Container         `yaml:"containersUnderTest" json:"containersUnderTest"`
-	PartnerContainers     []Container         `yaml:"partnerContainers" json:"partnerContainers"`
-	TestOrchestrator      ContainerIdentifier `yaml:"testOrchestrator" json:"testOrchestrator"`
-	FsDiffMasterContainer ContainerIdentifier `yaml:"fsDiffMasterContainer" json:"fsDiffMasterContainer"`
-	// ExcludeContainersFromConnectivityTests excludes specific containers from network connectivity tests.  This is particularly useful for containers that don't have ping available.
-	ExcludeContainersFromConnectivityTests []ContainerIdentifier `yaml:"excludeContainersFromConnectivityTests" json:"excludeContainersFromConnectivityTests"`
-}

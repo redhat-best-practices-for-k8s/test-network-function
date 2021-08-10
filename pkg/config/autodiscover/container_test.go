@@ -14,29 +14,38 @@
 // with this program; if not, write to the Free Software Foundation, Inc.,
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-package autodiscover_test
+package autodiscover
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/test-network-function/test-network-function/pkg/config/autodiscover"
 )
 
-func TestBuildCnfFromPodResource(t *testing.T) {
-	orchestratorPodResource := loadPodResource(testOrchestratorFilePath)
-	orchestratorPod := autodiscover.BuildCnfFromPodResource(&orchestratorPodResource)
+func TestBuildContainersFromPodResource(t *testing.T) {
+	orchestratorPod := loadPodResource(testOrchestratorFilePath)
+	orchestratorContainers := buildContainersFromPodResource(&orchestratorPod)
+	assert.Equal(t, 1, len(orchestratorContainers))
 
-	subjectPodResource := loadPodResource(testSubjectFilePath)
-	subjectPod := autodiscover.BuildCnfFromPodResource(&subjectPodResource)
+	subjectPod := loadPodResource(testSubjectFilePath)
+	subjectContainers := buildContainersFromPodResource(&subjectPod)
+	assert.Equal(t, 1, len(subjectContainers))
 
-	assert.Equal(t, "tnf", orchestratorPod.Namespace)
-	assert.Equal(t, "I'mAPodName", orchestratorPod.Name)
-	assert.NotEqual(t, "I'mAContainer", orchestratorPod.Name)
-	// no tests set on pod and the config file will not be loaded from the unit test context: no tests should be set.
-	assert.Equal(t, []string{}, orchestratorPod.Tests)
+	assert.Equal(t, "tnf", orchestratorContainers[0].Namespace)
+	assert.Equal(t, "I'mAPodName", orchestratorContainers[0].PodName)
+	assert.Equal(t, "I'mAContainer", orchestratorContainers[0].ContainerName)
 
-	assert.Equal(t, "tnf", subjectPod.Namespace)
-	assert.Equal(t, "test", subjectPod.Name)
-	assert.Equal(t, []string{"OneTestName", "AnotherTestName"}, subjectPod.Tests)
+	// Check correct order of precedence for network devices
+	assert.Equal(t, "eth0", orchestratorContainers[0].DefaultNetworkDevice)
+	assert.NotEqual(t, "LowerPriorityInterface", orchestratorContainers[0].DefaultNetworkDevice)
+	assert.Equal(t, "eth1", subjectContainers[0].DefaultNetworkDevice)
+
+	// Check correct IPs are chosen
+	assert.Equal(t, 1, len(orchestratorContainers[0].MultusIPAddresses))
+	assert.Equal(t, "1.1.1.1", orchestratorContainers[0].MultusIPAddresses[0])
+	assert.NotEqual(t, "2.2.2.2", orchestratorContainers[0].MultusIPAddresses[0])
+	// test-network-function.com/multusips should be used for the test subject container.
+	assert.Equal(t, 2, len(subjectContainers[0].MultusIPAddresses))
+	assert.Equal(t, "3.3.3.3", subjectContainers[0].MultusIPAddresses[0])
+	assert.Equal(t, "4.4.4.4", subjectContainers[0].MultusIPAddresses[1])
 }

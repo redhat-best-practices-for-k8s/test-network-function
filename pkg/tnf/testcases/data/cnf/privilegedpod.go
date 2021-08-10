@@ -89,7 +89,7 @@ var PrivilegedPodJSON = string(`{
       "resulttype": "string",
       "action": "allow",
       "expectedstatus": [
-        "NON_ZERO"
+        "NON_ZERO_NUMBER"
       ]
     },
     {

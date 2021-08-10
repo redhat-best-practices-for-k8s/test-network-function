@@ -2,12 +2,11 @@ package diagnostic
 
 import (
 	"encoding/json"
-	"os"
 	"path"
-	"strconv"
 	"strings"
 	"time"
 
+	"github.com/test-network-function/test-network-function/test-network-function/common"
 	"github.com/test-network-function/test-network-function/test-network-function/identifiers"
 	"github.com/test-network-function/test-network-function/test-network-function/results"
 
@@ -17,13 +16,10 @@ import (
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/generic"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodedebug"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodenames"
-	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
 )
 
 const (
-	// testSuiteSpec contains the name of the Ginkgo test specification.
-	testSuiteSpec = "diagnostic"
 	// defaultTimeoutSeconds contains the default timeout in secons.
 	defaultTimeoutSeconds = 20
 )
@@ -55,19 +51,11 @@ var (
 	schemaPath = path.Join("schemas", "generic-test.schema.json")
 )
 
-// createShell sets up a local shell expect.Expecter, checking errors along the way.
-func createShell() *interactive.Context {
-	context, err := interactive.SpawnShell(interactive.CreateGoExpectSpawner(), defaultTestTimeout, interactive.Verbose(true))
-	gomega.Expect(err).To(gomega.BeNil())
-	gomega.Expect(context).ToNot(gomega.BeNil())
-	return context
-}
-
-var _ = ginkgo.Describe(testSuiteSpec, func() {
+var _ = ginkgo.Describe(common.DiagnosticTestKey, func() {
 	ginkgo.When("a cluster is set up and installed with OpenShift", func() {
 		ginkgo.It("should report all available nodeSummary", func() {
 			defer results.RecordResult(identifiers.TestExtractNodeInformationIdentifier)
-			context := createShell()
+			context := common.GetContext()
 
 			test, handlers, jsonParseResult, err := generic.NewGenericFromJSONFile(relativeNodesTestPath, relativeSchemaPath)
 			gomega.Expect(err).To(gomega.BeNil())
@@ -140,7 +128,7 @@ func GetNodesHwInfo() NodesHwInfo {
 }
 
 func getFirstNode(labelFilter map[string]*string) string {
-	context := createShell()
+	context := common.GetContext()
 	tester := nodenames.NewNodeNames(defaultTestTimeout, labelFilter)
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
@@ -165,7 +153,7 @@ func getWorkerNodeName() string {
 func listNodeCniPlugins(nodeName string) []CniPlugin {
 	const command = "jq -r .name,.cniVersion '/etc/cni/net.d/*'"
 	result := []CniPlugin{}
-	context := createShell()
+	context := common.GetContext()
 	tester := nodedebug.NewNodeDebug(defaultTestTimeout, nodeName, command, true, true)
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
@@ -183,7 +171,7 @@ func listNodeCniPlugins(nodeName string) []CniPlugin {
 }
 
 func testCniPlugins() {
-	if isMinikube() {
+	if common.IsMinikube() {
 		ginkgo.Skip("can't use 'oc debug' in minikube")
 	}
 	// get name of a master node
@@ -194,13 +182,8 @@ func testCniPlugins() {
 	gomega.Expect(cniPlugins).ToNot(gomega.BeNil())
 }
 
-func isMinikube() bool {
-	b, _ := strconv.ParseBool(os.Getenv("TNF_MINIKUBE_ONLY"))
-	return b
-}
-
 func testNodesHwInfo() {
-	if isMinikube() {
+	if common.IsMinikube() {
 		ginkgo.Skip("can't use 'oc debug' in minikube")
 	}
 
@@ -223,7 +206,7 @@ func testNodesHwInfo() {
 func getNodeLscpu(nodeName string) map[string]string {
 	const command = "lscpu"
 	result := map[string]string{}
-	context := createShell()
+	context := common.GetContext()
 	tester := nodedebug.NewNodeDebug(defaultTestTimeout, nodeName, command, true, true)
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
@@ -240,7 +223,7 @@ func getNodeLscpu(nodeName string) map[string]string {
 func getNodeIfconfig(nodeName string) map[string][]string {
 	const command = "ifconfig"
 	result := map[string][]string{}
-	context := createShell()
+	context := common.GetContext()
 	tester := nodedebug.NewNodeDebug(defaultTestTimeout, nodeName, command, true, true)
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
@@ -264,7 +247,7 @@ func getNodeIfconfig(nodeName string) map[string][]string {
 
 func getNodeLsblk(nodeName string) interface{} {
 	const command = "lsblk -J"
-	context := createShell()
+	context := common.GetContext()
 	tester := nodedebug.NewNodeDebug(defaultTestTimeout, nodeName, command, false, false)
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
@@ -279,7 +262,7 @@ func getNodeLsblk(nodeName string) interface{} {
 
 func getNodeLspci(nodeName string) []string {
 	const command = "lspci"
-	context := createShell()
+	context := common.GetContext()
 	tester := nodedebug.NewNodeDebug(defaultTestTimeout, nodeName, command, true, true)
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())

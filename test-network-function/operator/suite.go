@@ -193,7 +193,7 @@ func agrName(operatorName, subName, testName string) string {
 func runTestsOnOperator(args []interface{}, name, namespace string, testCmd testcases.BaseTestCase) {
 	ginkgo.When(fmt.Sprintf("under test is: %s/%s ", namespace, name), func() {
 		ginkgo.It(fmt.Sprintf("tests for: %s", testCmd.Name), func() {
-			defer results.RecordResult(identifiers.TestOperatorBestPracticesIdentifier)
+			defer results.RecordResult(identifiers.TestOperatorInstallStatusIdentifier)
 			cmdArgs := strings.Split(fmt.Sprintf(testCmd.Command, args...), " ")
 			opInTest := operator.NewOperator(cmdArgs, name, namespace, testCmd.ExpectedStatus, testCmd.ResultType, testCmd.Action, defaultTimeout)
 			gomega.Expect(opInTest).ToNot(gomega.BeNil())
