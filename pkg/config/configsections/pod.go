@@ -14,29 +14,16 @@
 // with this program; if not, write to the Free Software Foundation, Inc.,
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-package config
+package configsections
 
-import (
-	"testing"
+// Pod defines cloud network function in the cluster
+type Pod struct {
+	// Name is the name of a single Pod to test
+	Name string `yaml:"name" json:"name"`
 
-	"github.com/stretchr/testify/assert"
-)
+	// Namespace where the Pod is deployed
+	Namespace string `yaml:"namespace" json:"namespace"`
 
-const (
-	filePath = "testdata/tnf_test_config.yml"
-)
-
-func TestLoadConfigFromFile(t *testing.T) {
-	assert.Nil(t, loadConfigFromFile(filePath))
-	assert.NotNil(t, loadConfigFromFile(filePath)) // Loading when already loaded is an error case
-	conf := GetConfigInstance()
-	assert.Equal(t, conf.TestOrchestrator.Namespace, "default")
-	assert.Equal(t, conf.TestOrchestrator.ContainerName, "partner")
-	assert.Equal(t, conf.TestOrchestrator.PodName, "partner")
-}
-
-func TestGetConfigInstance(t *testing.T) {
-	_ = loadConfigFromFile(filePath)
-	assert.NotNil(t, GetConfigInstance())
-	assert.Equal(t, GetConfigInstance(), GetConfigInstance())
+	// Tests this is list of test that need to run against the Pod.
+	Tests []string `yaml:"tests" json:"tests"`
 }

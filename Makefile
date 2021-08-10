@@ -50,6 +50,10 @@ build:
 	make build-cnf-tests
 	make build-jsontest-cli
 	make build-gradetool
+	make build-tnf-tool
+
+build-tnf-tool:
+	go build -o tnf -v cmd/tnf/main.go
 
 # (Re)generate mock files as needed
 mocks: pkg/tnf/interactive/mocks/mock_spawner.go \

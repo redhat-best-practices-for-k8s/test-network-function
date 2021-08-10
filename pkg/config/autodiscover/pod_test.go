@@ -22,11 +22,20 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestBuildOperatorFromCSVResource(t *testing.T) {
-	csvResource := loadCSVResource(csvFilePath)
-	operator := buildOperatorFromCSVResource(&csvResource)
+func TestBuildPodUnderTest(t *testing.T) {
+	orchestratorPodResource := loadPodResource(testOrchestratorFilePath)
+	orchestratorPod := buildPodUnderTest(&orchestratorPodResource)
 
-	assert.Equal(t, "CSVNamespace", operator.Namespace)
-	assert.Equal(t, "CSVName", operator.Name)
-	assert.Equal(t, []string{"OPERATOR_STATUS", "ANOTHER_TEST"}, operator.Tests)
+	subjectPodResource := loadPodResource(testSubjectFilePath)
+	subjectPod := buildPodUnderTest(&subjectPodResource)
+
+	assert.Equal(t, "tnf", orchestratorPod.Namespace)
+	assert.Equal(t, "I'mAPodName", orchestratorPod.Name)
+	assert.NotEqual(t, "I'mAContainer", orchestratorPod.Name)
+	// no tests set on pod and the config file will not be loaded from the unit test context: no tests should be set.
+	assert.Equal(t, []string{}, orchestratorPod.Tests)
+
+	assert.Equal(t, "tnf", subjectPod.Namespace)
+	assert.Equal(t, "test", subjectPod.Name)
+	assert.Equal(t, []string{"OneTestName", "AnotherTestName"}, subjectPod.Tests)
 }
