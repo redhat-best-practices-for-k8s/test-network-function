@@ -12,8 +12,8 @@ import (
 )
 
 type myHandler struct {
-	Upper_handlername string
-	Lower_handlername string
+	UpperHandlername string
+	LowerHandlername string
 }
 
 var (
@@ -49,7 +49,7 @@ func generateHandlerFiles(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	myhandler := myHandler{Lower_handlername: handlername, Upper_handlername: strings.Title(handlername)}
+	myhandler := myHandler{LowerHandlername: handlername, UpperHandlername: strings.Title(handlername)}
 
 	// pathfile this is the path of the file from template file that will creat
 
@@ -61,14 +61,14 @@ func generateHandlerFiles(cmd *cobra.Command, args []string) error {
 	}
 
 	pathfile = path.Join(handlerDirectory, "handler_template", "handler_test.tmpl")
-	namefile = "" + myhandler.Lower_handlername + "_test.go"
+	namefile = "" + myhandler.LowerHandlername + "_test.go"
 	err = createfile(pathfile, namefile, myhandler, newHandlerDirectory) // here creating file by template_test.tmpl
 	if err != nil {
 		return err
 	}
 
 	pathfile = path.Join(handlerDirectory, "handler_template", "handler.tmpl")
-	namefile = "" + myhandler.Lower_handlername + ".go"
+	namefile = "" + myhandler.LowerHandlername + ".go"
 	err = createfile(pathfile, namefile, myhandler, newHandlerDirectory) // here creating file by template.tmpl
 	if err != nil {
 		return err
