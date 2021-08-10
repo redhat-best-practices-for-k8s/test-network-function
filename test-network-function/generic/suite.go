@@ -19,7 +19,6 @@ package generic
 import (
 	"encoding/json"
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/test-network-function/test-network-function/pkg/tnf/testcases"
@@ -35,8 +34,7 @@ import (
 	"github.com/test-network-function/test-network-function/pkg/tnf"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/base/redhat"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/cnffsdiff"
-	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/containerid"
-	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/currentkernelcmdlineargs"
+
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/mckernelarguments"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodemcname"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/podnodename"
@@ -140,7 +138,7 @@ func getCurrentKernelCmdlineArgs(targetPodOc *interactive.Oc) map[string]string 
 }
 
 func getGrubKernelArgs(context *interactive.Context, nodeName string) map[string]string {
-	readBootConfigTester := readbootconfig.NewReadBootConfig(common.DefaultTimeout, nodeName /*, maxIndexEntryName*/)
+	readBootConfigTester := readbootconfig.NewReadBootConfig(common.DefaultTimeout, nodeName)
 	test, err := tnf.NewTest(context.GetExpecter(), readBootConfigTester, []reel.Handler{readBootConfigTester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
 	common.RunAndValidateTest(test)
