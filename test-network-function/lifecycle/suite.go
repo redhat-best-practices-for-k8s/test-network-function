@@ -20,9 +20,11 @@ import (
 	"fmt"
 	"path"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/generic"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/scaling"
 	"github.com/test-network-function/test-network-function/pkg/tnf/testcases"
 
 	"github.com/test-network-function/test-network-function/test-network-function/common"
@@ -47,6 +49,8 @@ const (
 	defaultTerminationGracePeriod = 30
 	drainTimeoutMinutes           = 5
 	partnerPod                    = "partner"
+	scalingTimeout                = 60 * time.Second
+	scalingPollingPeriod          = 1 * time.Second
 )
 
 var (
@@ -101,11 +105,115 @@ var _ = ginkgo.Describe(common.LifecycleTestKey, func() {
 
 		if !common.NonIntrusive() {
 			testPodsRecreation(&configData)
+
+			testScaling(&configData)
 		}
 
 		testOwner(&configData)
 	}
 })
+
+func waitForAllDeploymentsReady(namespace string, timeout, pollingPeriod time.Duration) {
+	gomega.Eventually(func() []string {
+		_, notReadyDeployments := getDeployments(namespace)
+		return notReadyDeployments
+	}, timeout, pollingPeriod).Should(gomega.HaveLen(0))
+}
+
+// restoreDeployments is the last attempt to restore the original test deployments' replicaCount
+func restoreDeployments(configData *common.ConfigurationData, nsDeployments *map[string]dp.DeploymentMap) {
+	for namespace, originalDeployments := range *nsDeployments {
+		// For each deployment in the namespace, get the current replicas and compare.
+		deployments, notReadyDeployments := getDeployments(namespace)
+
+		if len(notReadyDeployments) > 0 {
+			// Wait until the deployment is ready
+			waitForAllDeploymentsReady(namespace, scalingTimeout, scalingPollingPeriod)
+		}
+
+		for originalDeploymentName, originalDeployment := range originalDeployments {
+			deployment := deployments[originalDeploymentName]
+
+			if deployment.Replicas == originalDeployment.Replicas {
+				continue
+			}
+
+			// Try to scale to the original deployment's replicaCount.
+			runScalingTest(namespace, originalDeploymentName, originalDeployment.Replicas)
+
+			configData.SetNeedsRefresh()
+		}
+	}
+}
+
+// saveDeployment Stores the dp.Deployment data into a map of namespace -> deployments
+func saveDeployment(nsDeployments map[string]dp.DeploymentMap, namespace, deploymentName string, deployment *dp.Deployment) {
+	deployments, namespaceExists := nsDeployments[namespace]
+
+	if !namespaceExists {
+		deployments = dp.DeploymentMap{}
+		deployments[deploymentName] = *deployment
+		nsDeployments[namespace] = deployments
+	} else {
+		// In case the deploymentName already exists, it will be overwritten.
+		deployments[deploymentName] = *deployment
+	}
+}
+
+// runScalingTest Runs a Scaling handler TC with a given replicaCount and waits for all the deployments to be ready.
+func runScalingTest(namespace, deploymentName string, replicaCount int) {
+	handler := scaling.NewScaling(common.DefaultTimeout, namespace, deploymentName, replicaCount)
+	test, err := tnf.NewTest(common.GetContext().GetExpecter(), handler, []reel.Handler{handler}, common.GetContext().GetErrorChannel())
+	gomega.Expect(err).To(gomega.BeNil())
+	common.RunAndValidateTest(test)
+
+	// Wait until the deployment is ready
+	waitForAllDeploymentsReady(namespace, scalingTimeout, scalingPollingPeriod)
+}
+
+func testScaling(configData *common.ConfigurationData) {
+	ginkgo.It("Testing deployment scaling", func() {
+		defer results.RecordResult(identifiers.TestScalingIdentifier)
+
+		namespaceDeploymentsBackup := make(map[string]dp.DeploymentMap)
+		defer restoreDeployments(configData, &namespaceDeploymentsBackup)
+
+		// Map to register the deployments that have been already tested
+		deploymentNames := make(map[string]bool)
+
+		for _, cut := range configData.ContainersUnderTest {
+			namespace := cut.Oc.GetPodNamespace()
+
+			// Get deployment name and check whether it was already tested.
+			// ToDo: Proper way (helper/handler) to do this.
+			podNameParts := strings.Split(cut.Oc.GetPodName(), "-")
+			deploymentName := podNameParts[0]
+
+			if _, alreadyTested := deploymentNames[deploymentName]; alreadyTested {
+				continue
+			}
+
+			// Save deployment data for deferred restoring in case something's wrong during the TC.
+			deployments, _ := getDeployments(namespace)
+			deployment := deployments[deploymentName]
+			saveDeployment(namespaceDeploymentsBackup, namespace, deploymentName, &deployment)
+
+			replicaCount := deployment.Replicas
+
+			// ScaleIn, removing one pod from the replicaCount
+			runScalingTest(namespace, deploymentName, (replicaCount - 1))
+
+			// Scaleout, restoring the original replicaCount number
+			runScalingTest(namespace, deploymentName, replicaCount)
+
+			// Ensure next tests/test suites receive a refreshed config.
+			configData.SetNeedsRefresh()
+
+			// Set this deployment as tested
+			deploymentNames[deploymentName] = true
+		}
+	})
+}
 
 func testNodeSelector(configData *common.ConfigurationData) {
 	ginkgo.It("Testing pod nodeSelector", func() {
