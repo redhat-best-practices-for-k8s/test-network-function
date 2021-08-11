@@ -105,6 +105,7 @@ jobs:
         with:
           repository: test-network-function/cnf-certification-test-partner
           path: cnf-certification-test-partner
+          ref: 350f55ecddbb3b7804b85f444ae023edaf36adff
 
       - name: Start the minikube cluster for `local-test-infra`
         uses: ./cnf-certification-test-partner/.github/actions/start-minikube
