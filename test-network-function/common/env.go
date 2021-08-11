@@ -174,8 +174,8 @@ type ConfigurationData struct {
 	PartnerContainers   map[configsections.ContainerIdentifier]*Container
 	TestOrchestrator    *Container
 	FsDiffContainer     *Container
-
-	needsRefresh bool
+	PodsUnderTest       []configsections.Pod
+	needsRefresh        bool
 }
 
 // createContainersUnderTest sets up the test containers.
@@ -191,7 +191,7 @@ func createPartnerContainers(conf *configsections.TestConfiguration) map[configs
 // Loadconfiguration the configuration into ConfigurationData
 func Loadconfiguration(configData *ConfigurationData) {
 	conf := GetTestConfiguration()
-	log.Infof("Test Configuration: %s", conf)
+	log.Infof("Test Configuration: %s", conf) //nolint:govet //lint cannot determine the type because of export
 
 	for _, cid := range conf.ExcludeContainersFromConnectivityTests {
 		ContainersToExcludeFromConnectivityTests[cid] = ""
@@ -207,7 +207,10 @@ func Loadconfiguration(configData *ConfigurationData) {
 // ReloadConfiguration force the autodiscovery to run again
 func ReloadConfiguration(configData *ConfigurationData) {
 	if configData.needsRefresh {
+		// triggers refresh of the pod database
 		config.SetNeedsRefresh()
+		configData.PodsUnderTest = config.GetConfigInstance().PodsUnderTest
+
 		Loadconfiguration(configData)
 	}
 	configData.needsRefresh = false
@@ -215,5 +218,6 @@ func ReloadConfiguration(configData *ConfigurationData) {
 
 // SetNeedsRefresh indicate the config should be reloaded after this test
 func (configData *ConfigurationData) SetNeedsRefresh() {
+	// triggers refresh of the container database
 	configData.needsRefresh = true
 }

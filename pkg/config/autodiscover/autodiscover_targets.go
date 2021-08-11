@@ -23,7 +23,6 @@ import (
 )
 
 const (
-	configuredTestFile         = "testconfigure.yml"
 	operatorLabelName          = "operator"
 	skipConnectivityTestsLabel = "skip_connectivity_tests"
 )
@@ -74,31 +73,17 @@ func buildPodUnderTest(pr *PodResource) (cnf configsections.Pod) {
 	var err error
 	cnf.Namespace = pr.Metadata.Namespace
 	cnf.Name = pr.Metadata.Name
-
+	cnf.ServiceAccount = pr.Spec.ServiceAccount
+	cnf.ContainerCount = len(pr.Spec.Containers)
 	var tests []string
 	err = pr.GetAnnotationValue(podTestsAnnotationName, &tests)
 	if err != nil {
 		log.Warnf("unable to extract tests from annotation on '%s/%s' (error: %s). Attempting to fallback to all tests", cnf.Namespace, cnf.Name, err)
-		cnf.Tests = getConfiguredPodTests()
+		cnf.Tests = testcases.GetConfiguredPodTests()
 	} else {
 		cnf.Tests = tests
 	}
 	return
-}
-
-// getConfiguredPodTests loads the `configuredTestFile` and extracts
-// the names of test groups from it.
-func getConfiguredPodTests() (cnfTests []string) {
-	configuredTests, err := testcases.LoadConfiguredTestFile(configuredTestFile)
-	if err != nil {
-		log.Errorf("failed to load %s, continuing with no tests", configuredTestFile)
-		return []string{}
-	}
-	for _, configuredTest := range configuredTests.CnfTest {
-		cnfTests = append(cnfTests, configuredTest.Name)
-	}
-	log.WithField("cnfTests", cnfTests).Infof("got all tests from %s.", configuredTestFile)
-	return cnfTests
 }
 
 // buildOperatorFromCSVResource builds a single `configsections.Operator` from a CSVResource
@@ -129,14 +114,14 @@ func buildOperatorFromCSVResource(csv *CSVResource) (op configsections.Operator)
 // getConfiguredOperatorTests loads the `configuredTestFile` used by the `operator` specs and extracts
 // the names of test groups from it.
 func getConfiguredOperatorTests() (opTests []string) {
-	configuredTests, err := testcases.LoadConfiguredTestFile(configuredTestFile)
+	configuredTests, err := testcases.LoadConfiguredTestFile(testcases.ConfiguredTestFile)
 	if err != nil {
-		log.Errorf("failed to load %s, continuing with no tests", configuredTestFile)
+		log.Errorf("failed to load %s, continuing with no tests", testcases.ConfiguredTestFile)
 		return []string{}
 	}
 	for _, configuredTest := range configuredTests.OperatorTest {
 		opTests = append(opTests, configuredTest.Name)
 	}
-	log.WithField("opTests", opTests).Infof("got all tests from %s.", configuredTestFile)
+	log.WithField("opTests", opTests).Infof("got all tests from %s.", testcases.ConfiguredTestFile)
 	return opTests
 }
