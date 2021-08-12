@@ -16,45 +16,11 @@
 
 package configsections
 
+// Types defined in this file are not currently in use. Move them out when starting to use.
+// May remove this altogether in the future
+
 // CNFType defines a type to be either Operator or Container
 type CNFType string
-
-// CertifiedContainerRequestInfo contains all certified images request info
-type CertifiedContainerRequestInfo struct {
-	// Name is the name of the `operator bundle package name` or `image-version` that you want to check if exists in the RedHat catalog
-	Name string `yaml:"name" json:"name"`
-
-	// Repository is the name of the repository `rhel8` of the container
-	// This is valid for container only and required field
-	Repository string `yaml:"repository" json:"repository"`
-}
-
-// CertifiedOperatorRequestInfo contains all certified operator request info
-type CertifiedOperatorRequestInfo struct {
-
-	// Name is the name of the `operator bundle package name` that you want to check if exists in the RedHat catalog
-	Name string `yaml:"name" json:"name"`
-
-	// Organization as understood by the operator publisher , e.g. `redhat-marketplace`
-	Organization string `yaml:"organization" json:"organization"`
-}
-
-// Operator struct defines operator manifest for testing
-type Operator struct {
-
-	// Name is a required field, Name of the csv .
-	Name string `yaml:"name" json:"name"`
-
-	// Namespace is a required field , namespace is where the csv is installed.
-	// If its all namespace then you can replace it with ALL_NAMESPACE TODO: add check for ALL_NAMESPACE
-	Namespace string `yaml:"namespace" json:"namespace"`
-
-	// Tests this is list of test that need to run against the operator.
-	Tests []string `yaml:"tests" json:"tests"`
-
-	// Subscription name is required field, Name of used subscription.
-	SubscriptionName string `yaml:"subscriptionName" json:"subscriptionName"`
-}
 
 // Crd struct defines Custom Resource Definition of the operator
 type Crd struct {
@@ -84,18 +50,6 @@ type Permission struct {
 
 	// Role is the role type either CLUSTER_ROLE or ROLE
 	Role string `yaml:"role" json:"role"`
-}
-
-// Cnf defines cloud network function in the cluster
-type Cnf struct {
-	// Name is the name of a single Pod to test
-	Name string `yaml:"name" json:"name"`
-
-	// Namespace where the Pod is deployed
-	Namespace string `yaml:"namespace" json:"namespace"`
-
-	// Tests this is list of test that need to run against the Pod.
-	Tests []string `yaml:"tests" json:"tests"`
 }
 
 // Instance defines crd instances in the cluster
