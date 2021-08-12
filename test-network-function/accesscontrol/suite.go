@@ -58,47 +58,46 @@ var _ = ginkgo.Describe(common.AccessControlTestKey, func() {
 		// Former "container" tests
 		defer ginkgo.GinkgoRecover()
 
-		// Run the tests that interact with the containers
+		// Run the tests that interact with the pods
 		ginkgo.When("under test", func() {
 			conf := configpkg.GetConfigInstance()
-			cnfsInTest := conf.CNFs
-			gomega.Expect(cnfsInTest).ToNot(gomega.BeNil())
-			for _, cnf := range cnfsInTest {
-				cnf := cnf
-				var containerFact = testcases.ContainerFact{Namespace: cnf.Namespace, Name: cnf.Name, ContainerCount: 0, HasClusterRole: false, Exists: true}
+			podsUnderTest := conf.PodsUnderTest
+			gomega.Expect(podsUnderTest).ToNot(gomega.BeNil())
+			for _, pod := range podsUnderTest {
+				var podFact = testcases.PodFact{Namespace: pod.Namespace, Name: pod.Name, ContainerCount: 0, HasClusterRole: false, Exists: true}
 				// Gather facts for containers
 				podFacts, err := testcases.LoadCnfTestCaseSpecs(testcases.GatherFacts)
 				gomega.Expect(err).To(gomega.BeNil())
 				context := common.GetContext()
 				// Collect container facts
 				for _, factsTest := range podFacts.TestCase {
-					args := strings.Split(fmt.Sprintf(factsTest.Command, cnf.Name, cnf.Namespace), " ")
-					cnfInTest := containerpkg.NewPod(args, cnf.Name, cnf.Namespace, factsTest.ExpectedStatus, factsTest.ResultType, factsTest.Action, common.DefaultTimeout)
-					test, err := tnf.NewTest(context.GetExpecter(), cnfInTest, []reel.Handler{cnfInTest}, context.GetErrorChannel())
+					args := strings.Split(fmt.Sprintf(factsTest.Command, pod.Name, pod.Namespace), " ")
+					podTest := containerpkg.NewPod(args, pod.Name, pod.Namespace, factsTest.ExpectedStatus, factsTest.ResultType, factsTest.Action, common.DefaultTimeout)
+					test, err := tnf.NewTest(context.GetExpecter(), podTest, []reel.Handler{podTest}, context.GetErrorChannel())
 					gomega.Expect(err).To(gomega.BeNil())
 					gomega.Expect(test).ToNot(gomega.BeNil())
 					_, err = test.Run()
 					gomega.Expect(err).To(gomega.BeNil())
 					if factsTest.Name == string(testcases.ContainerCount) {
-						containerFact.ContainerCount, _ = strconv.Atoi(cnfInTest.Facts())
+						podFact.ContainerCount, _ = strconv.Atoi(podTest.Facts())
 					} else if factsTest.Name == string(testcases.ServiceAccountName) {
-						containerFact.ServiceAccount = cnfInTest.Facts()
+						podFact.ServiceAccount = podTest.Facts()
 					} else if factsTest.Name == string(testcases.Name) {
-						containerFact.Name = cnfInTest.Facts()
-						gomega.Expect(containerFact.Name).To(gomega.Equal(cnf.Name))
-						if strings.Compare(containerFact.Name, cnf.Name) > 0 {
-							containerFact.Exists = true
+						podFact.Name = podTest.Facts()
+						gomega.Expect(podFact.Name).To(gomega.Equal(pod.Name))
+						if strings.Compare(podFact.Name, pod.Name) > 0 {
+							podFact.Exists = true
 						}
 					}
 				}
 				// loop through various cnfs test
-				if !containerFact.Exists {
-					ginkgo.It(fmt.Sprintf("is running test pod exists : %s/%s for test command :  %s", containerFact.Namespace, containerFact.Name, "POD EXISTS"), func() {
-						gomega.Expect(containerFact.Exists).To(gomega.BeTrue())
+				if !podFact.Exists {
+					ginkgo.It(fmt.Sprintf("is running test pod exists : %s/%s for test command :  %s", podFact.Namespace, podFact.Name, "POD EXISTS"), func() {
+						gomega.Expect(podFact.Exists).To(gomega.BeTrue())
 					})
 					continue
 				}
-				for _, testType := range cnf.Tests {
+				for _, testType := range pod.Tests {
 					testFile, err := testcases.LoadConfiguredTestFile(common.ConfiguredTestFile)
 					gomega.Expect(testFile).ToNot(gomega.BeNil())
 					gomega.Expect(err).To(gomega.BeNil())
@@ -110,13 +109,13 @@ var _ = ginkgo.Describe(common.AccessControlTestKey, func() {
 						if !testCase.SkipTest {
 							if testCase.ExpectedType == testcases.Function {
 								for _, val := range testCase.ExpectedStatus {
-									testCase.ExpectedStatusFn(cnf.Name, testcases.StatusFunctionType(val))
+									testCase.ExpectedStatusFn(pod.Name, testcases.StatusFunctionType(val))
 								}
 							}
 							if testCase.Loop > 0 {
-								runTestsOnCNF(containerFact.ContainerCount, testCase, testType, containerFact, context)
+								runTestsOnPod(podFact.ContainerCount, testCase, testType, podFact, context)
 							} else {
-								runTestsOnCNF(testCase.Loop, testCase, testType, containerFact, context)
+								runTestsOnPod(testCase.Loop, testCase, testType, podFact, context)
 							}
 						}
 					}
@@ -128,8 +127,8 @@ var _ = ginkgo.Describe(common.AccessControlTestKey, func() {
 })
 
 //nolint:gocritic // ignore hugeParam error. Pointers to loop iterator vars are bad and `testCmd` is likely to be such.
-func runTestsOnCNF(containerCount int, testCmd testcases.BaseTestCase,
-	testType string, facts testcases.ContainerFact, context *interactive.Context) {
+func runTestsOnPod(containerCount int, testCmd testcases.BaseTestCase,
+	testType string, facts testcases.PodFact, context *interactive.Context) {
 	ginkgo.It(fmt.Sprintf("is running test for : %s/%s for test command :  %s", facts.Namespace, facts.Name, testCmd.Name), func() {
 		defer results.RecordResult(identifiers.TestHostResourceIdentifier)
 		containerCount := containerCount
@@ -159,9 +158,9 @@ func runTestsOnCNF(containerCount int, testCmd testcases.BaseTestCase,
 			}
 		} else {
 			cmdArgs := strings.Split(fmt.Sprintf(testCmd.Command, args...), " ")
-			cnfInTest := containerpkg.NewPod(cmdArgs, facts.Name, facts.Namespace, testCmd.ExpectedStatus, testCmd.ResultType, testCmd.Action, common.DefaultTimeout)
-			gomega.Expect(cnfInTest).ToNot(gomega.BeNil())
-			test, err := tnf.NewTest(context.GetExpecter(), cnfInTest, []reel.Handler{cnfInTest}, context.GetErrorChannel())
+			podTest := containerpkg.NewPod(cmdArgs, facts.Name, facts.Namespace, testCmd.ExpectedStatus, testCmd.ResultType, testCmd.Action, common.DefaultTimeout)
+			gomega.Expect(podTest).ToNot(gomega.BeNil())
+			test, err := tnf.NewTest(context.GetExpecter(), podTest, []reel.Handler{podTest}, context.GetErrorChannel())
 			gomega.Expect(err).To(gomega.BeNil())
 			gomega.Expect(test).ToNot(gomega.BeNil())
 			testResult, err := test.Run()

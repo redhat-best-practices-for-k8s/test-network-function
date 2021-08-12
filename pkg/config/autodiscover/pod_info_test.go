@@ -14,7 +14,7 @@
 // with this program; if not, write to the Free Software Foundation, Inc.,
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-package autodiscover_test
+package autodiscover
 
 import (
 	"encoding/json"
@@ -24,7 +24,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/test-network-function/test-network-function/pkg/config/autodiscover"
 )
 
 const (
@@ -38,7 +37,7 @@ var (
 	testSubjectFilePath      = path.Join(filePath, testSubjectFile)
 )
 
-func loadPodResource(filePath string) (pod autodiscover.PodResource) {
+func loadPodResource(filePath string) (pod PodResource) {
 	contents, err := ioutil.ReadFile(filePath)
 	if err != nil {
 		log.Fatalf("error (%s) loading PodResource %s for testing", err, filePath)

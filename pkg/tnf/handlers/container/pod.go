@@ -138,12 +138,12 @@ func (p *Pod) ReelTimeout() *reel.Step {
 func (p *Pod) ReelEOF() {
 }
 
-// Facts collects facts of the container
+// Facts collects facts of the pod
 func (p *Pod) Facts() string {
 	return p.facts
 }
 
-// NewPod creates a `Container` test  on the configured test cases.
+// NewPod creates a `Pod` test  on the configured test cases.
 func NewPod(args []string, name, namespace string, expectedStatus []string, resultType testcases.TestResultType, action testcases.TestAction, timeout time.Duration) *Pod {
 	return &Pod{
 		Name:         name,

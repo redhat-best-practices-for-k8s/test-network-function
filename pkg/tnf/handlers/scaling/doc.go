@@ -14,19 +14,5 @@
 // with this program; if not, write to the Free Software Foundation, Inc.,
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-package autodiscover
-
-import (
-	"testing"
-
-	"github.com/stretchr/testify/assert"
-)
-
-func TestBuildOperatorFromCSVResource(t *testing.T) {
-	csvResource := loadCSVResource(csvFilePath)
-	operator := buildOperatorFromCSVResource(&csvResource)
-
-	assert.Equal(t, "CSVNamespace", operator.Namespace)
-	assert.Equal(t, "CSVName", operator.Name)
-	assert.Equal(t, []string{"OPERATOR_STATUS", "ANOTHER_TEST"}, operator.Tests)
-}
+// Package scaling provides a test for deployments scale in/out
+package scaling

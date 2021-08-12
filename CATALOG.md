@@ -134,6 +134,14 @@ Version|v1.0.0
 Description|http://test-network-function.com/testcases/lifecycle/pod-termination-grace-period tests whether the terminationGracePeriod is CNF-specific, or if the default (30s) is utilized.  This test is informative, and will not affect CNF Certification.  In many cases, the default terminationGracePeriod is perfectly acceptable for a CNF.
 Result Type|informative
 Suggested Remediation|Choose a terminationGracePeriod that is appropriate for your given CNF.  If the default (30s) is appropriate, then feel free to ignore this informative message.  This test is meant to raise awareness around how Pods are terminated, and to suggest that a CNF is configured based on its requirements.  In addition to a terminationGracePeriod, consider utilizing a termination hook in the case that your application requires special shutdown instructions.
+### http://test-network-function.com/testcases/lifecycle/scaling
+
+Property|Description
+---|---
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/lifecycle/scaling tests that CNF deployments support scale in/out operations.  			First, The test starts getting the current replicaCount (N) of the deployment/s with the Pod Under Test. Then, it executes the  			scale-in oc command for (N-1) replicas. Lastly, it executes the scale-out oc command, restoring the original replicaCount of the deployment/s.
+Result Type|normative
+Suggested Remediation|Make sure CNF deployments/replica sets can scale in/out successfully.
 ### http://test-network-function.com/testcases/networking/icmpv4-connectivity
 
 Property|Description
@@ -522,6 +530,16 @@ Result Type|normative
 Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`cat`, `oc`
+
+### http://test-network-function.com/tests/scaling
+Property|Description
+---|---
+Version|v1.0.0
+Description|A test to check the deployments scale in/out. The tests issues the oc scale command on a deployment for a given number of replicas and checks whether the command output is valid.
+Result Type|normative
+Intrusive|true
+Modifications Persist After Test|false
+Runtime Binaries Required|`oc`
 
 ### http://test-network-function.com/tests/serviceaccount
 Property|Description

@@ -153,7 +153,7 @@ func RunAndValidateTest(test *tnf.Test) {
 // GetTestConfiguration returns the cnf-certification-generic-tests test configuration.
 func GetTestConfiguration() *configsections.TestConfiguration {
 	conf := config.GetConfigInstance()
-	return &conf.Generic
+	return &conf
 }
 
 // IsMinikube returns true when the env var is set, OCP only test would be skipped based on this flag

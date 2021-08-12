@@ -14,7 +14,7 @@
 // with this program; if not, write to the Free Software Foundation, Inc.,
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-package configsections_test
+package configsections
 
 import (
 	"encoding/json"
@@ -24,8 +24,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/test-network-function/test-network-function/pkg/config"
-	"github.com/test-network-function/test-network-function/pkg/config/configsections"
 	"gopkg.in/yaml.v2"
 )
 
@@ -40,22 +38,22 @@ type unmarshalFunc func([]byte, interface{}) error
 // test data
 var (
 	// bananas go in the fruit bowl.
-	fruitbowlRequestInfo = configsections.CertifiedContainerRequestInfo{
+	fruitbowlRequestInfo = CertifiedContainerRequestInfo{
 		Name:       "banana",
 		Repository: "fruitbowl",
 	}
 	// apples go in the fridge.
-	fridgeRequestInfo = configsections.CertifiedContainerRequestInfo{
+	fridgeRequestInfo = CertifiedContainerRequestInfo{
 		Name:       "apple",
 		Repository: "fridge",
 	}
 
-	jenkinsOperatorRequestInfo = configsections.CertifiedOperatorRequestInfo{
+	jenkinsOperatorRequestInfo = CertifiedOperatorRequestInfo{
 		Name:         "jenkins",
 		Organization: "Red Hat",
 	}
 
-	etcdOperatorRequestInfo = configsections.CertifiedOperatorRequestInfo{
+	etcdOperatorRequestInfo = CertifiedOperatorRequestInfo{
 		Name:         "etcd",
 		Organization: "Core OS",
 	}
@@ -78,14 +76,14 @@ func setupRequestTest(marshalFun marshalFunc) (tempfileName string) {
 	return tempfile.Name()
 }
 
-// loadRequestConfig reads `tmpPath`, unmarshals it using `unmarshalFun`, and returns the resulting `config.File`.
-func loadRequestConfig(tmpPath string, unmarshalFun unmarshalFunc) (conf *config.File) {
+// loadRequestConfig reads `tmpPath`, unmarshals it using `unmarshalFun`, and returns the resulting `TestConfiguration`.
+func loadRequestConfig(tmpPath string, unmarshalFun unmarshalFunc) (conf *TestConfiguration) {
 	contents, err := ioutil.ReadFile(tmpPath)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	conf = &config.File{}
+	conf = &TestConfiguration{}
 	err = unmarshalFun(contents, conf)
 	if err != nil {
 		log.Fatal(err)
@@ -95,7 +93,7 @@ func loadRequestConfig(tmpPath string, unmarshalFun unmarshalFunc) (conf *config
 }
 
 // saveRequestConfig calls `marshalFun` on `c`, then writes the result to `configPath`.
-func saveRequestConfig(marshalFun marshalFunc, c *config.File, configPath string) {
+func saveRequestConfig(marshalFun marshalFunc, c *TestConfiguration, configPath string) {
 	bytes, err := marshalFun(c)
 	if err != nil {
 		log.Fatal(err)
@@ -113,13 +111,13 @@ func cleanupTempfiles() {
 	tempFiles = make([]*os.File, 0)
 }
 
-func buildRequestConfig() *config.File {
-	conf := &config.File{}
-	conf.CertifiedContainerInfo = []configsections.CertifiedContainerRequestInfo{
+func buildRequestConfig() *TestConfiguration {
+	conf := &TestConfiguration{}
+	conf.CertifiedContainerInfo = []CertifiedContainerRequestInfo{
 		fruitbowlRequestInfo,
 		fridgeRequestInfo,
 	}
-	conf.CertifiedOperatorInfo = []configsections.CertifiedOperatorRequestInfo{
+	conf.CertifiedOperatorInfo = []CertifiedOperatorRequestInfo{
 		jenkinsOperatorRequestInfo,
 		etcdOperatorRequestInfo,
 	}
