@@ -64,7 +64,7 @@ var _ = ginkgo.Describe(common.PlatformAlterationTestKey, func() {
 		ginkgo.Context("Container does not have additional packages installed", func() {
 			// use this boolean to turn off tests that require OS packages
 			if !common.IsMinikube() {
-				testPodsFsDiff(&configData)
+				testContainersFsDiff(&configData)
 			}
 		})
 
@@ -82,15 +82,17 @@ var _ = ginkgo.Describe(common.PlatformAlterationTestKey, func() {
 	}
 })
 
-// testPodsFsDiff test that all PUT didn't install new packages are starting
-func testPodsFsDiff(configData *common.ConfigurationData) {
+// testContainersFsDiff test that all CUT didn't install new packages are starting
+func testContainersFsDiff(configData *common.ConfigurationData) {
 	ginkgo.It("platform-fsdiff", func() {
 		fsDiffContainer := configData.FsDiffContainer
 		if fsDiffContainer != nil {
 			for _, cut := range configData.ContainersUnderTest {
-				targetPodOc := cut.Oc
-				ginkgo.By(fmt.Sprintf("%s(%s) should not install new packages after starting", targetPodOc.GetPodName(), targetPodOc.GetPodContainerName()))
-				testPodFsDiff(fsDiffContainer.Oc, targetPodOc)
+				podName := cut.Oc.GetPodName()
+				containerName := cut.Oc.GetPodContainerName()
+				context := cut.Oc
+				ginkgo.By(fmt.Sprintf("%s(%s) should not install new packages after starting", podName, containerName))
+				testContainerFsDiff(fsDiffContainer.Oc, context)
 			}
 		} else {
 			log.Warn("no fs diff container is configured, cannot run fs diff test")
@@ -98,12 +100,12 @@ func testPodsFsDiff(configData *common.ConfigurationData) {
 	})
 }
 
-// testPodFsDiff  test that the PUT didn't install new packages after starting, and report through Ginkgo.
-func testPodFsDiff(masterPodOc, targetPodOc *interactive.Oc) {
+// testContainerFsDiff  test that the CUT didn't install new packages after starting, and report through Ginkgo.
+func testContainerFsDiff(masterPodOc, targetContainerOC *interactive.Oc) {
 	defer results.RecordResult(identifiers.TestUnalteredBaseImageIdentifier)
-	targetPodOc.GetExpecter()
+	targetContainerOC.GetExpecter()
 	containerIDTester := containerid.NewContainerID(common.DefaultTimeout)
-	test, err := tnf.NewTest(targetPodOc.GetExpecter(), containerIDTester, []reel.Handler{containerIDTester}, targetPodOc.GetErrorChannel())
+	test, err := tnf.NewTest(targetContainerOC.GetExpecter(), containerIDTester, []reel.Handler{containerIDTester}, targetContainerOC.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
 	testResult, err := test.Run()
 	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
