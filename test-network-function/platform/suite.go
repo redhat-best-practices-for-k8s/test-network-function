@@ -20,7 +20,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"regexp"
-	"strconv"
 	"strings"
 
 	"github.com/test-network-function/test-network-function/pkg/tnf/testcases"
@@ -34,7 +33,6 @@ import (
 	"github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
-	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/bootconfigentries"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/cnffsdiff"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/containerid"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/currentkernelcmdlineargs"
@@ -158,36 +156,9 @@ func getCurrentKernelCmdlineArgs(targetPodOc *interactive.Oc) map[string]string 
 	return utils.ArgListToMap(currentSplitKernelCmdlineArgs)
 }
 
-func getBootEntryIndex(bootEntry string) (int, error) {
-	return strconv.Atoi(strings.Split(bootEntry, "-")[1])
-}
-
-func getMaxIndexEntry(bootConfigEntries []string) string {
-	maxIndex, err := getBootEntryIndex(bootConfigEntries[0])
-	gomega.Expect(err).To(gomega.BeNil())
-	maxIndexEntryName := bootConfigEntries[0]
-	for _, bootEntry := range bootConfigEntries {
-		if entryIndex, err2 := getBootEntryIndex(bootEntry); entryIndex > maxIndex {
-			maxIndex = entryIndex
-			gomega.Expect(err2).To(gomega.BeNil())
-			maxIndexEntryName = bootEntry
-		}
-	}
-
-	return maxIndexEntryName
-}
-
 func getGrubKernelArgs(context *interactive.Context, nodeName string) map[string]string {
-	bootConfigEntriesTester := bootconfigentries.NewBootConfigEntries(common.DefaultTimeout, nodeName)
-	test, err := tnf.NewTest(context.GetExpecter(), bootConfigEntriesTester, []reel.Handler{bootConfigEntriesTester}, context.GetErrorChannel())
-	gomega.Expect(err).To(gomega.BeNil())
-	common.RunAndValidateTest(test)
-	bootConfigEntries := bootConfigEntriesTester.GetBootConfigEntries()
-
-	maxIndexEntryName := getMaxIndexEntry(bootConfigEntries)
-
-	readBootConfigTester := readbootconfig.NewReadBootConfig(common.DefaultTimeout, nodeName, maxIndexEntryName)
-	test, err = tnf.NewTest(context.GetExpecter(), readBootConfigTester, []reel.Handler{readBootConfigTester}, context.GetErrorChannel())
+	readBootConfigTester := readbootconfig.NewReadBootConfig(common.DefaultTimeout, nodeName)
+	test, err := tnf.NewTest(context.GetExpecter(), readBootConfigTester, []reel.Handler{readBootConfigTester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
 	common.RunAndValidateTest(test)
 	bootConfig := readBootConfigTester.GetBootConfig()

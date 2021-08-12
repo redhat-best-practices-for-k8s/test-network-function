@@ -37,12 +37,13 @@ type ReadBootConfig struct {
 }
 
 // NewReadBootConfig creates a ReadBootConfig tnf.Test.
-func NewReadBootConfig(timeout time.Duration, nodeName, entryName string) *ReadBootConfig {
+func NewReadBootConfig(timeout time.Duration, nodeName /*, entryName*/ string) *ReadBootConfig {
 	return &ReadBootConfig{
 		timeout: timeout,
 		result:  tnf.ERROR,
 		args: []string{
-			"echo", "\"cat /host/boot/loader/entries/" + entryName + "\"", "|", "oc", "debug", "-q", "node/" + nodeName,
+			// "echo", "\"cat /host/boot/loader/entries/" + entryName + "\"", "|", "oc", "debug", "--preserve-pod=true", "node/" + nodeName,
+			"echo", "\"cat /host/boot/loader/entries/\\`ls /host/boot/loader/entries/ | sort | tail -n 1\\`\"", "|", "oc", "debug", "-q", "node/" + nodeName,
 		},
 	}
 }
