@@ -121,7 +121,7 @@ jobs:
         run: ./run-cnf-suites.sh diagnostic
 
       - name: 'Test: Run test suites'
-        run: ./run-cnf-suites.sh access-control lifecycle platform observablility networking
+        run: ./run-cnf-suites.sh access-control lifecycle platform observablility networking affiliated-certification
 
       # Perform smoke tests using a TNF container.
 
