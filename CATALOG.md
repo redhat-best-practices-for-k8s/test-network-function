@@ -198,6 +198,14 @@ Version|v1.0.0
 Description|http://test-network-function.com/testcases/platform-alteration/hugepages-config checks to see that HugePage settings have been configured through MachineConfig, and not manually on the underlying Node.  This test case applies only to Nodes that are configured with the "worker" MachineConfigSet.  First, the "worker" MachineConfig is polled, and the Hugepage settings are extracted.  Next, the underlying Nodes are polled for configured HugePages through inspection of /proc/meminfo.  The results are compared, and the test passes only if they are the same.
 Result Type|normative
 Suggested Remediation|HugePage settings should be configured either directly through the MachineConfigOperator or indirectly using the PeformanceAddonOperator.  This ensures that OpenShift is aware of the special MachineConfig requirements, and can provision your CNF on a Node that is part of the corresponding MachineConfigSet.  Avoid making changes directly to an underlying Node, and let OpenShift handle the heavy lifting of configuring advanced settings.
+### http://test-network-function.com/testcases/platform-alteration/sysctl-config
+
+Property|Description
+---|---
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/lifecycle/pod-recreation tests that no one has changed the node's sysctl configs after the node 			was created, the tests works by checking if the sysctl configs are consistent with the 			MachineConfig CR which defines how the node should be configured
+Result Type|normative
+Suggested Remediation|You should recreate the node or change the sysctls, recreating is recommended because there might be other unknown changes
 ### http://test-network-function.com/testcases/platform-alteration/tainted-node-kernel
 
 Property|Description
@@ -560,6 +568,16 @@ Result Type|normative
 Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`oc`
+
+### http://test-network-function.com/tests/sysctlAllConfigsArgs
+Property|Description
+---|---
+Version|v1.0.0
+Description|A test used to find all sysctl configuration args
+Result Type|normative
+Intrusive|false
+Modifications Persist After Test|false
+Runtime Binaries Required|`sysctl`
 
 ### http://test-network-function.com/tests/sysctlConfigFilesList
 Property|Description
