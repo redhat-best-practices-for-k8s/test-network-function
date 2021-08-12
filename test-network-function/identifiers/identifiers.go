@@ -179,7 +179,11 @@ var (
 		Url:     formTestURL(common.LifecycleTestKey, "container-shutdown"),
 		Version: versionOne,
 	}
-
+	// TestSysctlConfigsIdentifier ensures that the node's sysctl configs are consistent with the MachineConfig CR
+	TestSysctlConfigsIdentifier = claim.Identifier{
+		Url:     formTestURL(common.PlatformAlterationTestKey, "sysctl-config"),
+		Version: versionOne,
+	}
 	// TestScalingIdentifier ensures deployment scale in/out operations work correctly.
 	TestScalingIdentifier = claim.Identifier{
 		Url:     formTestURL(common.LifecycleTestKey, "scaling"),
@@ -466,6 +470,15 @@ the changes for you.`,
 			and that the actual replica count matches the desired replica count.`),
 		Remediation: `Ensure that CNF Pod(s) utilize a configuration that supports High Availability.  
 			Additionally, ensure that there are available Nodes in the OpenShift cluster that can be utilized in the event that a host Node fails.`,
+	},
+	TestSysctlConfigsIdentifier: {
+		Identifier: TestSysctlConfigsIdentifier,
+		Type:       normativeResult,
+		Description: formDescription(TestPodRecreationIdentifier,
+			`tests that no one has changed the node's sysctl configs after the node
+			was created, the tests works by checking if the sysctl configs are consistent with the
+			MachineConfig CR which defines how the node should be configured`),
+		Remediation: `You should recreate the node or change the sysctls, recreating is recommended because there might be other unknown changes`,
 	},
 	TestScalingIdentifier: {
 		Identifier: TestScalingIdentifier,
