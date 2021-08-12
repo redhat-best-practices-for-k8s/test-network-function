@@ -17,15 +17,11 @@
 package generic
 
 import (
-	"encoding/json"
 	"fmt"
-	"strings"
 
 	"github.com/test-network-function/test-network-function/pkg/tnf/testcases"
 
 	"github.com/test-network-function/test-network-function/test-network-function/common"
-	"github.com/test-network-function/test-network-function/test-network-function/identifiers"
-	"github.com/test-network-function/test-network-function/test-network-function/results"
 
 	"github.com/onsi/ginkgo"
 	ginkgoconfig "github.com/onsi/ginkgo/config"
@@ -33,14 +29,8 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/base/redhat"
-	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/currentkernelcmdlineargs"
-	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/mckernelarguments"
-	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodemcname"
-	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/podnodename"
-	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/readbootconfig"
 	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
-	utils "github.com/test-network-function/test-network-function/pkg/utils"
 )
 
 const (
