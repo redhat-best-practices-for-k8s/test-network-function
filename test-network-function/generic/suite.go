@@ -71,13 +71,6 @@ var _ = ginkgo.Describe(testsKey, func() {
 			testIsRedHatRelease(containerUnderTest.Oc)
 		}
 		testIsRedHatRelease(testOrchestrator.Oc)
-
-		if !common.IsMinikube() {
-			for _, containersUnderTest := range containersUnderTest {
-				// To be removed once Isaac's fix is merged
-				testBootParams(common.GetContext(), containersUnderTest.Oc.GetPodName(), containersUnderTest.Oc.GetPodNamespace(), containersUnderTest.Oc)
-			}
-		}
 	}
 })
 
@@ -94,82 +87,5 @@ func testIsRedHatRelease(oc *interactive.Oc) {
 			gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
 			gomega.Expect(err).To(gomega.BeNil())
 		})
-	})
-}
-
-func getMcKernelArguments(context *interactive.Context, mcName string) map[string]string {
-	mcKernelArgumentsTester := mckernelarguments.NewMcKernelArguments(common.DefaultTimeout, mcName)
-	test, err := tnf.NewTest(context.GetExpecter(), mcKernelArgumentsTester, []reel.Handler{mcKernelArgumentsTester}, context.GetErrorChannel())
-	gomega.Expect(err).To(gomega.BeNil())
-	common.RunAndValidateTest(test)
-	mcKernelArguments := mcKernelArgumentsTester.GetKernelArguments()
-	var mcKernelArgumentsJSON []string
-	err = json.Unmarshal([]byte(mcKernelArguments), &mcKernelArgumentsJSON)
-	gomega.Expect(err).To(gomega.BeNil())
-	mcKernelArgumentsMap := utils.ArgListToMap(mcKernelArgumentsJSON)
-	return mcKernelArgumentsMap
-}
-
-func getMcName(context *interactive.Context, nodeName string) string {
-	mcNameTester := nodemcname.NewNodeMcName(common.DefaultTimeout, nodeName)
-	test, err := tnf.NewTest(context.GetExpecter(), mcNameTester, []reel.Handler{mcNameTester}, context.GetErrorChannel())
-	gomega.Expect(err).To(gomega.BeNil())
-	common.RunAndValidateTest(test)
-	return mcNameTester.GetMcName()
-}
-
-func getPodNodeName(context *interactive.Context, podName, podNamespace string) string {
-	podNameTester := podnodename.NewPodNodeName(common.DefaultTimeout, podName, podNamespace)
-	test, err := tnf.NewTest(context.GetExpecter(), podNameTester, []reel.Handler{podNameTester}, context.GetErrorChannel())
-	gomega.Expect(err).To(gomega.BeNil())
-	common.RunAndValidateTest(test)
-	return podNameTester.GetNodeName()
-}
-
-func getCurrentKernelCmdlineArgs(targetPodOc *interactive.Oc) map[string]string {
-	currentKernelCmdlineArgsTester := currentkernelcmdlineargs.NewCurrentKernelCmdlineArgs(common.DefaultTimeout)
-	test, err := tnf.NewTest(targetPodOc.GetExpecter(), currentKernelCmdlineArgsTester, []reel.Handler{currentKernelCmdlineArgsTester}, targetPodOc.GetErrorChannel())
-	gomega.Expect(err).To(gomega.BeNil())
-	common.RunAndValidateTest(test)
-	currnetKernelCmdlineArgs := currentKernelCmdlineArgsTester.GetKernelArguments()
-	currentSplitKernelCmdlineArgs := strings.Split(currnetKernelCmdlineArgs, " ")
-	return utils.ArgListToMap(currentSplitKernelCmdlineArgs)
-}
-
-func getGrubKernelArgs(context *interactive.Context, nodeName string) map[string]string {
-	readBootConfigTester := readbootconfig.NewReadBootConfig(common.DefaultTimeout, nodeName)
-	test, err := tnf.NewTest(context.GetExpecter(), readBootConfigTester, []reel.Handler{readBootConfigTester}, context.GetErrorChannel())
-	gomega.Expect(err).To(gomega.BeNil())
-	common.RunAndValidateTest(test)
-	bootConfig := readBootConfigTester.GetBootConfig()
-
-	splitBootConfig := strings.Split(bootConfig, "\n")
-	filteredBootConfig := utils.FilterArray(splitBootConfig, func(line string) bool {
-		return strings.HasPrefix(line, "options")
-	})
-	gomega.Expect(len(filteredBootConfig)).To(gomega.Equal(1))
-	grubKernelConfig := filteredBootConfig[0]
-	grubSplitKernelConfig := strings.Split(grubKernelConfig, " ")
-	grubSplitKernelConfig = grubSplitKernelConfig[1:]
-	return utils.ArgListToMap(grubSplitKernelConfig)
-}
-
-func testBootParams(context *interactive.Context, podName, podNamespace string, targetPodOc *interactive.Oc) {
-	ginkgo.It(fmt.Sprintf("Testing boot params for the pod's node %s/%s", podNamespace, podName), func() {
-		defer results.RecordResult(identifiers.TestUnalteredStartupBootParamsIdentifier)
-		nodeName := getPodNodeName(context, podName, podNamespace)
-		mcName := getMcName(context, nodeName)
-		mcKernelArgumentsMap := getMcKernelArguments(context, mcName)
-		currentKernelArgsMap := getCurrentKernelCmdlineArgs(targetPodOc)
-		grubKernelConfigMap := getGrubKernelArgs(context, nodeName)
-
-		for key, mcVal := range mcKernelArgumentsMap {
-			if currentVal, ok := currentKernelArgsMap[key]; ok {
-				gomega.Expect(currentVal).To(gomega.Equal(mcVal))
-			}
-			if grubVal, ok := grubKernelConfigMap[key]; ok {
-				gomega.Expect(grubVal).To(gomega.Equal(mcVal))
-			}
-		}
 	})
 }
