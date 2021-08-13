@@ -47,7 +47,7 @@ type TestConfiguration struct {
 	// TestTarget contains k8s resources that can be targeted by tests
 	TestTarget `yaml:"testTarget" json:"testTarget"`
 	// TestPartner contains the helper containers that can be used to facilitate tests
-	TestPartner `yaml:"testPartner" json:"testPartner"`
+	Partner TestPartner `yaml:"testPartner" json:"testPartner"`
 	// CertifiedContainerInfo is the list of container images to be checked for certification status.
 	CertifiedContainerInfo []CertifiedContainerRequestInfo `yaml:"certifiedcontainerinfo,omitempty" json:"certifiedcontainerinfo,omitempty"`
 	// CertifiedOperatorInfo is list of operator bundle names that are queried for certification status.
@@ -56,20 +56,20 @@ type TestConfiguration struct {
 
 // TestPartner contains the helper containers that can be used to facilitate tests
 type TestPartner struct {
-	// PartnerContainers is the list parter containers that facilitates tests
-	PartnerContainers []Container `yaml:"partnerContainers" json:"partnerContainers"`
-	// TestOrchestrator is the id of the partner container for conducting connectivity tests
-	TestOrchestrator ContainerIdentifier `yaml:"testOrchestrator" json:"testOrchestrator"`
-	// FsDiffMasterContainer is the id of the partner container for conducting base image comparison
-	FsDiffMasterContainer ContainerIdentifier `yaml:"fsDiffMasterContainer" json:"fsDiffMasterContainer"`
+	// ContainerConfigList is the list parter containers that facilitates tests
+	ContainerConfigList []ContainerConfig `yaml:"partnerContainers" json:"partnerContainers"`
+	// TestOrchestratorID is the id of the partner container for conducting connectivity tests
+	TestOrchestratorID ContainerIdentifier `yaml:"testOrchestrator" json:"testOrchestrator"`
+	// FsDiffMasterContainerID is the id of the partner container for conducting base image comparison
+	FsDiffMasterContainerID ContainerIdentifier `yaml:"fsDiffMasterContainer" json:"fsDiffMasterContainer"`
 }
 
 // TestTarget is a collection of resources under test
 type TestTarget struct {
 	// PodsUnderTest is the list of the pods that needs to be tested. Each entry is a single pod to be tested.
 	PodsUnderTest []Pod `yaml:"podsUnderTest,omitempty" json:"podsUnderTest,omitempty"`
-	// ContainersUnderTest is the list of containers that needs to be tested.
-	ContainersUnderTest []Container `yaml:"containersUnderTest" json:"containersUnderTest"`
+	// ContainerConfigList is the list of containers that needs to be tested.
+	ContainerConfigList []ContainerConfig `yaml:"containersUnderTest" json:"containersUnderTest"`
 	// ExcludeContainersFromConnectivityTests excludes specific containers from network connectivity tests.  This is particularly useful for containers that don't have ping available.
 	ExcludeContainersFromConnectivityTests []ContainerIdentifier `yaml:"excludeContainersFromConnectivityTests" json:"excludeContainersFromConnectivityTests"`
 	// Operator is the list of operator objects that needs to be tested.

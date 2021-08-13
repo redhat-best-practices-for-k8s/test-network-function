@@ -128,7 +128,7 @@ func testOperatorIsInstalledViaOLM(subscriptionName, subscriptionNamespace strin
 }
 
 func getConfig() ([]configsections.CertifiedOperatorRequestInfo, []configsections.Operator) {
-	conf := config.GetConfigInstance()
+	conf := config.GetTestEnvironment().Config
 	operatorsToQuery := conf.CertifiedOperatorInfo
 	operatorsInTest := conf.Operators
 	return operatorsToQuery, operatorsInTest
