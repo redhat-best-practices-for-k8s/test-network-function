@@ -189,6 +189,11 @@ var (
 		Url:     formTestURL(common.LifecycleTestKey, "scaling"),
 		Version: versionOne,
 	}
+	// TestClusterCsiInfoIdentifier list Cluster CSIdriver Identifier retrieves Third Party CSI driver info.
+	TestClusterCsiInfoIdentifier = claim.Identifier{
+		Url:     formTestURL(common.DiagnosticTestKey, "cluster-csi-info"),
+		Version: versionOne,
+	}
 )
 
 func formDescription(identifier claim.Identifier, description string) string {
@@ -488,5 +493,11 @@ the changes for you.`,
 			First, The test starts getting the current replicaCount (N) of the deployment/s with the Pod Under Test. Then, it executes the 
 			scale-in oc command for (N-1) replicas. Lastly, it executes the scale-out oc command, restoring the original replicaCount of the deployment/s.`),
 		Remediation: `Make sure CNF deployments/replica sets can scale in/out successfully.`,
+	},
+	TestClusterCsiInfoIdentifier: {
+		Identifier: TestClusterCsiInfoIdentifier,
+		Type:       informativeResult,
+		Description: formDescription(TestClusterCsiInfoIdentifier,
+			`extracts CSI driver information in the cluster.`),
 	},
 }

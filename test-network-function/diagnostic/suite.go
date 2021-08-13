@@ -35,8 +35,17 @@ var (
 
 	nodesHwInfo = NodesHwInfo{}
 
+	// csiDriver stores the csi driver JSON output of `oc get csidriver -o json`
+	csiDriver = CsiDriver{}
+
 	// nodesTestPath is the file location of the nodes.json test case relative to the project root.
 	nodesTestPath = path.Join("pkg", "tnf", "handlers", "node", "nodes.json")
+
+	// csiDriverTestPath is the file location of the csidriver.json test case relative to the project root.
+	csiDriverTestPath = path.Join("pkg", "tnf", "handlers", "csidriver", "csidriver.json")
+
+	// relativeCsiDriverTestPath is the relative path to the csidriver.json test case.
+	relativeCsiDriverTestPath = path.Join(pathRelativeToRoot, csiDriverTestPath)
 
 	// pathRelativeToRoot is used to calculate relative filepaths for the `test-network-function` executable entrypoint.
 	pathRelativeToRoot = path.Join("..")
@@ -88,6 +97,10 @@ var _ = ginkgo.Describe(common.DiagnosticTestKey, func() {
 			defer results.RecordResult(identifiers.TestNodesHwInfoIdentifier)
 			testNodesHwInfo()
 		})
+		ginkgo.It("should report cluster CSI driver info", func() {
+			defer results.RecordResult(identifiers.TestClusterCsiInfoIdentifier)
+			listClusterCSIInfo()
+		})
 	})
 })
 
@@ -112,6 +125,18 @@ type NodesHwInfo struct {
 	Worker NodeHwInfo
 }
 
+// CsiDriver stores csi driver JSON output from  `oc get csidirver -o json` command
+type CsiDriver struct {
+	Kind     string `json:"kind"`
+	Metadata struct {
+		Labels struct {
+			App string `json:"app"`
+		} `json:"labels"`
+		Name     string `json:"name"`
+		SelfLink string `json:"selfLink"`
+	} `json:"metadata"`
+}
+
 // GetNodeSummary returns the result of running `oc get nodes -o json`.
 func GetNodeSummary() map[string]interface{} {
 	return nodeSummary
@@ -125,6 +150,11 @@ func GetCniPlugins() []CniPlugin {
 // GetNodesHwInfo returns an object with HW info of one master and one worker
 func GetNodesHwInfo() NodesHwInfo {
 	return nodesHwInfo
+}
+
+// GetCsiDriverInfo returns the CSI driver info of running `oc get csidriver -o json`.
+func GetCsiDriverInfo() CsiDriver {
+	return csiDriver
 }
 
 func getFirstNode(labelFilter map[string]*string) string {
@@ -270,4 +300,32 @@ func getNodeLspci(nodeName string) []string {
 	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
 	gomega.Expect(err).To(gomega.BeNil())
 	return tester.Processed
+}
+
+// check CSI driver info in cluster
+func listClusterCSIInfo() {
+	if common.IsMinikube() {
+		ginkgo.Skip("CSI is not checked in minikube")
+	}
+	context := common.GetContext()
+	test, handlers, result, err := generic.NewGenericFromJSONFile(relativeCsiDriverTestPath, common.RelativeSchemaPath)
+	gomega.Expect(err).To(gomega.BeNil())
+	gomega.Expect(result).ToNot(gomega.BeNil())
+	gomega.Expect(result.Valid()).To(gomega.BeTrue())
+	gomega.Expect(handlers).ToNot(gomega.BeNil())
+	gomega.Expect(len(handlers)).To(gomega.Equal(1))
+	gomega.Expect(test).ToNot(gomega.BeNil())
+	tester, err := tnf.NewTest(context.GetExpecter(), *test, handlers, context.GetErrorChannel())
+	gomega.Expect(err).To(gomega.BeNil())
+	gomega.Expect(tester).ToNot(gomega.BeNil())
+	testResult, err := tester.Run()
+	gomega.Expect(err).To(gomega.BeNil())
+	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
+	genericTest := (*test).(*generic.Generic)
+	gomega.Expect(genericTest).ToNot(gomega.BeNil())
+	matches := genericTest.Matches
+	gomega.Expect(len(matches)).To(gomega.Equal(1))
+	match := genericTest.GetMatches()[0]
+	err = json.Unmarshal([]byte(match.Match), &csiDriver)
+	gomega.Expect(err).To(gomega.BeNil())
 }

@@ -1,0 +1,24 @@
+{
+    "identifier": {
+      "url": "http://test-network-function.com/tests/csiDriver",
+      "version": "v1.0.0"
+    },
+    "description": "This test checks third party CSI driver installed in cluster for cnf.",
+    "testResult": 0,
+    "testTimeout": 10000000000,
+    "reelFirstStep": {
+      "execute":
+        "oc get csidriver -o json\n",
+      "expect": [
+        "(?m)(.|\n)+"
+      ],
+      "timeout": 10000000000
+    },
+    "resultContexts": [
+      {
+        "pattern": "(?m)(.|\n)+",
+        "defaultResult": 1
+      }
+    ]
+  }
+  
