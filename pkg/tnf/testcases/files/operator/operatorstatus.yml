@@ -7,14 +7,6 @@ testcase:
     expectedType: "string"
     expectedstatus:
       - "Succeeded"
-  - name: "SUBSCRIPTION_INSTALLED"
-    skiptest: false
-    command: "oc get subscription %s -n %s -ojson | jq -r '.spec.name'"
-    action: "allow"
-    resulttype: "string"
-    expectedType: "string"
-    expectedstatus:
-      - "etcd"
   - name: "CSV_SCC"
     skiptest: false
     command: "oc get csv %s -n %s -o json | jq -r 'if .spec.install.spec.clusterPermissions == null then null else . end | if . == null then \"EMPTY\" else .spec.install.spec.clusterPermissions[].rules[].resourceNames end | if length == 0 then \"EMPTY\" else . end'"

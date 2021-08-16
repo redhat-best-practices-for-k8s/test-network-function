@@ -1,0 +1,80 @@
+// Copyright (C) 2020-2021 Red Hat, Inc.
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along
+// with this program; if not, write to the Free Software Foundation, Inc.,
+// 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+package {{ .Handlername }}
+
+import (
+	"time"
+	"github.com/test-network-function/test-network-function/pkg/tnf"
+	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
+)
+
+// TODO:
+type {{ .Handlername }} struct {
+	result  int
+	timeout time.Duration
+	args    []string
+	// adding special parameters
+}
+
+const (
+	// adding special variables
+)
+
+func (h *{{ .Handlername }}) Args() []string {
+	return h.args
+}
+
+// GetIdentifier returns the tnf.Test specific identifier.
+func (h *{{ .Handlername }}) GetIdentifier() {
+	// TODO : create identifier.{{ .Handlername}}Identifier.	
+}
+
+// Timeout return the timeout for the test.
+func (h *{{ .Handlername }}) Timeout() time.Duration {
+	return h.timeout
+}
+
+// Result returns the test result.
+func (h *{{ .Handlername }}) Result() int {
+	return h.result
+}
+
+// ReelFirst returns a step which expects an Handlername summary for the given device.
+func (h *{{ .Handlername }}) ReelFirst() *reel.Step {
+	return &reel.Step{
+		Expect: []string{""}, // TODO : pass the list of possible regex in here
+		Timeout: h.timeout,
+	}
+}
+
+// ReelMatch parses the Handlername output and set the test result on match.
+func (h *{{ .Handlername }}) ReelMatch(_, _, match string) *reel.Step {
+	h.result = tnf.ERROR
+	return nil
+	// TODO : add the matching logic in here
+}
+
+// ReelTimeout does nothing; Handlername requires no explicit intervention for a timeout.
+func (h *{{ .Handlername }}) ReelTimeout() *reel.Step {
+	return nil
+	// TODO : fill the stub
+}
+
+// ReelEOF does nothing; Handlername requires no explicit intervention for EOF.
+func (h *{{ .Handlername }}) ReelEOF() {
+	// TODO : fill the stub
+}

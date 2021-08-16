@@ -19,8 +19,14 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os"
+	"path"
+	"sort"
 	"strings"
+
+	"github.com/test-network-function/test-network-function-claim/pkg/claim"
+	"github.com/test-network-function/test-network-function/test-network-function/identifiers"
 
 	"github.com/spf13/cobra"
 	"github.com/test-network-function/test-network-function/pkg/tnf/identifier"
@@ -29,9 +35,32 @@ import (
 const (
 	// backtickOffset is the number of extra characters required to enclose output in backticks.
 	backtickOffset = 2
+
+	// introMDFilename is the name of the file that contains the introductory text for CATALOG.md.
+	introMDFilename = "INTRO.md"
+
+	// tccFilename is the name of the file that contains the test case catalog section introductory text for CATALOG.md.
+	tccFilename = "TEST_CASE_CATALOG.md"
+
+	// tccbbFilename is the name of the file that contains the test case catalog building blocks section introductory
+	// text for CATALOG.md.
+	tccbbFilename = "TEST_CASE_BUILDING_BLOCKS_CATALOG.md"
 )
 
 var (
+	// introMDFile is the path to the file that contains the test case catalog section introductory text for CATALOG.md.
+	introMDFile = path.Join(mdDirectory, introMDFilename)
+
+	// mdDirectory is the path to the directory of files that contain static text for CATALOG.md.
+	mdDirectory = path.Join("cmd", "catalog", "cmd", "data")
+
+	// tccFile is the path to the file that contains the test case catalog section introductory text for CATALOG.md.
+	tccFile = path.Join(mdDirectory, tccFilename)
+
+	// tccbbFile is the path to the file that contains the test case catalog building blocks section introductory text
+	// for CATALOG.md
+	tccbbFile = path.Join(mdDirectory, tccbbFilename)
+
 	// rootCmd is the root of the "catalog" CLI program.
 	rootCmd = &cobra.Command{
 		Use:   "catalog",
@@ -83,24 +112,93 @@ func cmdJoin(elems []string, sep string) string {
 	return b.String()
 }
 
-// runGenerateMarkdownCmd generates a markdown test catalog.
-func runGenerateMarkdownCmd(_ *cobra.Command, _ []string) error {
-	fmt.Println("# `tnf.Test` Catalog")
-	fmt.Println()
-	fmt.Println("A number of `tnf.Test` implementations are included out of the box.  This is a summary of the available implementations:")
-	for _, catalogEntry := range identifier.Catalog {
-		fmt.Fprintf(os.Stdout, "## %s", catalogEntry.Identifier.URL)
+// emitTextFromFile is a utility method to stream file contents to stdout.  This allows more natural specification of
+// the non-dynamic aspects of CATALOG.md.
+func emitTextFromFile(filename string) error {
+	text, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return err
+	}
+	fmt.Print(string(text))
+	return nil
+}
+
+// outputTestCases outputs the Markdown representation for test cases from the catalog to stdout.
+func outputTestCases() {
+	// Building a separate data structure to store the key order for the map
+	keys := make([]claim.Identifier, 0, len(identifiers.Catalog))
+	for k := range identifiers.Catalog {
+		keys = append(keys, k)
+	}
+
+	// Sorting the map by identifier URL
+	sort.Slice(keys, func(i, j int) bool {
+		return keys[i].Url < keys[j].Url
+	})
+
+	// Iterating the map by sorted identifier URL
+	for _, k := range keys {
+		fmt.Fprintf(os.Stdout, "### %s\n", identifiers.Catalog[k].Identifier.Url)
 		fmt.Println()
 		fmt.Println("Property|Description")
 		fmt.Println("---|---")
-		fmt.Fprintf(os.Stdout, "Version|%s\n", catalogEntry.Identifier.SemanticVersion)
-		fmt.Fprintf(os.Stdout, "Description|%s\n", catalogEntry.Description)
-		fmt.Fprintf(os.Stdout, "Result Type|%s\n", catalogEntry.Type)
-		fmt.Fprintf(os.Stdout, "Intrusive|%t\n", catalogEntry.IntrusionSettings.ModifiesSystem)
-		fmt.Fprintf(os.Stdout, "Modifications Persist After Test|%t\n", catalogEntry.IntrusionSettings.ModificationIsPersistent)
-		fmt.Fprintf(os.Stdout, "Runtime Binaries Required|%s\n", cmdJoin(catalogEntry.BinaryDependencies, ", "))
+		fmt.Fprintf(os.Stdout, "Version|%s\n", identifiers.Catalog[k].Identifier.Version)
+		fmt.Fprintf(os.Stdout, "Description|%s\n", strings.ReplaceAll(identifiers.Catalog[k].Description, "\n", " "))
+		fmt.Fprintf(os.Stdout, "Result Type|%s\n", identifiers.Catalog[k].Type)
+		fmt.Fprintf(os.Stdout, "Suggested Remediation|%s\n", strings.ReplaceAll(identifiers.Catalog[k].Remediation, "\n", " "))
+	}
+	fmt.Println()
+	fmt.Println()
+}
+
+// outputTestCaseBuildingBlocks outputs the Markdown representation for the test case building blocks from the catalog
+// to stdout.
+func outputTestCaseBuildingBlocks() {
+	// Building a separate data structure to store the key order for the map
+	keys := make([]string, 0, len(identifier.Catalog))
+	for k := range identifier.Catalog {
+		keys = append(keys, k)
+	}
+
+	// Sorting the map by identifier URL
+	sort.Strings(keys)
+
+	// Iterating the map by sorted identifier URL
+	for _, k := range keys {
+		fmt.Fprintf(os.Stdout, "### %s", identifier.Catalog[k].Identifier.URL)
+		fmt.Println()
+		fmt.Println("Property|Description")
+		fmt.Println("---|---")
+		fmt.Fprintf(os.Stdout, "Version|%s\n", identifier.Catalog[k].Identifier.SemanticVersion)
+		fmt.Fprintf(os.Stdout, "Description|%s\n", identifier.Catalog[k].Description)
+		fmt.Fprintf(os.Stdout, "Result Type|%s\n", identifier.Catalog[k].Type)
+		fmt.Fprintf(os.Stdout, "Intrusive|%t\n", identifier.Catalog[k].IntrusionSettings.ModifiesSystem)
+		fmt.Fprintf(os.Stdout, "Modifications Persist After Test|%t\n", identifier.Catalog[k].IntrusionSettings.ModificationIsPersistent)
+		fmt.Fprintf(os.Stdout, "Runtime Binaries Required|%s\n", cmdJoin(identifier.Catalog[k].BinaryDependencies, ", "))
 		fmt.Println()
 	}
+}
+
+// runGenerateMarkdownCmd generates a markdown test catalog.
+func runGenerateMarkdownCmd(_ *cobra.Command, _ []string) error {
+	// static introductory generation
+	if err := emitTextFromFile(introMDFile); err != nil {
+		return err
+	}
+	if err := emitTextFromFile(tccFile); err != nil {
+		return err
+	}
+
+	// process the test cases
+	outputTestCases()
+
+	// static generation of test case building blocks section introduction.
+	if err := emitTextFromFile(tccbbFile); err != nil {
+		return err
+	}
+
+	// process the test case building blocks
+	outputTestCaseBuildingBlocks()
 	return nil
 }
 

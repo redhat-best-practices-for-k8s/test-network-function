@@ -1,0 +1,12 @@
+{
+  "metadata": {
+    "annotations": {
+		"test-network-function.com/operator_tests": "[\"OPERATOR_STATUS\", \"ANOTHER_TEST\"]"
+    },
+    "labels": {
+		"test-network-function.com/operator": "target"
+    },
+    "name": "CSVName",
+    "namespace": "CSVNamespace"
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "identifier": {
+    "url": "http://test-network-function.com/tests/operator/check-subscription",
+    "version": "v1.0.0"
+  },
+  "description": "This test checks the subscription for a given operator, verifying that the operator was installed using OLM.",
+  "testResult": 0,
+  "testTimeout": 10000000000,
+  "reelFirstStep": {
+    "execute": "oc get subscription {{.SUBSCRIPTION_NAME}} -n {{.SUBSCRIPTION_NAMESPACE}} -o json | jq -r '.metadata.name'\n",
+    "expect": [
+      "(?m)Error from server.*",
+      "{{.SUBSCRIPTION_NAME}}"
+    ],
+    "timeout": 10000000000
+  },
+  "resultContexts": [
+    {
+      "pattern": "(?m)Error from server.*",
+      "defaultResult": 2
+    },
+    {
+      "pattern": "{{.SUBSCRIPTION_NAME}}",
+      "defaultResult": 1
+    }
+  ]
+}

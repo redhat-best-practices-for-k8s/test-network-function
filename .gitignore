@@ -8,8 +8,13 @@ test-network-function_junit.xml
 cover.out
 test-network-function/cnf-certification-tests_junit.xml
 cnf-certification-tests_junit.xml
+cnftests-junit.xml
+setup_junit.xml
+validation_junit.xml
 .vscode
 jsontest-cli
+gradetool
+test-out.json
 
 # Explicitly don't track mocks.  mocks should be built on request.
 pkg/tnf/mocks/mock_tester.go

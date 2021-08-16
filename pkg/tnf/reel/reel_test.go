@@ -90,7 +90,7 @@ func TestNewReel(t *testing.T) {
 
 		var expecter expect.Expecter = mockExpecter
 		var errorChannel <-chan error
-		r, err := reel.NewReel(&expecter, testCase.command, errorChannel)
+		r, err := reel.NewReel(&expecter, testCase.command, errorChannel, reel.DisableTerminalPromptEmulation())
 		assert.Equal(t, testCase.newReelResultErr, err)
 		assert.Equal(t, testCase.newReelResultIsNil, r == nil)
 		// In the event that the Reel instance is good, perform Run()
@@ -234,7 +234,7 @@ func TestReel_Step(t *testing.T) {
 		}
 
 		mockExpecter := mock_interactive.NewMockExpecter(ctrl)
-		mockExpecter.EXPECT().Send(testCommand).Return(nil)
+		mockExpecter.EXPECT().Send(reel.WrapTestCommand(testCommand)).Return(nil)
 		if testCase.expectBatchExpectedInvocationCount > 0 {
 			mockExpecter.EXPECT().ExpectBatch(gomock.Any(), gomock.Any()).Times(testCase.expectBatchExpectedInvocationCount).Return(testCase.expectBatchResResult, testCase.expectBatchErrResult)
 		}

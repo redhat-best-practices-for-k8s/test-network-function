@@ -1,0 +1,135 @@
+name: 'Publish the `test-network-function` image (latest release only)'
+on:
+  # Run the workflow when a new release gets published
+  release:
+    types: [published]
+  # Run the workflow every day at 5 am UTC (1 am EST, 7am CET)
+  # This is useful for keeping the image up-to-date with security
+  # patches provided in the UBI.
+  # Disclaimer: There is no guarantee that scheduled workflows will
+  # run at the predefined time, if at all. The delay is usually
+  # around 10-30 minutes.
+  schedule:
+    - cron: '0 5 * * *'
+  workflow_dispatch:
+defaults:
+  run:
+    shell: bash
+env:
+  REGISTRY: quay.io
+  REGISTRY_LOCAL: localhost
+  IMAGE_NAME: testnetworkfunction/test-network-function
+  IMAGE_TAG: latest
+  CURRENT_VERSION_GENERIC_BRANCH: 2.0.x
+  TNF_CONTAINER_CLIENT: docker
+  TNF_MINIKUBE_ONLY: true
+  TNF_NON_INTRUSIVE_ONLY: true
+  TNF_DISABLE_CONFIG_AUTODISCOVER: false
+  TNF_CONFIG_DIR: /tmp/tnf/config
+  TNF_OUTPUT_DIR: /tmp/tnf/output
+  TNF_SRC_URL: 'https://github.com/${{ github.repository }}'
+  TESTING_CMD_PARAMS: '-n host -i ${REGISTRY_LOCAL}/${IMAGE_NAME}:${IMAGE_TAG} -t ${TNF_CONFIG_DIR} -o ${TNF_OUTPUT_DIR}'
+
+jobs:
+  get-latest-tnf-version-number:
+    name: 'Get the version number of the latest release'
+    if: ${{ github.repository_owner == 'test-network-function' }}
+    runs-on: ubuntu-20.04
+    outputs:
+      TNF_VERSION: ${{ steps.set_tnf_version.outputs.version_number }}
+
+    steps:
+      - name: Checkout generic working branch of the current version
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ env.CURRENT_VERSION_GENERIC_BRANCH }}
+
+      - name: Get contents of the version.json file
+        run: echo "::set-output name=json::$(cat version.json | tr -d '[:space:]')"
+        id: get_version_json_file
+
+      - name: Save the version number to $TNF_VERSION
+        run: |
+          echo Version tag: $VERSION_FROM_FILE
+          echo "::set-output name=version_number::$VERSION_FROM_FILE"
+        id: set_tnf_version
+        env:
+          VERSION_FROM_FILE: ${{ fromJSON(steps.get_version_json_file.outputs.json)['tag'] }}
+
+  test-and-push-tnf-image:
+    name: 'Test and push the `test-network-function` image'
+    needs: [get-latest-tnf-version-number]
+    runs-on: ubuntu-20.04
+    env:
+      SHELL: /bin/bash
+      KUBECONFIG: '/home/runner/.kube/config'
+      TNF_VERSION: ${{ needs['get-latest-tnf-version-number'].outputs.TNF_VERSION }}
+
+    steps:
+      - name: Ensure $TNF_VERSION and $IMAGE_TAG are set
+        run: '[[ -n "$TNF_VERSION" ]] && [[ -n "$IMAGE_TAG" ]]'
+
+      - name: Check whether the version tag exists on remote
+        run: git ls-remote --exit-code $TNF_SRC_URL refs/tags/$TNF_VERSION
+
+      - name: (if tag is missing) Display debug message
+        if: ${{ failure() }}
+        run: echo "Tag '$TNF_VERSION' does not exist on remote $TNF_SRC_URL"
+
+      - name: Checkout the version tag
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ env.TNF_VERSION }}
+
+      - name: Build the `test-network-function` image
+        run: |
+          docker build --no-cache \
+            -t ${REGISTRY_LOCAL}/${IMAGE_NAME}:${IMAGE_TAG} \
+            -t ${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG} \
+            -t ${REGISTRY}/${IMAGE_NAME}:${TNF_VERSION} \
+            --build-arg TNF_VERSION=${TNF_VERSION} \
+            --build-arg TNF_SRC_URL=${TNF_SRC_URL} .
+
+      # Create a minikube cluster for testing.
+
+      - name: Check out `cnf-certification-test-partner`
+        uses: actions/checkout@v2
+        with:
+          repository: test-network-function/cnf-certification-test-partner
+          path: cnf-certification-test-partner
+
+      - name: Start the minikube cluster for `local-test-infra`
+        uses: ./cnf-certification-test-partner/.github/actions/start-minikube
+
+      - name: Create `local-test-infra` OpenShift resources
+        uses: ./cnf-certification-test-partner/.github/actions/create-local-test-infra-resources
+        with:
+          working_directory: cnf-certification-test-partner
+
+      # Perform tests.
+
+      - name: Create required TNF config files and directories
+        run: |
+          mkdir -p $TNF_CONFIG_DIR $TNF_OUTPUT_DIR
+          cp test-network-function/*.yml $TNF_CONFIG_DIR
+        shell: bash
+
+      - name: 'Test: Run diagnostic test suite in a TNF container'
+        run: ./run-tnf-container.sh ${{ env.TESTING_CMD_PARAMS }} diagnostic
+
+      - name: 'Test: Run generic test suite in a TNF container'
+        run: ./run-tnf-container.sh ${{ env.TESTING_CMD_PARAMS }} generic
+
+      # Push the new TNF image to Quay.io.
+
+      - name: Authenticate against Quay.io
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ env.REGISTRY }}
+          # Use a Robot Account to authenticate against Quay.io
+          # https://docs.quay.io/glossary/robot-accounts.html
+          username: ${{ secrets.QUAY_ROBOT_USERNAME }}
+          password: ${{ secrets.QUAY_ROBOT_TOKEN }}
+
+      - name: Push the newly built image to Quay.io
+        run: docker push --all-tags ${REGISTRY}/${IMAGE_NAME}

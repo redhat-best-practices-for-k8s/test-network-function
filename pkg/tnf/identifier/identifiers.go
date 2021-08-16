@@ -19,27 +19,44 @@ package identifier
 import "github.com/test-network-function/test-network-function/pkg/tnf/dependencies"
 
 const (
-	hostnameIdentifierURL           = "http://test-network-function.com/tests/hostname"
-	ipAddrIdentifierURL             = "http://test-network-function.com/tests/ipaddr"
-	nodesIdentifierURL              = "http://test-network-function.com/tests/nodes"
-	operatorIdentifierURL           = "http://test-network-function.com/tests/operator"
-	pingIdentifierURL               = "http://test-network-function.com/tests/ping"
-	podIdentifierURL                = "http://test-network-function.com/tests/container/pod"
-	versionIdentifierURL            = "http://test-network-function.com/tests/generic/version"
-	cnfFsDiffURL                    = "http://test-network-function.com/tests/generic/cnf_fs_diff"
-	containerIDURL                  = "http://test-network-function.com/tests/generic/containerId"
-	serviceAccountIdentifierURL     = "http://test-network-function.com/tests/serviceaccount"
-	roleBindingIdentifierURL        = "http://test-network-function.com/tests/rolebinding"
-	clusterRoleBindingIdentifierURL = "http://test-network-function.com/tests/clusterrolebinding"
-	nodePortIdentifierURL           = "http://test-network-function.com/tests/nodeport"
-	nodeNamesIdentifierURL          = "http://test-network-function.com/tests/nodenames"
-	nodeTaintedIdentifierURL        = "http://test-network-function.com/tests/nodetainted"
-	gracePeriodIdentifierURL        = "http://test-network-function.com/tests/gracePeriod"
-	hugepagesIdentifierURL          = "http://test-network-function.com/tests/hugepages"
-	nodehugepagesIdentifierURL      = "http://test-network-function.com/tests/nodehugepages"
-	deploymentsIdentifierURL        = "http://test-network-function.com/tests/deployments"
-	deploymentsnodesIdentifierURL   = "http://test-network-function.com/tests/deploymentsnodes"
-	deploymentsdrainIdentifierURL   = "http://test-network-function.com/tests/deploymentsdrain"
+	nodeselectorIdentifierURL             = "http://test-network-function.com/tests/nodeselector"
+	hostnameIdentifierURL                 = "http://test-network-function.com/tests/hostname"
+	ipAddrIdentifierURL                   = "http://test-network-function.com/tests/ipaddr"
+	nodesIdentifierURL                    = "http://test-network-function.com/tests/nodes"
+	operatorIdentifierURL                 = "http://test-network-function.com/tests/operator"
+	pingIdentifierURL                     = "http://test-network-function.com/tests/ping"
+	podIdentifierURL                      = "http://test-network-function.com/tests/container/pod"
+	versionIdentifierURL                  = "http://test-network-function.com/tests/generic/version"
+	containerIDURL                        = "http://test-network-function.com/tests/generic/containerId"
+	serviceAccountIdentifierURL           = "http://test-network-function.com/tests/serviceaccount"
+	roleBindingIdentifierURL              = "http://test-network-function.com/tests/rolebinding"
+	clusterRoleBindingIdentifierURL       = "http://test-network-function.com/tests/clusterrolebinding"
+	nodePortIdentifierURL                 = "http://test-network-function.com/tests/nodeport"
+	nodeNamesIdentifierURL                = "http://test-network-function.com/tests/nodenames"
+	nodeTaintedIdentifierURL              = "http://test-network-function.com/tests/nodetainted"
+	gracePeriodIdentifierURL              = "http://test-network-function.com/tests/gracePeriod"
+	hugepagesIdentifierURL                = "http://test-network-function.com/tests/hugepages"
+	nodehugepagesIdentifierURL            = "http://test-network-function.com/tests/nodehugepages"
+	deploymentsIdentifierURL              = "http://test-network-function.com/tests/deployments"
+	deploymentsnodesIdentifierURL         = "http://test-network-function.com/tests/deploymentsnodes"
+	deploymentsdrainIdentifierURL         = "http://test-network-function.com/tests/deploymentsdrain"
+	ownersIdentifierURL                   = "http://test-network-function.com/tests/owners"
+	cnfFsDiffURL                          = "http://test-network-function.com/tests/generic/cnf_fs_diff"
+	podnodenameIdentifierURL              = "http://test-network-function.com/tests/podnodename"
+	nodemcnameIdentifierURL               = "http://test-network-function.com/tests/nodemcname"
+	mckernelargumentsIdentifierURL        = "http://test-network-function.com/tests/mckernelarguments"
+	currentKernelCmdlineArgsIdentifierURL = "http://test-network-function.com/tests/currentKernelCmdlineArgs"
+	grubKernelCmdlineArgsIdentifierURL    = "http://test-network-function.com/tests/grubKernelCmdlineArgs"
+	sysctlConfigFilesListIdentifierURL    = "http://test-network-function.com/tests/sysctlConfigFilesList"
+	sysctlAllConfigsArgsURL               = "http://test-network-function.com/tests/sysctlAllConfigsArgs"
+	readRemoteFileIdentifierURL           = "http://test-network-function.com/tests/readRemoteFile"
+	uncordonNodeIdentifierURL             = "http://test-network-function.com/tests/node/uncordon"
+	checkSubscriptionIdentifierURL        = "http://test-network-function.com/tests/operator/check-subscription"
+	nodeDebugIdentifierURL                = "http://test-network-function.com/tests/nodedebug"
+	loggingIdentifierURL                  = "http://test-network-function.com/tests/logging"
+	podantiaffinityIdentifierURL          = "http://test-network-function.com/tests/testPodHighAvailability"
+	shutdownIdentifierURL                 = "http://test-network-function.com/tests/shutdown"
+	scalingIdentifierURL                  = "http://test-network-function.com/tests/scaling"
 
 	VersionOne = "v1.0.0"
 )
@@ -325,9 +342,47 @@ var Catalog = map[string]TestCatalogEntry{
 			dependencies.OcBinaryName,
 		},
 	},
+	podnodenameIdentifierURL: {
+		Identifier:  PodNodeNameIdentifier,
+		Description: "A generic test used to get a pod's node",
+		Type:        Normative,
+		IntrusionSettings: IntrusionSettings{
+			ModifiesSystem:           false,
+			ModificationIsPersistent: false,
+		},
+		BinaryDependencies: []string{
+			dependencies.OcBinaryName,
+		},
+	},
 	deploymentsnodesIdentifierURL: {
 		Identifier:  DeploymentsNodesIdentifier,
 		Description: "A generic test used to read node names of pods owned by deployments in namespace",
+		Type:        Normative,
+		IntrusionSettings: IntrusionSettings{
+			ModifiesSystem:           false,
+			ModificationIsPersistent: false,
+		},
+		BinaryDependencies: []string{
+			dependencies.OcBinaryName,
+			dependencies.GrepBinaryName,
+		},
+	},
+	nodeselectorIdentifierURL: {
+		Identifier:  NodeSelectorIdentifier,
+		Description: "A generic test used to verify a pod's nodeSelector and nodeAffinity configuration",
+		Type:        Normative,
+		IntrusionSettings: IntrusionSettings{
+			ModifiesSystem:           false,
+			ModificationIsPersistent: false,
+		},
+		BinaryDependencies: []string{
+			dependencies.OcBinaryName,
+			dependencies.GrepBinaryName,
+		},
+	},
+	nodemcnameIdentifierURL: {
+		Identifier:  NodeMcNameIdentifier,
+		Description: "A generic test used to get a node's current mc",
 		Type:        Normative,
 		IntrusionSettings: IntrusionSettings{
 			ModifiesSystem:           false,
@@ -343,12 +398,190 @@ var Catalog = map[string]TestCatalogEntry{
 		Description: "A generic test used to drain node from its deployment pods",
 		Type:        Normative,
 		IntrusionSettings: IntrusionSettings{
+			ModifiesSystem:           true,
+			ModificationIsPersistent: true,
+		},
+		BinaryDependencies: []string{
+			dependencies.JqBinaryName,
+			dependencies.EchoBinaryName,
+		},
+	},
+	mckernelargumentsIdentifierURL: {
+		Identifier:  McKernelArgumentsIdentifier,
+		Description: "A generic test used to get an mc's kernel arguments",
+		Type:        Normative,
+		IntrusionSettings: IntrusionSettings{
+			ModifiesSystem:           false,
+			ModificationIsPersistent: false,
+		},
+		BinaryDependencies: []string{
+			dependencies.OcBinaryName,
+			dependencies.JqBinaryName,
+			dependencies.EchoBinaryName,
+		},
+	},
+	ownersIdentifierURL: {
+		Identifier:  OwnersIdentifier,
+		Description: "A generic test used to verify pod is managed by a ReplicaSet",
+		Type:        Normative,
+		IntrusionSettings: IntrusionSettings{
+			ModifiesSystem:           false,
+			ModificationIsPersistent: false,
+		},
+		BinaryDependencies: []string{
+			dependencies.CatBinaryName,
+		},
+	},
+	currentKernelCmdlineArgsIdentifierURL: {
+		Identifier:  CurrentKernelCmdlineArgsURLIdentifier,
+		Description: "A generic test used to get node's /proc/cmdline",
+		Type:        Normative,
+		IntrusionSettings: IntrusionSettings{
+			ModifiesSystem:           false,
+			ModificationIsPersistent: false,
+		},
+		BinaryDependencies: []string{
+			dependencies.CatBinaryName,
+		},
+	},
+	grubKernelCmdlineArgsIdentifierURL: {
+		Identifier:  GrubKernelCmdlineArgsURLIdentifier,
+		Description: "A generic test used to get node's next boot kernel args",
+		Type:        Normative,
+		IntrusionSettings: IntrusionSettings{
+			ModifiesSystem:           false,
+			ModificationIsPersistent: false,
+		},
+		BinaryDependencies: []string{
+			dependencies.LsBinaryName,
+			dependencies.SortBinaryName,
+			dependencies.HeadBinaryName,
+			dependencies.CutBinaryName,
+			dependencies.OcBinaryName,
+		},
+	},
+	sysctlConfigFilesListIdentifierURL: {
+		Identifier:  SysctlConfigFilesListURLIdentifier,
+		Description: "A generic test used to get node's list of sysctl config files",
+		Type:        Normative,
+		IntrusionSettings: IntrusionSettings{
+			ModifiesSystem:           false,
+			ModificationIsPersistent: false,
+		},
+		BinaryDependencies: []string{
+			dependencies.CatBinaryName,
+		},
+	},
+	readRemoteFileIdentifierURL: {
+		Identifier:  ReadRemoteFileURLIdentifier,
+		Description: "A generic test used to read a specified file at a specified node",
+		Type:        Normative,
+		IntrusionSettings: IntrusionSettings{
+			ModifiesSystem:           false,
+			ModificationIsPersistent: false,
+		},
+		BinaryDependencies: []string{
+			dependencies.EchoBinaryName,
+		},
+	},
+	uncordonNodeIdentifierURL: {
+		Identifier:  UncordonNodeURLIdentifier,
+		Description: "A generic test used to uncordon a node",
+		Type:        Normative,
+		IntrusionSettings: IntrusionSettings{
+			ModifiesSystem:           true,
+			ModificationIsPersistent: true,
+		},
+		BinaryDependencies: []string{
+			dependencies.OcBinaryName,
+		},
+	},
+	checkSubscriptionIdentifierURL: {
+		Identifier:  CheckSubscriptionURLIdentifier,
+		Description: "A test used to check the subscription of a given operator",
+		Type:        Normative,
+		IntrusionSettings: IntrusionSettings{
+			ModifiesSystem:           false,
+			ModificationIsPersistent: false,
+		},
+		BinaryDependencies: []string{
+			dependencies.OcBinaryName,
+		},
+	},
+	nodeDebugIdentifierURL: {
+		Identifier:  NodeDebugIdentifier,
+		Description: "A generic test used to execute a command in a node",
+		Type:        Normative,
+		IntrusionSettings: IntrusionSettings{
 			ModifiesSystem:           false,
 			ModificationIsPersistent: false,
 		},
 		BinaryDependencies: []string{
 			dependencies.OcBinaryName,
 			dependencies.EchoBinaryName,
+		},
+	},
+	loggingIdentifierURL: {
+		Identifier:  LoggingURLIdentifier,
+		Description: "A test used to check logs are redirected to stderr/stdout",
+		Type:        Normative,
+		IntrusionSettings: IntrusionSettings{
+			ModifiesSystem:           false,
+			ModificationIsPersistent: false,
+		},
+		BinaryDependencies: []string{
+			dependencies.OcBinaryName,
+			dependencies.WcBinaryName,
+		},
+	},
+	podantiaffinityIdentifierURL: {
+		Identifier:  PodAntiAffinityIdentifier,
+		Description: "A generic test used to check pod's replica and podAntiAffinity configuration in high availability mode",
+		Type:        Normative,
+		IntrusionSettings: IntrusionSettings{
+			ModifiesSystem:           false,
+			ModificationIsPersistent: false,
+		},
+		BinaryDependencies: []string{
+			dependencies.OcBinaryName,
+		},
+	},
+	shutdownIdentifierURL: {
+		Identifier:  ShutdownURLIdentifier,
+		Description: "A test used to check pre-stop lifecycle is defined",
+		Type:        Normative,
+		IntrusionSettings: IntrusionSettings{
+			ModifiesSystem:           false,
+			ModificationIsPersistent: false,
+		},
+		BinaryDependencies: []string{
+			dependencies.OcBinaryName,
+		},
+	},
+	sysctlAllConfigsArgsURL: {
+		Identifier:  SysctlAllConfigsArgsIdentifier,
+		Description: "A test used to find all sysctl configuration args",
+		Type:        Normative,
+		IntrusionSettings: IntrusionSettings{
+			ModifiesSystem:           false,
+			ModificationIsPersistent: false,
+		},
+		BinaryDependencies: []string{
+			dependencies.SysctlBinaryName,
+		},
+	},
+	scalingIdentifierURL: {
+		Identifier: ScalingIdentifier,
+		Description: "A test to check the deployments scale in/out. The tests issues the oc scale " +
+			"command on a deployment for a given number of replicas and checks whether the command output " +
+			"is valid.",
+		Type: Normative,
+		IntrusionSettings: IntrusionSettings{
+			ModifiesSystem:           true,
+			ModificationIsPersistent: false,
+		},
+		BinaryDependencies: []string{
+			dependencies.OcBinaryName,
 		},
 	},
 }
@@ -477,4 +710,107 @@ var DeploymentsNodesIdentifier = Identifier{
 var DeploymentsDrainIdentifier = Identifier{
 	URL:             deploymentsdrainIdentifierURL,
 	SemanticVersion: VersionOne,
+}
+
+// OwnersIdentifier is the Identifier used to represent the generic Owners test.
+var OwnersIdentifier = Identifier{
+	URL:             ownersIdentifierURL,
+	SemanticVersion: versionOne,
+}
+
+// NodeSelectorIdentifier is the Identifier used to represent the generic NodeSelector test.
+var NodeSelectorIdentifier = Identifier{
+	URL:             nodehugepagesIdentifierURL,
+	SemanticVersion: versionOne,
+}
+
+// PodNodeNameIdentifier is the Identifier used to represent the generic PodNodeName test.
+var PodNodeNameIdentifier = Identifier{
+	URL:             podnodenameIdentifierURL,
+	SemanticVersion: versionOne,
+}
+
+// NodeMcNameIdentifier is the Identifier used to represent the generic NodeMcName test.
+var NodeMcNameIdentifier = Identifier{
+	URL:             nodemcnameIdentifierURL,
+	SemanticVersion: versionOne,
+}
+
+// McKernelArgumentsIdentifier is the Identifier used to represent the generic McKernelArguments test.
+var McKernelArgumentsIdentifier = Identifier{
+	URL:             mckernelargumentsIdentifierURL,
+	SemanticVersion: versionOne,
+}
+
+// CurrentKernelCmdlineArgsURLIdentifier is the Identifier used to represent the generic getCurrentKernelCmdlineArgs test.
+var CurrentKernelCmdlineArgsURLIdentifier = Identifier{
+	URL:             currentKernelCmdlineArgsIdentifierURL,
+	SemanticVersion: versionOne,
+}
+
+// GrubKernelCmdlineArgsURLIdentifier is the Identifier used to represent the generic getCurrentKernelCmdlineArgs test.
+var GrubKernelCmdlineArgsURLIdentifier = Identifier{
+	URL:             grubKernelCmdlineArgsIdentifierURL,
+	SemanticVersion: versionOne,
+}
+
+// SysctlConfigFilesListURLIdentifier is the Identifier used to represent the generic getCurrentKernelCmdlineArgs test.
+var SysctlConfigFilesListURLIdentifier = Identifier{
+	URL:             sysctlConfigFilesListIdentifierURL,
+	SemanticVersion: versionOne,
+}
+
+// ReadRemoteFileURLIdentifier is the Identifier used to represent the generic getCurrentKernelCmdlineArgs test.
+var ReadRemoteFileURLIdentifier = Identifier{
+	URL:             readRemoteFileIdentifierURL,
+	SemanticVersion: versionOne,
+}
+
+// UncordonNodeURLIdentifier is the Identifier used to represent a test that uncordons a node.
+var UncordonNodeURLIdentifier = Identifier{
+	URL:             uncordonNodeIdentifierURL,
+	SemanticVersion: versionOne,
+}
+
+// CheckSubscriptionURLIdentifier is the Identifier used to represent a test that checks the subscription of an operator.
+var CheckSubscriptionURLIdentifier = Identifier{
+	URL:             checkSubscriptionIdentifierURL,
+	SemanticVersion: versionOne,
+}
+
+// NodeDebugIdentifier is the Identifier used to represent the generic NodeDebug test.
+var NodeDebugIdentifier = Identifier{
+	URL:             nodeDebugIdentifierURL,
+	SemanticVersion: versionOne,
+}
+
+// LoggingURLIdentifier is the Identifier used to represent a test that checks if the stdout/stderr is used
+var LoggingURLIdentifier = Identifier{
+	URL:             loggingIdentifierURL,
+	SemanticVersion: versionOne,
+}
+
+// PodAntiAffinityIdentifier is the Identifier used to represent the generic podAffinity test.
+var PodAntiAffinityIdentifier = Identifier{
+	URL:             podantiaffinityIdentifierURL,
+	SemanticVersion: versionOne,
+}
+
+// ShutdownURLIdentifier is the Identifier used to represent a test that checks if pre-stop lifecyle is defined
+var ShutdownURLIdentifier = Identifier{
+	URL:             shutdownIdentifierURL,
+	SemanticVersion: versionOne,
+}
+
+// SysctlAllConfigsArgsIdentifier is the Identifier used to represent a test that checks all args in all sysctl conf files ordered
+// in the same way as they are loaded by the os
+var SysctlAllConfigsArgsIdentifier = Identifier{
+	URL:             sysctlAllConfigsArgsURL,
+	SemanticVersion: versionOne,
+}
+
+// ScalingIdentifier is the Identifier used to represent a test that checks deployments scale in/out
+var ScalingIdentifier = Identifier{
+	URL:             scalingIdentifierURL,
+	SemanticVersion: versionOne,
 }

@@ -9,6 +9,10 @@
     ],
     "timeout": 10000000000
   },
+  "identifier": {
+    "url": "http://test-network-function.com/tests/example/ping",
+    "version": "v1.0.0"
+  },
   "resultContexts": [
     {
       "pattern": "(?m)(\\d+) packets transmitted, (\\d+)( packets){0,1} received, (?:\\+(\\d+) errors)?.*$",
