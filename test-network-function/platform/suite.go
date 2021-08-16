@@ -20,7 +20,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"regexp"
-	"strconv"
 	"strings"
 
 	"github.com/test-network-function/test-network-function/pkg/tnf/testcases"
@@ -34,7 +33,6 @@ import (
 	"github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
-	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/bootconfigentries"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/cnffsdiff"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/containerid"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/currentkernelcmdlineargs"
@@ -57,24 +55,16 @@ import (
 //
 var _ = ginkgo.Describe(common.PlatformAlterationTestKey, func() {
 	if testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusStrings, common.PlatformAlterationTestKey) {
-		config := common.GetTestConfiguration()
-		log.Infof("Test Configuration: %s", config)
 
-		containersUnderTest := common.CreateContainersUnderTest(config)
-		partnerContainers := common.CreatePartnerContainers(config)
-		fsDiffContainer := partnerContainers[config.FsDiffMasterContainer]
-		log.Info(containersUnderTest)
-
+		configData := common.ConfigurationData{}
+		configData.SetNeedsRefresh()
+		ginkgo.BeforeEach(func() {
+			common.ReloadConfiguration(&configData)
+		})
 		ginkgo.Context("Container does not have additional packages installed", func() {
 			// use this boolean to turn off tests that require OS packages
 			if !common.IsMinikube() {
-				if fsDiffContainer != nil {
-					for _, containerUnderTest := range containersUnderTest {
-						testFsDiff(fsDiffContainer.Oc, containerUnderTest.Oc)
-					}
-				} else {
-					log.Warn("no fs diff container is configured, cannot run fs diff test")
-				}
+				testContainersFsDiff(&configData)
 			}
 		})
 
@@ -82,41 +72,52 @@ var _ = ginkgo.Describe(common.PlatformAlterationTestKey, func() {
 		testHugepages()
 
 		if !common.IsMinikube() {
-			for _, containersUnderTest := range containersUnderTest {
-				testBootParams(common.GetContext(), containersUnderTest.Oc.GetPodName(), containersUnderTest.Oc.GetPodNamespace(), containersUnderTest.Oc)
-			}
+			testBootParams(&configData)
 		}
 
 		if !common.IsMinikube() {
-			for _, containersUnderTest := range containersUnderTest {
-				// no test identifier defined, not an official test
-				testSysctlConfigs(common.GetContext(), containersUnderTest.Oc.GetPodName(), containersUnderTest.Oc.GetPodNamespace())
-			}
+			testSysctlConfigs(&configData)
 		}
 
 	}
 })
 
-// Helper to test that the PUT didn't install new packages after starting, and report through Ginkgo.
-func testFsDiff(masterPodOc, targetPodOc *interactive.Oc) {
-	ginkgo.It(fmt.Sprintf("%s(%s) should not install new packages after starting", targetPodOc.GetPodName(), targetPodOc.GetPodContainerName()), func() {
-		defer results.RecordResult(identifiers.TestUnalteredBaseImageIdentifier)
-		targetPodOc.GetExpecter()
-		containerIDTester := containerid.NewContainerID(common.DefaultTimeout)
-		test, err := tnf.NewTest(targetPodOc.GetExpecter(), containerIDTester, []reel.Handler{containerIDTester}, targetPodOc.GetErrorChannel())
-		gomega.Expect(err).To(gomega.BeNil())
-		testResult, err := test.Run()
-		gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
-		gomega.Expect(err).To(gomega.BeNil())
-		containerID := containerIDTester.GetID()
-
-		fsDiffTester := cnffsdiff.NewFsDiff(common.DefaultTimeout, containerID)
-		test, err = tnf.NewTest(masterPodOc.GetExpecter(), fsDiffTester, []reel.Handler{fsDiffTester}, masterPodOc.GetErrorChannel())
-		gomega.Expect(err).To(gomega.BeNil())
-		testResult, err = test.Run()
-		gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
-		gomega.Expect(err).To(gomega.BeNil())
+// testContainersFsDiff test that all CUT didn't install new packages are starting
+func testContainersFsDiff(configData *common.ConfigurationData) {
+	ginkgo.It("platform-fsdiff", func() {
+		fsDiffContainer := configData.FsDiffContainer
+		if fsDiffContainer != nil {
+			for _, cut := range configData.ContainersUnderTest {
+				podName := cut.Oc.GetPodName()
+				containerName := cut.Oc.GetPodContainerName()
+				context := cut.Oc
+				ginkgo.By(fmt.Sprintf("%s(%s) should not install new packages after starting", podName, containerName))
+				testContainerFsDiff(fsDiffContainer.Oc, context)
+			}
+		} else {
+			log.Warn("no fs diff container is configured, cannot run fs diff test")
+		}
 	})
+}
+
+// testContainerFsDiff  test that the CUT didn't install new packages after starting, and report through Ginkgo.
+func testContainerFsDiff(masterPodOc, targetContainerOC *interactive.Oc) {
+	defer results.RecordResult(identifiers.TestUnalteredBaseImageIdentifier)
+	targetContainerOC.GetExpecter()
+	containerIDTester := containerid.NewContainerID(common.DefaultTimeout)
+	test, err := tnf.NewTest(targetContainerOC.GetExpecter(), containerIDTester, []reel.Handler{containerIDTester}, targetContainerOC.GetErrorChannel())
+	gomega.Expect(err).To(gomega.BeNil())
+	testResult, err := test.Run()
+	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
+	gomega.Expect(err).To(gomega.BeNil())
+	containerID := containerIDTester.GetID()
+
+	fsDiffTester := cnffsdiff.NewFsDiff(common.DefaultTimeout, containerID)
+	test, err = tnf.NewTest(masterPodOc.GetExpecter(), fsDiffTester, []reel.Handler{fsDiffTester}, masterPodOc.GetErrorChannel())
+	gomega.Expect(err).To(gomega.BeNil())
+	testResult, err = test.Run()
+	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
+	gomega.Expect(err).To(gomega.BeNil())
 }
 
 func getMcKernelArguments(context *interactive.Context, mcName string) map[string]string {
@@ -158,36 +159,9 @@ func getCurrentKernelCmdlineArgs(targetPodOc *interactive.Oc) map[string]string 
 	return utils.ArgListToMap(currentSplitKernelCmdlineArgs)
 }
 
-func getBootEntryIndex(bootEntry string) (int, error) {
-	return strconv.Atoi(strings.Split(bootEntry, "-")[1])
-}
-
-func getMaxIndexEntry(bootConfigEntries []string) string {
-	maxIndex, err := getBootEntryIndex(bootConfigEntries[0])
-	gomega.Expect(err).To(gomega.BeNil())
-	maxIndexEntryName := bootConfigEntries[0]
-	for _, bootEntry := range bootConfigEntries {
-		if entryIndex, err2 := getBootEntryIndex(bootEntry); entryIndex > maxIndex {
-			maxIndex = entryIndex
-			gomega.Expect(err2).To(gomega.BeNil())
-			maxIndexEntryName = bootEntry
-		}
-	}
-
-	return maxIndexEntryName
-}
-
 func getGrubKernelArgs(context *interactive.Context, nodeName string) map[string]string {
-	bootConfigEntriesTester := bootconfigentries.NewBootConfigEntries(common.DefaultTimeout, nodeName)
-	test, err := tnf.NewTest(context.GetExpecter(), bootConfigEntriesTester, []reel.Handler{bootConfigEntriesTester}, context.GetErrorChannel())
-	gomega.Expect(err).To(gomega.BeNil())
-	common.RunAndValidateTest(test)
-	bootConfigEntries := bootConfigEntriesTester.GetBootConfigEntries()
-
-	maxIndexEntryName := getMaxIndexEntry(bootConfigEntries)
-
-	readBootConfigTester := readbootconfig.NewReadBootConfig(common.DefaultTimeout, nodeName, maxIndexEntryName)
-	test, err = tnf.NewTest(context.GetExpecter(), readBootConfigTester, []reel.Handler{readBootConfigTester}, context.GetErrorChannel())
+	readBootConfigTester := readbootconfig.NewReadBootConfig(common.DefaultTimeout, nodeName)
+	test, err := tnf.NewTest(context.GetExpecter(), readBootConfigTester, []reel.Handler{readBootConfigTester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
 	common.RunAndValidateTest(test)
 	bootConfig := readBootConfigTester.GetBootConfig()
@@ -238,39 +212,57 @@ func getSysctlConfigArgs(context *interactive.Context, nodeName string) map[stri
 	return parseSysctlSystemOutput(sysctlAllConfigsArgs)
 }
 
-func testBootParams(context *interactive.Context, podName, podNamespace string, targetPodOc *interactive.Oc) {
-	ginkgo.It(fmt.Sprintf("Testing boot params for the pod's node %s/%s", podNamespace, podName), func() {
-		defer results.RecordResult(identifiers.TestUnalteredStartupBootParamsIdentifier)
-		nodeName := getPodNodeName(context, podName, podNamespace)
-		mcName := getMcName(context, nodeName)
-		mcKernelArgumentsMap := getMcKernelArguments(context, mcName)
-		currentKernelArgsMap := getCurrentKernelCmdlineArgs(targetPodOc)
-		grubKernelConfigMap := getGrubKernelArgs(context, nodeName)
-
-		for key, mcVal := range mcKernelArgumentsMap {
-			if currentVal, ok := currentKernelArgsMap[key]; ok {
-				gomega.Expect(currentVal).To(gomega.Equal(mcVal))
-			}
-			if grubVal, ok := grubKernelConfigMap[key]; ok {
-				gomega.Expect(grubVal).To(gomega.Equal(mcVal))
-			}
+func testBootParams(configData *common.ConfigurationData) {
+	ginkgo.It("platform-boot-param", func() {
+		context := common.GetContext()
+		for _, cut := range configData.ContainersUnderTest {
+			podName := cut.Oc.GetPodName()
+			podNameSpace := cut.Oc.GetPodNamespace()
+			targetPodOc := cut.Oc
+			testBootParamsHelper(context, podName, podNameSpace, targetPodOc)
 		}
 	})
 }
+func testBootParamsHelper(context *interactive.Context, podName, podNamespace string, targetPodOc *interactive.Oc) {
+	ginkgo.By(fmt.Sprintf("Testing boot params for the pod's node %s/%s", podNamespace, podName))
+	defer results.RecordResult(identifiers.TestUnalteredStartupBootParamsIdentifier)
+	nodeName := getPodNodeName(context, podName, podNamespace)
+	mcName := getMcName(context, nodeName)
+	mcKernelArgumentsMap := getMcKernelArguments(context, mcName)
+	currentKernelArgsMap := getCurrentKernelCmdlineArgs(targetPodOc)
+	grubKernelConfigMap := getGrubKernelArgs(context, nodeName)
 
-func testSysctlConfigs(context *interactive.Context, podName, podNamespace string) {
-	ginkgo.It(fmt.Sprintf("Testing sysctl config files for the pod's node %s/%s", podNamespace, podName), func() {
-		nodeName := getPodNodeName(context, podName, podNamespace)
-		combinedSysctlSettings := getSysctlConfigArgs(context, nodeName)
-		mcName := getMcName(context, nodeName)
-		mcKernelArgumentsMap := getMcKernelArguments(context, mcName)
+	for key, mcVal := range mcKernelArgumentsMap {
+		if currentVal, ok := currentKernelArgsMap[key]; ok {
+			gomega.Expect(currentVal).To(gomega.Equal(mcVal))
+		}
+		if grubVal, ok := grubKernelConfigMap[key]; ok {
+			gomega.Expect(grubVal).To(gomega.Equal(mcVal))
+		}
+	}
+}
 
-		for key, sysctlConfigVal := range combinedSysctlSettings {
-			if mcVal, ok := mcKernelArgumentsMap[key]; ok {
-				gomega.Expect(mcVal).To(gomega.Equal(sysctlConfigVal))
-			}
+func testSysctlConfigs(configData *common.ConfigurationData) {
+	ginkgo.It("platform-sysctl-config", func() {
+		context := common.GetContext()
+		for _, cut := range configData.ContainersUnderTest {
+			podName := cut.Oc.GetPodName()
+			podNameSpace := cut.Oc.GetPodNamespace()
+			testSysctlConfigsHelper(context, podName, podNameSpace)
 		}
 	})
+}
+func testSysctlConfigsHelper(context *interactive.Context, podName, podNamespace string) {
+	ginkgo.By(fmt.Sprintf("Testing sysctl config files for the pod's node %s/%s", podNamespace, podName))
+	nodeName := getPodNodeName(context, podName, podNamespace)
+	combinedSysctlSettings := getSysctlConfigArgs(context, nodeName)
+	mcName := getMcName(context, nodeName)
+	mcKernelArgumentsMap := getMcKernelArguments(context, mcName)
+	for key, sysctlConfigVal := range combinedSysctlSettings {
+		if mcVal, ok := mcKernelArgumentsMap[key]; ok {
+			gomega.Expect(mcVal).To(gomega.Equal(sysctlConfigVal))
+		}
+	}
 }
 
 func testTainted() {

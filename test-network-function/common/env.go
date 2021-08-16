@@ -174,7 +174,8 @@ type ConfigurationData struct {
 	PartnerContainers   map[configsections.ContainerIdentifier]*Container
 	TestOrchestrator    *Container
 	FsDiffContainer     *Container
-	needsRefresh        bool
+
+	needsRefresh bool
 }
 
 // createContainersUnderTest sets up the test containers.
