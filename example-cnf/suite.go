@@ -91,7 +91,8 @@ var _ = ginkgo.Context("example-cnf", func() {
 				gomega.Expect(err).To(gomega.BeNil())
 				gomega.Expect(result).To(gomega.Equal(tnf.SUCCESS))
 
-				time.Sleep(time.Second * 40)
+				const sleepTime = 40
+				time.Sleep(time.Second * sleepTime)
 
 				trafficPassed := cr.NewTraffic(testCustomResourceNamespace, testCustomResourceCRType, testCustomResourceCRName, testTimeout)
 				test, err = tnf.NewTest(context.GetExpecter(), trafficPassed, []reel.Handler{trafficPassed}, context.GetErrorChannel())
