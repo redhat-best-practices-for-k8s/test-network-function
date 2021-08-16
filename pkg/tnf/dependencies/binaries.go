@@ -50,6 +50,9 @@ const (
 	// OcBinaryName is the name of the OpenShift CLI client command.
 	OcBinaryName = "oc"
 
+	// SysctlBinaryName is the name of the Sysctl command.
+	SysctlBinaryName = "sysctl"
+
 	// PodmanBinaryName is the name of the podman tool.
 	PodmanBinaryName = "podman"
 

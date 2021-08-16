@@ -80,16 +80,18 @@ func GetConfigInstance() configsections.TestConfiguration {
 			log.Fatalf("unable to load configuration file: %s", err)
 		}
 		autodiscover.FillTestPartner(&configInstance.TestPartner)
-		discoverTestTargets()
+		doAutodiscover()
 	} else if needsRefresh {
-		discoverTestTargets()
+		configInstance.TestPartner = configsections.TestPartner{}
+		doAutodiscover()
 	}
 	return configInstance
 }
 
-func discoverTestTargets() {
+func doAutodiscover() {
 	if autodiscover.PerformAutoDiscovery() {
 		configInstance.TestTarget = autodiscover.FindTestTarget(configInstance.TargetPodLabels)
+		autodiscover.FillTestPartner(&configInstance.TestPartner)
 	}
 	needsRefresh = false
 }

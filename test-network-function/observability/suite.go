@@ -17,12 +17,12 @@
 package observability
 
 import (
+	"fmt"
 	"path"
 
 	"github.com/onsi/ginkgo"
 	ginkgoconfig "github.com/onsi/ginkgo/config"
 	"github.com/onsi/gomega"
-	log "github.com/sirupsen/logrus"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/generic"
 	"github.com/test-network-function/test-network-function/pkg/tnf/testcases"
@@ -44,27 +44,27 @@ var (
 
 var _ = ginkgo.Describe(common.ObservabilityTestKey, func() {
 	if testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusStrings, common.ObservabilityTestKey) {
-		config := common.GetTestConfiguration()
-		log.Infof("Test Configuration: %s", config)
-
-		for _, cid := range config.ExcludeContainersFromConnectivityTests {
-			common.ContainersToExcludeFromConnectivityTests[cid] = ""
-		}
-		containersUnderTest := common.CreateContainersUnderTest(config)
-		log.Info(containersUnderTest)
-
-		for _, containerUnderTest := range containersUnderTest {
-			testLogging(containerUnderTest.Oc.GetPodNamespace(), containerUnderTest.Oc.GetPodName(), containerUnderTest.Oc.GetPodContainerName())
-		}
-
+		configData := common.ConfigurationData{}
+		configData.SetNeedsRefresh()
+		ginkgo.BeforeEach(func() {
+			common.ReloadConfiguration(&configData)
+		})
+		testLogging(&configData)
 	}
 })
 
-func testLogging(podNameSpace, podName, containerName string) {
+func testLogging(configData *common.ConfigurationData) {
 	ginkgo.When("Testing PUT is emitting logs to stdout/stderr", func() {
 		ginkgo.It("should return at least one line of log", func() {
-			defer results.RecordResult(identifiers.TestLoggingIdentifier)
-			loggingTest(podNameSpace, podName, containerName)
+			for _, cut := range configData.ContainersUnderTest {
+				podName := cut.Oc.GetPodName()
+				podNamespace := cut.Oc.GetPodNamespace()
+				containerName := cut.Oc.GetPodContainerName()
+				ginkgo.By(fmt.Sprintf("Test podnamespace=%s podname=%s",
+					podNamespace, podName))
+				defer results.RecordResult(identifiers.TestLoggingIdentifier)
+				loggingTest(podNamespace, podName, containerName)
+			}
 		})
 	})
 }

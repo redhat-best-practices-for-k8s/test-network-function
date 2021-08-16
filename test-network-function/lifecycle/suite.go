@@ -86,10 +86,7 @@ var drainTimeout = time.Duration(drainTimeoutMinutes) * time.Minute
 //
 var _ = ginkgo.Describe(common.LifecycleTestKey, func() {
 	configData := common.ConfigurationData{}
-	ginkgo.BeforeSuite(func() {
-		common.Loadconfiguration(&configData)
-		log.Info(configData.ContainersUnderTest)
-	})
+	configData.SetNeedsRefresh()
 	ginkgo.BeforeEach(func() {
 		common.ReloadConfiguration(&configData)
 	})

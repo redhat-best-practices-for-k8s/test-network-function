@@ -55,5 +55,5 @@ certifiedcontainerinfo:
   - name: nginx-116  # working example
     repository: rhel8
 certifiedoperatorinfo:
-  - name: etcd-operator
-    organization: redhat-marketplace
+  - name: etcd
+    organization: community-operators # working example
