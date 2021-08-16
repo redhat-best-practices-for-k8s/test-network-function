@@ -1,7 +1,12 @@
-package example_cnf
+package examplecnf
 
 import (
 	"bytes"
+	"html/template"
+	"io/ioutil"
+	"path"
+	"time"
+
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
@@ -10,10 +15,6 @@ import (
 	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
 	"gopkg.in/yaml.v2"
-	"html/template"
-	"io/ioutil"
-	"path"
-	"time"
 )
 
 const (

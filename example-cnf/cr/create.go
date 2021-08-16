@@ -53,7 +53,7 @@ func (r *Create) Args() []string {
 // GetIdentifier returns the tnf.Test specific identifier.
 func (r *Create) GetIdentifier() identifier.Identifier {
 	return identifier.Identifier{
-		URL: "http://test-network-function.com/test-network-function/cr/create",
+		URL:             "http://test-network-function.com/test-network-function/cr/create",
 		SemanticVersion: identifier.VersionOne,
 	}
 }
@@ -91,11 +91,11 @@ func (r *Create) ReelTimeout() *reel.Step {
 func (r *Create) ReelEOF() {
 }
 
-// NewRelease create a new Create tnf.Test.
+// NewCreate create a new Create tnf.Test.
 func NewCreate(crFile string, timeout time.Duration) *Create {
 	return &Create{
-		result: tnf.ERROR,
+		result:  tnf.ERROR,
 		timeout: timeout,
-		args: []string{dependencies.OcBinaryName, "create", "-f", crFile},
+		args:    []string{dependencies.OcBinaryName, "create", "-f", crFile},
 	}
 }

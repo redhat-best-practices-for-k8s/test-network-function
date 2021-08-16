@@ -53,7 +53,7 @@ func (r *Traffic) Args() []string {
 // GetIdentifier returns the tnf.Test specific identifier.
 func (r *Traffic) GetIdentifier() identifier.Identifier {
 	return identifier.Identifier{
-		URL: "http://test-network-function.com/test-network-function/cr/create",
+		URL:             "http://test-network-function.com/test-network-function/cr/create",
 		SemanticVersion: identifier.VersionOne,
 	}
 }
@@ -91,11 +91,11 @@ func (r *Traffic) ReelTimeout() *reel.Step {
 func (r *Traffic) ReelEOF() {
 }
 
-// NewRelease create a new Traffic tnf.Test.
+// NewTraffic create a new Traffic tnf.Test.
 func NewTraffic(namespace, crType, crName string, timeout time.Duration) *Traffic {
 	return &Traffic{
-		result: tnf.ERROR,
+		result:  tnf.ERROR,
 		timeout: timeout,
-		args: []string{dependencies.OcBinaryName, "describe", "-n", namespace, crType, crName, "|", dependencies.GrepBinaryName, "TestPassed"},
+		args:    []string{dependencies.OcBinaryName, "describe", "-n", namespace, crType, crName, "|", dependencies.GrepBinaryName, "TestPassed"},
 	}
 }

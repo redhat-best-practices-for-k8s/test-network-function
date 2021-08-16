@@ -58,6 +58,7 @@ const (
 	shutdownIdentifierURL                 = "http://test-network-function.com/tests/shutdown"
 	scalingIdentifierURL                  = "http://test-network-function.com/tests/scaling"
 
+	// VersionOne specifies the semver v1.0.0
 	VersionOne = "v1.0.0"
 )
 
