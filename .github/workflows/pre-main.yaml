@@ -147,7 +147,7 @@ jobs:
         run: ./run-tnf-container.sh ${{ env.TESTING_CMD_PARAMS }} diagnostic
 
       - name: 'Test: Run generic test suite in a TNF container'
-        run: ./run-tnf-container.sh ${{ env.TESTING_CMD_PARAMS }} generic access-control
+        run: ./run-tnf-container.sh ${{ env.TESTING_CMD_PARAMS }} access-control lifecycle platform observablility networking affiliated-certification
 
       # Push the new unstable TNF image to Quay.io.
 
