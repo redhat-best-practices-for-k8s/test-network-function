@@ -73,6 +73,7 @@ var _ = ginkgo.Context("example-cnf", func() {
 			log.Error(string(inputBytes))
 			gomega.Expect(err).To(gomega.BeNil())
 			gomega.Expect(inputBytes).ToNot(gomega.BeNil())
+			//nolint:gosec
 			err = ioutil.WriteFile(getPath(testCustomResourceFileName), inputBytes, 0644)
 			gomega.Expect(err).To(gomega.BeNil())
 

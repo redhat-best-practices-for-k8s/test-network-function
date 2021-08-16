@@ -1,11 +1,12 @@
 package cr_test
 
 import (
+	"testing"
+	"time"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/test-network-function/test-network-function/example-cnf/cr"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
-	"testing"
-	"time"
 )
 
 var (

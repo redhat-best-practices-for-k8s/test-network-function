@@ -1,10 +1,11 @@
 package cr_test
 
 import (
+	"testing"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/test-network-function/test-network-function/example-cnf/cr"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
-	"testing"
 )
 
 func TestTraffic_Args(t *testing.T) {
