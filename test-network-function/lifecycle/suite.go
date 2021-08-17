@@ -306,7 +306,7 @@ func testPodsRecreation(env *config.TestEnvironment) {
 	var notReadyDeployments []string
 	var nodesSorted []node // A slice version of nodes sorted by number of deployments descending
 	ginkgo.It("Testing node draining effect of deployment", func() {
-		configData.SetNeedsRefresh()
+		env.SetNeedsRefresh()
 		for _, podUnderTest := range env.PodsUnderTest {
 			podNamespace := podUnderTest.Namespace
 			ginkgo.By(fmt.Sprintf("test deployment in namespace %s", podNamespace))
