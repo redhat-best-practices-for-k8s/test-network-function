@@ -33,7 +33,6 @@ import (
 	"github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
-	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/base/redhat"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/bootconfigentries"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/currentkernelcmdlineargs"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/mckernelarguments"
@@ -69,11 +68,6 @@ var _ = ginkgo.Describe(testsKey, func() {
 		log.Info(testOrchestrator)
 		log.Info(containersUnderTest)
 
-		for _, containerUnderTest := range containersUnderTest {
-			testIsRedHatRelease(containerUnderTest.Oc)
-		}
-		testIsRedHatRelease(testOrchestrator.Oc)
-
 		if !common.IsMinikube() {
 			for _, containersUnderTest := range containersUnderTest {
 				// To be removed once Isaac's fix is merged
@@ -83,22 +77,6 @@ var _ = ginkgo.Describe(testsKey, func() {
 
 	}
 })
-
-// testIsRedHatRelease tests whether the container attached to oc is Red Hat based.
-func testIsRedHatRelease(oc *interactive.Oc) {
-	pod := oc.GetPodName()
-	container := oc.GetPodContainerName()
-	ginkgo.When(fmt.Sprintf("%s(%s) is checked for Red Hat version", pod, container), func() {
-		ginkgo.It("Should report a proper Red Hat version", func() {
-			versionTester := redhat.NewRelease(common.DefaultTimeout)
-			test, err := tnf.NewTest(oc.GetExpecter(), versionTester, []reel.Handler{versionTester}, oc.GetErrorChannel())
-			gomega.Expect(err).To(gomega.BeNil())
-			testResult, err := test.Run()
-			gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
-			gomega.Expect(err).To(gomega.BeNil())
-		})
-	})
-}
 
 func getMcKernelArguments(context *interactive.Context, mcName string) map[string]string {
 	mcKernelArgumentsTester := mckernelarguments.NewMcKernelArguments(common.DefaultTimeout, mcName)

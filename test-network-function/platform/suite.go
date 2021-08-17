@@ -34,6 +34,7 @@ import (
 	"github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/base/redhat"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/bootconfigentries"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/cnffsdiff"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/containerid"
@@ -94,8 +95,32 @@ var _ = ginkgo.Describe(common.PlatformAlterationTestKey, func() {
 			}
 		}
 
+		testOrchestrator := partnerContainers[config.TestOrchestrator]
+		log.Info(testOrchestrator)
+		for _, containerUnderTest := range containersUnderTest {
+			testIsRedHatRelease(containerUnderTest.Oc)
+		}
+		testIsRedHatRelease(testOrchestrator.Oc)
+
 	}
 })
+
+// testIsRedHatRelease tests whether the container attached to oc is Red Hat based.
+func testIsRedHatRelease(oc *interactive.Oc) {
+	pod := oc.GetPodName()
+	container := oc.GetPodContainerName()
+	ginkgo.When(fmt.Sprintf("%s(%s) is checked for Red Hat version", pod, container), func() {
+		ginkgo.It("Should report a proper Red Hat version", func() {
+			defer results.RecordResult(identifiers.TestIsRedHatReleaseIdentifier)
+			versionTester := redhat.NewRelease(common.DefaultTimeout)
+			test, err := tnf.NewTest(oc.GetExpecter(), versionTester, []reel.Handler{versionTester}, oc.GetErrorChannel())
+			gomega.Expect(err).To(gomega.BeNil())
+			testResult, err := test.Run()
+			gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
+			gomega.Expect(err).To(gomega.BeNil())
+		})
+	})
+}
 
 // Helper to test that the PUT didn't install new packages after starting, and report through Ginkgo.
 func testFsDiff(masterPodOc, targetPodOc *interactive.Oc) {
