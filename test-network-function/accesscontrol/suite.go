@@ -53,8 +53,6 @@ var _ = ginkgo.Describe(common.AccessControlTestKey, func() {
 
 		// Run the tests that interact with the pods
 		ginkgo.When("under test", func() {
-			podUnderTest := configData.PodsUnderTest
-			gomega.Expect(podUnderTest).ToNot(gomega.BeNil())
 			context := common.GetContext()
 			var allTests []string = testcases.GetConfiguredPodTests()
 			for _, testType := range allTests {
@@ -82,7 +80,6 @@ func runTestOnPods(configData *common.ConfigurationData, testCmd testcases.BaseT
 			podName := podUnderTest.Name
 			podNamespace := podUnderTest.Namespace
 			ginkgo.By(fmt.Sprintf("Reading namespace of podnamespace= %s podname= %s", podNamespace, podName))
-			log.Info(fmt.Sprintf("Reading namespace of podnamespace= %s podname= %s", podNamespace, podName))
 			if testCmd.ExpectedType == testcases.Function {
 				for _, val := range testCmd.ExpectedStatus {
 					testCmd.ExpectedStatusFn(podName, testcases.StatusFunctionType(val))
@@ -141,7 +138,6 @@ func testNamespace(configData *common.ConfigurationData) {
 				podName := podUnderTest.Name
 				podNamespace := podUnderTest.Namespace
 				ginkgo.By(fmt.Sprintf("Reading namespace of podnamespace= %s podname= %s", podNamespace, podName))
-				log.Info(fmt.Sprintf("Reading namespace of podnamespace= %s podname= %s", podNamespace, podName))
 				defer results.RecordResult(identifiers.TestNamespaceBestPracticesIdentifier)
 				gomega.Expect(podNamespace).To(gomega.Not(gomega.Equal("default")))
 				gomega.Expect(podNamespace).To(gomega.Not(gomega.HavePrefix("openshift-")))

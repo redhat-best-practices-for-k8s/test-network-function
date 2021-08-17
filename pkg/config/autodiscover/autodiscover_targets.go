@@ -69,19 +69,19 @@ func FindTestTarget(labels []configsections.Label) (target configsections.TestTa
 }
 
 // buildPodUnderTest builds a single `configsections.Pod` from a PodResource
-func buildPodUnderTest(pr *PodResource) (cnf configsections.Pod) {
+func buildPodUnderTest(pr *PodResource) (podUnderTest configsections.Pod) {
 	var err error
-	cnf.Namespace = pr.Metadata.Namespace
-	cnf.Name = pr.Metadata.Name
-	cnf.ServiceAccount = pr.Spec.ServiceAccount
-	cnf.ContainerCount = len(pr.Spec.Containers)
+	podUnderTest.Namespace = pr.Metadata.Namespace
+	podUnderTest.Name = pr.Metadata.Name
+	podUnderTest.ServiceAccount = pr.Spec.ServiceAccount
+	podUnderTest.ContainerCount = len(pr.Spec.Containers)
 	var tests []string
 	err = pr.GetAnnotationValue(podTestsAnnotationName, &tests)
 	if err != nil {
-		log.Warnf("unable to extract tests from annotation on '%s/%s' (error: %s). Attempting to fallback to all tests", cnf.Namespace, cnf.Name, err)
-		cnf.Tests = testcases.GetConfiguredPodTests()
+		log.Warnf("unable to extract tests from annotation on '%s/%s' (error: %s). Attempting to fallback to all tests", podUnderTest.Namespace, podUnderTest.Name, err)
+		podUnderTest.Tests = testcases.GetConfiguredPodTests()
 	} else {
-		cnf.Tests = tests
+		podUnderTest.Tests = tests
 	}
 	return
 }
