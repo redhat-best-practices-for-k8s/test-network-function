@@ -30,7 +30,6 @@ import (
 	containerpkg "github.com/test-network-function/test-network-function/pkg/tnf/handlers/container"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/rolebinding"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/serviceaccount"
-	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
 	"github.com/test-network-function/test-network-function/pkg/tnf/testcases"
 	"github.com/test-network-function/test-network-function/test-network-function/common"
@@ -53,7 +52,6 @@ var _ = ginkgo.Describe(common.AccessControlTestKey, func() {
 
 		// Run the tests that interact with the pods
 		ginkgo.When("under test", func() {
-			context := common.GetContext()
 			var allTests []string = testcases.GetConfiguredPodTests()
 			for _, testType := range allTests {
 				testFile, err := testcases.LoadConfiguredTestFile(common.ConfiguredTestFile)
@@ -65,7 +63,7 @@ var _ = ginkgo.Describe(common.AccessControlTestKey, func() {
 				gomega.Expect(renderedTestCase).ToNot(gomega.BeNil())
 				for _, testCase := range renderedTestCase.TestCase {
 					if !testCase.SkipTest {
-						runTestOnPods(env, testCase, testType, context)
+						runTestOnPods(env, testCase, testType)
 					}
 				}
 			}
@@ -74,8 +72,9 @@ var _ = ginkgo.Describe(common.AccessControlTestKey, func() {
 })
 
 //nolint:gocritic,funlen // ignore hugeParam error. Pointers to loop iterator vars are bad and `testCmd` is likely to be such.
-func runTestOnPods(env *config.TestEnvironment, testCmd testcases.BaseTestCase, testType string, context *interactive.Context) {
+func runTestOnPods(env *config.TestEnvironment, testCmd testcases.BaseTestCase, testType string) {
 	ginkgo.It(fmt.Sprintf("Running Pod test : %s", testCmd.Name), func() {
+		context := common.GetContext()
 		for _, podUnderTest := range env.PodsUnderTest {
 			podName := podUnderTest.Name
 			podNamespace := podUnderTest.Namespace
