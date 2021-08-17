@@ -176,6 +176,7 @@ func (env *TestEnvironment) doAutodiscover() {
 		env.ContainersToExcludeFromConnectivityTests[cid] = ""
 	}
 	env.ContainersUnderTest = env.createContainers(env.Config.ContainerConfigList)
+	env.PodsUnderTest = env.Config.PodsUnderTest
 	env.PartnerContainers = env.createContainers(env.Config.Partner.ContainerConfigList)
 	env.TestOrchestrator = env.PartnerContainers[env.Config.Partner.TestOrchestratorID]
 	env.FsDiffMasterContainer = env.PartnerContainers[env.Config.Partner.FsDiffMasterContainerID]
