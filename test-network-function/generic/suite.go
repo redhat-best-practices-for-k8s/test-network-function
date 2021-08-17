@@ -19,6 +19,7 @@ package generic
 import (
 	"fmt"
 
+	"github.com/test-network-function/test-network-function/pkg/config"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/base/redhat"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
@@ -42,28 +43,26 @@ const (
 // Runs the "generic" CNF test cases.
 var _ = ginkgo.Describe(testsKey, func() {
 	if testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusStrings, testsKey) {
-		configData := common.ConfigurationData{}
-		configData.SetNeedsRefresh()
+		env := config.GetTestEnvironment()
 		ginkgo.BeforeEach(func() {
-			common.ReloadConfiguration(&configData)
+			env.LoadAndRefresh()
 		})
 
-		testIsRedHatRelease(&configData)
+		testIsRedHatRelease(env)
 	}
 })
 
 // testIsRedHatRelease fetch the configuration and test containers attached to oc is Red Hat based.
-func testIsRedHatRelease(configData *common.ConfigurationData) {
+func testIsRedHatRelease(env *config.TestEnvironment) {
 	ginkgo.It("Should report a proper Red Hat version", func() {
-		for _, cut := range configData.ContainersUnderTest {
+		for _, cut := range env.ContainersUnderTest {
 			testContainerIsRedHatRelease(cut)
 		}
-		testContainerIsRedHatRelease(configData.TestOrchestrator)
 	})
 }
 
 // testContainerIsRedHatRelease tests whether the container attached to oc is Red Hat based.
-func testContainerIsRedHatRelease(cut *common.Container) {
+func testContainerIsRedHatRelease(cut *config.Container) {
 	podName := cut.Oc.GetPodName()
 	containerName := cut.Oc.GetPodContainerName()
 	context := cut.Oc

@@ -52,8 +52,8 @@ func testContainerCertificationStatus() {
 	ginkgo.When("getting certification status", func() {
 		ginkgo.It("get certification status", func() {
 			defer results.RecordResult(identifiers.TestContainerIsCertifiedIdentifier)
-			conf := configpkg.GetConfigInstance()
-			cnfsToQuery := conf.CertifiedContainerInfo
+			env := configpkg.GetTestEnvironment()
+			cnfsToQuery := env.Config.CertifiedContainerInfo
 			if len(cnfsToQuery) > 0 {
 				certAPIClient = api.NewHTTPClient()
 				for _, cnf := range cnfsToQuery {
@@ -73,7 +73,7 @@ func testContainerCertificationStatus() {
 func testOperatorCertificationStatus() {
 	ginkgo.It("Verify operator as certified", func() {
 		defer results.RecordResult(identifiers.TestOperatorIsCertifiedIdentifier)
-		operatorsToQuery := configpkg.GetConfigInstance().CertifiedOperatorInfo
+		operatorsToQuery := configpkg.GetTestEnvironment().Config.CertifiedOperatorInfo
 		if len(operatorsToQuery) > 0 {
 			certAPIClient := api.NewHTTPClient()
 			for _, certified := range operatorsToQuery {

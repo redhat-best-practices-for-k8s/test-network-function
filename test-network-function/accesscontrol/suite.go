@@ -24,6 +24,7 @@ import (
 	ginkgoconfig "github.com/onsi/ginkgo/config"
 	"github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
+	"github.com/test-network-function/test-network-function/pkg/config"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/clusterrolebinding"
 	containerpkg "github.com/test-network-function/test-network-function/pkg/tnf/handlers/container"
@@ -39,15 +40,14 @@ import (
 
 var _ = ginkgo.Describe(common.AccessControlTestKey, func() {
 	if testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusStrings, common.AccessControlTestKey) {
-		configData := common.ConfigurationData{}
-		configData.SetNeedsRefresh()
+		env := config.GetTestEnvironment()
 		ginkgo.BeforeEach(func() {
-			common.ReloadConfiguration(&configData)
+			env.LoadAndRefresh()
 		})
-		common.ReloadConfiguration(&configData)
-		testNamespace(&configData)
 
-		testRoles(&configData)
+		testNamespace(env)
+
+		testRoles(env)
 
 		defer ginkgo.GinkgoRecover()
 
@@ -65,7 +65,7 @@ var _ = ginkgo.Describe(common.AccessControlTestKey, func() {
 				gomega.Expect(renderedTestCase).ToNot(gomega.BeNil())
 				for _, testCase := range renderedTestCase.TestCase {
 					if !testCase.SkipTest {
-						runTestOnPods(&configData, testCase, testType, context)
+						runTestOnPods(env, testCase, testType, context)
 					}
 				}
 			}
@@ -74,9 +74,9 @@ var _ = ginkgo.Describe(common.AccessControlTestKey, func() {
 })
 
 //nolint:gocritic,funlen // ignore hugeParam error. Pointers to loop iterator vars are bad and `testCmd` is likely to be such.
-func runTestOnPods(configData *common.ConfigurationData, testCmd testcases.BaseTestCase, testType string, context *interactive.Context) {
+func runTestOnPods(env *config.TestEnvironment, testCmd testcases.BaseTestCase, testType string, context *interactive.Context) {
 	ginkgo.It(fmt.Sprintf("Running Pod test : %s", testCmd.Name), func() {
-		for _, podUnderTest := range configData.PodsUnderTest {
+		for _, podUnderTest := range env.PodsUnderTest {
 			podName := podUnderTest.Name
 			podNamespace := podUnderTest.Namespace
 			ginkgo.By(fmt.Sprintf("Reading namespace of podnamespace= %s podname= %s", podNamespace, podName))
@@ -131,10 +131,10 @@ func runTestOnPods(configData *common.ConfigurationData, testCmd testcases.BaseT
 	})
 }
 
-func testNamespace(configData *common.ConfigurationData) {
+func testNamespace(env *config.TestEnvironment) {
 	ginkgo.When("test deployment namespace", func() {
 		ginkgo.It("Should not be 'default' and should not begin with 'openshift-'", func() {
-			for _, podUnderTest := range configData.PodsUnderTest {
+			for _, podUnderTest := range env.PodsUnderTest {
 				podName := podUnderTest.Name
 				podNamespace := podUnderTest.Namespace
 				ginkgo.By(fmt.Sprintf("Reading namespace of podnamespace= %s podname= %s", podNamespace, podName))
@@ -146,15 +146,15 @@ func testNamespace(configData *common.ConfigurationData) {
 	})
 }
 
-func testRoles(configData *common.ConfigurationData) {
-	testServiceAccount(configData)
-	testRoleBindings(configData)
-	testClusterRoleBindings(configData)
+func testRoles(env *config.TestEnvironment) {
+	testServiceAccount(env)
+	testRoleBindings(env)
+	testClusterRoleBindings(env)
 }
 
-func testServiceAccount(configData *common.ConfigurationData) {
+func testServiceAccount(env *config.TestEnvironment) {
 	ginkgo.It("Should have a valid ServiceAccount name", func() {
-		for _, podUnderTest := range configData.PodsUnderTest {
+		for _, podUnderTest := range env.PodsUnderTest {
 			podName := podUnderTest.Name
 			podNamespace := podUnderTest.Namespace
 			context := common.GetContext()
@@ -172,9 +172,9 @@ func testServiceAccount(configData *common.ConfigurationData) {
 	})
 }
 
-func testRoleBindings(configData *common.ConfigurationData) {
+func testRoleBindings(env *config.TestEnvironment) {
 	ginkgo.It("Should not have RoleBinding in other namespaces", func() {
-		for _, podUnderTest := range configData.PodsUnderTest {
+		for _, podUnderTest := range env.PodsUnderTest {
 			podName := podUnderTest.Name
 			podNamespace := podUnderTest.Namespace
 			serviceAccountName := podUnderTest.ServiceAccount
@@ -197,9 +197,9 @@ func testRoleBindings(configData *common.ConfigurationData) {
 	})
 }
 
-func testClusterRoleBindings(configData *common.ConfigurationData) {
+func testClusterRoleBindings(env *config.TestEnvironment) {
 	ginkgo.It("Should not have ClusterRoleBindings", func() {
-		for _, podUnderTest := range configData.PodsUnderTest {
+		for _, podUnderTest := range env.PodsUnderTest {
 			podName := podUnderTest.Name
 			podNamespace := podUnderTest.Namespace
 			serviceAccountName := podUnderTest.ServiceAccount

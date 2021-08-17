@@ -33,16 +33,16 @@ var (
 	podTestsAnnotationName         = buildAnnotationName("host_resource_tests")
 )
 
-// FindTestTarget builds a `configsections.TestTarget` from the current state of the cluster,
-// using labels and annotations to populate the data.
-func FindTestTarget(labels []configsections.Label) (target configsections.TestTarget) {
+// FindTestTarget finds test targets from the current state of the cluster,
+// using labels and annotations, and add them to the `configsections.TestTarget` passed in.
+func FindTestTarget(labels []configsections.Label, target *configsections.TestTarget) {
 	// find pods by label
 	for _, l := range labels {
 		pods, err := GetPodsByLabel(l)
 		if err == nil {
 			for i := range pods.Items {
 				target.PodsUnderTest = append(target.PodsUnderTest, buildPodUnderTest(&pods.Items[i]))
-				target.ContainersUnderTest = append(target.ContainersUnderTest, buildContainersFromPodResource(&pods.Items[i])...)
+				target.ContainerConfigList = append(target.ContainerConfigList, buildContainersFromPodResource(&pods.Items[i])...)
 			}
 		} else {
 			log.Warnf("failed to query by label: %v %v", l, err)
@@ -64,8 +64,6 @@ func FindTestTarget(labels []configsections.Label) (target configsections.TestTa
 	} else {
 		log.Warnf("an error (%s) occurred when looking for operaters by label", err)
 	}
-
-	return target
 }
 
 // buildPodUnderTest builds a single `configsections.Pod` from a PodResource
