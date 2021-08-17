@@ -189,6 +189,11 @@ var (
 		Url:     formTestURL(common.LifecycleTestKey, "scaling"),
 		Version: versionOne,
 	}
+	// TestIsRedHatReleaseIdentifier ensures platform is defined
+	TestIsRedHatReleaseIdentifier = claim.Identifier{
+		Url:     formTestURL(common.PlatformAlterationTestKey, "isredhat-release"),
+		Version: versionOne,
+	}
 )
 
 func formDescription(identifier claim.Identifier, description string) string {
@@ -488,5 +493,16 @@ the changes for you.`,
 			First, The test starts getting the current replicaCount (N) of the deployment/s with the Pod Under Test. Then, it executes the 
 			scale-in oc command for (N-1) replicas. Lastly, it executes the scale-out oc command, restoring the original replicaCount of the deployment/s.`),
 		Remediation: `Make sure CNF deployments/replica sets can scale in/out successfully.`,
+	},
+	TestIsRedHatReleaseIdentifier: {
+		Identifier: TestIsRedHatReleaseIdentifier,
+		Type:       normativeResult,
+		Description: formDescription(TestIsRedHatReleaseIdentifier,
+			`tests that a CNF is configured to support High Availability.  
+			First, this test cordons and drains a Node that hosts the CNF Pod.  
+			Next, the test ensures that OpenShift can re-instantiate the Pod on another Node, 
+			and that the actual replica count matches the desired replica count.`),
+		Remediation: `Ensure that CNF Pod(s) utilize a configuration that supports High Availability.  
+			Additionally, ensure that there are available Nodes in the OpenShift cluster that can be utilized in the event that a host Node fails.`,
 	},
 }

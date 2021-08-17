@@ -33,6 +33,7 @@ import (
 	"github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/base/redhat"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/cnffsdiff"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/containerid"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/currentkernelcmdlineargs"
@@ -79,8 +80,35 @@ var _ = ginkgo.Describe(common.PlatformAlterationTestKey, func() {
 			testSysctlConfigs(&configData)
 		}
 
+		testIsRedHatRelease(&configData)
+
 	}
 })
+
+// testIsRedHatRelease fetch the configuration and test containers attached to oc is Red Hat based.
+func testIsRedHatRelease(configData *common.ConfigurationData) {
+	ginkgo.It("Should report a proper Red Hat version", func() {
+		defer results.RecordResult(identifiers.TestIsRedHatReleaseIdentifier)
+		for _, cut := range configData.ContainersUnderTest {
+			testContainerIsRedHatRelease(cut)
+		}
+		testContainerIsRedHatRelease(configData.TestOrchestrator)
+	})
+}
+
+// testContainerIsRedHatRelease tests whether the container attached to oc is Red Hat based.
+func testContainerIsRedHatRelease(cut *common.Container) {
+	podName := cut.Oc.GetPodName()
+	containerName := cut.Oc.GetPodContainerName()
+	context := cut.Oc
+	ginkgo.By(fmt.Sprintf("%s(%s) is checked for Red Hat version", podName, containerName))
+	versionTester := redhat.NewRelease(common.DefaultTimeout)
+	test, err := tnf.NewTest(context.GetExpecter(), versionTester, []reel.Handler{versionTester}, context.GetErrorChannel())
+	gomega.Expect(err).To(gomega.BeNil())
+	testResult, err := test.Run()
+	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
+	gomega.Expect(err).To(gomega.BeNil())
+}
 
 // testContainersFsDiff test that all CUT didn't install new packages are starting
 func testContainersFsDiff(configData *common.ConfigurationData) {
