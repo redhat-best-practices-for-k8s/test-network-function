@@ -87,7 +87,7 @@ WORKDIR ${TNF_DIR}
 RUN ln -s ${TNF_DIR}/config/testconfigure.yml ${TNF_DIR}/test-network-function/testconfigure.yml
 
 # Remove most of the build artefacts
-RUN yum remove -y gcc git make wget && \
+RUN yum remove -y gcc git wget && \
 	yum clean all && \
 	rm -rf ${TNF_SRC_DIR} && \
 	rm -rf ${TEMP_DIR} && \
