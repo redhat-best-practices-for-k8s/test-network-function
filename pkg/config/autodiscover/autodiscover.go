@@ -60,6 +60,32 @@ func buildLabelQuery(label configsections.Label) string {
 	return namespacedLabel
 }
 
+// buildExclusionLabelsQuery creates a query string with excluded labels to be used in
+// "oc get <resourcetype> -l query" like command.
+// It composes a comma separated "labelNamespace/labelName!=labelValue" pairs. Example:
+//    "tnf.com/label1!=value1,tnf.com/label2!=value2"
+func buildExclusionLabelsQuery(labels []configsections.Label) string {
+	query := ""
+	max := len(labels)
+
+	for i := 1; i <= max; i++ {
+		query = fmt.Sprintf("%s%s/%s!=%s", query, labels[i-1].Namespace, labels[i-1].Name, labels[i-1].Value)
+		if i != max {
+			query = fmt.Sprintf("%s,", query)
+		}
+	}
+
+	return query
+}
+
+func makeGetCommandByNamespace(namespace, resourceType, labelQuery string) *exec.Cmd {
+	// TODO: shell expecter
+	cmd := exec.Command("oc", "get", resourceType, "-n", namespace, "-l", labelQuery, "-o", "json")
+	log.Debug("Issuing get (namespace) command ", cmd.Args)
+
+	return cmd
+}
+
 func makeGetCommand(resourceType, labelQuery string) *exec.Cmd {
 	// TODO: shell expecter
 	cmd := exec.Command("oc", "get", resourceType, "-A", "-o", "json", "-l", labelQuery)

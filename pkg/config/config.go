@@ -112,6 +112,8 @@ func getContainerDefaultNetworkIPAddress(oc *interactive.Oc, dev string) string 
 
 // TestEnvironment includes the representation of the current state of the test targets and parters as well as the test configuration
 type TestEnvironment struct {
+	// TestDeployments is the list of deployments that contain pods under test.
+	TestDeployments     []configsections.Deployment
 	ContainersUnderTest map[configsections.ContainerIdentifier]*Container
 	PartnerContainers   map[configsections.ContainerIdentifier]*Container
 	PodsUnderTest       []configsections.Pod
@@ -180,6 +182,8 @@ func (env *TestEnvironment) doAutodiscover() {
 	env.PartnerContainers = env.createContainers(env.Config.Partner.ContainerConfigList)
 	env.TestOrchestrator = env.PartnerContainers[env.Config.Partner.TestOrchestratorID]
 	env.FsDiffMasterContainer = env.PartnerContainers[env.Config.Partner.FsDiffMasterContainerID]
+	env.TestDeployments = autodiscover.FindTestDeployments(&env.Config.TestTarget)
+
 	log.Info(env.TestOrchestrator)
 	log.Info(env.ContainersUnderTest)
 	env.needsRefresh = false

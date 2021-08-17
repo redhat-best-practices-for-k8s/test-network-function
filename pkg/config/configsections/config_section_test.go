@@ -47,7 +47,7 @@ const (
 	// deploymentName is the name of the deployment
 	deploymentName = "deployment-one"
 	// deploymentReplicas no of replicas
-	deploymentReplicas = "1"
+	deploymentReplicas = 1
 	// fullConfig represents full configuration, including Operator and CNF
 	fullConfig = "full_config"
 	// instanceNameOne name of the instance
