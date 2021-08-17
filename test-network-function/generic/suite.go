@@ -17,20 +17,19 @@
 package generic
 
 import (
-	"encoding/json"
 	"fmt"
-	"strconv"
-	"strings"
 
+	"github.com/test-network-function/test-network-function/pkg/tnf"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/base/redhat"
+	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
 	"github.com/test-network-function/test-network-function/pkg/tnf/testcases"
 
 	"github.com/test-network-function/test-network-function/test-network-function/common"
-	"github.com/test-network-function/test-network-function/test-network-function/identifiers"
-	"github.com/test-network-function/test-network-function/test-network-function/results"
 
 	"github.com/onsi/ginkgo"
 	ginkgoconfig "github.com/onsi/ginkgo/config"
 	"github.com/onsi/gomega"
+
 	log "github.com/sirupsen/logrus"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/bootconfigentries"
@@ -55,7 +54,12 @@ const (
 // Runs the "generic" CNF test cases.
 var _ = ginkgo.Describe(testsKey, func() {
 	if testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusStrings, testsKey) {
-
+		configData := common.ConfigurationData{}
+		configData.SetNeedsRefresh()
+		ginkgo.BeforeEach(func() {
+			common.ReloadConfiguration(&configData)
+		})
+    
 		config := common.GetTestConfiguration()
 		log.Infof("Test Configuration: %s", config)
 
@@ -130,54 +134,22 @@ func getMaxIndexEntry(bootConfigEntries []string) string {
 			maxIndex = entryIndex
 			gomega.Expect(err2).To(gomega.BeNil())
 			maxIndexEntryName = bootEntry
-		}
-	}
-
-	return maxIndexEntryName
+	  }
+  }
+  
+  return maxIndexEntryName
 }
 
-func getGrubKernelArgs(context *interactive.Context, nodeName string) map[string]string {
-	bootConfigEntriesTester := bootconfigentries.NewBootConfigEntries(common.DefaultTimeout, nodeName)
-	test, err := tnf.NewTest(context.GetExpecter(), bootConfigEntriesTester, []reel.Handler{bootConfigEntriesTester}, context.GetErrorChannel())
+// testContainerIsRedHatRelease tests whether the container attached to oc is Red Hat based.
+func testContainerIsRedHatRelease(cut *common.Container) {
+	podName := cut.Oc.GetPodName()
+	containerName := cut.Oc.GetPodContainerName()
+	context := cut.Oc
+	ginkgo.By(fmt.Sprintf("%s(%s) is checked for Red Hat version", podName, containerName))
+	versionTester := redhat.NewRelease(common.DefaultTimeout)
+	test, err := tnf.NewTest(context.GetExpecter(), versionTester, []reel.Handler{versionTester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
-	common.RunAndValidateTest(test)
-	bootConfigEntries := bootConfigEntriesTester.GetBootConfigEntries()
-
-	maxIndexEntryName := getMaxIndexEntry(bootConfigEntries)
-
-	readBootConfigTester := readbootconfig.NewReadBootConfig(common.DefaultTimeout, nodeName, maxIndexEntryName)
-	test, err = tnf.NewTest(context.GetExpecter(), readBootConfigTester, []reel.Handler{readBootConfigTester}, context.GetErrorChannel())
+	testResult, err := test.Run()
+	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
 	gomega.Expect(err).To(gomega.BeNil())
-	common.RunAndValidateTest(test)
-	bootConfig := readBootConfigTester.GetBootConfig()
-
-	splitBootConfig := strings.Split(bootConfig, "\n")
-	filteredBootConfig := utils.FilterArray(splitBootConfig, func(line string) bool {
-		return strings.HasPrefix(line, "options")
-	})
-	gomega.Expect(len(filteredBootConfig)).To(gomega.Equal(1))
-	grubKernelConfig := filteredBootConfig[0]
-	grubSplitKernelConfig := strings.Split(grubKernelConfig, " ")
-	grubSplitKernelConfig = grubSplitKernelConfig[1:]
-	return utils.ArgListToMap(grubSplitKernelConfig)
-}
-
-func testBootParams(context *interactive.Context, podName, podNamespace string, targetPodOc *interactive.Oc) {
-	ginkgo.It(fmt.Sprintf("Testing boot params for the pod's node %s/%s", podNamespace, podName), func() {
-		defer results.RecordResult(identifiers.TestUnalteredStartupBootParamsIdentifier)
-		nodeName := getPodNodeName(context, podName, podNamespace)
-		mcName := getMcName(context, nodeName)
-		mcKernelArgumentsMap := getMcKernelArguments(context, mcName)
-		currentKernelArgsMap := getCurrentKernelCmdlineArgs(targetPodOc)
-		grubKernelConfigMap := getGrubKernelArgs(context, nodeName)
-
-		for key, mcVal := range mcKernelArgumentsMap {
-			if currentVal, ok := currentKernelArgsMap[key]; ok {
-				gomega.Expect(currentVal).To(gomega.Equal(mcVal))
-			}
-			if grubVal, ok := grubKernelConfigMap[key]; ok {
-				gomega.Expect(grubVal).To(gomega.Equal(mcVal))
-			}
-		}
-	})
 }

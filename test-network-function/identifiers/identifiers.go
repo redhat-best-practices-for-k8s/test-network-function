@@ -1,5 +1,5 @@
 // Copyright (C) 2021 Red Hat, Inc.
-// Copyright (C) 2021 Red Hat, Inc.
+// Copyright (C) 2021 Red Hat, In
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -182,6 +182,14 @@ var (
 	// TestIsRedHatReleaseIdentifier ensures platform is defined
 	TestIsRedHatReleaseIdentifier = claim.Identifier{
 		Url:     formTestURL(common.PlatformAlterationTestKey, "isredhat-release"),
+	// TestSysctlConfigsIdentifier ensures that the node's sysctl configs are consistent with the MachineConfig CR
+	TestSysctlConfigsIdentifier = claim.Identifier{
+		Url:     formTestURL(common.PlatformAlterationTestKey, "sysctl-config"),
+		Version: versionOne,
+	}
+	// TestScalingIdentifier ensures deployment scale in/out operations work correctly.
+	TestScalingIdentifier = claim.Identifier{
+		Url:     formTestURL(common.LifecycleTestKey, "scaling"),
 		Version: versionOne,
 	}
 )
@@ -477,5 +485,24 @@ the changes for you.`,
 			and that the actual replica count matches the desired replica count.`),
 		Remediation: `Ensure that CNF Pod(s) utilize a configuration that supports High Availability.  
 			Additionally, ensure that there are available Nodes in the OpenShift cluster that can be utilized in the event that a host Node fails.`,
+
+	TestSysctlConfigsIdentifier: {
+		Identifier: TestSysctlConfigsIdentifier,
+		Type:       normativeResult,
+		Description: formDescription(TestPodRecreationIdentifier,
+			`tests that no one has changed the node's sysctl configs after the node
+			was created, the tests works by checking if the sysctl configs are consistent with the
+			MachineConfig CR which defines how the node should be configured`),
+		Remediation: `You should recreate the node or change the sysctls, recreating is recommended because there might be other unknown changes`,
+	},
+    
+	TestScalingIdentifier: {
+		Identifier: TestScalingIdentifier,
+		Type:       normativeResult,
+		Description: formDescription(TestScalingIdentifier,
+			`tests that CNF deployments support scale in/out operations. 
+			First, The test starts getting the current replicaCount (N) of the deployment/s with the Pod Under Test. Then, it executes the 
+			scale-in oc command for (N-1) replicas. Lastly, it executes the scale-out oc command, restoring the original replicaCount of the deployment/s.`),
+		Remediation: `Make sure CNF deployments/replica sets can scale in/out successfully.`,
 	},
 }

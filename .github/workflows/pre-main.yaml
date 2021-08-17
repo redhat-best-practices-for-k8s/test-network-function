@@ -19,6 +19,7 @@ env:
   TNF_OUTPUT_DIR: /tmp/tnf/output
   TNF_SRC_URL: 'https://github.com/${{ github.repository }}'
   TESTING_CMD_PARAMS: '-n host -i ${REGISTRY_LOCAL}/${IMAGE_NAME}:${IMAGE_TAG} -t ${TNF_CONFIG_DIR} -o ${TNF_OUTPUT_DIR}'
+  NAMESPACE_TO_GENERATE: tnf
 
 jobs:
   lint:
@@ -120,7 +121,7 @@ jobs:
         run: ./run-cnf-suites.sh diagnostic
 
       - name: 'Test: Run test suites'
-        run: ./run-cnf-suites.sh access-control lifecycle platform observablility networking
+        run: ./run-cnf-suites.sh access-control lifecycle platform observablility networking affiliated-certification
 
       # Perform smoke tests using a TNF container.
 

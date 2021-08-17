@@ -18,6 +18,7 @@ package {{ .LowerHandlername }}
 
 import (
 	"time"
+
 	"github.com/test-network-function/test-network-function/pkg/tnf"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
 )
@@ -31,7 +32,7 @@ type {{ .UpperHandlername }} struct {
 }
 
 const (
-	// adding special variables
+// adding special variables
 )
 
 // Args function
@@ -41,7 +42,7 @@ func (h *{{ .UpperHandlername }}) Args() []string {
 
 // GetIdentifier returns the tnf.Test specific identifier.
 func (h *{{ .UpperHandlername }}) GetIdentifier() {
-	// TODO : create identifier.{{ .UpperHandlername }}Identifier.	
+	// Create identifier {{ .UpperHandlername }}Identifier.
 }
 
 // Timeout return the timeout for the test.
