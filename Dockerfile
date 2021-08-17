@@ -1,8 +1,7 @@
+FROM registry.access.redhat.com/ubi8/ubi:latest AS build
 ARG TNF_PARTNER_DIR=/usr/tnf-partner
 
-FROM registry.access.redhat.com/ubi8/ubi:latest AS build
-
-ENV TNF_PARTNER_SRC_DIR=${TNF_PARTNER_DIR}/src
+ENV TNF_PARTNER_SRC_DIR=$TNF_PARTNER_DIR/src
 
 ENV GOLANGCI_VERSION=v1.32.2
 ENV OPENSHIFT_VERSION=4.6.32
@@ -100,10 +99,11 @@ RUN yum remove -y gcc git wget && \
 # Copy the state into a new flattened image to reduce size.
 # TODO run as non-root
 FROM scratch
+ARG TNF_PARTNER_DIR=/usr/tnf-partner
 COPY --from=build / /
 ENV TNF_CONFIGURATION_PATH=/usr/tnf/config/tnf_config.yml
 ENV KUBECONFIG=/usr/tnf/kubeconfig/config
-ENV TNF_PARTNER_SRC_DIR=${TNF_PARTNER_DIR}/src
+ENV TNF_PARTNER_SRC_DIR=$TNF_PARTNER_DIR/src
 WORKDIR /usr/tnf
 ENV SHELL=/bin/bash
 CMD ["./run-cnf-suites.sh", "-o", "claim", "diagnostic", "generic"]
