@@ -27,16 +27,10 @@ const (
 )
 
 func TestLoadConfigFromFile(t *testing.T) {
-	assert.Nil(t, loadConfigFromFile(filePath))
-	assert.NotNil(t, loadConfigFromFile(filePath)) // Loading when already loaded is an error case
-	conf := GetConfigInstance()
-	assert.Equal(t, conf.TestOrchestrator.Namespace, "default")
-	assert.Equal(t, conf.TestOrchestrator.ContainerName, "partner")
-	assert.Equal(t, conf.TestOrchestrator.PodName, "partner")
-}
-
-func TestGetConfigInstance(t *testing.T) {
-	_ = loadConfigFromFile(filePath)
-	assert.NotNil(t, GetConfigInstance())
-	assert.Equal(t, GetConfigInstance(), GetConfigInstance())
+	env := GetTestEnvironment()
+	assert.Nil(t, env.loadConfigFromFile(filePath))
+	assert.NotNil(t, env.loadConfigFromFile(filePath)) // Loading when already loaded is an error case
+	assert.Equal(t, env.Config.Partner.TestOrchestratorID.Namespace, "default")
+	assert.Equal(t, env.Config.Partner.TestOrchestratorID.ContainerName, "partner")
+	assert.Equal(t, env.Config.Partner.TestOrchestratorID.PodName, "partner")
 }

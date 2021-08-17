@@ -23,6 +23,8 @@ import (
 	"github.com/onsi/ginkgo"
 	ginkgoconfig "github.com/onsi/ginkgo/config"
 	"github.com/onsi/gomega"
+	"github.com/test-network-function/test-network-function/pkg/config"
+	"github.com/test-network-function/test-network-function/pkg/config/configsections"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/generic"
 	"github.com/test-network-function/test-network-function/pkg/tnf/testcases"
@@ -44,36 +46,31 @@ var (
 
 var _ = ginkgo.Describe(common.ObservabilityTestKey, func() {
 	if testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusStrings, common.ObservabilityTestKey) {
-		configData := common.ConfigurationData{}
-		configData.SetNeedsRefresh()
+		env := config.GetTestEnvironment()
 		ginkgo.BeforeEach(func() {
-			common.ReloadConfiguration(&configData)
+			env.LoadAndRefresh()
 		})
-		testLogging(&configData)
+		testLogging(env)
 	}
 })
 
-func testLogging(configData *common.ConfigurationData) {
+func testLogging(env *config.TestEnvironment) {
 	ginkgo.When("Testing PUT is emitting logs to stdout/stderr", func() {
 		ginkgo.It("should return at least one line of log", func() {
-			for _, cut := range configData.ContainersUnderTest {
-				podName := cut.Oc.GetPodName()
-				podNamespace := cut.Oc.GetPodNamespace()
-				containerName := cut.Oc.GetPodContainerName()
-				ginkgo.By(fmt.Sprintf("Test podnamespace=%s podname=%s",
-					podNamespace, podName))
+			for _, cut := range env.ContainersUnderTest {
+				ginkgo.By(fmt.Sprintf("Test container: %+v", cut.ContainerIdentifier))
 				defer results.RecordResult(identifiers.TestLoggingIdentifier)
-				loggingTest(podNamespace, podName, containerName)
+				loggingTest(cut.ContainerIdentifier)
 			}
 		})
 	})
 }
-func loggingTest(podNamespace, podName, containerName string) {
+func loggingTest(c configsections.ContainerIdentifier) {
 	context := common.GetContext()
 	values := make(map[string]interface{})
-	values["POD_NAMESPACE"] = podNamespace
-	values["POD_NAME"] = podName
-	values["CONTAINER_NAME"] = containerName
+	values["POD_NAMESPACE"] = c.Namespace
+	values["POD_NAME"] = c.PodName
+	values["CONTAINER_NAME"] = c.ContainerName
 	test, handlers, result, err := generic.NewGenericFromMap(relativeLoggingTestPath, common.RelativeSchemaPath, values)
 	gomega.Expect(err).To(gomega.BeNil())
 	gomega.Expect(result).ToNot(gomega.BeNil())
