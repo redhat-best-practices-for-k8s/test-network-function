@@ -206,6 +206,14 @@ Version|v1.0.0
 Description|http://test-network-function.com/testcases/platform-alteration/hugepages-config checks to see that HugePage settings have been configured through MachineConfig, and not manually on the underlying Node.  This test case applies only to Nodes that are configured with the "worker" MachineConfigSet.  First, the "worker" MachineConfig is polled, and the Hugepage settings are extracted.  Next, the underlying Nodes are polled for configured HugePages through inspection of /proc/meminfo.  The results are compared, and the test passes only if they are the same.
 Result Type|normative
 Suggested Remediation|HugePage settings should be configured either directly through the MachineConfigOperator or indirectly using the PeformanceAddonOperator.  This ensures that OpenShift is aware of the special MachineConfig requirements, and can provision your CNF on a Node that is part of the corresponding MachineConfigSet.  Avoid making changes directly to an underlying Node, and let OpenShift handle the heavy lifting of configuring advanced settings.
+### http://test-network-function.com/testcases/platform-alteration/isredhat-release
+
+Property|Description
+---|---
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/platform-alteration/isredhat-release The test verifies if the container base image is redhat.
+Result Type|normative
+Suggested Remediation|build a new docker image that's based on UBI (redhat universal base image).
 ### http://test-network-function.com/testcases/platform-alteration/sysctl-config
 
 Property|Description

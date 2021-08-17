@@ -55,14 +55,13 @@ var _ = ginkgo.Describe(common.ObservabilityTestKey, func() {
 })
 
 func testLogging(env *config.TestEnvironment) {
-	ginkgo.When("Testing PUT is emitting logs to stdout/stderr", func() {
-		ginkgo.It("should return at least one line of log", func() {
-			for _, cut := range env.ContainersUnderTest {
-				ginkgo.By(fmt.Sprintf("Test container: %+v", cut.ContainerIdentifier))
-				defer results.RecordResult(identifiers.TestLoggingIdentifier)
-				loggingTest(cut.ContainerIdentifier)
-			}
-		})
+	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestLoggingIdentifier)
+	ginkgo.It(testID, func() {
+		for _, cut := range env.ContainersUnderTest {
+			ginkgo.By(fmt.Sprintf("Test container: %+v. should emit at least one line of log to stderr/stdout", cut.ContainerIdentifier))
+			defer results.RecordResult(identifiers.TestLoggingIdentifier)
+			loggingTest(cut.ContainerIdentifier)
+		}
 	})
 }
 func loggingTest(c configsections.ContainerIdentifier) {

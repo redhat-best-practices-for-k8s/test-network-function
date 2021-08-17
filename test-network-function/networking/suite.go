@@ -47,11 +47,11 @@ const (
 
 // Runs the "generic" CNF test cases.
 var _ = ginkgo.Describe(common.NetworkingTestKey, func() {
-	env := config.GetTestEnvironment()
-	ginkgo.BeforeEach(func() {
-		env.LoadAndRefresh()
-	})
 	if testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusStrings, common.NetworkingTestKey) {
+		env := config.GetTestEnvironment()
+		ginkgo.BeforeEach(func() {
+			env.LoadAndRefresh()
+		})
 		ginkgo.Context("Both Pods are on the Default network", func() {
 			// for each container under test, ensure bidirectional ICMP traffic between the container and the orchestrator.
 			testDefaultNetworkConnectivity(env, defaultNumPings)
@@ -69,7 +69,8 @@ var _ = ginkgo.Describe(common.NetworkingTestKey, func() {
 
 func testDefaultNetworkConnectivity(env *config.TestEnvironment, count int) {
 	ginkgo.When("Testing network connectivity", func() {
-		ginkgo.It("should reply to ping", func() {
+		testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestICMPv4ConnectivityIdentifier)
+		ginkgo.It(testID, func() {
 			for _, cut := range env.ContainersUnderTest {
 				if _, ok := env.ContainersToExcludeFromConnectivityTests[cut.ContainerIdentifier]; ok {
 					continue
@@ -92,7 +93,8 @@ func testDefaultNetworkConnectivity(env *config.TestEnvironment, count int) {
 
 func testMultusNetworkConnectivity(env *config.TestEnvironment, count int) {
 	ginkgo.When("Testing network connectivity", func() {
-		ginkgo.It("should reply to ping", func() {
+		testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestICMPv4ConnectivityIdentifier)
+		ginkgo.It(testID, func() {
 			for _, cut := range env.ContainersUnderTest {
 				for _, multusIPAddress := range cut.ContainerConfiguration.MultusIPAddresses {
 					testOrchestrator := env.TestOrchestrator
@@ -120,7 +122,8 @@ func testPing(initiatingPodOc *interactive.Oc, targetPodIPAddress string, count 
 }
 
 func testNodePort(env *config.TestEnvironment) {
-	ginkgo.It("Should not have services of type NodePort", func() {
+	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestServicesDoNotUseNodeportsIdentifier)
+	ginkgo.It(testID, func() {
 		for _, podUnderTest := range env.PodsUnderTest {
 			defer results.RecordResult(identifiers.TestServicesDoNotUseNodeportsIdentifier)
 			context := common.GetContext()

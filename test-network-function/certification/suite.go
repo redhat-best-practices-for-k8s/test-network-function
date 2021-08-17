@@ -41,37 +41,38 @@ var certAPIClient api.CertAPIClient
 
 var _ = ginkgo.Describe(common.AffiliatedCertTestKey, func() {
 	if testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusStrings, common.AffiliatedCertTestKey) {
-		return
+		testContainerCertificationStatus()
+		testOperatorCertificationStatus()
 	}
-	testContainerCertificationStatus()
-	testOperatorCertificationStatus()
 })
 
 func testContainerCertificationStatus() {
 	// Query API for certification status of listed containers
-	ginkgo.When("getting certification status", func() {
-		ginkgo.It("get certification status", func() {
-			defer results.RecordResult(identifiers.TestContainerIsCertifiedIdentifier)
-			env := configpkg.GetTestEnvironment()
-			cnfsToQuery := env.Config.CertifiedContainerInfo
-			if len(cnfsToQuery) > 0 {
-				certAPIClient = api.NewHTTPClient()
-				for _, cnf := range cnfsToQuery {
-					cnf := cnf // pin
-					// Care: this test takes some time to run, failures at later points while before this has finished may be reported as a failure here. Read the failure reason carefully.
-					ginkgo.By(fmt.Sprintf("container %s/%s should eventually be verified as certified", cnf.Repository, cnf.Name))
-					gomega.Eventually(func() bool {
-						isCertified := certAPIClient.IsContainerCertified(cnf.Repository, cnf.Name)
-						return isCertified
-					}, eventuallyTimeoutSeconds, interval).Should(gomega.BeTrue())
-				}
+	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestContainerIsCertifiedIdentifier)
+	ginkgo.It(testID, func() {
+		ginkgo.By("getting certification status")
+		defer results.RecordResult(identifiers.TestContainerIsCertifiedIdentifier)
+		env := configpkg.GetTestEnvironment()
+		cnfsToQuery := env.Config.CertifiedContainerInfo
+		if len(cnfsToQuery) > 0 {
+			certAPIClient = api.NewHTTPClient()
+			for _, cnf := range cnfsToQuery {
+				cnf := cnf // pin
+				// Care: this test takes some time to run, failures at later points while before this has finished may be reported as a failure here. Read the failure reason carefully.
+				ginkgo.By(fmt.Sprintf("container %s/%s should eventually be verified as certified", cnf.Repository, cnf.Name))
+				gomega.Eventually(func() bool {
+					isCertified := certAPIClient.IsContainerCertified(cnf.Repository, cnf.Name)
+					return isCertified
+				}, eventuallyTimeoutSeconds, interval).Should(gomega.BeTrue())
 			}
-		})
+		}
 	})
 }
 
 func testOperatorCertificationStatus() {
-	ginkgo.It("Verify operator as certified", func() {
+	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestOperatorIsCertifiedIdentifier)
+	ginkgo.It(testID, func() {
+		ginkgo.By("Verify operator as certified")
 		defer results.RecordResult(identifiers.TestOperatorIsCertifiedIdentifier)
 		operatorsToQuery := configpkg.GetTestEnvironment().Config.CertifiedOperatorInfo
 		if len(operatorsToQuery) > 0 {
