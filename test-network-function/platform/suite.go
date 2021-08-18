@@ -148,10 +148,9 @@ func getPodNodeName(context *interactive.Context, podName, podNamespace string) 
 	return podNameTester.GetNodeName()
 }
 
-func getCurrentKernelCmdlineArgs(context *interactive.Context) map[string]string {
+func getCurrentKernelCmdlineArgs(targetContainerOc *interactive.Oc) map[string]string {
 	currentKernelCmdlineArgsTester := currentkernelcmdlineargs.NewCurrentKernelCmdlineArgs(common.DefaultTimeout)
-
-	test, err := tnf.NewTest(context.GetExpecter(), currentKernelCmdlineArgsTester, []reel.Handler{currentKernelCmdlineArgsTester}, context.GetErrorChannel())
+	test, err := tnf.NewTest(targetContainerOc.GetExpecter(), currentKernelCmdlineArgsTester, []reel.Handler{currentKernelCmdlineArgsTester}, targetContainerOc.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
 	common.RunAndValidateTest(test)
 	currnetKernelCmdlineArgs := currentKernelCmdlineArgsTester.GetKernelArguments()
@@ -214,21 +213,22 @@ func getSysctlConfigArgs(context *interactive.Context, nodeName string) map[stri
 
 func testBootParams(env *config.TestEnvironment) {
 	ginkgo.It("platform-boot-param", func() {
-		for _, podUnderTest := range env.PodsUnderTest {
-			podName := podUnderTest.Name
-			podNameSpace := podUnderTest.Namespace
-			testBootParamsHelper(podName, podNameSpace)
+		context := common.GetContext()
+		for _, cut := range env.ContainersUnderTest {
+			podName := cut.Oc.GetPodName()
+			podNameSpace := cut.Oc.GetPodNamespace()
+			targetContainerOc := cut.Oc
+			testBootParamsHelper(context, podName, podNameSpace, targetContainerOc)
 		}
 	})
 }
-func testBootParamsHelper(podName, podNamespace string) {
+func testBootParamsHelper(context *interactive.Context, podName, podNamespace string, targetContainerOc *interactive.Oc) {
 	ginkgo.By(fmt.Sprintf("Testing boot params for the pod's node %s/%s", podNamespace, podName))
 	defer results.RecordResult(identifiers.TestUnalteredStartupBootParamsIdentifier)
-	context := common.GetContext()
 	nodeName := getPodNodeName(context, podName, podNamespace)
 	mcName := getMcName(context, nodeName)
 	mcKernelArgumentsMap := getMcKernelArguments(context, mcName)
-	currentKernelArgsMap := getCurrentKernelCmdlineArgs(context)
+	currentKernelArgsMap := getCurrentKernelCmdlineArgs(targetContainerOc)
 	grubKernelConfigMap := getGrubKernelArgs(context, nodeName)
 
 	for key, mcVal := range mcKernelArgumentsMap {
