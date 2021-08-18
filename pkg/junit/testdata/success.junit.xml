@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="CNF Certification Test Suite" tests="14" failures="2" errors="0" time="29.8">
+    <testcase name="generic Testing pod nodeSelector tnf/test" classname="CNF Certification Test Suite" time="0.169383611"></testcase>
+    <testcase name="generic Both Pods are on the Default network when a Ping is issued from test(test) to partner(partner) 172.17.0.2 partner(partner) should reply" classname="CNF Certification Test Suite" time="4.109362556"></testcase>
+    <testcase name="generic Both Pods are on the Default network when a Ping is issued from partner(partner) to test(test) 172.17.0.3 test(test) should reply" classname="CNF Certification Test Suite" time="4.097083188"></testcase>
+    <testcase name="generic when test(test) is checked for Red Hat version Should report a proper Red Hat version" classname="CNF Certification Test Suite" time="0.002638844"></testcase>
+    <testcase name="generic when partner(partner) is checked for Red Hat version Should report a proper Red Hat version" classname="CNF Certification Test Suite" time="0.003272439"></testcase>
+    <testcase name="generic when Reading namespace of test/test Should not be &#39;default&#39; and should not begin with &#39;openshift-&#39;" classname="CNF Certification Test Suite" time="6.165e-06"></testcase>
+    <testcase name="generic when Testing roles and privileges of tnf/test Should have a valid ServiceAccount name" classname="CNF Certification Test Suite" time="0.157317687"></testcase>
+    <testcase name="generic when Testing roles and privileges of tnf/test Should not have RoleBinding in other namespaces" classname="CNF Certification Test Suite" time="0.160960819"></testcase>
+    <testcase name="generic when Testing roles and privileges of tnf/test Should not have ClusterRoleBindings" classname="CNF Certification Test Suite" time="0.196657172"></testcase>
+    <testcase name="generic when Testing services in namespace tnf Should not have services of type NodePort" classname="CNF Certification Test Suite" time="0.153587439"></testcase>
+    <testcase name="generic Testing pod terminationGracePeriod tnf/test" classname="CNF Certification Test Suite" time="0.135404733"></testcase>
+    <testcase name="generic when Testing owners of CNF pod Should contain at least one of kind DaemonSet/ReplicaSet" classname="CNF Certification Test Suite" time="10.004646914">
+        <failure type="Failure">/Users/ryangoulding/workspace/t/test-network-function/test-network-function/generic/suite.go:801&#xA;Expected&#xA;    &lt;int&gt;: 0&#xA;to equal&#xA;    &lt;int&gt;: 1&#xA;/Users/ryangoulding/workspace/t/test-network-function/test-network-function/generic/suite.go:808</failure>
+    </testcase>
+    <testcase name="generic Testing boot params for the pod&#39;s node tnf/test" classname="CNF Certification Test Suite" time="10.143114275">
+        <failure type="Failure">/Users/ryangoulding/workspace/t/test-network-function/test-network-function/generic/suite.go:500&#xA;Expected&#xA;    &lt;int&gt;: 0&#xA;to equal&#xA;    &lt;int&gt;: 1&#xA;/Users/ryangoulding/workspace/t/test-network-function/test-network-function/generic/suite.go:423</failure>
+    </testcase>
+    <testcase name="diagnostic when a cluster is set up and installed with OpenShift should report all available nodeSummary" classname="CNF Certification Test Suite" time="0.464684869"></testcase>
+</testsuite>

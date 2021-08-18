@@ -22,6 +22,8 @@ import (
 	"os"
 
 	log "github.com/sirupsen/logrus"
+	"github.com/test-network-function/test-network-function/pkg/config/autodiscover"
+	"github.com/test-network-function/test-network-function/pkg/config/configsections"
 	"gopkg.in/yaml.v2"
 )
 
@@ -30,25 +32,13 @@ const (
 	defaultConfigurationFilePath                = "tnf_config.yml"
 )
 
-// File is the top level of the config file. All new config sections must be added here
-type File struct {
-	Generic TestConfiguration `yaml:"generic,omitempty" json:"generic,omitempty"`
-
-	// Operator is the list of operator objects that needs to be tested.
-	Operators []Operator `yaml:"operators,omitempty"  json:"operators,omitempty"`
-
-	// CNFs is the list of the CNFs that needs to be tested.
-	CNFs []Cnf `yaml:"cnfs,omitempty" json:"cnfs,omitempty"`
-
-	// CnfAvailableTestCases list the available test cases for  reference.
-	CnfAvailableTestCases []string `yaml:"cnfavailabletestcases,omitempty" json:"cnfavailabletestcases,omitempty"`
-}
-
 var (
 	// configInstance is the singleton instance of loaded config, accessed through GetConfigInstance
-	configInstance File
+	configInstance configsections.TestConfiguration
 	// loaded tracks if the config has been loaded to prevent it being reloaded.
 	loaded = false
+	// set when an intrusive test has done something that would cause Pod/Container to be recreated
+	needsRefresh = false
 )
 
 // getConfigurationFilePathFromEnvironment returns the test configuration file.
@@ -81,7 +71,7 @@ func loadConfigFromFile(filePath string) error {
 }
 
 // GetConfigInstance provides access to the singleton ConfigFile instance.
-func GetConfigInstance() File {
+func GetConfigInstance() configsections.TestConfiguration {
 	if !loaded {
 		filePath := getConfigurationFilePathFromEnvironment()
 		log.Debugf("GetConfigInstance before config loaded, loading from file: %s", filePath)
@@ -89,6 +79,24 @@ func GetConfigInstance() File {
 		if err != nil {
 			log.Fatalf("unable to load configuration file: %s", err)
 		}
+		autodiscover.FillTestPartner(&configInstance.TestPartner)
+		doAutodiscover()
+	} else if needsRefresh {
+		configInstance.TestPartner = configsections.TestPartner{}
+		doAutodiscover()
 	}
 	return configInstance
+}
+
+func doAutodiscover() {
+	if autodiscover.PerformAutoDiscovery() {
+		configInstance.TestTarget = autodiscover.FindTestTarget(configInstance.TargetPodLabels)
+		autodiscover.FillTestPartner(&configInstance.TestPartner)
+	}
+	needsRefresh = false
+}
+
+// SetNeedsRefresh marks the config stale so that the next getInstance call will redo discovery
+func SetNeedsRefresh() {
+	needsRefresh = true
 }

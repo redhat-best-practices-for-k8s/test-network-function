@@ -27,7 +27,8 @@ import (
 )
 
 const (
-	hpRegex = "(?s).+"
+	hpRegex             = "(?s).+"
+	keyValueNumElements = 2
 	// RhelDefaultHugepages const
 	RhelDefaultHugepages = 0
 	// RhelDefaultHugepagesz const
@@ -98,10 +99,13 @@ func (hp *Hugepages) ReelMatch(_, _, match string) *reel.Step {
 		fields := strings.Fields(line)
 		for _, field := range fields {
 			nameValue := strings.Split(field, "=")
-			name := nameValue[0]
-			value := nameValue[1]
-			if isHugepagesParam(name) {
-				params[name] = value
+			// Some elements emitted may not be key/value pairs.
+			if len(nameValue) == keyValueNumElements {
+				name := nameValue[0]
+				value := nameValue[1]
+				if isHugepagesParam(name) {
+					params[name] = value
+				}
 			}
 		}
 	}

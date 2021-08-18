@@ -1,0 +1,32 @@
+
+{
+    "metadata": {
+        "annotations": {
+            "k8s.v1.cni.cncf.io/networks-status": "[{\n    \"name\": \"\",\n    \"interface\": \"eth1\",\n    \"ips\": [\n        \"10.217.1.89\"\n    ],\n    \"default\": true,\n    \"dns\": {}\n}]",
+            "test-network-function.com/multusips": "[\"3.3.3.3\",\"4.4.4.4\"]",
+            "test-network-function.com/host_resource_tests": "[\"OneTestName\",\"AnotherTestName\"]"
+        },
+        "labels": {
+            "app": "test",
+            "test-network-function.com/generic": "target",
+            "test-network-function.com/container": "target"
+        },
+        "name": "test",
+        "namespace": "tnf"
+    },
+    "spec": {
+        "containers": [
+            {
+                "image": "quay.io/testnetworkfunction/cnf-test-partner:latest",
+                "name": "test"
+            }
+        ]
+    },
+    "status": {
+        "podIPs": [
+            {
+                "ip": "10.217.1.89"
+            }
+        ]
+    }
+}

@@ -90,24 +90,24 @@ const (
 	OperatorStatus = "OPERATOR_STATUS"
 )
 
-// ContainerFactType type to hold container fact types
-type ContainerFactType string
+// PodFactType type to hold container fact types
+type PodFactType string
 
 const (
 	// ServiceAccountName - for k8s service account name
-	ServiceAccountName ContainerFactType = "SERVICE_ACCOUNT_NAME"
+	ServiceAccountName PodFactType = "SERVICE_ACCOUNT_NAME"
 	// Name for pod name
-	Name ContainerFactType = "NAME"
+	Name PodFactType = "NAME"
 	// NameSpace for pod namespace
-	NameSpace ContainerFactType = "NAMESPACE"
+	NameSpace PodFactType = "NAMESPACE"
 	// ClusterRole for cluster roles
-	ClusterRole ContainerFactType = "CLUSTER_ROLE"
+	ClusterRole PodFactType = "CLUSTER_ROLE"
 	// ContainerCount for count of containers in the pod
-	ContainerCount ContainerFactType = "CONTAINER_COUNT"
+	ContainerCount PodFactType = "CONTAINER_COUNT"
 )
 
-// ContainerFact struct to store pod facts
-type ContainerFact struct {
+// PodFact struct to store pod facts
+type PodFact struct {
 	// Name of the pod under test
 	Name string
 	// Namespace of the pod under test
@@ -122,8 +122,8 @@ type ContainerFact struct {
 	Exists bool
 }
 
-// CnfTestTemplateDataMap  is map of available json data test case templates
-var CnfTestTemplateDataMap = map[string]string{
+// PodTestTemplateDataMap  is map of available json data test case templates
+var PodTestTemplateDataMap = map[string]string{
 	GatherFacts:     cnf.GatherPodFactsJSON,
 	PrivilegedPod:   cnf.PrivilegedPodJSON,
 	PrivilegedRoles: cnf.RolesJSON,
@@ -151,25 +151,25 @@ var OperatorTestTemplateFileMap = map[string]string{
 type RegExType string
 
 const (
-	// AllowEmpty - Allows the result to match empty string
+	// AllowEmpty Allows the result to match empty string
 	AllowEmpty RegExType = "ALLOW_EMPTY"
-	// AllowAll - Allows the result to match non empty string
+	// AllowAll Allows the result to match non empty string
 	AllowAll RegExType = "allowAll"
-	// EmptyNullFalse - Allows the result to match either empty,null or false string
+	// EmptyNullFalse Allows the result to match either empty,null or false string
 	EmptyNullFalse RegExType = "EMPTY_NULL_FALSE"
-	// NullFalse - Allows the result to match either null or false string
+	// NullFalse Allows the result to match either null or false string
 	NullFalse RegExType = "NULL_FALSE"
-	// True - Allows the result to match `true` string
+	// True Allows the result to match `true` string
 	True RegExType = "TRUE"
-	// Null - Allows the result to match `null` string
+	// Null Allows the result to match `null` string
 	Null RegExType = "NULL"
-	// Zero - Allows the result to match 0 number
+	// Zero Allows the result to match 0 number
 	Zero RegExType = "ZERO"
-	// NonZero - Allows the result to match non 0 number
-	NonZero RegExType = "NON_ZERO"
-	// Error - Allows the result to match error string
+	// NonZeroNumber Allows the result to match non 0 number
+	NonZeroNumber RegExType = "NON_ZERO_NUMBER"
+	// Error Allows the result to match error string
 	Error RegExType = "ERROR"
-	// Digit - Allows the result to match any number
+	// Digit Allows the result to match any number
 	Digit RegExType = "DIGIT"
 )
 
@@ -182,7 +182,7 @@ var outRegExp = map[RegExType]string{
 	True:           `^\b(true)\b$`,
 	Null:           `^\b(null)\b$`,
 	Zero:           `0`,
-	NonZero:        `^(\d([^0]+)|null)$`,
+	NonZeroNumber:  `^(0*([1-9]\d*)|null)$`,
 	Error:          "error",
 	Digit:          `\d`,
 }
@@ -273,7 +273,7 @@ func ContainsConfiguredTest(a []ConfiguredTest, testType string) ConfiguredTest 
 // LoadCnfTestCaseSpecs loads base test template data into a struct
 func LoadCnfTestCaseSpecs(name string) (*BaseTestCaseConfigSpec, error) {
 	var testCaseConfigSpec BaseTestCaseConfigSpec
-	err := json.Unmarshal([]byte(CnfTestTemplateDataMap[name]), &testCaseConfigSpec)
+	err := json.Unmarshal([]byte(PodTestTemplateDataMap[name]), &testCaseConfigSpec)
 	if err != nil {
 		return nil, err
 	}

@@ -1,40 +1,54 @@
 FROM registry.access.redhat.com/ubi8/ubi:latest AS build
 
-# golang 1.14.12 as it's the only version available on yum at time of writing.
-ENV GOLANG_VERSION=1.14.12
 ENV GOLANGCI_VERSION=v1.32.2
+ENV OPENSHIFT_VERSION=4.6.32
 
 ENV TNF_DIR=/usr/tnf
 ENV TNF_SRC_DIR=${TNF_DIR}/tnf-src
 ENV TNF_BIN_DIR=${TNF_DIR}/test-network-function
 
 ENV TEMP_DIR=/tmp
-# Most recent version of 4.4 available at time of writing.
-ENV OC_SRC_ARCHIVE=openshift-clients-4.4.0-202006211643.p0.tar.gz
-ENV OC_SRC_URL=https://github.com/openshift/oc/archive/${OC_SRC_ARCHIVE}
-ENV OC_SRC_DIR=${TEMP_DIR}/oc-client-src
 
 # Install dependencies
-RUN yum install -y golang-${GOLANG_VERSION} jq make git
+RUN yum install -y gcc git jq make wget
 
-# Build oc from source
-ADD ${OC_SRC_URL} ${TEMP_DIR}
-RUN mkdir ${OC_SRC_DIR} && \ 
-	tar -xf ${TEMP_DIR}/${OC_SRC_ARCHIVE} -C ${OC_SRC_DIR} --strip-components=1 && \
-	cd ${OC_SRC_DIR} && \
-	make oc && \
-	mv ./oc /usr/bin/
+# Install Go binary
+ENV GO_DL_URL="https://golang.org/dl"
+ENV GO_BIN_TAR="go1.14.12.linux-amd64.tar.gz"
+ENV GO_BIN_URL_x86_64=${GO_DL_URL}/${GO_BIN_TAR}
+ENV GOPATH="/root/go"
+RUN if [[ "$(uname -m)" -eq "x86_64" ]] ; then \
+        wget --directory-prefix=${TEMP_DIR} ${GO_BIN_URL_x86_64} && \
+            rm -rf /usr/local/go && \
+            tar -C /usr/local -xzf ${TEMP_DIR}/${GO_BIN_TAR}; \
+     else \
+         echo "CPU architecture not supported" && exit 1; \
+     fi
+
+# Install oc binary
+ENV OC_BIN_TAR="openshift-client-linux.tar.gz"
+ENV OC_DL_URL="https://mirror.openshift.com/pub/openshift-v4/clients/ocp"/${OPENSHIFT_VERSION}/${OC_BIN_TAR}
+ENV OC_BIN="/usr/local/oc/bin"
+RUN wget --directory-prefix=${TEMP_DIR} ${OC_DL_URL} && \
+    mkdir -p ${OC_BIN} && \
+    tar -C ${OC_BIN} -xzf ${TEMP_DIR}/${OC_BIN_TAR} && \
+    chmod a+x ${OC_BIN}/oc
+
+# Add go and oc binary directory to $PATH
+ENV PATH=${PATH}:"/usr/local/go/bin":${GOPATH}/"bin"
 
 # golangci-lint
 RUN curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b /usr/bin ${GOLANGCI_VERSION}
 
-# Add go binary directory to $PATH
-ENV PATH="/root/go/bin:${PATH}"
-
 # Git identifier to checkout
 ARG TNF_VERSION
-# Pull the required version of TNF
-RUN git clone --depth=1 --branch=${TNF_VERSION} https://github.com/test-network-function/test-network-function ${TNF_SRC_DIR}
+ARG TNF_SRC_URL=https://github.com/test-network-function/test-network-function
+ARG GIT_CHECKOUT_TARGET=$TNF_VERSION
+
+# Clone the TNF source repository and checkout the target branch/tag/commit
+RUN git clone --no-single-branch --depth=1 ${TNF_SRC_URL} ${TNF_SRC_DIR}
+RUN git -C ${TNF_SRC_DIR} fetch origin ${GIT_CHECKOUT_TARGET}
+RUN git -C ${TNF_SRC_DIR} checkout ${GIT_CHECKOUT_TARGET}
 
 # Build TNF binary
 WORKDIR ${TNF_SRC_DIR}
@@ -49,18 +63,16 @@ RUN mkdir ${TNF_BIN_DIR} && \
 	cp run-cnf-suites.sh ${TNF_DIR} && \
 	# copy all JSON files to allow tests to run
 	cp --parents `find -name \*.json*` ${TNF_DIR} && \
+  # copy all go template files to allow tests to run
+	cp --parents `find -name \*.gotemplate*` ${TNF_DIR} && \
 	cp test-network-function/test-network-function.test ${TNF_BIN_DIR}
 
 WORKDIR ${TNF_DIR}
 
-# ENV TNF_CONFIGURATION_PATH=${TNF_DIR}/config
-# Currently not able to get it working with the env var config location, using symlinks until config files are rebuilt.
-RUN ln -s ${TNF_DIR}/config/cnf_test_configuration.yml ${TNF_DIR}/test-network-function/cnf_test_configuration.yml && \
-	ln -s ${TNF_DIR}/config/generic_test_configuration.yml ${TNF_DIR}/test-network-function/generic_test_configuration.yml && \
-	ln -s ${TNF_DIR}/config/testconfigure.yml ${TNF_DIR}/test-network-function/testconfigure.yml
+RUN ln -s ${TNF_DIR}/config/testconfigure.yml ${TNF_DIR}/test-network-function/testconfigure.yml
 
 # Remove most of the build artefacts
-RUN yum remove -y golang make git && \
+RUN yum remove -y gcc git make wget && \
 	yum clean all && \
 	rm -rf ${TNF_SRC_DIR} && \
 	rm -rf ${TEMP_DIR} && \
@@ -74,6 +86,7 @@ RUN yum remove -y golang make git && \
 # TODO run as non-root
 FROM scratch
 COPY --from=build / /
+ENV TNF_CONFIGURATION_PATH=/usr/tnf/config/tnf_config.yml
 ENV KUBECONFIG=/usr/tnf/kubeconfig/config
 WORKDIR /usr/tnf
 ENV SHELL=/bin/bash

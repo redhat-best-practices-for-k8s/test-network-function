@@ -95,7 +95,7 @@ func claimUpdate() {
 	}
 
 	claimRoot := readClaim(&dat)
-	junitMap := claimRoot.Claim.Results
+	junitMap := claimRoot.Claim.RawResults
 
 	items, _ := ioutil.ReadDir(*reportFilesTextPtr)
 
@@ -107,14 +107,14 @@ func claimUpdate() {
 		if _, ok := junitMap[reportKeyName]; ok {
 			log.Printf("Skipping: %s already exists in supplied `%s` claim file", reportKeyName, *claimFileTextPtr)
 		} else {
-			junitMap[reportKeyName], err = junit.ExportJUnitAsJSON(fmt.Sprintf("%s/%s", *reportFilesTextPtr, item.Name()))
+			junitMap[reportKeyName], err = junit.ExportJUnitAsMap(fmt.Sprintf("%s/%s", *reportFilesTextPtr, item.Name()))
 			if err != nil {
 				log.Fatalf("Error reading JUnit XML file into JSON: %v", err)
 			}
 			fileUpdated = true
 		}
 	}
-	claimRoot.Claim.Results = junitMap
+	claimRoot.Claim.RawResults = junitMap
 	payload, err := json.MarshalIndent(claimRoot, "", "  ")
 	if err != nil {
 		log.Fatalf("Failed to generate the claim: %v", err)

@@ -18,6 +18,7 @@ package tnf_test
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 	"testing"
 	"time"
@@ -83,7 +84,7 @@ func TestNewTest(t *testing.T) {
 
 		var expecter expect.Expecter = mockExpecter
 		var errorChannel <-chan error
-		testTest, err := tnf.NewTest(&expecter, mockTester, []reel.Handler{mockHandler}, errorChannel)
+		testTest, err := tnf.NewTest(&expecter, mockTester, []reel.Handler{mockHandler}, errorChannel, reel.DisableTerminalPromptEmulation())
 		assert.Equal(t, testCase.newTestErr, err)
 		assert.Equal(t, testCase.newTestIsNil, testTest == nil)
 	}
@@ -101,6 +102,10 @@ type testRunTestCase struct {
 	reelMatchBefore           string
 	reelMatchMatch            string
 	reelMatchResult           *reel.Step
+}
+
+func fakeSentinelOutput() string {
+	return fmt.Sprintf("someOutput%s\n", reel.EndOfTestRegexPostfix)
 }
 
 // Tests the actual state machine.
@@ -131,19 +136,22 @@ var testRunTestCases = map[string]testRunTestCase{
 		testCommandArgs: defaultTestCommand,
 		reelFirstResult: &reel.Step{
 			Execute: "ls",
-			Expect:  []string{`someOutput`},
+			Expect:  []string{fakeSentinelOutput()},
 			Timeout: testTimeoutDuration,
 		},
 		testerResultResult:  tnf.ERROR,
 		expectBatchIsCalled: true,
 		expectBatchBatchResResult: []expect.BatchRes{
-			{Idx: 0, Output: "someOutput", Match: []string{"someOutput"}},
+			{
+				Idx:    0,
+				Output: fakeSentinelOutput(),
+				Match:  []string{fakeSentinelOutput()}},
 		},
 		expectBatchBatchResErr: nil,
 		reelMatchIsCalled:      true,
 		reelMatchPattern:       "",
 		reelMatchBefore:        "",
-		reelMatchMatch:         "someOutput",
+		reelMatchMatch:         fakeSentinelOutput(),
 		reelMatchResult:        nil,
 	},
 }
@@ -175,7 +183,7 @@ func TestTest_Run(t *testing.T) {
 
 		var expecter expect.Expecter = mockExpecter
 		var errorChannel <-chan error
-		test, err := tnf.NewTest(&expecter, mockTester, []reel.Handler{mockHandler}, errorChannel)
+		test, err := tnf.NewTest(&expecter, mockTester, []reel.Handler{mockHandler}, errorChannel, reel.DisableTerminalPromptEmulation())
 		assert.Nil(t, err)
 		assert.NotNil(t, test)
 		result, err := test.Run()

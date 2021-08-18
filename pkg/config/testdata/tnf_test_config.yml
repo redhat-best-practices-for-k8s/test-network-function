@@ -1,4 +1,4 @@
-generic:
+testTarget:
   containersUnderTest:
     - namespace: default
       podName: test
@@ -12,6 +12,19 @@ generic:
       defaultNetworkDevice: eth0
       multusIpAddresses:
         - 10.217.0.29
+  operators:
+    - name: etcdoperator.v0.9.4
+      namespace: default
+      autogenerate: false
+      tests:
+        - OPERATOR_STATUS
+  podsUnderTest: # FKA cnfs
+    - name: ubuntu
+      namespace: default
+      tests:
+        - PRIVILEGED_POD
+        - PRIVILEGED_ROLE
+testPartner:
   partnerContainers:
     - namespace: default
       podName: partner
@@ -20,24 +33,12 @@ generic:
       multusIpAddresses:
         - 10.217.0.29
   testOrchestrator:
-    namespace: default
-    podName: partner
-    containerName: partner
-operators:
-  - name: etcdoperator.v0.9.4
-    namespace: default
-    autogenerate: false
-    tests:
-      - OPERATOR_STATUS
-    certifiedoperatorrequestinfo:
-      - name: "etcd-operator"
-        organization: "redhat-marketplace"
-cnfs:
-  - name: ubuntu
-    namespace: default
-    tests:
-      - PRIVILEGED_POD
-      - PRIVILEGED_ROLE
-    certifiedcontainerrequestinfo:
-      - name: nginx-116  # working example
-        repository: rhel8
+      namespace: default
+      podName: partner
+      containerName: partner
+certifiedcontainerinfo:
+  - name: nginx-116  # working example
+    repository: rhel8
+certifiedoperatorinfo:
+  - name: etcd-operator
+    organization: redhat-marketplace

@@ -20,6 +20,7 @@ import (
 	"time"
 
 	expect "github.com/google/goexpect"
+	"github.com/onsi/ginkgo"
 	"github.com/test-network-function/test-network-function/pkg/tnf/identifier"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
 )
@@ -32,6 +33,24 @@ const (
 	// FAILURE represents a failed test.
 	FAILURE
 )
+
+// TestsExtraInfo a collection of messages per test that is added to the claim file
+// use WriteTestExtraInfo for writing to it
+var TestsExtraInfo []map[string][]string = []map[string][]string{}
+
+// CreateTestExtraInfoWriter creates a function that writes info messages for a specific test
+// info messages that were already added by calling the function will exist in the claim file
+func CreateTestExtraInfoWriter() func(string) {
+	testName := ginkgo.CurrentGinkgoTestDescription().FullTestText
+	if testName == "" {
+		return func(string) {}
+	}
+	extraInfo := map[string][]string{testName: nil}
+	TestsExtraInfo = append(TestsExtraInfo, extraInfo)
+	return func(info string) {
+		extraInfo[testName] = append(extraInfo[testName], info)
+	}
+}
 
 // ExitCodeMap maps a test result value to a more appropriate Unix return code.
 var ExitCodeMap = map[int]int{
@@ -110,9 +129,9 @@ func (t *Test) ReelEOF() {
 }
 
 // NewTest creates a new Test given a chain of Handlers.
-func NewTest(expecter *expect.Expecter, tester Tester, chain []reel.Handler, errorChannel <-chan error) (*Test, error) {
-	var args []string = tester.Args()
-	runner, err := reel.NewReel(expecter, args, errorChannel)
+func NewTest(expecter *expect.Expecter, tester Tester, chain []reel.Handler, errorChannel <-chan error, opts ...reel.Option) (*Test, error) {
+	args := tester.Args()
+	runner, err := reel.NewReel(expecter, args, errorChannel, opts...)
 	if err != nil {
 		return nil, err
 	}

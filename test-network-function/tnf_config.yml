@@ -1,46 +1,59 @@
-generic:
-  containersUnderTest:
-    - namespace: tnf
-      podName: test
-      containerName: test
-      defaultNetworkDevice: eth0
-      multusIpAddresses:
-        - 10.217.0.8
-  partnerContainers:
-    - namespace: tnf
-      podName: partner
-      containerName: partner
-      defaultNetworkDevice: eth0
-      multusIpAddresses:
-        - 10.217.0.29
-    - namespace: tnf
-      podName: node-master
-      containerName: master
-      defaultNetworkDevice: eth0
-  fsDiffMasterContainer:
-    namespace: tnf
-    podName: node-master
-    containerName: master
-  testOrchestrator:
-    namespace: tnf
-    podName: partner
-    containerName: partner
-operators:
-  - name: etcdoperator.v0.9.4
-    namespace: default
-    subscriptionName: etcd
-    autogenerate: false
-    tests:
-      - OPERATOR_STATUS
-    certifiedoperatorrequestinfo:
-      - name: "etcd-operator"
-        organization: "redhat-marketplace"
-cnfs:
-  - name: ubuntu
-    namespace: default
-    tests:
-      - PRIVILEGED_POD
-      - PRIVILEGED_ROLE
-    certifiedcontainerrequestinfo:
-      - name: nginx-116  # working example
-        repository: rhel8
+targetPodLabels:
+  - namespace: test-network-function.com
+    name: generic
+    value: target
+# The following section does not require manual configuration as autodiscovery is on by default
+# Containers and pods will be found through matching targetPodLabels. Operators will be found if
+# labelled with "test-network-function.com/operator". Their subscription name will be read from
+# annotation named "subscription_name".
+# 
+# To add additional test targets, uncomment the section and configuree the values
+#
+# testTarget:
+#   containersUnderTest:
+#     - namespace: tnf
+#       podName: test
+#       containerName: test
+#       defaultNetworkDevice: eth0
+#       multusIpAddresses:
+#         - 10.217.0.8
+#   podsUnderTest:
+#     - name: test
+#       namespace: tnf
+#   operators:
+#     - name: etcdoperator.v0.9.4
+#       namespace: default
+#       subscriptionName: etcd
+#       autogenerate: false
+
+
+# The following section does not require manual configuration as autodiscovery is on by default.
+# Partner pods deployed automatically from the cnf-test-partner-repo should have all the labels
+# used by autodiscovery
+#
+# testPartner:
+#   partnerContainers:
+#     - namespace: tnf
+#       podName: partner
+#       containerName: partner
+#       defaultNetworkDevice: eth0
+#       multusIpAddresses:
+#         - 10.217.0.29
+#     - namespace: tnf
+#       podName: node-master
+#       containerName: master
+#       defaultNetworkDevice: eth0
+#   fsDiffMasterContainer:
+#     namespace: tnf
+#     podName: node-master
+#     containerName: master        
+#   testOrchestrator:
+#     namespace: tnf
+#     podName: partner
+#     containerName: partner
+certifiedcontainerinfo:
+  - name: nginx-116  # working example
+    repository: rhel8
+certifiedoperatorinfo:
+  - name: etcd
+    organization: community-operators # working example

@@ -35,11 +35,23 @@ const (
 	// IPBinaryName is the name of the Unix `ip` command.
 	IPBinaryName = "ip"
 
+	// LsBinaryName is the name of the Unix `ls` command.
+	LsBinaryName = "ls"
+
+	// SortBinaryName is the name of the Unix `sort` command.
+	SortBinaryName = "sort"
+
+	// HeadBinaryName is the name of the Unix `head` command.
+	HeadBinaryName = "head"
+
 	// JqBinaryName is the name of the Unix `jq` command.
 	JqBinaryName = "jq"
 
 	// OcBinaryName is the name of the OpenShift CLI client command.
 	OcBinaryName = "oc"
+
+	// SysctlBinaryName is the name of the Sysctl command.
+	SysctlBinaryName = "sysctl"
 
 	// PodmanBinaryName is the name of the podman tool.
 	PodmanBinaryName = "podman"
@@ -55,4 +67,7 @@ const (
 
 	// EchoBinaryName is the name of the Unix `echo` command
 	EchoBinaryName = "echo"
+
+	// WcBinaryName is the name of the Unix `wc` command
+	WcBinaryName = "wc"
 )

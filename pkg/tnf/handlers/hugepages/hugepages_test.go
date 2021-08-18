@@ -93,7 +93,7 @@ const (
 	testTimeoutDuration    = time.Second * 2
 	testInputError         = ""
 	testInputEmpty         = "KARGS\n"
-	testInputSuccess       = "KARGS\n[hugepages=32 default_hugepagesz=32M]\n[hugepages=64 hugepagesz=1G]\n"
+	testInputSuccess       = "KARGS\n[skew_tick=1 nohz=on rcu_nocbs=2-19,22-39,42-59,62-79 tuned.non_isolcpus=30000300,00300003 intel_pstate=disable nosoftlockup tsc=nowatchdog intel_iommu=on iommu=pt isolcpus=managed_irq,2-19,22-39,42-59,62-79 systemd.cpu_affinity=0,1,40,41,20,21,60,61 hugepages=32 default_hugepagesz=32M hugepages=64 hugepagesz=1G nmi_watchdog=0 audit=0 mce=off processor.max_cstate=1 idle=poll intel_idle.max_cstate=0]\n"
 	testExpectedHugepages  = 64
 	testExpectedHugepagesz = 1024 * 1024
 )

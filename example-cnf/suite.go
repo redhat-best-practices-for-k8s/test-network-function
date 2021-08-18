@@ -1,7 +1,12 @@
-package example_cnf
+package examplecnf
 
 import (
 	"bytes"
+	"html/template"
+	"io/ioutil"
+	"path"
+	"time"
+
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
@@ -10,10 +15,6 @@ import (
 	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
 	"gopkg.in/yaml.v2"
-	"html/template"
-	"io/ioutil"
-	"path"
-	"time"
 )
 
 const (
@@ -72,6 +73,7 @@ var _ = ginkgo.Context("example-cnf", func() {
 			log.Error(string(inputBytes))
 			gomega.Expect(err).To(gomega.BeNil())
 			gomega.Expect(inputBytes).ToNot(gomega.BeNil())
+			//nolint:gosec
 			err = ioutil.WriteFile(getPath(testCustomResourceFileName), inputBytes, 0644)
 			gomega.Expect(err).To(gomega.BeNil())
 
@@ -89,7 +91,8 @@ var _ = ginkgo.Context("example-cnf", func() {
 				gomega.Expect(err).To(gomega.BeNil())
 				gomega.Expect(result).To(gomega.Equal(tnf.SUCCESS))
 
-				time.Sleep(time.Second * 40)
+				const sleepTime = 40
+				time.Sleep(time.Second * sleepTime)
 
 				trafficPassed := cr.NewTraffic(testCustomResourceNamespace, testCustomResourceCRType, testCustomResourceCRName, testTimeout)
 				test, err = tnf.NewTest(context.GetExpecter(), trafficPassed, []reel.Handler{trafficPassed}, context.GetErrorChannel())

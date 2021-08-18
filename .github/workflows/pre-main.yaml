@@ -6,11 +6,26 @@ on:
   pull_request:
     branches: [ main ]
   workflow_dispatch:
+env:
+  REGISTRY: quay.io
+  REGISTRY_LOCAL: localhost
+  IMAGE_NAME: testnetworkfunction/test-network-function
+  IMAGE_TAG: unstable
+  TNF_CONTAINER_CLIENT: docker
+  TNF_MINIKUBE_ONLY: true
+  TNF_NON_INTRUSIVE_ONLY: true
+  TNF_DISABLE_CONFIG_AUTODISCOVER: false
+  TNF_CONFIG_DIR: /tmp/tnf/config
+  TNF_OUTPUT_DIR: /tmp/tnf/output
+  TNF_SRC_URL: 'https://github.com/${{ github.repository }}'
+  TESTING_CMD_PARAMS: '-n host -i ${REGISTRY_LOCAL}/${IMAGE_NAME}:${IMAGE_TAG} -t ${TNF_CONFIG_DIR} -o ${TNF_OUTPUT_DIR}'
+  NAMESPACE_TO_GENERATE: tnf
 
 jobs:
   lint:
     name: Run Linter
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
+
     steps:
       - name: Set up Go 1.15
         uses: actions/setup-go@v2
@@ -36,23 +51,114 @@ jobs:
       - name: make lint
         run: make lint
 
-  test:
-    name: Run Tests
-    runs-on: ubuntu-latest
+  unit-tests:
+    name: Run Unit Tests
+    runs-on: ubuntu-20.04
+
     steps:
+      - name: Set up Go 1.15
+        uses: actions/setup-go@v2
+        with:
+          go-version: ^1.15
 
-    - name: Set up Go 1.15
-      uses: actions/setup-go@v2
-      with:
-        go-version: ^1.15
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.sha }}
 
-    - name: Check out code into the Go module directory
-      uses: actions/checkout@v2
-      with:
-        ref: ${{ github.sha }}
+      - name: Rebuild mocks
+        run: go get github.com/golang/mock/mockgen && make mocks
 
-    - name: Rebuild mocks
-      run: go get github.com/golang/mock/mockgen && make mocks
+      - name: Run Tests
+        run: make test
 
-    - name: Run Tests
-      run: make test
+  smoke-tests:
+    name: Run Smoke Tests
+    runs-on: ubuntu-20.04
+    env:
+      SHELL: /bin/bash
+      KUBECONFIG: '/home/runner/.kube/config'
+
+    steps:
+      - name: Set up Go 1.15
+        uses: actions/setup-go@v2
+        with:
+          go-version: ^1.15
+
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.sha }}
+
+      - name: Execute `make mocks`
+        run: go get github.com/golang/mock/mockgen && make mocks
+
+      - name: Install ginkgo
+        run: go get -u github.com/onsi/ginkgo/ginkgo
+
+      - name: Execute `make build`
+        run: make build
+
+      # Create a minikube cluster for testing.
+
+      - name: Check out `cnf-certification-test-partner`
+        uses: actions/checkout@v2
+        with:
+          repository: test-network-function/cnf-certification-test-partner
+          path: cnf-certification-test-partner
+
+      - name: Start the minikube cluster for `local-test-infra`
+        uses: ./cnf-certification-test-partner/.github/actions/start-minikube
+
+      - name: Create `local-test-infra` OpenShift resources
+        uses: ./cnf-certification-test-partner/.github/actions/create-local-test-infra-resources
+        with:
+          working_directory: cnf-certification-test-partner
+
+      # Perform smoke tests.
+
+      - name: 'Test: Run diagnostic test suite'
+        run: ./run-cnf-suites.sh diagnostic
+
+      - name: 'Test: Run test suites'
+        run: ./run-cnf-suites.sh access-control lifecycle platform observablility networking affiliated-certification
+
+      # Perform smoke tests using a TNF container.
+
+      - name: Build the `test-network-function` image
+        run: |
+          docker build --no-cache \
+            -t ${REGISTRY_LOCAL}/${IMAGE_NAME}:${IMAGE_TAG} \
+            -t ${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG} \
+            --build-arg TNF_VERSION=${COMMIT_SHA} \
+            --build-arg TNF_SRC_URL=${TNF_SRC_URL} .
+        env:
+          COMMIT_SHA: ${{ github.sha }}
+
+      - name: Create required TNF config files and directories
+        run: |
+          mkdir -p $TNF_CONFIG_DIR $TNF_OUTPUT_DIR
+          cp test-network-function/*.yml $TNF_CONFIG_DIR
+        shell: bash
+
+      - name: 'Test: Run diagnostic test suite in a TNF container'
+        run: ./run-tnf-container.sh ${{ env.TESTING_CMD_PARAMS }} diagnostic
+
+      - name: 'Test: Run generic test suite in a TNF container'
+        run: ./run-tnf-container.sh ${{ env.TESTING_CMD_PARAMS }} generic access-control
+
+      # Push the new unstable TNF image to Quay.io.
+
+      - name: (if on main and upstream) Authenticate against Quay.io
+        if: ${{ github.ref == 'refs/heads/main' && github.repository_owner == 'test-network-function' }}
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ env.REGISTRY }}
+          # Use a Robot Account to authenticate against Quay.io
+          # https://docs.quay.io/glossary/robot-accounts.html
+          username: ${{ secrets.QUAY_ROBOT_USERNAME }}
+          password: ${{ secrets.QUAY_ROBOT_TOKEN }}
+
+      - name: (if on main and upstream) Push the newly built image to Quay.io
+        if: ${{ github.ref == 'refs/heads/main' && github.repository_owner == 'test-network-function' }}
+        run: docker push --all-tags ${REGISTRY}/${IMAGE_NAME}

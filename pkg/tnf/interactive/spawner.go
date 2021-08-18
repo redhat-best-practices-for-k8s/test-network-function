@@ -29,7 +29,7 @@ import (
 
 const (
 	// defaultBufferSize is the size of the input/output buffers in bytes.
-	defaultBufferSize = 16384
+	defaultBufferSize = 32768
 	// defaultBufferSizeEnvironmentVariableKey is the OS environment variable name to override defaultBufferSize.
 	defaultBufferSizeEnvironmentVariableKey = "TNF_DEFAULT_BUFFER_SIZE"
 )
