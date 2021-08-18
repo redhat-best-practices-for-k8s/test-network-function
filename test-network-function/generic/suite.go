@@ -29,10 +29,6 @@ const (
 	testsKey = "generic"
 )
 
-//
-// All actual test code belongs below here.  Utilities belong above.
-//
-
 // Runs the "generic" CNF test cases.
 var _ = ginkgo.Describe(testsKey, func() {
 	if testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusStrings, testsKey) {
