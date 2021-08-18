@@ -185,7 +185,7 @@ func appendCNFFeatureValidationReportResults(junitPath *string, junitMap map[str
 // marshalConfigurations creates a byte stream representation of the test configurations.  In the event of an error,
 // this method fatally fails.
 func marshalConfigurations() []byte {
-	configurations, err := j.Marshal(config.GetConfigInstance())
+	configurations, err := j.Marshal(config.GetTestEnvironment().Config)
 	if err != nil {
 		log.Fatalf("error converting configurations to JSON: %v", err)
 	}

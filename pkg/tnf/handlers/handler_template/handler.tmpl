@@ -14,16 +14,17 @@
 // with this program; if not, write to the Free Software Foundation, Inc.,
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-package {{ .Handlername }}
+package {{ .LowerHandlername }}
 
 import (
 	"time"
+
 	"github.com/test-network-function/test-network-function/pkg/tnf"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
 )
 
-// TODO:
-type {{ .Handlername }} struct {
+// {{ .UpperHandlername }} provides a {{ .UpperHandlername }} test implemented using command line tool {{ .UpperHandlername }}.
+type {{ .UpperHandlername }} struct {
 	result  int
 	timeout time.Duration
 	args    []string
@@ -31,50 +32,51 @@ type {{ .Handlername }} struct {
 }
 
 const (
-	// adding special variables
+// adding special variables
 )
 
-func (h *{{ .Handlername }}) Args() []string {
+// Args function
+func (h *{{ .UpperHandlername }}) Args() []string {
 	return h.args
 }
 
 // GetIdentifier returns the tnf.Test specific identifier.
-func (h *{{ .Handlername }}) GetIdentifier() {
-	// TODO : create identifier.{{ .Handlername}}Identifier.	
+func (h *{{ .UpperHandlername }}) GetIdentifier() {
+	// Create identifier {{ .UpperHandlername }}Identifier.	
 }
 
 // Timeout return the timeout for the test.
-func (h *{{ .Handlername }}) Timeout() time.Duration {
+func (h *{{ .UpperHandlername }}) Timeout() time.Duration {
 	return h.timeout
 }
 
 // Result returns the test result.
-func (h *{{ .Handlername }}) Result() int {
+func (h *{{ .UpperHandlername }}) Result() int {
 	return h.result
 }
 
-// ReelFirst returns a step which expects an Handlername summary for the given device.
-func (h *{{ .Handlername }}) ReelFirst() *reel.Step {
+// ReelFirst returns a step which expects an {{ .UpperHandlername }} summary for the given device.
+func (h *{{ .UpperHandlername }}) ReelFirst() *reel.Step {
 	return &reel.Step{
 		Expect: []string{""}, // TODO : pass the list of possible regex in here
 		Timeout: h.timeout,
 	}
 }
 
-// ReelMatch parses the Handlername output and set the test result on match.
-func (h *{{ .Handlername }}) ReelMatch(_, _, match string) *reel.Step {
+// ReelMatch parses the {{ .UpperHandlername }} output and set the test result on match.
+func (h *{{ .UpperHandlername }}) ReelMatch(_, _, match string) *reel.Step {
 	h.result = tnf.ERROR
 	return nil
 	// TODO : add the matching logic in here
 }
 
-// ReelTimeout does nothing; Handlername requires no explicit intervention for a timeout.
-func (h *{{ .Handlername }}) ReelTimeout() *reel.Step {
+// ReelTimeout does nothing, {{ .UpperHandlername }} requires no explicit intervention for a timeout.
+func (h *{{ .UpperHandlername }}) ReelTimeout() *reel.Step {
 	return nil
 	// TODO : fill the stub
 }
 
-// ReelEOF does nothing; Handlername requires no explicit intervention for EOF.
-func (h *{{ .Handlername }}) ReelEOF() {
+// ReelEOF does nothing, {{ .UpperHandlername }} requires no explicit intervention for EOF.
+func (h *{{ .UpperHandlername }}) ReelEOF() {
 	// TODO : fill the stub
 }

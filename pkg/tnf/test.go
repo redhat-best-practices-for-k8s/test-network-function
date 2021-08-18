@@ -21,6 +21,7 @@ import (
 
 	expect "github.com/google/goexpect"
 	"github.com/onsi/ginkgo"
+	"github.com/onsi/gomega"
 	"github.com/test-network-function/test-network-function/pkg/tnf/identifier"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
 )
@@ -126,6 +127,13 @@ func (t *Test) ReelEOF() {
 	for _, handler := range t.chain {
 		handler.ReelEOF()
 	}
+}
+
+// RunAndValidateTest runs the test and checks the result
+func (t *Test) RunAndValidateTest() {
+	testResult, err := t.Run()
+	gomega.Expect(testResult).To(gomega.Equal(SUCCESS))
+	gomega.Expect(err).To(gomega.BeNil())
 }
 
 // NewTest creates a new Test given a chain of Handlers.

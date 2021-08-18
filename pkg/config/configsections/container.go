@@ -23,8 +23,8 @@ type ContainerIdentifier struct {
 	ContainerName string `yaml:"containerName" json:"containerName"`
 }
 
-// Container contains the payload of container facets.
-type Container struct {
+// ContainerConfig contains the payload of container facets.
+type ContainerConfig struct {
 	ContainerIdentifier `yaml:",inline"`
 	// OpenShift Default network interface name (i.e., eth0)
 	DefaultNetworkDevice string `yaml:"defaultNetworkDevice" json:"defaultNetworkDevice"`

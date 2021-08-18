@@ -23,6 +23,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/test-network-function/test-network-function/pkg/config"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/generic"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/scaling"
 	"github.com/test-network-function/test-network-function/pkg/tnf/testcases"
@@ -85,28 +86,27 @@ var drainTimeout = time.Duration(drainTimeoutMinutes) * time.Minute
 // All actual test code belongs below here.  Utilities belong above.
 //
 var _ = ginkgo.Describe(common.LifecycleTestKey, func() {
-	configData := common.ConfigurationData{}
-	configData.SetNeedsRefresh()
+	env := config.GetTestEnvironment()
 	ginkgo.BeforeEach(func() {
-		common.ReloadConfiguration(&configData)
+		env.LoadAndRefresh()
 	})
 	if testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusStrings, common.LifecycleTestKey) {
 
-		testNodeSelector(&configData)
+		testNodeSelector(env)
 
-		testGracePeriod(&configData)
+		testGracePeriod(env)
 
-		testShutdown(&configData)
+		testShutdown(env)
 
-		testPodAntiAffinity(&configData)
+		testPodAntiAffinity(env)
 
 		if !common.NonIntrusive() {
-			testPodsRecreation(&configData)
+			testPodsRecreation(env)
 
-			testScaling(&configData)
+			testScaling(env)
 		}
 
-		testOwner(&configData)
+		testOwner(env)
 	}
 })
 
@@ -118,7 +118,7 @@ func waitForAllDeploymentsReady(namespace string, timeout, pollingPeriod time.Du
 }
 
 // restoreDeployments is the last attempt to restore the original test deployments' replicaCount
-func restoreDeployments(configData *common.ConfigurationData, nsDeployments *map[string]dp.DeploymentMap) {
+func restoreDeployments(env *config.TestEnvironment, nsDeployments *map[string]dp.DeploymentMap) {
 	for namespace, originalDeployments := range *nsDeployments {
 		// For each deployment in the namespace, get the current replicas and compare.
 		deployments, notReadyDeployments := getDeployments(namespace)
@@ -138,7 +138,7 @@ func restoreDeployments(configData *common.ConfigurationData, nsDeployments *map
 			// Try to scale to the original deployment's replicaCount.
 			runScalingTest(namespace, originalDeploymentName, originalDeployment.Replicas)
 
-			configData.SetNeedsRefresh()
+			env.SetNeedsRefresh()
 		}
 	}
 }
@@ -168,24 +168,26 @@ func runScalingTest(namespace, deploymentName string, replicaCount int) {
 	waitForAllDeploymentsReady(namespace, scalingTimeout, scalingPollingPeriod)
 }
 
-func testScaling(configData *common.ConfigurationData) {
+func testScaling(env *config.TestEnvironment) {
 	ginkgo.It("Testing deployment scaling", func() {
 		defer results.RecordResult(identifiers.TestScalingIdentifier)
 
 		namespaceDeploymentsBackup := make(map[string]dp.DeploymentMap)
-		defer restoreDeployments(configData, &namespaceDeploymentsBackup)
+		defer restoreDeployments(env, &namespaceDeploymentsBackup)
 
 		// Map to register the deployments that have been already tested
 		deploymentNames := make(map[string]bool)
 
-		for _, cut := range configData.ContainersUnderTest {
-			namespace := cut.Oc.GetPodNamespace()
+		for _, podUnderTest := range env.PodsUnderTest {
+			podName := podUnderTest.Name
+			namespace := podUnderTest.Namespace
 
 			// Get deployment name and check whether it was already tested.
 			// ToDo: Proper way (helper/handler) to do this.
-			podNameParts := strings.Split(cut.Oc.GetPodName(), "-")
+			podNameParts := strings.Split(podName, "-")
 			deploymentName := podNameParts[0]
-
+			msg := fmt.Sprintf("Testing deployment=%s, namespace=%s pod name=%s", deploymentName, namespace, podName)
+			log.Info(msg)
 			if _, alreadyTested := deploymentNames[deploymentName]; alreadyTested {
 				continue
 			}
@@ -204,7 +206,7 @@ func testScaling(configData *common.ConfigurationData) {
 			runScalingTest(namespace, deploymentName, replicaCount)
 
 			// Ensure next tests/test suites receive a refreshed config.
-			configData.SetNeedsRefresh()
+			env.SetNeedsRefresh()
 
 			// Set this deployment as tested
 			deploymentNames[deploymentName] = true
@@ -212,16 +214,17 @@ func testScaling(configData *common.ConfigurationData) {
 	})
 }
 
-func testNodeSelector(configData *common.ConfigurationData) {
+func testNodeSelector(env *config.TestEnvironment) {
 	ginkgo.It("Testing pod nodeSelector", func() {
-		for _, cut := range configData.ContainersUnderTest {
-			podName := cut.Oc.GetPodName()
-			podNamespace := cut.Oc.GetPodNamespace()
-			ginkgo.By(fmt.Sprintf("Testing pod nodeSelector %s/%s", cut.Oc.GetPodNamespace(), podName))
+		context := common.GetContext()
+		for _, podUnderTest := range env.PodsUnderTest {
+			podName := podUnderTest.Name
+			podNamespace := podUnderTest.Namespace
+			ginkgo.By(fmt.Sprintf("Testing pod nodeSelector %s/%s", podNamespace, podName))
 			defer results.RecordResult(identifiers.TestPodNodeSelectorAndAffinityBestPractices)
 			infoWriter := tnf.CreateTestExtraInfoWriter()
 			tester := nodeselector.NewNodeSelector(common.DefaultTimeout, podName, podNamespace)
-			test, err := tnf.NewTest(cut.Oc.GetExpecter(), tester, []reel.Handler{tester}, cut.Oc.GetErrorChannel())
+			test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 			gomega.Expect(err).To(gomega.BeNil())
 			testResult, err := test.Run()
 			gomega.Expect(err).To(gomega.BeNil())
@@ -234,13 +237,13 @@ func testNodeSelector(configData *common.ConfigurationData) {
 	})
 }
 
-func testGracePeriod(configData *common.ConfigurationData) {
+func testGracePeriod(env *config.TestEnvironment) {
 	ginkgo.When("Test terminationGracePeriod ", func() {
 		ginkgo.It("Testing pod terminationGracePeriod", func() {
-			for _, cut := range configData.ContainersUnderTest {
-				context := common.GetContext()
-				podName := cut.Oc.GetPodName()
-				podNamespace := cut.Oc.GetPodNamespace()
+			context := common.GetContext()
+			for _, podUnderTest := range env.PodsUnderTest {
+				podName := podUnderTest.Name
+				podNamespace := podUnderTest.Namespace
 				ginkgo.By(fmt.Sprintf("Testing pod terminationGracePeriod %s %s", podNamespace, podName))
 				defer results.RecordResult(identifiers.TestNonDefaultGracePeriodIdentifier)
 				infoWriter := tnf.CreateTestExtraInfoWriter()
@@ -261,12 +264,12 @@ func testGracePeriod(configData *common.ConfigurationData) {
 	})
 }
 
-func testShutdown(configData *common.ConfigurationData) {
+func testShutdown(env *config.TestEnvironment) {
 	ginkgo.When("Testing PUTs are configured with pre-stop lifecycle", func() {
 		ginkgo.It("should have pre-stop configured", func() {
-			for _, cut := range configData.ContainersUnderTest {
-				podName := cut.Oc.GetPodName()
-				podNamespace := cut.Oc.GetPodNamespace()
+			for _, podUnderTest := range env.PodsUnderTest {
+				podName := podUnderTest.Name
+				podNamespace := podUnderTest.Namespace
 				ginkgo.By(fmt.Sprintf("should have pre-stop configured %s/%s", podNamespace, podName))
 				defer results.RecordResult(identifiers.TestShudtownIdentifier)
 				shutdownTest(podNamespace, podName)
@@ -298,16 +301,16 @@ func shutdownTest(podNamespace, podName string) {
 	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
 }
 
-func testPodsRecreation(configData *common.ConfigurationData) {
+func testPodsRecreation(env *config.TestEnvironment) {
 	var deployments dp.DeploymentMap
 	var notReadyDeployments []string
 	var nodesSorted []node // A slice version of nodes sorted by number of deployments descending
 	ginkgo.It("Testing node draining effect of deployment", func() {
-		configData.SetNeedsRefresh()
-		for _, cut := range configData.ContainersUnderTest {
-			namespace := cut.Oc.GetPodNamespace()
-			ginkgo.By(fmt.Sprintf("test deployment in namespace %s", namespace))
-			deployments, notReadyDeployments = getDeployments(namespace)
+		env.SetNeedsRefresh()
+		for _, podUnderTest := range env.PodsUnderTest {
+			podNamespace := podUnderTest.Namespace
+			ginkgo.By(fmt.Sprintf("test deployment in namespace %s", podNamespace))
+			deployments, notReadyDeployments = getDeployments(podNamespace)
 			if len(deployments) == 0 {
 				return
 			}
@@ -317,7 +320,7 @@ func testPodsRecreation(configData *common.ConfigurationData) {
 			}
 			gomega.Expect(notReadyDeployments).To(gomega.BeEmpty())
 			ginkgo.By("Should return map of nodes to deployments")
-			nodesSorted = getDeploymentsNodes(namespace)
+			nodesSorted = getDeploymentsNodes(podNamespace)
 			ginkgo.By("should create new replicas when node is drained")
 			defer results.RecordResult(identifiers.TestPodRecreationIdentifier)
 			testedDeployments := map[string]bool{}
@@ -334,7 +337,7 @@ func testPodsRecreation(configData *common.ConfigurationData) {
 				// drain node
 				drainNode(n.name) // should go in this
 				// verify deployments are ready again
-				_, notReadyDeployments = getDeployments(namespace)
+				_, notReadyDeployments = getDeployments(podNamespace)
 				gomega.Expect(notReadyDeployments).To(gomega.BeEmpty()) // this is to make sure pods are created again
 				uncordonNode(n.name)
 				if len(testedDeployments) == len(deployments) {
@@ -419,12 +422,12 @@ func uncordonNode(node string) {
 }
 
 // Pod antiaffinity test for all deployments
-func testPodAntiAffinity(configData *common.ConfigurationData) {
+func testPodAntiAffinity(env *config.TestEnvironment) {
 	var deployments dp.DeploymentMap
 	ginkgo.When("CNF is designed in high availability mode ", func() {
 		ginkgo.It("Should set pod replica number greater than 1 and corresponding pod anti-affinity rules in deployment", func() {
-			for _, cut := range configData.ContainersUnderTest {
-				podNamespace := cut.Oc.GetPodNamespace()
+			for _, podUnderTest := range env.PodsUnderTest {
+				podNamespace := podUnderTest.Namespace
 				defer results.RecordResult(identifiers.TestPodHighAvailabilityBestPractices)
 				deployments, _ = getDeployments(podNamespace)
 				if len(deployments) == 0 {
@@ -477,15 +480,15 @@ func podAntiAffinity(deployment, podNamespace string, replica int) {
 	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
 }
 
-func testOwner(configData *common.ConfigurationData) {
+func testOwner(env *config.TestEnvironment) {
 	ginkgo.When("Testing owners of CNF pod", func() {
 		ginkgo.It("Should be only ReplicaSet", func() {
-			for _, cut := range configData.ContainersUnderTest {
-				podNamespace := cut.Oc.GetPodNamespace()
-				podName := cut.Oc.GetPodName()
+			context := common.GetContext()
+			for _, podUnderTest := range env.PodsUnderTest {
+				podName := podUnderTest.Name
+				podNamespace := podUnderTest.Namespace
 				ginkgo.By(fmt.Sprintf("Should be ReplicaSet %s %s", podNamespace, podName))
 				defer results.RecordResult(identifiers.TestPodDeploymentBestPracticesIdentifier)
-				context := common.GetContext()
 				tester := owners.NewOwners(common.DefaultTimeout, podNamespace, podName)
 				test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 				gomega.Expect(err).To(gomega.BeNil())
