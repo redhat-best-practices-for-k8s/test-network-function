@@ -17,9 +17,8 @@
 package generic
 
 import (
+	"github.com/test-network-function/test-network-function/pkg/config"
 	"github.com/test-network-function/test-network-function/pkg/tnf/testcases"
-
-	"github.com/test-network-function/test-network-function/test-network-function/common"
 
 	"github.com/onsi/ginkgo"
 	ginkgoconfig "github.com/onsi/ginkgo/config"
