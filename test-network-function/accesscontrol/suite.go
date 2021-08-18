@@ -18,7 +18,6 @@ package accesscontrol
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/onsi/ginkgo"
@@ -31,7 +30,6 @@ import (
 	containerpkg "github.com/test-network-function/test-network-function/pkg/tnf/handlers/container"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/rolebinding"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/serviceaccount"
-	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
 	"github.com/test-network-function/test-network-function/pkg/tnf/testcases"
 	"github.com/test-network-function/test-network-function/test-network-function/common"
@@ -50,67 +48,22 @@ var _ = ginkgo.Describe(common.AccessControlTestKey, func() {
 
 		testRoles(env)
 
-		// Former "container" tests
 		defer ginkgo.GinkgoRecover()
 
 		// Run the tests that interact with the pods
 		ginkgo.When("under test", func() {
-			podsUnderTest := env.Config.PodsUnderTest
-			for _, pod := range podsUnderTest {
-				var podFact = testcases.PodFact{Namespace: pod.Namespace, Name: pod.Name, ContainerCount: 0, HasClusterRole: false, Exists: true}
-				// Gather facts for containers
-				podFacts, err := testcases.LoadCnfTestCaseSpecs(testcases.GatherFacts)
+			var allTests []string = testcases.GetConfiguredPodTests()
+			for _, testType := range allTests {
+				testFile, err := testcases.LoadConfiguredTestFile(common.ConfiguredTestFile)
+				gomega.Expect(testFile).ToNot(gomega.BeNil())
 				gomega.Expect(err).To(gomega.BeNil())
-				context := common.GetContext()
-				// Collect container facts
-				for _, factsTest := range podFacts.TestCase {
-					args := strings.Split(fmt.Sprintf(factsTest.Command, pod.Name, pod.Namespace), " ")
-					podTest := containerpkg.NewPod(args, pod.Name, pod.Namespace, factsTest.ExpectedStatus, factsTest.ResultType, factsTest.Action, common.DefaultTimeout)
-					test, err := tnf.NewTest(context.GetExpecter(), podTest, []reel.Handler{podTest}, context.GetErrorChannel())
-					gomega.Expect(err).To(gomega.BeNil())
-					gomega.Expect(test).ToNot(gomega.BeNil())
-					_, err = test.Run()
-					gomega.Expect(err).To(gomega.BeNil())
-					if factsTest.Name == string(testcases.ContainerCount) {
-						podFact.ContainerCount, _ = strconv.Atoi(podTest.Facts())
-					} else if factsTest.Name == string(testcases.ServiceAccountName) {
-						podFact.ServiceAccount = podTest.Facts()
-					} else if factsTest.Name == string(testcases.Name) {
-						podFact.Name = podTest.Facts()
-						gomega.Expect(podFact.Name).To(gomega.Equal(pod.Name))
-						if strings.Compare(podFact.Name, pod.Name) > 0 {
-							podFact.Exists = true
-						}
-					}
-				}
-				// loop through various cnfs test
-				if !podFact.Exists {
-					ginkgo.It(fmt.Sprintf("is running test pod exists : %s/%s for test command :  %s", podFact.Namespace, podFact.Name, "POD EXISTS"), func() {
-						gomega.Expect(podFact.Exists).To(gomega.BeTrue())
-					})
-					continue
-				}
-				for _, testType := range pod.Tests {
-					testFile, err := testcases.LoadConfiguredTestFile(common.ConfiguredTestFile)
-					gomega.Expect(testFile).ToNot(gomega.BeNil())
-					gomega.Expect(err).To(gomega.BeNil())
-					testConfigure := testcases.ContainsConfiguredTest(testFile.CnfTest, testType)
-					renderedTestCase, err := testConfigure.RenderTestCaseSpec(testcases.Cnf, testType)
-					gomega.Expect(err).To(gomega.BeNil())
-					gomega.Expect(renderedTestCase).ToNot(gomega.BeNil())
-					for _, testCase := range renderedTestCase.TestCase {
-						if !testCase.SkipTest {
-							if testCase.ExpectedType == testcases.Function {
-								for _, val := range testCase.ExpectedStatus {
-									testCase.ExpectedStatusFn(pod.Name, testcases.StatusFunctionType(val))
-								}
-							}
-							if testCase.Loop > 0 {
-								runTestsOnPod(podFact.ContainerCount, testCase, testType, podFact, context)
-							} else {
-								runTestsOnPod(testCase.Loop, testCase, testType, podFact, context)
-							}
-						}
+				testConfigure := testcases.ContainsConfiguredTest(testFile.CnfTest, testType)
+				renderedTestCase, err := testConfigure.RenderTestCaseSpec(testcases.Cnf, testType)
+				gomega.Expect(err).To(gomega.BeNil())
+				gomega.Expect(renderedTestCase).ToNot(gomega.BeNil())
+				for _, testCase := range renderedTestCase.TestCase {
+					if !testCase.SkipTest {
+						runTestOnPods(env, testCase, testType)
 					}
 				}
 			}
@@ -118,46 +71,61 @@ var _ = ginkgo.Describe(common.AccessControlTestKey, func() {
 	}
 })
 
-//nolint:gocritic // ignore hugeParam error. Pointers to loop iterator vars are bad and `testCmd` is likely to be such.
-func runTestsOnPod(containerCount int, testCmd testcases.BaseTestCase,
-	testType string, facts testcases.PodFact, context *interactive.Context) {
-	ginkgo.It(fmt.Sprintf("is running test for : %s/%s for test command :  %s", facts.Namespace, facts.Name, testCmd.Name), func() {
-		defer results.RecordResult(identifiers.TestHostResourceIdentifier)
-		containerCount := containerCount
-		testType := testType
-		facts := facts
-		testCmd := testCmd
-		var args []interface{}
-		if testType == testcases.PrivilegedRoles {
-			args = []interface{}{facts.Namespace, facts.Namespace, facts.ServiceAccount}
-		} else {
-			args = []interface{}{facts.Name, facts.Namespace}
-		}
-		if containerCount > 0 {
-			count := 0
-			for count < containerCount {
-				argsCount := append(args, count)
-				cmdArgs := strings.Split(fmt.Sprintf(testCmd.Command, argsCount...), " ")
-				cnfInTest := containerpkg.NewPod(cmdArgs, facts.Name, facts.Namespace, testCmd.ExpectedStatus, testCmd.ResultType, testCmd.Action, common.DefaultTimeout)
-				gomega.Expect(cnfInTest).ToNot(gomega.BeNil())
-				test, err := tnf.NewTest(context.GetExpecter(), cnfInTest, []reel.Handler{cnfInTest}, context.GetErrorChannel())
+//nolint:gocritic,funlen // ignore hugeParam error. Pointers to loop iterator vars are bad and `testCmd` is likely to be such.
+func runTestOnPods(env *config.TestEnvironment, testCmd testcases.BaseTestCase, testType string) {
+	ginkgo.It(fmt.Sprintf("Running Pod test : %s", testCmd.Name), func() {
+		context := common.GetContext()
+		for _, podUnderTest := range env.PodsUnderTest {
+			podName := podUnderTest.Name
+			podNamespace := podUnderTest.Namespace
+			ginkgo.By(fmt.Sprintf("Reading namespace of podnamespace= %s podname= %s", podNamespace, podName))
+			if testCmd.ExpectedType == testcases.Function {
+				for _, val := range testCmd.ExpectedStatus {
+					testCmd.ExpectedStatusFn(podName, testcases.StatusFunctionType(val))
+				}
+			}
+			defer results.RecordResult(identifiers.TestHostResourceIdentifier)
+			testType := testType
+			testCmd := testCmd
+			var args []interface{}
+			if testType == testcases.PrivilegedRoles {
+				args = []interface{}{podUnderTest.Namespace, podUnderTest.Namespace, podUnderTest.ServiceAccount}
+			} else {
+				args = []interface{}{podUnderTest.Name, podUnderTest.Namespace}
+			}
+			var count int
+			if testCmd.Loop > 0 {
+				count = podUnderTest.ContainerCount
+			} else {
+				count = testCmd.Loop
+			}
+
+			if count > 0 {
+				count := 0
+				for count < podUnderTest.ContainerCount {
+					argsCount := append(args, count)
+					cmdArgs := strings.Split(fmt.Sprintf(testCmd.Command, argsCount...), " ")
+					cnfInTest := containerpkg.NewPod(cmdArgs, podUnderTest.Name, podUnderTest.Namespace, testCmd.ExpectedStatus, testCmd.ResultType, testCmd.Action, common.DefaultTimeout)
+					gomega.Expect(cnfInTest).ToNot(gomega.BeNil())
+					test, err := tnf.NewTest(context.GetExpecter(), cnfInTest, []reel.Handler{cnfInTest}, context.GetErrorChannel())
+					gomega.Expect(err).To(gomega.BeNil())
+					gomega.Expect(test).ToNot(gomega.BeNil())
+					testResult, err := test.Run()
+					gomega.Expect(err).To(gomega.BeNil())
+					gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
+					count++
+				}
+			} else {
+				cmdArgs := strings.Split(fmt.Sprintf(testCmd.Command, args...), " ")
+				podTest := containerpkg.NewPod(cmdArgs, podUnderTest.Name, podUnderTest.Namespace, testCmd.ExpectedStatus, testCmd.ResultType, testCmd.Action, common.DefaultTimeout)
+				gomega.Expect(podTest).ToNot(gomega.BeNil())
+				test, err := tnf.NewTest(context.GetExpecter(), podTest, []reel.Handler{podTest}, context.GetErrorChannel())
 				gomega.Expect(err).To(gomega.BeNil())
 				gomega.Expect(test).ToNot(gomega.BeNil())
 				testResult, err := test.Run()
 				gomega.Expect(err).To(gomega.BeNil())
 				gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
-				count++
 			}
-		} else {
-			cmdArgs := strings.Split(fmt.Sprintf(testCmd.Command, args...), " ")
-			podTest := containerpkg.NewPod(cmdArgs, facts.Name, facts.Namespace, testCmd.ExpectedStatus, testCmd.ResultType, testCmd.Action, common.DefaultTimeout)
-			gomega.Expect(podTest).ToNot(gomega.BeNil())
-			test, err := tnf.NewTest(context.GetExpecter(), podTest, []reel.Handler{podTest}, context.GetErrorChannel())
-			gomega.Expect(err).To(gomega.BeNil())
-			gomega.Expect(test).ToNot(gomega.BeNil())
-			testResult, err := test.Run()
-			gomega.Expect(err).To(gomega.BeNil())
-			gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
 		}
 	})
 }
@@ -165,9 +133,9 @@ func runTestsOnPod(containerCount int, testCmd testcases.BaseTestCase,
 func testNamespace(env *config.TestEnvironment) {
 	ginkgo.When("test deployment namespace", func() {
 		ginkgo.It("Should not be 'default' and should not begin with 'openshift-'", func() {
-			for _, cut := range env.ContainersUnderTest {
-				podName := cut.Oc.GetPodName()
-				podNamespace := cut.Oc.GetPodNamespace()
+			for _, podUnderTest := range env.PodsUnderTest {
+				podName := podUnderTest.Name
+				podNamespace := podUnderTest.Namespace
 				ginkgo.By(fmt.Sprintf("Reading namespace of podnamespace= %s podname= %s", podNamespace, podName))
 				defer results.RecordResult(identifiers.TestNamespaceBestPracticesIdentifier)
 				gomega.Expect(podNamespace).To(gomega.Not(gomega.Equal("default")))
@@ -185,10 +153,10 @@ func testRoles(env *config.TestEnvironment) {
 
 func testServiceAccount(env *config.TestEnvironment) {
 	ginkgo.It("Should have a valid ServiceAccount name", func() {
-		for _, cut := range env.ContainersUnderTest {
+		for _, podUnderTest := range env.PodsUnderTest {
+			podName := podUnderTest.Name
+			podNamespace := podUnderTest.Namespace
 			context := common.GetContext()
-			podName := cut.Oc.GetPodName()
-			podNamespace := cut.Oc.GetPodNamespace()
 			ginkgo.By(fmt.Sprintf("Testing pod service account %s %s", podNamespace, podName))
 			defer results.RecordResult(identifiers.TestPodServiceAccountBestPracticesIdentifier)
 			tester := serviceaccount.NewServiceAccount(common.DefaultTimeout, podName, podNamespace)
@@ -198,7 +166,6 @@ func testServiceAccount(env *config.TestEnvironment) {
 			gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
 			gomega.Expect(err).To(gomega.BeNil())
 			serviceAccountName := tester.GetServiceAccountName()
-			cut.Oc.SetServiceAccountName(serviceAccountName)
 			gomega.Expect(serviceAccountName).ToNot(gomega.BeEmpty())
 		}
 	})
@@ -206,11 +173,11 @@ func testServiceAccount(env *config.TestEnvironment) {
 
 func testRoleBindings(env *config.TestEnvironment) {
 	ginkgo.It("Should not have RoleBinding in other namespaces", func() {
-		for _, cut := range env.ContainersUnderTest {
+		for _, podUnderTest := range env.PodsUnderTest {
+			podName := podUnderTest.Name
+			podNamespace := podUnderTest.Namespace
+			serviceAccountName := podUnderTest.ServiceAccount
 			context := common.GetContext()
-			podName := cut.Oc.GetPodName()
-			podNamespace := cut.Oc.GetPodNamespace()
-			serviceAccountName := cut.Oc.GetServiceAccountName()
 			defer results.RecordResult(identifiers.TestPodRoleBindingsBestPracticesIdentifier)
 			ginkgo.By(fmt.Sprintf("Testing role  bidning  %s %s", podNamespace, podName))
 			if serviceAccountName == "" {
@@ -231,11 +198,11 @@ func testRoleBindings(env *config.TestEnvironment) {
 
 func testClusterRoleBindings(env *config.TestEnvironment) {
 	ginkgo.It("Should not have ClusterRoleBindings", func() {
-		for _, cut := range env.ContainersUnderTest {
+		for _, podUnderTest := range env.PodsUnderTest {
+			podName := podUnderTest.Name
+			podNamespace := podUnderTest.Namespace
+			serviceAccountName := podUnderTest.ServiceAccount
 			context := common.GetContext()
-			podName := cut.Oc.GetPodName()
-			podNamespace := cut.Oc.GetPodNamespace()
-			serviceAccountName := cut.Oc.GetServiceAccountName()
 			defer results.RecordResult(identifiers.TestPodClusterRoleBindingsBestPracticesIdentifier)
 			ginkgo.By(fmt.Sprintf("Testing cluster role  bidning  %s %s", podNamespace, podName))
 			if serviceAccountName == "" {

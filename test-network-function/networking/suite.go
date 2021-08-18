@@ -121,10 +121,10 @@ func testPing(initiatingPodOc *interactive.Oc, targetPodIPAddress string, count 
 
 func testNodePort(env *config.TestEnvironment) {
 	ginkgo.It("Should not have services of type NodePort", func() {
-		for _, cut := range env.ContainersUnderTest {
+		for _, podUnderTest := range env.PodsUnderTest {
 			defer results.RecordResult(identifiers.TestServicesDoNotUseNodeportsIdentifier)
 			context := common.GetContext()
-			podNamespace := cut.Oc.GetPodNamespace()
+			podNamespace := podUnderTest.Namespace
 			ginkgo.By(fmt.Sprintf("Testing services in namespace %s", podNamespace))
 			tester := nodeport.NewNodePort(common.DefaultTimeout, podNamespace)
 			test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())

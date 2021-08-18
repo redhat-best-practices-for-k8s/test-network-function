@@ -148,9 +148,9 @@ func getPodNodeName(context *interactive.Context, podName, podNamespace string) 
 	return podNameTester.GetNodeName()
 }
 
-func getCurrentKernelCmdlineArgs(targetPodOc *interactive.Oc) map[string]string {
+func getCurrentKernelCmdlineArgs(targetContainerOc *interactive.Oc) map[string]string {
 	currentKernelCmdlineArgsTester := currentkernelcmdlineargs.NewCurrentKernelCmdlineArgs(common.DefaultTimeout)
-	test, err := tnf.NewTest(targetPodOc.GetExpecter(), currentKernelCmdlineArgsTester, []reel.Handler{currentKernelCmdlineArgsTester}, targetPodOc.GetErrorChannel())
+	test, err := tnf.NewTest(targetContainerOc.GetExpecter(), currentKernelCmdlineArgsTester, []reel.Handler{currentKernelCmdlineArgsTester}, targetContainerOc.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
 	common.RunAndValidateTest(test)
 	currnetKernelCmdlineArgs := currentKernelCmdlineArgsTester.GetKernelArguments()
@@ -217,18 +217,18 @@ func testBootParams(env *config.TestEnvironment) {
 		for _, cut := range env.ContainersUnderTest {
 			podName := cut.Oc.GetPodName()
 			podNameSpace := cut.Oc.GetPodNamespace()
-			targetPodOc := cut.Oc
-			testBootParamsHelper(context, podName, podNameSpace, targetPodOc)
+			targetContainerOc := cut.Oc
+			testBootParamsHelper(context, podName, podNameSpace, targetContainerOc)
 		}
 	})
 }
-func testBootParamsHelper(context *interactive.Context, podName, podNamespace string, targetPodOc *interactive.Oc) {
+func testBootParamsHelper(context *interactive.Context, podName, podNamespace string, targetContainerOc *interactive.Oc) {
 	ginkgo.By(fmt.Sprintf("Testing boot params for the pod's node %s/%s", podNamespace, podName))
 	defer results.RecordResult(identifiers.TestUnalteredStartupBootParamsIdentifier)
 	nodeName := getPodNodeName(context, podName, podNamespace)
 	mcName := getMcName(context, nodeName)
 	mcKernelArgumentsMap := getMcKernelArguments(context, mcName)
-	currentKernelArgsMap := getCurrentKernelCmdlineArgs(targetPodOc)
+	currentKernelArgsMap := getCurrentKernelCmdlineArgs(targetContainerOc)
 	grubKernelConfigMap := getGrubKernelArgs(context, nodeName)
 
 	for key, mcVal := range mcKernelArgumentsMap {
@@ -243,16 +243,16 @@ func testBootParamsHelper(context *interactive.Context, podName, podNamespace st
 
 func testSysctlConfigs(env *config.TestEnvironment) {
 	ginkgo.It("platform-sysctl-config", func() {
-		context := common.GetContext()
-		for _, cut := range env.ContainersUnderTest {
-			podName := cut.Oc.GetPodName()
-			podNameSpace := cut.Oc.GetPodNamespace()
-			testSysctlConfigsHelper(context, podName, podNameSpace)
+		for _, podUnderTest := range env.PodsUnderTest {
+			podName := podUnderTest.Name
+			podNameSpace := podUnderTest.Namespace
+			testSysctlConfigsHelper(podName, podNameSpace)
 		}
 	})
 }
-func testSysctlConfigsHelper(context *interactive.Context, podName, podNamespace string) {
+func testSysctlConfigsHelper(podName, podNamespace string) {
 	ginkgo.By(fmt.Sprintf("Testing sysctl config files for the pod's node %s/%s", podNamespace, podName))
+	context := common.GetContext()
 	nodeName := getPodNodeName(context, podName, podNamespace)
 	combinedSysctlSettings := getSysctlConfigArgs(context, nodeName)
 	mcName := getMcName(context, nodeName)
