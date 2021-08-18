@@ -27,23 +27,23 @@ const (
 	fsDiffMasterValue = "fs_diff_master"
 )
 
-// FillTestPartner completes a `configsections.TestPartner` from the current state of the cluster,
+// FindTestPartner completes a `configsections.TestPartner` from the current state of the cluster,
 // using labels and annotations to populate the data, if it's not fully configured
-func FillTestPartner(tp *configsections.TestPartner) {
-	if tp.TestOrchestrator.ContainerName == "" {
+func FindTestPartner(tp *configsections.TestPartner) {
+	if tp.TestOrchestratorID.ContainerName == "" {
 		orchestrator, err := getContainerByLabel(configsections.Label{Namespace: tnfNamespace, Name: genericLabelName, Value: orchestratorValue})
 		if err != nil {
 			log.Fatalf("failed to identify a single test orchestrator container: %s", err)
 		}
-		tp.PartnerContainers = append(tp.PartnerContainers, orchestrator)
-		tp.TestOrchestrator = orchestrator.ContainerIdentifier
+		tp.ContainerConfigList = append(tp.ContainerConfigList, orchestrator)
+		tp.TestOrchestratorID = orchestrator.ContainerIdentifier
 	}
 
-	if tp.FsDiffMasterContainer.ContainerName == "" {
+	if tp.FsDiffMasterContainerID.ContainerName == "" {
 		fsDiffMasterContainer, err := getContainerByLabel(configsections.Label{Namespace: tnfNamespace, Name: genericLabelName, Value: fsDiffMasterValue})
 		if err == nil {
-			tp.PartnerContainers = append(tp.PartnerContainers, fsDiffMasterContainer)
-			tp.FsDiffMasterContainer = fsDiffMasterContainer.ContainerIdentifier
+			tp.ContainerConfigList = append(tp.ContainerConfigList, fsDiffMasterContainer)
+			tp.FsDiffMasterContainerID = fsDiffMasterContainer.ContainerIdentifier
 		} else {
 			log.Warnf("an error (%s) occurred when getting the FS Diff Master Container. Attempting to continue", err)
 		}
