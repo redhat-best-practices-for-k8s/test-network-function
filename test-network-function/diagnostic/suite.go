@@ -36,7 +36,7 @@ var (
 	nodesHwInfo = NodesHwInfo{}
 
 	// csiDriver stores the csi driver JSON output of `oc get csidriver -o json`
-	csiDriver = CsiDriver{}
+	csiDriver = make(map[string]interface{})
 
 	// nodesTestPath is the file location of the nodes.json test case relative to the project root.
 	nodesTestPath = path.Join("pkg", "tnf", "handlers", "node", "nodes.json")
@@ -125,18 +125,6 @@ type NodesHwInfo struct {
 	Worker NodeHwInfo
 }
 
-// CsiDriver stores csi driver JSON output from  `oc get csidirver -o json` command
-type CsiDriver struct {
-	Kind     string `json:"kind"`
-	Metadata struct {
-		Labels struct {
-			App string `json:"app"`
-		} `json:"labels"`
-		Name     string `json:"name"`
-		SelfLink string `json:"selfLink"`
-	} `json:"metadata"`
-}
-
 // GetNodeSummary returns the result of running `oc get nodes -o json`.
 func GetNodeSummary() map[string]interface{} {
 	return nodeSummary
@@ -153,7 +141,7 @@ func GetNodesHwInfo() NodesHwInfo {
 }
 
 // GetCsiDriverInfo returns the CSI driver info of running `oc get csidriver -o json`.
-func GetCsiDriverInfo() CsiDriver {
+func GetCsiDriverInfo() map[string]interface{} {
 	return csiDriver
 }
 
