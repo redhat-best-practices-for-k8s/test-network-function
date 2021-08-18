@@ -32,10 +32,9 @@ const (
 // Runs the "generic" CNF test cases.
 var _ = ginkgo.Describe(testsKey, func() {
 	if testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusStrings, testsKey) {
-		configData := common.ConfigurationData{}
-		configData.SetNeedsRefresh()
+		env := config.GetTestEnvironment()
 		ginkgo.BeforeEach(func() {
-			common.ReloadConfiguration(&configData)
+			env.LoadAndRefresh()
 		})
 	}
 })

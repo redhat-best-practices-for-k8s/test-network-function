@@ -22,6 +22,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/test-network-function/test-network-function/pkg/config"
 	"github.com/test-network-function/test-network-function/pkg/tnf/testcases"
 
 	"github.com/test-network-function/test-network-function/test-network-function/common"
@@ -56,16 +57,14 @@ import (
 //
 var _ = ginkgo.Describe(common.PlatformAlterationTestKey, func() {
 	if testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusStrings, common.PlatformAlterationTestKey) {
-
-		configData := common.ConfigurationData{}
-		configData.SetNeedsRefresh()
+		env := config.GetTestEnvironment()
 		ginkgo.BeforeEach(func() {
-			common.ReloadConfiguration(&configData)
+			env.LoadAndRefresh()
 		})
 		ginkgo.Context("Container does not have additional packages installed", func() {
 			// use this boolean to turn off tests that require OS packages
 			if !common.IsMinikube() {
-				testContainersFsDiff(&configData)
+				testContainersFsDiff(env)
 			}
 		})
 
@@ -73,11 +72,11 @@ var _ = ginkgo.Describe(common.PlatformAlterationTestKey, func() {
 		testHugepages()
 
 		if !common.IsMinikube() {
-			testBootParams(&configData)
+			testBootParams(env)
 		}
 
 		if !common.IsMinikube() {
-			testSysctlConfigs(&configData)
+			testSysctlConfigs(env)
 		}
 
 		testIsRedHatRelease(&configData)
@@ -111,11 +110,11 @@ func testContainerIsRedHatRelease(cut *common.Container) {
 }
 
 // testContainersFsDiff test that all CUT didn't install new packages are starting
-func testContainersFsDiff(configData *common.ConfigurationData) {
+func testContainersFsDiff(env *config.TestEnvironment) {
 	ginkgo.It("platform-fsdiff", func() {
-		fsDiffContainer := configData.FsDiffContainer
+		fsDiffContainer := env.FsDiffMasterContainer
 		if fsDiffContainer != nil {
-			for _, cut := range configData.ContainersUnderTest {
+			for _, cut := range env.ContainersUnderTest {
 				podName := cut.Oc.GetPodName()
 				containerName := cut.Oc.GetPodContainerName()
 				context := cut.Oc
@@ -240,10 +239,10 @@ func getSysctlConfigArgs(context *interactive.Context, nodeName string) map[stri
 	return parseSysctlSystemOutput(sysctlAllConfigsArgs)
 }
 
-func testBootParams(configData *common.ConfigurationData) {
+func testBootParams(env *config.TestEnvironment) {
 	ginkgo.It("platform-boot-param", func() {
 		context := common.GetContext()
-		for _, cut := range configData.ContainersUnderTest {
+		for _, cut := range env.ContainersUnderTest {
 			podName := cut.Oc.GetPodName()
 			podNameSpace := cut.Oc.GetPodNamespace()
 			targetPodOc := cut.Oc
@@ -270,10 +269,10 @@ func testBootParamsHelper(context *interactive.Context, podName, podNamespace st
 	}
 }
 
-func testSysctlConfigs(configData *common.ConfigurationData) {
+func testSysctlConfigs(env *config.TestEnvironment) {
 	ginkgo.It("platform-sysctl-config", func() {
 		context := common.GetContext()
-		for _, cut := range configData.ContainersUnderTest {
+		for _, cut := range env.ContainersUnderTest {
 			podName := cut.Oc.GetPodName()
 			podNameSpace := cut.Oc.GetPodNamespace()
 			testSysctlConfigsHelper(context, podName, podNameSpace)

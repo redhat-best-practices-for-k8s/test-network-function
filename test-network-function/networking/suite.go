@@ -19,6 +19,7 @@ package networking
 import (
 	"fmt"
 
+	"github.com/test-network-function/test-network-function/pkg/config"
 	"github.com/test-network-function/test-network-function/pkg/tnf/testcases"
 
 	"github.com/test-network-function/test-network-function/test-network-function/common"
@@ -46,36 +47,35 @@ const (
 
 // Runs the "generic" CNF test cases.
 var _ = ginkgo.Describe(common.NetworkingTestKey, func() {
-	configData := common.ConfigurationData{}
-	configData.SetNeedsRefresh()
+	env := config.GetTestEnvironment()
 	ginkgo.BeforeEach(func() {
-		common.ReloadConfiguration(&configData)
+		env.LoadAndRefresh()
 	})
 	if testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusStrings, common.NetworkingTestKey) {
 		ginkgo.Context("Both Pods are on the Default network", func() {
 			// for each container under test, ensure bidirectional ICMP traffic between the container and the orchestrator.
-			testDefaultNetworkConnectivity(&configData, defaultNumPings)
+			testDefaultNetworkConnectivity(env, defaultNumPings)
 		})
 
 		ginkgo.Context("Both Pods are connected via a Multus Overlay Network", func() {
 			// Unidirectional test;  for each container under test, attempt to ping the target Multus IP addresses.
-			testMultusNetworkConnectivity(&configData, defaultNumPings)
+			testMultusNetworkConnectivity(env, defaultNumPings)
 		})
 		ginkgo.Context("Should not have type of nodePort", func() {
-			testNodePort(&configData)
+			testNodePort(env)
 		})
 	}
 })
 
-func testDefaultNetworkConnectivity(configData *common.ConfigurationData, count int) {
+func testDefaultNetworkConnectivity(env *config.TestEnvironment, count int) {
 	ginkgo.When("Testing network connectivity", func() {
 		ginkgo.It("should reply to ping", func() {
-			for _, cut := range configData.ContainersUnderTest {
-				if _, ok := common.ContainersToExcludeFromConnectivityTests[cut.ContainerIdentifier]; ok {
+			for _, cut := range env.ContainersUnderTest {
+				if _, ok := env.ContainersToExcludeFromConnectivityTests[cut.ContainerIdentifier]; ok {
 					continue
 				}
 				context := cut.Oc
-				testOrchestrator := configData.TestOrchestrator
+				testOrchestrator := env.TestOrchestrator
 				ginkgo.By(fmt.Sprintf("a Ping is issued from %s(%s) to %s(%s) %s", testOrchestrator.Oc.GetPodName(),
 					testOrchestrator.Oc.GetPodContainerName(), cut.Oc.GetPodName(), cut.Oc.GetPodContainerName(),
 					cut.DefaultNetworkIPAddress))
@@ -90,12 +90,12 @@ func testDefaultNetworkConnectivity(configData *common.ConfigurationData, count 
 	})
 }
 
-func testMultusNetworkConnectivity(configData *common.ConfigurationData, count int) {
+func testMultusNetworkConnectivity(env *config.TestEnvironment, count int) {
 	ginkgo.When("Testing network connectivity", func() {
 		ginkgo.It("should reply to ping", func() {
-			for _, cut := range configData.ContainersUnderTest {
+			for _, cut := range env.ContainersUnderTest {
 				for _, multusIPAddress := range cut.ContainerConfiguration.MultusIPAddresses {
-					testOrchestrator := configData.TestOrchestrator
+					testOrchestrator := env.TestOrchestrator
 					ginkgo.By(fmt.Sprintf("a Ping is issued from %s(%s) to %s(%s) %s", testOrchestrator.Oc.GetPodName(),
 						testOrchestrator.Oc.GetPodContainerName(), cut.Oc.GetPodName(), cut.Oc.GetPodContainerName(),
 						cut.DefaultNetworkIPAddress))
@@ -119,9 +119,9 @@ func testPing(initiatingPodOc *interactive.Oc, targetPodIPAddress string, count 
 	gomega.Expect(errors).To(gomega.BeZero())
 }
 
-func testNodePort(configData *common.ConfigurationData) {
+func testNodePort(env *config.TestEnvironment) {
 	ginkgo.It("Should not have services of type NodePort", func() {
-		for _, cut := range configData.ContainersUnderTest {
+		for _, cut := range env.ContainersUnderTest {
 			defer results.RecordResult(identifiers.TestServicesDoNotUseNodeportsIdentifier)
 			context := common.GetContext()
 			podNamespace := cut.Oc.GetPodNamespace()
