@@ -66,5 +66,11 @@ if [[ ! -f "/proc/1/cgroup" ]] || grep -q init\.scope /proc/1/cgroup; then
 	cd ..
 fi
 
+if [[ -z "${TNF_PARTNER_SRC_DIR}" ]]; then
+	echo "env var \"TNF_PARTNER_SRC_DIR\" not set, running the script without updating infra"
+else
+	make -C $TNF_PARTNER_SRC_DIR install-partner-pods
+fi
+
 echo "Running with focus '$FOCUS'. Report will be output to '$OUTPUT_LOC'"
 cd ./test-network-function && ./test-network-function.test -ginkgo.focus="$FOCUS" ${GINKGO_ARGS}
