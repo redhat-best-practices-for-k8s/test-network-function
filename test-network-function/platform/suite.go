@@ -79,24 +79,24 @@ var _ = ginkgo.Describe(common.PlatformAlterationTestKey, func() {
 			testSysctlConfigs(env)
 		}
 
-		testIsRedHatRelease(&env)
+		testIsRedHatRelease(env)
 
 	}
 })
 
 // testIsRedHatRelease fetch the configuration and test containers attached to oc is Red Hat based.
-func testIsRedHatRelease(configData *common.ConfigurationData) {
+func testIsRedHatRelease(env *config.TestEnvironment) {
 	ginkgo.It("Should report a proper Red Hat version", func() {
 		defer results.RecordResult(identifiers.TestIsRedHatReleaseIdentifier)
-		for _, cut := range configData.ContainersUnderTest {
+		for _, cut := range env.ContainersUnderTest {
 			testContainerIsRedHatRelease(cut)
 		}
-		testContainerIsRedHatRelease(configData.TestOrchestrator)
+		testContainerIsRedHatRelease(env.TestOrchestrator)
 	})
 }
 
 // testContainerIsRedHatRelease tests whether the container attached to oc is Red Hat based.
-func testContainerIsRedHatRelease(cut *common.Container) {
+func testContainerIsRedHatRelease(cut *config.Container) {
 	podName := cut.Oc.GetPodName()
 	containerName := cut.Oc.GetPodContainerName()
 	context := cut.Oc
