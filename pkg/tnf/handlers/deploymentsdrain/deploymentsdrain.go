@@ -17,6 +17,7 @@
 package deploymentsdrain
 
 import (
+	"strings"
 	"time"
 
 	"github.com/test-network-function/test-network-function/pkg/tnf"
@@ -34,20 +35,22 @@ type DeploymentsDrain struct {
 	result  int
 	timeout time.Duration
 	args    []string
+	node    string
 }
 
 // NewDeploymentsDrain creates a new DeploymentsDrain tnf.Test.
-func NewDeploymentsDrain(timeout time.Duration, node string) *DeploymentsDrain {
+func NewDeploymentsDrain(timeout time.Duration, nodeName string) *DeploymentsDrain {
 	drainTimeout := timeout * drainTimeoutPercentage / 100
 	drainTimeoutString := drainTimeout.String()
 	return &DeploymentsDrain{
 		timeout: timeout,
 		result:  tnf.ERROR,
 		args: []string{
-			"oc", "adm", "drain", node, "--pod-selector=pod-template-hash", "--disable-eviction=true",
+			"oc", "adm", "drain", nodeName, "--pod-selector=pod-template-hash", "--disable-eviction=true",
 			"--delete-local-data=true", "--ignore-daemonsets=true", "--timeout=" + drainTimeoutString,
 			"&&", "echo", "SUCCESS",
 		},
+		node: nodeName,
 	}
 }
 
@@ -87,7 +90,12 @@ func (dd *DeploymentsDrain) ReelMatch(_, _, _ string) *reel.Step {
 
 // ReelTimeout does nothing;  no action is necessary upon timeout.
 func (dd *DeploymentsDrain) ReelTimeout() *reel.Step {
-	return nil
+	str := []string{"oc", "adm", "uncordon", dd.node}
+	return &reel.Step{
+		Expect:  []string{ddRegex},
+		Timeout: dd.timeout,
+		Execute: strings.Join(str, " "),
+	}
 }
 
 // ReelEOF does nothing;  no action is necessary upon EOF.
