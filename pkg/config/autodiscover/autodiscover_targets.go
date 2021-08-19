@@ -23,7 +23,6 @@ import (
 )
 
 const (
-	configuredTestFile         = "testconfigure.yml"
 	operatorLabelName          = "operator"
 	skipConnectivityTestsLabel = "skip_connectivity_tests"
 )
@@ -34,16 +33,16 @@ var (
 	podTestsAnnotationName         = buildAnnotationName("host_resource_tests")
 )
 
-// FindTestTarget builds a `configsections.TestTarget` from the current state of the cluster,
-// using labels and annotations to populate the data.
-func FindTestTarget(labels []configsections.Label) (target configsections.TestTarget) {
+// FindTestTarget finds test targets from the current state of the cluster,
+// using labels and annotations, and add them to the `configsections.TestTarget` passed in.
+func FindTestTarget(labels []configsections.Label, target *configsections.TestTarget) {
 	// find pods by label
 	for _, l := range labels {
 		pods, err := GetPodsByLabel(l)
 		if err == nil {
 			for i := range pods.Items {
 				target.PodsUnderTest = append(target.PodsUnderTest, buildPodUnderTest(&pods.Items[i]))
-				target.ContainersUnderTest = append(target.ContainersUnderTest, buildContainersFromPodResource(&pods.Items[i])...)
+				target.ContainerConfigList = append(target.ContainerConfigList, buildContainersFromPodResource(&pods.Items[i])...)
 			}
 		} else {
 			log.Warnf("failed to query by label: %v %v", l, err)
@@ -65,40 +64,24 @@ func FindTestTarget(labels []configsections.Label) (target configsections.TestTa
 	} else {
 		log.Warnf("an error (%s) occurred when looking for operaters by label", err)
 	}
-
-	return target
 }
 
 // buildPodUnderTest builds a single `configsections.Pod` from a PodResource
-func buildPodUnderTest(pr *PodResource) (cnf configsections.Pod) {
+func buildPodUnderTest(pr *PodResource) (podUnderTest configsections.Pod) {
 	var err error
-	cnf.Namespace = pr.Metadata.Namespace
-	cnf.Name = pr.Metadata.Name
-
+	podUnderTest.Namespace = pr.Metadata.Namespace
+	podUnderTest.Name = pr.Metadata.Name
+	podUnderTest.ServiceAccount = pr.Spec.ServiceAccount
+	podUnderTest.ContainerCount = len(pr.Spec.Containers)
 	var tests []string
 	err = pr.GetAnnotationValue(podTestsAnnotationName, &tests)
 	if err != nil {
-		log.Warnf("unable to extract tests from annotation on '%s/%s' (error: %s). Attempting to fallback to all tests", cnf.Namespace, cnf.Name, err)
-		cnf.Tests = getConfiguredPodTests()
+		log.Warnf("unable to extract tests from annotation on '%s/%s' (error: %s). Attempting to fallback to all tests", podUnderTest.Namespace, podUnderTest.Name, err)
+		podUnderTest.Tests = testcases.GetConfiguredPodTests()
 	} else {
-		cnf.Tests = tests
+		podUnderTest.Tests = tests
 	}
 	return
-}
-
-// getConfiguredPodTests loads the `configuredTestFile` and extracts
-// the names of test groups from it.
-func getConfiguredPodTests() (cnfTests []string) {
-	configuredTests, err := testcases.LoadConfiguredTestFile(configuredTestFile)
-	if err != nil {
-		log.Errorf("failed to load %s, continuing with no tests", configuredTestFile)
-		return []string{}
-	}
-	for _, configuredTest := range configuredTests.CnfTest {
-		cnfTests = append(cnfTests, configuredTest.Name)
-	}
-	log.WithField("cnfTests", cnfTests).Infof("got all tests from %s.", configuredTestFile)
-	return cnfTests
 }
 
 // buildOperatorFromCSVResource builds a single `configsections.Operator` from a CSVResource
@@ -129,14 +112,14 @@ func buildOperatorFromCSVResource(csv *CSVResource) (op configsections.Operator)
 // getConfiguredOperatorTests loads the `configuredTestFile` used by the `operator` specs and extracts
 // the names of test groups from it.
 func getConfiguredOperatorTests() (opTests []string) {
-	configuredTests, err := testcases.LoadConfiguredTestFile(configuredTestFile)
+	configuredTests, err := testcases.LoadConfiguredTestFile(testcases.ConfiguredTestFile)
 	if err != nil {
-		log.Errorf("failed to load %s, continuing with no tests", configuredTestFile)
+		log.Errorf("failed to load %s, continuing with no tests", testcases.ConfiguredTestFile)
 		return []string{}
 	}
 	for _, configuredTest := range configuredTests.OperatorTest {
 		opTests = append(opTests, configuredTest.Name)
 	}
-	log.WithField("opTests", opTests).Infof("got all tests from %s.", configuredTestFile)
+	log.WithField("opTests", opTests).Infof("got all tests from %s.", testcases.ConfiguredTestFile)
 	return opTests
 }

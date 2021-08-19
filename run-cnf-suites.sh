@@ -7,8 +7,8 @@ usage() {
 	echo "$0 [-o OUTPUT_LOC] SUITE [... SUITE]"
 	echo "Call the script and list the test suites to run"
 	echo "  e.g."
-	echo "    $0 [ARGS] generic container"
-	echo "  will run the generic and container suites"
+	echo "    $0 [ARGS] access-control lifecycle"
+	echo "  will run the access-control and lifecycle suites"
 	echo ""
 	echo "Allowed suites are listed in the README."
 }
