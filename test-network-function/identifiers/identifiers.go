@@ -498,11 +498,7 @@ the changes for you.`,
 		Identifier: TestIsRedHatReleaseIdentifier,
 		Type:       normativeResult,
 		Description: formDescription(TestIsRedHatReleaseIdentifier,
-			`tests that a CNF is configured to support High Availability.  
-			First, this test cordons and drains a Node that hosts the CNF Pod.  
-			Next, the test ensures that OpenShift can re-instantiate the Pod on another Node, 
-			and that the actual replica count matches the desired replica count.`),
-		Remediation: `Ensure that CNF Pod(s) utilize a configuration that supports High Availability.  
-			Additionally, ensure that there are available Nodes in the OpenShift cluster that can be utilized in the event that a host Node fails.`,
+			`This test is meant for the end user to figure out what's wrong with the test case and some hints on how to fix it.`),
+		Remediation: `You should recreate the nodes, recreating is recommended because there might be other unknown changes`,
 	},
 }

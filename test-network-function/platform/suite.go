@@ -91,7 +91,6 @@ func testIsRedHatRelease(env *config.TestEnvironment) {
 		for _, cut := range env.ContainersUnderTest {
 			testContainerIsRedHatRelease(cut)
 		}
-		testContainerIsRedHatRelease(env.TestOrchestrator)
 	})
 }
 
