@@ -305,6 +305,7 @@ func testPodsRecreation(env *config.TestEnvironment) {
 	var deployments dp.DeploymentMap
 	var notReadyDeployments []string
 	var nodesSorted []node // A slice version of nodes sorted by number of deployments descending
+	nodesNames := make(map[string]bool)
 	ginkgo.It("Testing node draining effect of deployment", func() {
 		env.SetNeedsRefresh()
 		for _, podUnderTest := range env.PodsUnderTest {
@@ -321,28 +322,33 @@ func testPodsRecreation(env *config.TestEnvironment) {
 			gomega.Expect(notReadyDeployments).To(gomega.BeEmpty())
 			ginkgo.By("Should return map of nodes to deployments")
 			nodesSorted = getDeploymentsNodes(podNamespace)
-			ginkgo.By("should create new replicas when node is drained")
-			defer results.RecordResult(identifiers.TestPodRecreationIdentifier)
-			testedDeployments := map[string]bool{}
 			for _, n := range nodesSorted {
-				oldLen := len(testedDeployments) // this starts with zero
-				// mark tested deployments
-				for d := range n.deployments {
-					testedDeployments[d] = true
+				if _, exists := nodesNames[n.name]; exists {
+
 				}
-				if oldLen == len(testedDeployments) {
-					// If node does not add new deployments then skip it
-					continue
-				}
-				// drain node
-				drainNode(n.name) // should go in this
-				// verify deployments are ready again
-				_, notReadyDeployments = getDeployments(podNamespace)
-				gomega.Expect(notReadyDeployments).To(gomega.BeEmpty()) // this is to make sure pods are created again
-				uncordonNode(n.name)
-				if len(testedDeployments) == len(deployments) {
-					break
-				}
+			}
+		}
+		ginkgo.By("should create new replicas when node is drained")
+		defer results.RecordResult(identifiers.TestPodRecreationIdentifier)
+		testedDeployments := map[string]bool{}
+		for _, n := range nodesSorted {
+			oldLen := len(testedDeployments) // this starts with zero
+			// mark tested deployments
+			for d := range n.deployments {
+				testedDeployments[d] = true
+			}
+			if oldLen == len(testedDeployments) {
+				// If node does not add new deployments then skip it
+				continue
+			}
+			// drain node
+			drainNode(n.name) // should go in this
+			// verify deployments are ready again
+			_, notReadyDeployments = getDeployments(podNamespace)
+			gomega.Expect(notReadyDeployments).To(gomega.BeEmpty()) // this is to make sure pods are created again
+			uncordonNode(n.name)
+			if len(testedDeployments) == len(deployments) {
+				break
 			}
 		}
 	})
