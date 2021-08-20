@@ -92,7 +92,7 @@ func (dd *DeploymentsDrain) ReelMatch(_, _, _ string) *reel.Step {
 func (dd *DeploymentsDrain) ReelTimeout() *reel.Step {
 	str := []string{"oc", "adm", "uncordon", dd.node}
 	return &reel.Step{
-		Expect:  []string{ddRegex},
+		Expect:  []string{"(?m).*uncordoned"},
 		Timeout: dd.timeout,
 		Execute: strings.Join(str, " "),
 	}
