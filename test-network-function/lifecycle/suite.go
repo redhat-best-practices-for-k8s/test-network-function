@@ -336,7 +336,7 @@ func testPodsRecreation(env *config.TestEnvironment) {
 			// drain node
 			drainNode(n.name) // should go in this
 			// verify deployments are ready again
-			for namespace, _ := range namespaces {
+			for namespace := range namespaces {
 				_, notReadyDeployments = getDeployments(namespace)
 				if len(notReadyDeployments) != 0 {
 					uncordonNode(n.name)
