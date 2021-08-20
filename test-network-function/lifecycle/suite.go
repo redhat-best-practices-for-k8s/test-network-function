@@ -314,9 +314,10 @@ func testPodsRecreation(env *config.TestEnvironment) {
 			if len(deployments) == 0 {
 				return
 			}
-			if _, exists := namespaces[podNamespace]; !exists {
-				namespaces[podNamespace] = true
+			if _, exists := namespaces[podNamespace]; exists {
+				continue
 			}
+			namespaces[podNamespace] = true
 			// We require that all deployments have the desired number of replicas and are all up to date
 			if len(notReadyDeployments) != 0 {
 				ginkgo.Skip("Can not test when deployments are not ready")

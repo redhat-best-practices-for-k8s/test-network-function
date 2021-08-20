@@ -52,7 +52,7 @@ var _ = ginkgo.Describe(common.AccessControlTestKey, func() {
 
 		// Run the tests that interact with the pods
 		ginkgo.When("under test", func() {
-			var allTests []string = testcases.GetConfiguredPodTests()
+			allTests := testcases.GetConfiguredPodTests()
 			for _, testType := range allTests {
 				testFile, err := testcases.LoadConfiguredTestFile(common.ConfiguredTestFile)
 				gomega.Expect(testFile).ToNot(gomega.BeNil())
