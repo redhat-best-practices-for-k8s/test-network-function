@@ -192,7 +192,8 @@ var (
 	// TestIsRedHatReleaseIdentifier ensures platform is defined
 	TestIsRedHatReleaseIdentifier = claim.Identifier{
 		Url:     formTestURL(common.PlatformAlterationTestKey, "isredhat-release"),
-    Version: versionOne,
+		Version: versionOne,
+	}
 	// TestClusterCsiInfoIdentifier list Cluster CSIdriver Identifier retrieves Third Party CSI driver info.
 	TestClusterCsiInfoIdentifier = claim.Identifier{
 		Url:     formTestURL(common.DiagnosticTestKey, "cluster-csi-info"),
@@ -502,8 +503,9 @@ the changes for you.`,
 		Identifier: TestIsRedHatReleaseIdentifier,
 		Type:       normativeResult,
 		Description: formDescription(TestIsRedHatReleaseIdentifier,
-			`The test verifies in the container base image is redhat.`),
+			`The test verifies if the container base image is redhat.`),
 		Remediation: `build a new docker image that's based on UBI (redhat universal base image).`,
+	},
 	TestClusterCsiInfoIdentifier: {
 		Identifier: TestClusterCsiInfoIdentifier,
 		Type:       informativeResult,
