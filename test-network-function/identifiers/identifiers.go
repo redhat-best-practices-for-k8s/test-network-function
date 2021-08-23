@@ -499,6 +499,6 @@ the changes for you.`,
 		Type:       normativeResult,
 		Description: formDescription(TestIsRedHatReleaseIdentifier,
 			`The test verifies in the container base image is redhat.`),
-		Remediation: `build a new docker image that's based on UBI (redhat universal base image). `,
+		Remediation: `build a new docker image that's based on UBI (redhat universal base image).`,
 	},
 }
