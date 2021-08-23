@@ -50,7 +50,8 @@ type PodResource struct {
 		Annotations map[string]string `json:"annotations"`
 	} `json:"metadata"`
 	Spec struct {
-		Containers []struct {
+		ServiceAccount string `json:"serviceaccountname"`
+		Containers     []struct {
 			Name string `json:"name"`
 		} `json:"containers"`
 	} `json:"spec"`

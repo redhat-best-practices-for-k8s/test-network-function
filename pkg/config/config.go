@@ -114,6 +114,7 @@ func getContainerDefaultNetworkIPAddress(oc *interactive.Oc, dev string) string 
 type TestEnvironment struct {
 	ContainersUnderTest map[configsections.ContainerIdentifier]*Container
 	PartnerContainers   map[configsections.ContainerIdentifier]*Container
+	PodsUnderTest       []configsections.Pod
 	// ContainersToExcludeFromConnectivityTests is a set used for storing the containers that should be excluded from
 	// connectivity testing.
 	ContainersToExcludeFromConnectivityTests map[configsections.ContainerIdentifier]interface{}
@@ -175,6 +176,7 @@ func (env *TestEnvironment) doAutodiscover() {
 		env.ContainersToExcludeFromConnectivityTests[cid] = ""
 	}
 	env.ContainersUnderTest = env.createContainers(env.Config.ContainerConfigList)
+	env.PodsUnderTest = env.Config.PodsUnderTest
 	env.PartnerContainers = env.createContainers(env.Config.Partner.ContainerConfigList)
 	env.TestOrchestrator = env.PartnerContainers[env.Config.Partner.TestOrchestratorID]
 	env.FsDiffMasterContainer = env.PartnerContainers[env.Config.Partner.FsDiffMasterContainerID]

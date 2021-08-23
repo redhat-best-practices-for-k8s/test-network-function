@@ -57,8 +57,8 @@ const (
 	podantiaffinityIdentifierURL          = "http://test-network-function.com/tests/testPodHighAvailability"
 	shutdownIdentifierURL                 = "http://test-network-function.com/tests/shutdown"
 	scalingIdentifierURL                  = "http://test-network-function.com/tests/scaling"
-
-	versionOne = "v1.0.0"
+	csiDriverIdentifierURL                = "http://test-network-function.com/tests/csiDriver"
+	versionOne                            = "v1.0.0"
 )
 
 const (
@@ -584,6 +584,18 @@ var Catalog = map[string]TestCatalogEntry{
 			dependencies.OcBinaryName,
 		},
 	},
+	csiDriverIdentifierURL: {
+		Identifier:  CSIDriverIdentifier,
+		Description: "extracts the csi driver info in the cluser",
+		Type:        Normative,
+		IntrusionSettings: IntrusionSettings{
+			ModifiesSystem:           false,
+			ModificationIsPersistent: false,
+		},
+		BinaryDependencies: []string{
+			dependencies.OcBinaryName,
+		},
+	},
 }
 
 // HostnameIdentifier is the Identifier used to represent the generic hostname test case.
@@ -812,5 +824,11 @@ var SysctlAllConfigsArgsIdentifier = Identifier{
 // ScalingIdentifier is the Identifier used to represent a test that checks deployments scale in/out
 var ScalingIdentifier = Identifier{
 	URL:             scalingIdentifierURL,
+	SemanticVersion: versionOne,
+}
+
+// CSIDriverIdentifier is the Identifier used to represent the CSI driver test case.
+var CSIDriverIdentifier = Identifier{
+	URL:             csiDriverIdentifierURL,
 	SemanticVersion: versionOne,
 }

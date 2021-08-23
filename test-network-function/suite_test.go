@@ -223,10 +223,12 @@ func generateNodes() map[string]interface{} {
 		nodeSummaryField = "nodeSummary"
 		cniPluginsField  = "cniPlugins"
 		nodesHwInfo      = "nodesHwInfo"
+		csiDriverInfo    = "csiDriver"
 	)
 	nodes := map[string]interface{}{}
 	nodes[nodeSummaryField] = diagnostic.GetNodeSummary()
 	nodes[cniPluginsField] = diagnostic.GetCniPlugins()
 	nodes[nodesHwInfo] = diagnostic.GetNodesHwInfo()
+	nodes[csiDriverInfo] = diagnostic.GetCsiDriverInfo()
 	return nodes
 }
