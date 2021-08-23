@@ -73,4 +73,4 @@ else
 fi
 
 echo "Running with focus '$FOCUS'. Report will be output to '$OUTPUT_LOC'"
-cd ./test-network-function && ./test-network-function.test -ginkgo.focus="$FOCUS" ${GINKGO_ARGS}
+cd ./test-network-function && ./test-network-function.test -ginkgo.v -ginkgo.focus="$FOCUS" ${GINKGO_ARGS}
