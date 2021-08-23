@@ -1,4 +1,7 @@
 FROM registry.access.redhat.com/ubi8/ubi:latest AS build
+ARG TNF_PARTNER_DIR=/usr/tnf-partner
+
+ENV TNF_PARTNER_SRC_DIR=$TNF_PARTNER_DIR/src
 
 ENV GOLANGCI_VERSION=v1.32.2
 ENV OPENSHIFT_VERSION=4.6.32
@@ -45,10 +48,21 @@ ARG TNF_VERSION
 ARG TNF_SRC_URL=https://github.com/test-network-function/test-network-function
 ARG GIT_CHECKOUT_TARGET=$TNF_VERSION
 
+# Git identifier to checkout for partner
+ARG TNF_PARTNER_VERSION
+ARG TNF_PARTNER_SRC_URL=https://github.com/test-network-function/cnf-certification-test-partner
+ARG GIT_PARTNER_CHECKOUT_TARGET=$TNF_PARTNER_VERSION
+
+
 # Clone the TNF source repository and checkout the target branch/tag/commit
 RUN git clone --no-single-branch --depth=1 ${TNF_SRC_URL} ${TNF_SRC_DIR}
 RUN git -C ${TNF_SRC_DIR} fetch origin ${GIT_CHECKOUT_TARGET}
 RUN git -C ${TNF_SRC_DIR} checkout ${GIT_CHECKOUT_TARGET}
+
+# Clone the partner source repository and checkout the target branch/tag/commit
+RUN git clone --no-single-branch --depth=1 ${TNF_PARTNER_SRC_URL} ${TNF_PARTNER_SRC_DIR}
+RUN git -C ${TNF_PARTNER_SRC_DIR} fetch origin ${GIT_PARTNER_CHECKOUT_TARGET}
+RUN git -C ${TNF_PARTNER_SRC_DIR} checkout ${GIT_PARTNER_CHECKOUT_TARGET}
 
 # Build TNF binary
 WORKDIR ${TNF_SRC_DIR}
@@ -72,7 +86,7 @@ WORKDIR ${TNF_DIR}
 RUN ln -s ${TNF_DIR}/config/testconfigure.yml ${TNF_DIR}/test-network-function/testconfigure.yml
 
 # Remove most of the build artefacts
-RUN yum remove -y gcc git make wget && \
+RUN yum remove -y gcc git wget && \
 	yum clean all && \
 	rm -rf ${TNF_SRC_DIR} && \
 	rm -rf ${TEMP_DIR} && \
@@ -85,9 +99,12 @@ RUN yum remove -y gcc git make wget && \
 # Copy the state into a new flattened image to reduce size.
 # TODO run as non-root
 FROM scratch
+ARG TNF_PARTNER_DIR=/usr/tnf-partner
 COPY --from=build / /
 ENV TNF_CONFIGURATION_PATH=/usr/tnf/config/tnf_config.yml
 ENV KUBECONFIG=/usr/tnf/kubeconfig/config
+ENV TNF_PARTNER_SRC_DIR=$TNF_PARTNER_DIR/src
+ENV PATH="/usr/local/oc/bin:${PATH}"
 WORKDIR /usr/tnf
 ENV SHELL=/bin/bash
 CMD ["./run-cnf-suites.sh", "-o", "claim", "diagnostic", "generic"]

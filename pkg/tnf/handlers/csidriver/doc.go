@@ -1,4 +1,4 @@
-// Copyright (C) 2020-2021 Red Hat, Inc.
+// Copyright (C) 2021 Red Hat, Inc.
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,22 +14,5 @@
 // with this program; if not, write to the Free Software Foundation, Inc.,
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-package configsections
-
-// Pod defines cloud network function in the cluster
-type Pod struct {
-	// Name is the name of a single Pod to test
-	Name string `yaml:"name" json:"name"`
-
-	// Namespace where the Pod is deployed
-	Namespace string `yaml:"namespace" json:"namespace"`
-
-	// ServiceAccount name used by the pod
-	ServiceAccount string `yaml:"serviceaccount" json:"serviceaccount"`
-
-	// ContainerCount is the count of containers inside the pod
-	ContainerCount int `yaml:"containercount" json:"containercount"`
-
-	// Tests this is list of test that need to run against the Pod.
-	Tests []string `yaml:"tests" json:"tests"`
-}
+// Package csidriver provides a test for reading the CNF cluster csi driver info
+package csidriver

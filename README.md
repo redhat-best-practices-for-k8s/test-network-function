@@ -110,6 +110,15 @@ Likewise, to enable intrusive tests, set the following:
 export TNF_NON_INTRUSIVE_ONLY=false
 ```
 
+### Specifiy the location of the partner repo
+This env var is mandatory.
+You must clone the partner [repo](https://github.com/test-network-function/cnf-certification-test-partner)
+and set TNF_PARTNER_SRC_DIR to point to it.
+
+```shell script
+export TNF_PARTNER_SRC_DIR=~/code/cnf-certification-test-partner
+```
+
 ### Execute test suites from openshift-kni/cnf-feature-deploy
 The test suites from openshift-kni/cnf-feature-deploy can be run prior to the actual CNF certification test execution and the results are incorporated in the same claim file if the following environment variable is set:
 

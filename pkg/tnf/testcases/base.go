@@ -23,6 +23,7 @@ import (
 	"regexp"
 	"strings"
 
+	log "github.com/sirupsen/logrus"
 	"github.com/test-network-function/test-network-function/pkg/tnf/testcases/data/cnf"
 	"github.com/test-network-function/test-network-function/pkg/tnf/testcases/data/operator"
 	"gopkg.in/yaml.v2"
@@ -34,6 +35,8 @@ type StatusFunctionType string
 const (
 	// ServiceAccountFn  function name to be called to replace expected status
 	ServiceAccountFn StatusFunctionType = "FN_SERVICE_ACCOUNT_NAME"
+	// ConfiguredTestFile the name for the default "container" test list file
+	ConfiguredTestFile = "testconfigure.yml"
 )
 
 // TestResultType Defines Test Result Type
@@ -114,8 +117,6 @@ type PodFact struct {
 	Namespace string
 	// ServiceAccount name used by the pod
 	ServiceAccount string
-	// HasClusterRole if pod has cluster role
-	HasClusterRole bool
 	// ContainerCount is the count of containers inside the pod
 	ContainerCount int
 	// Exists if the pod is found in the cluster
@@ -344,4 +345,19 @@ func IsInFocus(focus []string, desc string) bool {
 		matchesFocus = focusFilter.Match([]byte(desc))
 	}
 	return matchesFocus
+}
+
+// GetConfiguredPodTests loads the `configuredTestFile` and extracts
+// the names of test groups from it.
+func GetConfiguredPodTests() (cnfTests []string) {
+	configuredTests, err := LoadConfiguredTestFile(ConfiguredTestFile)
+	if err != nil {
+		log.Errorf("failed to load %s, continuing with no tests", ConfiguredTestFile)
+		return []string{}
+	}
+	for _, configuredTest := range configuredTests.CnfTest {
+		cnfTests = append(cnfTests, configuredTest.Name)
+	}
+	log.WithField("cnfTests", cnfTests).Infof("got all tests from %s.", ConfiguredTestFile)
+	return cnfTests
 }
