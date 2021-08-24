@@ -95,7 +95,8 @@ var _ = ginkgo.Describe(testSpecName, func() {
 
 // testOperatorsAreInstalledViaOLM ensures all configured operators have a proper OLM subscription.
 func testOperatorsAreInstalledViaOLM() {
-	ginkgo.It("operator-olm-installed", func() {
+	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestOperatorIsInstalledViaOLMIdentifier)
+	ginkgo.It(testID, func() {
 		_, operatorsInTest := getConfig()
 		for _, operatorInTest := range operatorsInTest {
 			defer results.RecordResult(identifiers.TestOperatorIsInstalledViaOLMIdentifier)
@@ -135,7 +136,8 @@ func getConfig() ([]configsections.CertifiedOperatorRequestInfo, []configsection
 }
 
 func itRunsTestsOnOperator() {
-	ginkgo.It("operator-certification", func() {
+	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestOperatorIsCertifiedIdentifier)
+	ginkgo.It(testID, func() {
 		operatorsToQuery, operatorsInTest := getConfig()
 		if len(operatorsToQuery) > 0 {
 			certAPIClient := api.NewHTTPClient()
@@ -189,18 +191,17 @@ func agrName(operatorName, subName, testName string) string {
 
 //nolint:gocritic // ignore hugeParam error. Pointers to loop iterator vars are bad and `testCmd` is likely to be such.
 func runTestsOnOperator(args []interface{}, name, namespace string, testCmd testcases.BaseTestCase) {
-	ginkgo.When(fmt.Sprintf("under test is: %s/%s ", namespace, name), func() {
-		ginkgo.It(fmt.Sprintf("tests for: %s", testCmd.Name), func() {
-			defer results.RecordResult(identifiers.TestOperatorInstallStatusIdentifier)
-			cmdArgs := strings.Split(fmt.Sprintf(testCmd.Command, args...), " ")
-			opInTest := operator.NewOperator(cmdArgs, name, namespace, testCmd.ExpectedStatus, testCmd.ResultType, testCmd.Action, defaultTimeout)
-			gomega.Expect(opInTest).ToNot(gomega.BeNil())
-			test, err := tnf.NewTest(context.GetExpecter(), opInTest, []reel.Handler{opInTest}, context.GetErrorChannel())
-			gomega.Expect(err).To(gomega.BeNil())
-			gomega.Expect(test).ToNot(gomega.BeNil())
-			testResult, err := test.Run()
-			gomega.Expect(err).To(gomega.BeNil())
-			gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
-		})
+	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestOperatorInstallStatusIdentifier) + "-" + testCmd.Name
+	ginkgo.It(testID, func() {
+		defer results.RecordResult(identifiers.TestOperatorInstallStatusIdentifier)
+		cmdArgs := strings.Split(fmt.Sprintf(testCmd.Command, args...), " ")
+		opInTest := operator.NewOperator(cmdArgs, name, namespace, testCmd.ExpectedStatus, testCmd.ResultType, testCmd.Action, defaultTimeout)
+		gomega.Expect(opInTest).ToNot(gomega.BeNil())
+		test, err := tnf.NewTest(context.GetExpecter(), opInTest, []reel.Handler{opInTest}, context.GetErrorChannel())
+		gomega.Expect(err).To(gomega.BeNil())
+		gomega.Expect(test).ToNot(gomega.BeNil())
+		testResult, err := test.Run()
+		gomega.Expect(err).To(gomega.BeNil())
+		gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
 	})
 }

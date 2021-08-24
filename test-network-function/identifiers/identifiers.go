@@ -19,6 +19,7 @@ package identifiers
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/test-network-function/test-network-function-claim/pkg/claim"
 	"github.com/test-network-function/test-network-function/test-network-function/common"
@@ -203,6 +204,12 @@ var (
 
 func formDescription(identifier claim.Identifier, description string) string {
 	return fmt.Sprintf("%s %s", identifier.Url, description)
+}
+
+// XformToGinkgoItIdentifier transform the claim.Identifier into a test Id that can be used to skip
+// specific tests
+func XformToGinkgoItIdentifier(identifier claim.Identifier) string {
+	return strings.ReplaceAll(strings.TrimPrefix(identifier.Url, url+"/"), "/", "-")
 }
 
 // Catalog is the JUnit testcase catalog of tests.

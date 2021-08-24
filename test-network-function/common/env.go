@@ -63,8 +63,8 @@ func IsMinikube() bool {
 	return b
 }
 
-// NonIntrusive is for skipping tests that would impact the CNF or test environment in an intrusive way
-func NonIntrusive() bool {
+// Intrusive is for running tests that can impact the CNF or test environment in an intrusive way
+func Intrusive() bool {
 	b, _ := strconv.ParseBool(os.Getenv("TNF_NON_INTRUSIVE_ONLY"))
-	return b
+	return !b
 }

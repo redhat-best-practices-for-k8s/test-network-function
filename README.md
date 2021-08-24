@@ -146,6 +146,7 @@ To pull the latest container and run the tests you use the following command. Th
 
 * `-t` gives the local directory that contains tnf config files set up for the test.
 * `-o` gives the local directory that the test results will be available in once the container exits.
+* `-f` gives the list of suites that should be executed
 * Finally, list the specs to be run must be specified, space-separated.
 
 Optional arguments are:
@@ -153,12 +154,13 @@ Optional arguments are:
 * `-i` gives a name to a custom TNF container image. Supports local images, as well as images from external registries.
 * `-k` gives a path to one or more kubeconfig files soto be used by the container to authenticate with the cluster. Paths must be separated by a colon.
 * `-n` gives the network mode of the container. Defaults to `bridge`. See the [docker run --network parameter reference](https://docs.docker.com/engine/reference/run/#network-settings) for more information on how to configure network settings.
+* `-s` gives the name of tests that should be skipped
 
 If `-k` is not specified, autodiscovery is performed.
 The autodiscovery first looks for paths in the `$KUBECONFIG` environment variable on the host system, and if the variable is not set or is empty, the default configuration stored in `$HOME/.kube/config` is checked.
 
 ```shell script
-./run-tnf-container.sh -k ~/.kube/config -t ~/tnf/config -o ~/tnf/output diagnostic access-control
+./run-tnf-container.sh -k ~/.kube/config -t ~/tnf/config -o ~/tnf/output -f diagnostic access-control -s access-control-host-resource-PRIVILEGED_POD
 ```
 
 *Note*: Tests must be specified after all other arguments! see [General tests](#general-tests) for a list of available keywords.
@@ -197,7 +199,7 @@ docker build -t test-network-function:v1.0.5 \
 To make `run-tnf-container.sh` use the newly built image, specify the custom TNF image using the `-i` parameter.
 
 ```shell script
-./run-tnf-container.sh -i test-network-function:v1.0.5 -t ~/tnf/config -o ~/tnf/output diagnostic access-control
+./run-tnf-container.sh -i test-network-function:v1.0.5 -t ~/tnf/config -o ~/tnf/output -f diagnostic access-control
 ```
  Note: see [General tests](#general-tests) for a list of available keywords.
 
@@ -272,11 +274,11 @@ script.
 Run any combination of the suites keywords listed at in the [General tests](#general-tests) section, e.g.
 
 ```shell script
-./run-cnf-suites.sh diagnostic
-./run-cnf-suites.sh diagnostic lifecycle
-./run-cnf-suites.sh diagnostic networking operator
-./run-cnf-suites.sh diagnostic platform-alteration
-./run-cnf-suites.sh diagnostic generic lifecycle affiliated-certification operator
+./run-cnf-suites.sh -f diagnostic
+./run-cnf-suites.sh -f diagnostic lifecycle
+./run-cnf-suites.sh -f diagnostic networking operator
+./run-cnf-suites.sh -f diagnostic platform-alteration
+./run-cnf-suites.sh -f diagnostic generic lifecycle affiliated-certification operator
 ```
 
 By default the claim file will be output into the same location as the test executable. The `-o` argument for
