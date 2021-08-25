@@ -159,13 +159,10 @@ func itRunsTestsOnOperator() {
 				}, eventuallyTimeoutSeconds, interval).Should(gomega.BeTrue())
 			}
 		}
-
-		// Do not test operators in Minikube yet.
 		if common.IsMinikube() {
 			log.Info("Minikube detected: skipping operators test.")
 			return
 		}
-
 		if len(operatorsInTest) == 0 {
 			ginkgo.Fail("No operators to test were discovered.")
 		}
