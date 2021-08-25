@@ -42,6 +42,14 @@ var _ = ginkgo.Describe(common.AccessControlTestKey, func() {
 		env := config.GetTestEnvironment()
 		ginkgo.BeforeEach(func() {
 			env.LoadAndRefresh()
+			gomega.Expect(env.PodsUnderTest).ToNot(gomega.BeNil())
+			gomega.Expect(env.ContainersUnderTest).ToNot(gomega.BeNil())
+			if len(env.PodsUnderTest) == 0 {
+				ginkgo.Fail("No pods to test were discovered.")
+			}
+			if len(env.ContainersUnderTest) == 0 {
+				ginkgo.Fail("No containers to test were discovered.")
+			}
 		})
 
 		testNamespace(env)
