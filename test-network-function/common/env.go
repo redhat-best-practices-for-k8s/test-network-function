@@ -117,7 +117,7 @@ func SetLogLevel() {
 		aLogLevel != logLevelErrorString &&
 		aLogLevel != logLevelFatalString &&
 		aLogLevel != logLevelPanicString {
-		logrus.Info("No Valid log level passed, defaulting to info")
+		logrus.Info("No Valid log level passed, defaulting to info.\n Valid values are:  trace, debug, info, warn, error, fatal, panic")
 		aLogLevel = logLevelInfoString
 	}
 	logrus.Info("Log level set to:", aLogLevel)
