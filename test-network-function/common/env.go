@@ -109,7 +109,17 @@ func logLevelToString(logLevelString string) logrus.Level {
 
 // SetLogLevel sets the log level for logrus based on the "LOG_LEVEL" environment variable
 func SetLogLevel() {
-	var alogLevel = logLevel()
-	logrus.Info("Log level set to:", alogLevel)
-	logrus.SetLevel(logLevelToString(alogLevel))
+	var aLogLevel = logLevel()
+	if aLogLevel != logLevelTraceString &&
+		aLogLevel != logLevelDebugString &&
+		aLogLevel != logLevelInfoString &&
+		aLogLevel != logLevelWarnString &&
+		aLogLevel != logLevelErrorString &&
+		aLogLevel != logLevelFatalString &&
+		aLogLevel != logLevelPanicString {
+		logrus.Info("No Valid log level passed, defaulting to info")
+		aLogLevel = logLevelInfoString
+	}
+	logrus.Info("Log level set to:", aLogLevel)
+	logrus.SetLevel(logLevelToString(aLogLevel))
 }
