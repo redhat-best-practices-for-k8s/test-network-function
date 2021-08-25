@@ -37,6 +37,7 @@ import (
 
 	_ "github.com/test-network-function/test-network-function/test-network-function/accesscontrol"
 	_ "github.com/test-network-function/test-network-function/test-network-function/certification"
+	"github.com/test-network-function/test-network-function/test-network-function/common"
 	"github.com/test-network-function/test-network-function/test-network-function/diagnostic"
 	_ "github.com/test-network-function/test-network-function/test-network-function/generic"
 	_ "github.com/test-network-function/test-network-function/test-network-function/lifecycle"
@@ -110,6 +111,7 @@ func TestTest(t *testing.T) {
 	// set up input flags and register failure handlers.
 	flag.Parse()
 	gomega.RegisterFailHandler(ginkgo.Fail)
+	common.SetLogLevel()
 
 	// Initialize the claim with the start time, tnf version, etc.
 	claimRoot := createClaimRoot()

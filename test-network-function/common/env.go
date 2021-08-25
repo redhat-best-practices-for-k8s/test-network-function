@@ -20,9 +20,11 @@ import (
 	"os"
 	"path"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/onsi/gomega"
+	"github.com/sirupsen/logrus"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
 	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
 )
@@ -36,6 +38,16 @@ var (
 
 	// schemaPath is the path to the generic-test.schema.json JSON schema relative to the project root.
 	schemaPath = path.Join("schemas", "generic-test.schema.json")
+)
+
+const (
+	logLevelTraceString = "trace"
+	logLevelDebugString = "debug"
+	logLevelInfoString  = "info"
+	logLevelWarnString  = "warn"
+	logLevelErrorString = "error"
+	logLevelFatalString = "fatal"
+	logLevelPanicString = "panic"
 )
 
 // DefaultTimeout for creating new interactive sessions (oc, ssh, tty)
@@ -67,4 +79,37 @@ func IsMinikube() bool {
 func Intrusive() bool {
 	b, _ := strconv.ParseBool(os.Getenv("TNF_NON_INTRUSIVE_ONLY"))
 	return !b
+}
+
+// logLevel retrieves the LOG_LEVEL environement vaiable
+func logLevel() string {
+	return os.Getenv("LOG_LEVEL")
+}
+
+// logLevelToString converts a string to a log logrus level
+func logLevelToString(logLevelString string) logrus.Level {
+	logLevelString = strings.ToLower(logLevelString)
+	if logLevelString == logLevelTraceString {
+		return logrus.TraceLevel
+	} else if logLevelString == logLevelDebugString {
+		return logrus.DebugLevel
+	} else if logLevelString == logLevelInfoString {
+		return logrus.InfoLevel
+	} else if logLevelString == logLevelWarnString {
+		return logrus.WarnLevel
+	} else if logLevelString == logLevelErrorString {
+		return logrus.ErrorLevel
+	} else if logLevelString == logLevelFatalString {
+		return logrus.FatalLevel
+	} else if logLevelString == logLevelPanicString {
+		return logrus.PanicLevel
+	}
+	return logrus.InfoLevel
+}
+
+// SetLogLevel sets the log level for logrus based on the "LOG_LEVEL" environment variable
+func SetLogLevel() {
+	var alogLevel = logLevel()
+	logrus.Info("Log level set to:", alogLevel)
+	logrus.SetLevel(logLevelToString(alogLevel))
 }
