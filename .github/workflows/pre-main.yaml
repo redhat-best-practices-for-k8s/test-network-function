@@ -123,7 +123,7 @@ jobs:
         run: ./run-cnf-suites.sh --focus diagnostic
 
       - name: 'Test: Run test suites'
-        run: ./run-cnf-suites.sh --focus access-control lifecycle platform observablility networking affiliated-certification
+        run: ./run-cnf-suites.sh --focus access-control lifecycle platform observablility networking affiliated-certification operator
 
       # Perform smoke tests using a TNF container.
 

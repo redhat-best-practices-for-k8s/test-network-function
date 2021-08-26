@@ -24,12 +24,14 @@ import (
 
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/generic"
 
+	"github.com/test-network-function/test-network-function/test-network-function/common"
 	"github.com/test-network-function/test-network-function/test-network-function/identifiers"
 	"github.com/test-network-function/test-network-function/test-network-function/results"
 
 	"github.com/onsi/ginkgo"
 	ginkgoconfig "github.com/onsi/ginkgo/config"
 	"github.com/onsi/gomega"
+	log "github.com/sirupsen/logrus"
 	"github.com/test-network-function/test-network-function/internal/api"
 	"github.com/test-network-function/test-network-function/pkg/config"
 	"github.com/test-network-function/test-network-function/pkg/config/configsections"
@@ -75,6 +77,11 @@ var (
 
 var _ = ginkgo.Describe(testSpecName, func() {
 	if testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusStrings, testSpecName) {
+		env := config.GetTestEnvironment()
+		ginkgo.BeforeEach(func() {
+			env.LoadAndRefresh()
+		})
+
 		defer ginkgo.GinkgoRecover()
 		ginkgo.When("a local shell is spawned", func() {
 			goExpectSpawner := interactive.NewGoExpectSpawner()
@@ -152,7 +159,14 @@ func itRunsTestsOnOperator() {
 				}, eventuallyTimeoutSeconds, interval).Should(gomega.BeTrue())
 			}
 		}
-		gomega.Expect(operatorsInTest).ToNot(gomega.BeNil())
+		if common.IsMinikube() {
+			log.Info("Minikube detected: skipping operators test.")
+			return
+		}
+		if len(operatorsInTest) == 0 {
+			ginkgo.Fail("No operators to test were discovered.")
+		}
+
 		for _, op := range operatorsInTest {
 			// TODO: Gather facts for operator
 			for _, testType := range op.Tests {
