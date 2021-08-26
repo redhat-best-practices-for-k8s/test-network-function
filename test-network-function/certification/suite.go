@@ -41,6 +41,11 @@ var certAPIClient api.CertAPIClient
 
 var _ = ginkgo.Describe(common.AffiliatedCertTestKey, func() {
 	if testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusStrings, common.AffiliatedCertTestKey) {
+		env := configpkg.GetTestEnvironment()
+		ginkgo.BeforeEach(func() {
+			env.LoadAndRefresh()
+		})
+
 		testContainerCertificationStatus()
 		testOperatorCertificationStatus()
 	}
@@ -50,10 +55,12 @@ func testContainerCertificationStatus() {
 	// Query API for certification status of listed containers
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestContainerIsCertifiedIdentifier)
 	ginkgo.It(testID, func() {
-		ginkgo.By("getting certification status")
-		defer results.RecordResult(identifiers.TestContainerIsCertifiedIdentifier)
 		env := configpkg.GetTestEnvironment()
 		cnfsToQuery := env.Config.CertifiedContainerInfo
+
+		ginkgo.By(fmt.Sprintf("Getting certification status. Number of containers to check: %d", len(cnfsToQuery)))
+		defer results.RecordResult(identifiers.TestContainerIsCertifiedIdentifier)
+
 		if len(cnfsToQuery) > 0 {
 			certAPIClient = api.NewHTTPClient()
 			for _, cnf := range cnfsToQuery {
@@ -72,9 +79,9 @@ func testContainerCertificationStatus() {
 func testOperatorCertificationStatus() {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestOperatorIsCertifiedIdentifier)
 	ginkgo.It(testID, func() {
-		ginkgo.By("Verify operator as certified")
-		defer results.RecordResult(identifiers.TestOperatorIsCertifiedIdentifier)
 		operatorsToQuery := configpkg.GetTestEnvironment().Config.CertifiedOperatorInfo
+		ginkgo.By(fmt.Sprintf("Verify operator as certified. Number of operators to check: %d", len(operatorsToQuery)))
+		defer results.RecordResult(identifiers.TestOperatorIsCertifiedIdentifier)
 		if len(operatorsToQuery) > 0 {
 			certAPIClient := api.NewHTTPClient()
 			for _, certified := range operatorsToQuery {
