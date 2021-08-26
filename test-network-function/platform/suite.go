@@ -60,6 +60,8 @@ var _ = ginkgo.Describe(common.PlatformAlterationTestKey, func() {
 		env := config.GetTestEnvironment()
 		ginkgo.BeforeEach(func() {
 			env.LoadAndRefresh()
+			gomega.Expect(len(env.PodsUnderTest)).ToNot(gomega.Equal(0))
+			gomega.Expect(len(env.ContainersUnderTest)).ToNot(gomega.Equal(0))
 		})
 		ginkgo.Context("Container does not have additional packages installed", func() {
 			// use this boolean to turn off tests that require OS packages
@@ -358,7 +360,7 @@ func testHugepages() {
 		ginkgo.By("Should return cluster's hugepages configuration")
 		context = common.GetContext()
 		hugepageTester := hugepages.NewHugepages(common.DefaultTimeout)
-		test, err = tnf.NewTest(context.GetExpecter(), hugepageTester, []reel.Handler{tester}, context.GetErrorChannel())
+		test, err = tnf.NewTest(context.GetExpecter(), hugepageTester, []reel.Handler{hugepageTester}, context.GetErrorChannel())
 		gomega.Expect(err).To(gomega.BeNil())
 		testResult, err = test.Run()
 		gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
@@ -367,6 +369,7 @@ func testHugepages() {
 		clusterHugepagesz = hugepageTester.GetHugepagesz()
 
 		ginkgo.By("Should have same configuration as cluster")
+		ginkgo.By(fmt.Sprintf("cluster is configured with clusterHugepages=%d ; clusterHugepagesz=%d", clusterHugepages, clusterHugepagesz))
 		var badNodes []string
 		for _, node := range nodeNames {
 			context := common.GetContext()
@@ -377,6 +380,7 @@ func testHugepages() {
 			gomega.Expect(err).To(gomega.BeNil())
 			if testResult != tnf.SUCCESS {
 				badNodes = append(badNodes, node)
+				ginkgo.By(fmt.Sprintf("node=%s hugepage config does not match machineconfig", node))
 			}
 		}
 		gomega.Expect(badNodes).To(gomega.BeNil())
