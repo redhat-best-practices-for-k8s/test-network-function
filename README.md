@@ -140,17 +140,17 @@ For more information on the test suites, refer to [the cnf-features-deploy repos
 
 ## Running the tests with in a prebuild container
 
-### Polling test imahe
+### Polling test image
 An image is built and is available at this repository: [quay.io](https://quay.io/repository/testnetworkfunction/test-network-function)
 The image can be pulled using :
 ```shell script
 docker pull quay.io/testnetworkfunction/test-network-function
 ```
 ### Check cluster resources
-Some tests suites such as platform-alteration requires node access to get node configuration like hugepage.
+Some tests suites such as platform-alteration require node access to get node configuration like hugepage.
 In order to get the required information, the test suite does not ssh into nodes, but instead rely on [oc debug tools ](https://docs.openshift.com/container-platform/3.7/cli_reference/basic_cli_operations.html#debug). This tool makes it easier to fetch information from nodes and also to debug running pods.
 
-In short, oc debug tool will launch a new container ending with "-debug" suffix, the container will be destroyed once the debug session is done.To be able to create the debug pod,  The cluster should have enough resources, otherwise those tests would fail.
+In short, oc debug tool will launch a new container ending with "-debug" suffix, the container will be destroyed once the debug session is done. To be able to create the debug pod,  the cluster should have enough resources, otherwise those tests would fail.
 
 **Note:**
 It's recommended to clean up disk space and make sure there's enough resources to deploy another container image in every node before starting the tests.
@@ -286,7 +286,6 @@ script.
 
 Run any combination of the suites keywords listed at in the [General tests](#general-tests) section, e.g.
 
-check that OCP cluster has resources to deploy [debug image](#check-cluster-resources)
 ```shell script
 ./run-cnf-suites.sh -f diagnostic
 ./run-cnf-suites.sh -f diagnostic lifecycle
@@ -306,7 +305,7 @@ cd test-network-function && ./test-network-function.test --help
 *Gotcha:* The generic test suite requires that the CNF has both `ping` and `ip` binaries installed.  Please add them
 manually if the CNF under test does not include these.  Automated installation of missing dependencies is targeted
 for a future version.
-
+*Gotcha:* check that OCP cluster has resources to deploy [debug image](#check-cluster-resources)
 ## Available Test Specs
 
 There are two categories for CNF tests;  'General' and 'CNF-specific' (TODO).
