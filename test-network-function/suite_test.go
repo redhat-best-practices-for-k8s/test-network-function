@@ -49,6 +49,7 @@ import (
 )
 
 const (
+	programVersion                       = "3.0"
 	claimFileName                        = "claim.json"
 	claimFilePermissions                 = 0644
 	claimPathFlagKey                     = "claimloc"
@@ -107,12 +108,12 @@ func loadJUnitXMLIntoMap(result map[string]interface{}, junitFilename, key strin
 	}
 }
 
-// TestTest invokes the CNF Certification Test Suite.
+//nolint:funlen // TestTest invokes the CNF Certification Test Suite.
 func TestTest(t *testing.T) {
 	// set up input flags and register failure handlers.
 	flag.Parse()
 	gomega.RegisterFailHandler(ginkgo.Fail)
-	log.Info("Version: ", GitCommit)
+	log.Info("Version: ", programVersion, " ( ", GitCommit, " )")
 	common.SetLogLevel()
 
 	// Initialize the claim with the start time, tnf version, etc.
