@@ -17,6 +17,7 @@
 package common
 
 import (
+	"errors"
 	"os"
 	"path"
 	"strconv"
@@ -48,6 +49,10 @@ const (
 	logLevelErrorString = "error"
 	logLevelFatalString = "fatal"
 	logLevelPanicString = "panic"
+	logLevelEmptyString = ""
+	logLevelDefault     = logrus.InfoLevel
+	errorEmpty          = "empty"
+	errorInvalid        = "invalid"
 )
 
 // DefaultTimeout for creating new interactive sessions (oc, ssh, tty)
@@ -86,40 +91,42 @@ func logLevel() string {
 	return os.Getenv("LOG_LEVEL")
 }
 
-// logLevelToString converts a string to a log logrus level
-func logLevelToString(logLevelString string) logrus.Level {
+// stringToLogLevel converts a string to a log logrus level
+func stringToLogLevel(logLevelString string) (logrus.Level, error) {
 	logLevelString = strings.ToLower(logLevelString)
-	if logLevelString == logLevelTraceString {
-		return logrus.TraceLevel
-	} else if logLevelString == logLevelDebugString {
-		return logrus.DebugLevel
-	} else if logLevelString == logLevelInfoString {
-		return logrus.InfoLevel
-	} else if logLevelString == logLevelWarnString {
-		return logrus.WarnLevel
-	} else if logLevelString == logLevelErrorString {
-		return logrus.ErrorLevel
-	} else if logLevelString == logLevelFatalString {
-		return logrus.FatalLevel
-	} else if logLevelString == logLevelPanicString {
-		return logrus.PanicLevel
+	switch logLevelString {
+	case logLevelTraceString:
+		return logrus.TraceLevel, nil
+	case logLevelDebugString:
+		return logrus.DebugLevel, nil
+	case logLevelInfoString:
+		return logrus.InfoLevel, nil
+	case logLevelWarnString:
+		return logrus.WarnLevel, nil
+	case logLevelErrorString:
+		return logrus.ErrorLevel, nil
+	case logLevelFatalString:
+		return logrus.FatalLevel, nil
+	case logLevelPanicString:
+		return logrus.PanicLevel, nil
+	case logLevelEmptyString:
+		return logLevelDefault, errors.New(errorEmpty)
 	}
-	return logrus.InfoLevel
+	return logLevelDefault, errors.New(errorInvalid)
 }
 
 // SetLogLevel sets the log level for logrus based on the "LOG_LEVEL" environment variable
 func SetLogLevel() {
-	var aLogLevel = logLevel()
-	if aLogLevel != logLevelTraceString &&
-		aLogLevel != logLevelDebugString &&
-		aLogLevel != logLevelInfoString &&
-		aLogLevel != logLevelWarnString &&
-		aLogLevel != logLevelErrorString &&
-		aLogLevel != logLevelFatalString &&
-		aLogLevel != logLevelPanicString {
-		logrus.Info("No Valid log level passed, defaulting to info.\n Valid values are:  trace, debug, info, warn, error, fatal, panic")
-		aLogLevel = logLevelInfoString
+	var aLogLevel, err = stringToLogLevel(logLevel())
+
+	if err != nil {
+		if err.Error() == errorInvalid {
+			logrus.Info("LOG_LEVEL environment set with an invalid value, defaulting to", logLevelDefault, ".\n Valid values are:  trace, debug, info, warn, error, fatal, panic")
+		}
+		if err.Error() == errorEmpty {
+			logrus.Info("LOG_LEVEL environment variable not set, defaulting to: ", logLevelDefault, ".\n Valid values are:  trace, debug, info, warn, error, fatal, panic")
+		}
 	}
 	logrus.Info("Log level set to:", aLogLevel)
-	logrus.SetLevel(logLevelToString(aLogLevel))
+	logrus.SetLevel(aLogLevel)
 }
