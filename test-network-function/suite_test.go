@@ -68,6 +68,7 @@ const (
 var (
 	claimPath *string
 	junitPath *string
+	GitCommit string
 )
 
 func init() {
@@ -111,6 +112,7 @@ func TestTest(t *testing.T) {
 	// set up input flags and register failure handlers.
 	flag.Parse()
 	gomega.RegisterFailHandler(ginkgo.Fail)
+	log.Info("Version: ", GitCommit)
 	common.SetLogLevel()
 
 	// Initialize the claim with the start time, tnf version, etc.
