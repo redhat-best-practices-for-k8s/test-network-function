@@ -60,6 +60,8 @@ var _ = ginkgo.Describe(common.PlatformAlterationTestKey, func() {
 		env := config.GetTestEnvironment()
 		ginkgo.BeforeEach(func() {
 			env.LoadAndRefresh()
+			gomega.Expect(len(env.PodsUnderTest)).ToNot(gomega.Equal(0))
+			gomega.Expect(len(env.ContainersUnderTest)).ToNot(gomega.Equal(0))
 		})
 		ginkgo.Context("Container does not have additional packages installed", func() {
 			// use this boolean to turn off tests that require OS packages
