@@ -140,7 +140,7 @@ For more information on the test suites, refer to [the cnf-features-deploy repos
 
 ## Running the tests with in a prebuild container
 
-### Polling test image
+### Pulling test image
 An image is built and is available at this repository: [quay.io](https://quay.io/repository/testnetworkfunction/test-network-function)
 The image can be pulled using :
 ```shell script
