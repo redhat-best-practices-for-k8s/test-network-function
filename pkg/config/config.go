@@ -119,7 +119,6 @@ type TestEnvironment struct {
 	// connectivity testing.
 	ContainersToExcludeFromConnectivityTests map[configsections.ContainerIdentifier]interface{}
 	TestOrchestrator                         *Container
-	FsDiffMasterContainer                    *Container
 	Config                                   configsections.TestConfiguration
 	// loaded tracks if the config has been loaded to prevent it being reloaded.
 	loaded bool
@@ -179,7 +178,6 @@ func (env *TestEnvironment) doAutodiscover() {
 	env.PodsUnderTest = env.Config.PodsUnderTest
 	env.PartnerContainers = env.createContainers(env.Config.Partner.ContainerConfigList)
 	env.TestOrchestrator = env.PartnerContainers[env.Config.Partner.TestOrchestratorID]
-	env.FsDiffMasterContainer = env.PartnerContainers[env.Config.Partner.FsDiffMasterContainerID]
 	log.Info(env.TestOrchestrator)
 	log.Info(env.ContainersUnderTest)
 	env.needsRefresh = false

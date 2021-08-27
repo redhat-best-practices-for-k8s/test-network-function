@@ -54,6 +54,7 @@ type PodResource struct {
 		Containers     []struct {
 			Name string `json:"name"`
 		} `json:"containers"`
+		NodeName string `json:"nodeName"`
 	} `json:"spec"`
 	Status struct {
 		PodIPs []map[string]string `json:"podIPs"`
