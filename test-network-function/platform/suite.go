@@ -32,7 +32,6 @@ import (
 	"github.com/onsi/ginkgo"
 	ginkgoconfig "github.com/onsi/ginkgo/config"
 	"github.com/onsi/gomega"
-	log "github.com/sirupsen/logrus"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/base/redhat"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/cnffsdiff"
@@ -116,23 +115,25 @@ func testContainerIsRedHatRelease(cut *config.Container) {
 func testContainersFsDiff(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestUnalteredBaseImageIdentifier)
 	ginkgo.It(testID, func() {
-		fsDiffContainer := env.FsDiffMasterContainer
-		if fsDiffContainer != nil {
-			for _, cut := range env.ContainersUnderTest {
-				podName := cut.Oc.GetPodName()
-				containerName := cut.Oc.GetPodContainerName()
-				context := cut.Oc
-				ginkgo.By(fmt.Sprintf("%s(%s) should not install new packages after starting", podName, containerName))
-				testContainerFsDiff(fsDiffContainer.Oc, context)
+		var badContainers []string
+		for _, cut := range env.ContainersUnderTest {
+			podName := cut.Oc.GetPodName()
+			containerName := cut.Oc.GetPodContainerName()
+			context := cut.Oc
+			nodeName := cut.ContainerConfiguration.NodeName
+			ginkgo.By(fmt.Sprintf("%s(%s) should not install new packages after starting", podName, containerName))
+			testResult, err := testContainerFsDiff(nodeName, context)
+			if testResult != tnf.SUCCESS || err != nil {
+				badContainers = append(badContainers, containerName)
+				ginkgo.By(fmt.Sprintf("pod %s container %s did update/install/modify additional packages", podName, containerName))
 			}
-		} else {
-			log.Warn("no fs diff container is configured, cannot run fs diff test")
 		}
+		gomega.Expect(badContainers).To(gomega.BeNil())
 	})
 }
 
 // testContainerFsDiff  test that the CUT didn't install new packages after starting, and report through Ginkgo.
-func testContainerFsDiff(masterPodOc, targetContainerOC *interactive.Oc) {
+func testContainerFsDiff(nodeName string, targetContainerOC *interactive.Oc) (int, error) {
 	defer results.RecordResult(identifiers.TestUnalteredBaseImageIdentifier)
 	targetContainerOC.GetExpecter()
 	containerIDTester := containerid.NewContainerID(common.DefaultTimeout)
@@ -142,13 +143,11 @@ func testContainerFsDiff(masterPodOc, targetContainerOC *interactive.Oc) {
 	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
 	gomega.Expect(err).To(gomega.BeNil())
 	containerID := containerIDTester.GetID()
-
-	fsDiffTester := cnffsdiff.NewFsDiff(common.DefaultTimeout, containerID)
-	test, err = tnf.NewTest(masterPodOc.GetExpecter(), fsDiffTester, []reel.Handler{fsDiffTester}, masterPodOc.GetErrorChannel())
+	context := common.GetContext()
+	fsDiffTester := cnffsdiff.NewFsDiff(common.DefaultTimeout, containerID, nodeName)
+	test, err = tnf.NewTest(context.GetExpecter(), fsDiffTester, []reel.Handler{fsDiffTester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
-	testResult, err = test.Run()
-	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
-	gomega.Expect(err).To(gomega.BeNil())
+	return test.Run()
 }
 
 func getMcKernelArguments(context *interactive.Context, mcName string) map[string]string {
