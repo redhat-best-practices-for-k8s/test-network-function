@@ -157,7 +157,9 @@ func GetPodsByLabel(label configsections.Label) (*PodList, error) {
 	if err != nil {
 		return nil, err
 	}
-
+	log.Debug("JSON output for all pods labeled with: ", label)
+	log.Debug("Command: ", cmd)
+	log.Debug(string(out))
 	var podList PodList
 	err = json.Unmarshal(out, &podList)
 	if err != nil {

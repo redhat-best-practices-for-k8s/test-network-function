@@ -71,5 +71,5 @@ fi
 echo "Running with focus '$FOCUS'"
 echo "Running with skip  '$SKIP'"
 echo "Report will be output to '$OUTPUT_LOC'"
-
+echo "ginkgo arguments '${GINKGO_ARGS}'"
 cd ./test-network-function && ./test-network-function.test -ginkgo.focus="$FOCUS" -ginkgo.skip="$SKIP" ${GINKGO_ARGS}
