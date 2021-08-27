@@ -68,6 +68,8 @@ else
 	make -C $TNF_PARTNER_SRC_DIR install-partner-pods
 fi
 
+TNF_VERSION=${TNF_VERSION:-"unknown"}
+echo "TNF version: $TNF_VERSION"
 echo "Running with focus '$FOCUS'"
 echo "Running with skip  '$SKIP'"
 echo "Report will be output to '$OUTPUT_LOC'"

@@ -100,11 +100,13 @@ RUN yum remove -y gcc git wget && \
 # TODO run as non-root
 FROM scratch
 ARG TNF_PARTNER_DIR=/usr/tnf-partner
+ARG TNF_VERSION
 COPY --from=build / /
 ENV TNF_CONFIGURATION_PATH=/usr/tnf/config/tnf_config.yml
 ENV KUBECONFIG=/usr/tnf/kubeconfig/config
 ENV TNF_PARTNER_SRC_DIR=$TNF_PARTNER_DIR/src
 ENV PATH="/usr/local/oc/bin:${PATH}"
+ENV TNF_VERSION=$TNF_VERSION
 WORKDIR /usr/tnf
 ENV SHELL=/bin/bash
 CMD ["./run-cnf-suites.sh", "-o", "claim", "-f", "diagnostic"]
