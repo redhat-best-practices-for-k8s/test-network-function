@@ -179,7 +179,7 @@ Suggested Remediation|Ensure that your Operator is installed via OLM.
 Property|Description
 ---|---
 Version|v1.0.0
-Description|http://test-network-function.com/testcases/operator/install-status Ensures that CNF Operators abide by best practices.  The following is tested: 1. The Operator CSV reports "Installed" status. 2. TODO: Describe operator scc check.
+Description|http://test-network-function.com/testcases/operator/install-status Ensures that CNF Operators abide by best practices.  The following is tested: 1. The Operator CSV reports "Installed" status. 2. Control the actions that a pod can perform and what it has the ability to access, also very useful for managing access to persistent storage. SCCs are objects that define a set of conditions that a pod must run with in order to be accepted into the system.
 Result Type|normative
 Suggested Remediation|Ensure that your Operator abides by the Operator Best Practices mentioned in the description.
 ### http://test-network-function.com/testcases/platform-alteration/base-image
