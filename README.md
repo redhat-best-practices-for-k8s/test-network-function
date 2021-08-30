@@ -25,7 +25,7 @@ In the diagram above:
 The Test Network Function support auto-configuration using labels and annotations, but also a static configuration using a file. The following sections describe how to configure the TNF via labels/annotation and the corresponding settings in the config file. A sample config file can be found [here](test-network-function/tnf_config.yml).
 
 ### targetPodLabels
-The goal of this section is to specify the label to be used to identify the cnf under test pods. So for example, with the default configuration:
+The goal of this section is to specify the label to be used to identify the CNF resources under test. It's highly recommended that the labels should be defined in pod definition rather than added after pod is created, as labels added later on will be lost in case the pod gets rescheduled. In case of pods defined as part a deployment, it's best to use the same label as the one defined in the `spec.selector.matchLabels` section of the deployment yaml. The namespace field is just a prefix for the label name, e.g. with the default configuration:
 ```shell script
 targetPodLabels:
   - namespace: test-network-function.com
@@ -33,19 +33,18 @@ targetPodLabels:
     value: target
 ```
 
-The corresponding label prefix is: 
+The corresponding label used to match pods is: 
 ```shell script
 test-network-function.com/generic: target 
 ```
 
-When labelling a pod to be discovered and tested, the discovered pods are **in addition to** the ones
-explicitly configured in the testTarget sections of the config file.
+Once the pods are found, all of their containers are also added to the target container list.
 
 ### testTarget
 #### podsUnderTest / containersUnderTest
-This section is usually not required if labels defined in the section above cover all resources that should be tested. It's highly recommended that the labels shoud be defined in pod definition rather than added after pod is created, as labels added later on will be lost in case the pod gets rescheduled. In case of pods defined as part a deployment, it's best to use the same label as the one defined in the `spec.selector.matchLabels` section of the deployment yaml.
+This section is usually not required if labels defined in the section above cover all resources that should be tested. If label based discovery is not sufficient, this section can be manually populated as shown in the commented part of the [sample config](test-network-function/tnf_config.yml). However, instrusive tests need to be skipped ([see here](#disable-intrusive-tests)) for a reliable test result. The pods and containers explicitly configured here are added to the target pod/container lists populated through label matching.
 
-The autodiscovery mechanism will also attempt to identify the default network device and all the IP addresses of the pods it
+For both configured and discovered pods/containers, the auto discovery mechanism will attempt to identify the default network device and all the IP addresses of the pods it
 needs for network connectivity tests, though that information can be explicitly set using annotations if needed. For Pod IPs:
 
 * The annotation `test-network-function.com/multusips` is the highest priority, and must contain a JSON-encoded list of
@@ -67,7 +66,6 @@ If a pod is not suitable for network connectivity tests because it lacks binarie
 given the label `test-network-function.com/skip_connectivity_tests` to exclude it from those tests. The label value is
 not important, only its presence. Equivalent to `excludeContainersFromConnectivityTests` in the config file.
 
-If label based discovery is not sufficient, this section can be manually populated as shown in the commented part of the [sample config](test-network-function/tnf_config.yml). However, instrusive tests need to be skipped ([see here](#disable-intrusive-tests)) for a reliable test result.
 
 #### operators
 
@@ -111,13 +109,15 @@ export TNF_NON_INTRUSIVE_ONLY=false
 ```
 
 ### Specifiy the location of the partner repo
-This env var is mandatory.
-You must clone the partner [repo](https://github.com/test-network-function/cnf-certification-test-partner)
-and set TNF_PARTNER_SRC_DIR to point to it.
+This env var is optional, but highly recommended if running the test suite from a clone of this github repo. It's not needed or used if running the tnf image.
+
+To set it, clone the partner [repo](https://github.com/test-network-function/cnf-certification-test-partner) and set TNF_PARTNER_SRC_DIR to point to it.
 
 ```shell script
 export TNF_PARTNER_SRC_DIR=~/code/cnf-certification-test-partner
 ```
+
+When this variable is set, the run-cnf-suites.sh script will deploy/refresh the partner deployments/pods in the cluster before starting the test run.
 
 ### Execute test suites from openshift-kni/cnf-feature-deploy
 The test suites from openshift-kni/cnf-feature-deploy can be run prior to the actual CNF certification test execution and the results are incorporated in the same claim file if the following environment variable is set:
