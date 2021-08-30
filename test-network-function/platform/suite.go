@@ -32,8 +32,8 @@ import (
 	"github.com/onsi/ginkgo"
 	ginkgoconfig "github.com/onsi/ginkgo/config"
 	"github.com/onsi/gomega"
-	log "github.com/sirupsen/logrus"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/base/redhat"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/cnffsdiff"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/containerid"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/currentkernelcmdlineargs"
@@ -59,6 +59,8 @@ var _ = ginkgo.Describe(common.PlatformAlterationTestKey, func() {
 		env := config.GetTestEnvironment()
 		ginkgo.BeforeEach(func() {
 			env.LoadAndRefresh()
+			gomega.Expect(len(env.PodsUnderTest)).ToNot(gomega.Equal(0))
+			gomega.Expect(len(env.ContainersUnderTest)).ToNot(gomega.Equal(0))
 		})
 		ginkgo.Context("Container does not have additional packages installed", func() {
 			// use this boolean to turn off tests that require OS packages
@@ -78,29 +80,60 @@ var _ = ginkgo.Describe(common.PlatformAlterationTestKey, func() {
 			testSysctlConfigs(env)
 		}
 
+		testIsRedHatRelease(env)
+
 	}
 })
 
-// testContainersFsDiff test that all CUT didn't install new packages are starting
-func testContainersFsDiff(env *config.TestEnvironment) {
-	ginkgo.It("platform-fsdiff", func() {
-		fsDiffContainer := env.FsDiffMasterContainer
-		if fsDiffContainer != nil {
-			for _, cut := range env.ContainersUnderTest {
-				podName := cut.Oc.GetPodName()
-				containerName := cut.Oc.GetPodContainerName()
-				context := cut.Oc
-				ginkgo.By(fmt.Sprintf("%s(%s) should not install new packages after starting", podName, containerName))
-				testContainerFsDiff(fsDiffContainer.Oc, context)
-			}
-		} else {
-			log.Warn("no fs diff container is configured, cannot run fs diff test")
+// testIsRedHatRelease fetch the configuration and test containers attached to oc is Red Hat based.
+func testIsRedHatRelease(env *config.TestEnvironment) {
+	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestNonTaintedNodeKernelsIdentifier)
+	ginkgo.It(testID, func() {
+		ginkgo.By("should report a proper Red Hat version")
+		defer results.RecordResult(identifiers.TestIsRedHatReleaseIdentifier)
+		for _, cut := range env.ContainersUnderTest {
+			testContainerIsRedHatRelease(cut)
 		}
 	})
 }
 
+// testContainerIsRedHatRelease tests whether the container attached to oc is Red Hat based.
+func testContainerIsRedHatRelease(cut *config.Container) {
+	podName := cut.Oc.GetPodName()
+	containerName := cut.Oc.GetPodContainerName()
+	context := cut.Oc
+	ginkgo.By(fmt.Sprintf("%s(%s) is checked for Red Hat version", podName, containerName))
+	versionTester := redhat.NewRelease(common.DefaultTimeout)
+	test, err := tnf.NewTest(context.GetExpecter(), versionTester, []reel.Handler{versionTester}, context.GetErrorChannel())
+	gomega.Expect(err).To(gomega.BeNil())
+	testResult, err := test.Run()
+	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
+	gomega.Expect(err).To(gomega.BeNil())
+}
+
+// testContainersFsDiff test that all CUT didn't install new packages are starting
+func testContainersFsDiff(env *config.TestEnvironment) {
+	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestUnalteredBaseImageIdentifier)
+	ginkgo.It(testID, func() {
+		var badContainers []string
+		for _, cut := range env.ContainersUnderTest {
+			podName := cut.Oc.GetPodName()
+			containerName := cut.Oc.GetPodContainerName()
+			context := cut.Oc
+			nodeName := cut.ContainerConfiguration.NodeName
+			ginkgo.By(fmt.Sprintf("%s(%s) should not install new packages after starting", podName, containerName))
+			testResult, err := testContainerFsDiff(nodeName, context)
+			if testResult != tnf.SUCCESS || err != nil {
+				badContainers = append(badContainers, containerName)
+				ginkgo.By(fmt.Sprintf("pod %s container %s did update/install/modify additional packages", podName, containerName))
+			}
+		}
+		gomega.Expect(badContainers).To(gomega.BeNil())
+	})
+}
+
 // testContainerFsDiff  test that the CUT didn't install new packages after starting, and report through Ginkgo.
-func testContainerFsDiff(masterPodOc, targetContainerOC *interactive.Oc) {
+func testContainerFsDiff(nodeName string, targetContainerOC *interactive.Oc) (int, error) {
 	defer results.RecordResult(identifiers.TestUnalteredBaseImageIdentifier)
 	targetContainerOC.GetExpecter()
 	containerIDTester := containerid.NewContainerID(common.DefaultTimeout)
@@ -110,13 +143,11 @@ func testContainerFsDiff(masterPodOc, targetContainerOC *interactive.Oc) {
 	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
 	gomega.Expect(err).To(gomega.BeNil())
 	containerID := containerIDTester.GetID()
-
-	fsDiffTester := cnffsdiff.NewFsDiff(common.DefaultTimeout, containerID)
-	test, err = tnf.NewTest(masterPodOc.GetExpecter(), fsDiffTester, []reel.Handler{fsDiffTester}, masterPodOc.GetErrorChannel())
+	context := common.GetContext()
+	fsDiffTester := cnffsdiff.NewFsDiff(common.DefaultTimeout, containerID, nodeName)
+	test, err = tnf.NewTest(context.GetExpecter(), fsDiffTester, []reel.Handler{fsDiffTester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
-	testResult, err = test.Run()
-	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
-	gomega.Expect(err).To(gomega.BeNil())
+	return test.Run()
 }
 
 func getMcKernelArguments(context *interactive.Context, mcName string) map[string]string {
@@ -212,7 +243,8 @@ func getSysctlConfigArgs(context *interactive.Context, nodeName string) map[stri
 }
 
 func testBootParams(env *config.TestEnvironment) {
-	ginkgo.It("platform-boot-param", func() {
+	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestUnalteredStartupBootParamsIdentifier)
+	ginkgo.It(testID, func() {
 		context := common.GetContext()
 		for _, cut := range env.ContainersUnderTest {
 			podName := cut.Oc.GetPodName()
@@ -269,39 +301,38 @@ func testTainted() {
 		return
 	}
 	var nodeNames []string
-	ginkgo.When("Testing tainted nodes in cluster", func() {
-		ginkgo.It("Should return list of node names", func() {
+	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestNonTaintedNodeKernelsIdentifier)
+	ginkgo.It(testID, func() {
+		ginkgo.By("Testing tainted nodes in cluster")
+		ginkgo.By("Should return list of node names")
+		context := common.GetContext()
+		tester := nodenames.NewNodeNames(common.DefaultTimeout, nil)
+		test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
+		gomega.Expect(err).To(gomega.BeNil())
+		testResult, err := test.Run()
+		gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
+		gomega.Expect(err).To(gomega.BeNil())
+		nodeNames = tester.GetNodeNames()
+		gomega.Expect(nodeNames).NotTo(gomega.BeNil())
+		ginkgo.By("Should not have tainted nodes")
+		defer results.RecordResult(identifiers.TestNonTaintedNodeKernelsIdentifier)
+		if len(nodeNames) == 0 {
+			ginkgo.Skip("Can't test tainted nodes when list of nodes is empty. Please check previous tests.")
+		}
+		var taintedNodes []string
+		for _, node := range nodeNames {
 			context := common.GetContext()
-			tester := nodenames.NewNodeNames(common.DefaultTimeout, nil)
+			tester := nodetainted.NewNodeTainted(common.DefaultTimeout, node)
 			test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 			gomega.Expect(err).To(gomega.BeNil())
 			testResult, err := test.Run()
-			gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
+			gomega.Expect(testResult).NotTo(gomega.Equal(tnf.ERROR))
 			gomega.Expect(err).To(gomega.BeNil())
-			nodeNames = tester.GetNodeNames()
-			gomega.Expect(nodeNames).NotTo(gomega.BeNil())
-		})
-
-		ginkgo.It("Should not have tainted nodes", func() {
-			defer results.RecordResult(identifiers.TestNonTaintedNodeKernelsIdentifier)
-			if len(nodeNames) == 0 {
-				ginkgo.Skip("Can't test tainted nodes when list of nodes is empty. Please check previous tests.")
+			if testResult == tnf.FAILURE {
+				taintedNodes = append(taintedNodes, node)
 			}
-			var taintedNodes []string
-			for _, node := range nodeNames {
-				context := common.GetContext()
-				tester := nodetainted.NewNodeTainted(common.DefaultTimeout, node)
-				test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
-				gomega.Expect(err).To(gomega.BeNil())
-				testResult, err := test.Run()
-				gomega.Expect(testResult).NotTo(gomega.Equal(tnf.ERROR))
-				gomega.Expect(err).To(gomega.BeNil())
-				if testResult == tnf.FAILURE {
-					taintedNodes = append(taintedNodes, node)
-				}
-			}
-			gomega.Expect(taintedNodes).To(gomega.BeNil())
-		})
+		}
+		gomega.Expect(taintedNodes).To(gomega.BeNil())
 	})
 }
 
@@ -311,44 +342,46 @@ func testHugepages() {
 	}
 	var nodeNames []string
 	var clusterHugepages, clusterHugepagesz int
-	ginkgo.When("Testing worker nodes' hugepages configuration", func() {
-		ginkgo.It("Should return list of worker node names", func() {
+	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestHugepagesNotManuallyManipulated)
+	ginkgo.It(testID, func() {
+		defer results.RecordResult(identifiers.TestHugepagesNotManuallyManipulated)
+		ginkgo.By("Should return list of worker node names")
+		context := common.GetContext()
+		tester := nodenames.NewNodeNames(common.DefaultTimeout, map[string]*string{"node-role.kubernetes.io/worker": nil})
+		test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
+		gomega.Expect(err).To(gomega.BeNil())
+		testResult, err := test.Run()
+		gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
+		gomega.Expect(err).To(gomega.BeNil())
+		nodeNames = tester.GetNodeNames()
+		gomega.Expect(nodeNames).NotTo(gomega.BeNil())
+
+		ginkgo.By("Should return cluster's hugepages configuration")
+		context = common.GetContext()
+		hugepageTester := hugepages.NewHugepages(common.DefaultTimeout)
+		test, err = tnf.NewTest(context.GetExpecter(), hugepageTester, []reel.Handler{hugepageTester}, context.GetErrorChannel())
+		gomega.Expect(err).To(gomega.BeNil())
+		testResult, err = test.Run()
+		gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
+		gomega.Expect(err).To(gomega.BeNil())
+		clusterHugepages = hugepageTester.GetHugepages()
+		clusterHugepagesz = hugepageTester.GetHugepagesz()
+
+		ginkgo.By("Should have same configuration as cluster")
+		ginkgo.By(fmt.Sprintf("cluster is configured with clusterHugepages=%d ; clusterHugepagesz=%d", clusterHugepages, clusterHugepagesz))
+		var badNodes []string
+		for _, node := range nodeNames {
 			context := common.GetContext()
-			tester := nodenames.NewNodeNames(common.DefaultTimeout, map[string]*string{"node-role.kubernetes.io/worker": nil})
+			tester := nodehugepages.NewNodeHugepages(common.DefaultTimeout, node, clusterHugepagesz, clusterHugepages)
 			test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 			gomega.Expect(err).To(gomega.BeNil())
 			testResult, err := test.Run()
-			gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
 			gomega.Expect(err).To(gomega.BeNil())
-			nodeNames = tester.GetNodeNames()
-			gomega.Expect(nodeNames).NotTo(gomega.BeNil())
-		})
-		ginkgo.It("Should return cluster's hugepages configuration", func() {
-			context := common.GetContext()
-			tester := hugepages.NewHugepages(common.DefaultTimeout)
-			test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
-			gomega.Expect(err).To(gomega.BeNil())
-			testResult, err := test.Run()
-			gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
-			gomega.Expect(err).To(gomega.BeNil())
-			clusterHugepages = tester.GetHugepages()
-			clusterHugepagesz = tester.GetHugepagesz()
-		})
-		ginkgo.It("Should have same configuration as cluster", func() {
-			defer results.RecordResult(identifiers.TestHugepagesNotManuallyManipulated)
-			var badNodes []string
-			for _, node := range nodeNames {
-				context := common.GetContext()
-				tester := nodehugepages.NewNodeHugepages(common.DefaultTimeout, node, clusterHugepagesz, clusterHugepages)
-				test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
-				gomega.Expect(err).To(gomega.BeNil())
-				testResult, err := test.Run()
-				gomega.Expect(err).To(gomega.BeNil())
-				if testResult != tnf.SUCCESS {
-					badNodes = append(badNodes, node)
-				}
+			if testResult != tnf.SUCCESS {
+				badNodes = append(badNodes, node)
+				ginkgo.By(fmt.Sprintf("node=%s hugepage config does not match machineconfig", node))
 			}
-			gomega.Expect(badNodes).To(gomega.BeNil())
-		})
+		}
+		gomega.Expect(badNodes).To(gomega.BeNil())
 	})
 }

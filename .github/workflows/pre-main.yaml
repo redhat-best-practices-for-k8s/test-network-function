@@ -120,10 +120,10 @@ jobs:
       # Perform smoke tests.
 
       - name: 'Test: Run diagnostic test suite'
-        run: ./run-cnf-suites.sh diagnostic
+        run: ./run-cnf-suites.sh --focus diagnostic
 
       - name: 'Test: Run test suites'
-        run: ./run-cnf-suites.sh access-control lifecycle platform observablility networking affiliated-certification
+        run: ./run-cnf-suites.sh --focus access-control lifecycle platform observablility networking affiliated-certification operator
 
       # Perform smoke tests using a TNF container.
 
@@ -144,10 +144,10 @@ jobs:
         shell: bash
 
       - name: 'Test: Run diagnostic test suite in a TNF container'
-        run: ./run-tnf-container.sh ${{ env.TESTING_CMD_PARAMS }} diagnostic
+        run: ./run-tnf-container.sh ${{ env.TESTING_CMD_PARAMS }} -f diagnostic
 
       - name: 'Test: Run generic test suite in a TNF container'
-        run: ./run-tnf-container.sh ${{ env.TESTING_CMD_PARAMS }} access-control lifecycle platform observablility networking affiliated-certification
+        run: ./run-tnf-container.sh ${{ env.TESTING_CMD_PARAMS }} -f access-control lifecycle platform observablility networking affiliated-certification
 
       # Push the new unstable TNF image to Quay.io.
 

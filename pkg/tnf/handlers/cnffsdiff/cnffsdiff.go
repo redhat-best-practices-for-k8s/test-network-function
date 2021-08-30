@@ -29,15 +29,15 @@ type CnfFsDiff struct {
 	result  int
 	timeout time.Duration
 	args    []string
-	diff    string
 }
 
 const (
-	// SuccessfulOutputRegex matches a successfully run "fsdiff" command.  That does not mean that no errors or drops
-	// occurred during the test.
-	SuccessfulOutputRegex = `(?m)empty\n`
-	// AcceptAllRegex matches all strings
-	AcceptAllRegex = `(?m)(.|\n)+`
+	bin                   = `(?m)\/bin`
+	sbin                  = `(?m)\/sbin`
+	lib                   = `(?m)\/lib`
+	err                   = `(?m)Error`
+	successfulOutputRegex = `(?m){}`
+	acceptAllRegex        = `(?m)(.|\n)+`
 )
 
 // Args returns the command line args for the test.
@@ -71,10 +71,18 @@ func (p *CnfFsDiff) ReelFirst() *reel.Step {
 // ReelMatch checks if the test passed the first regex which means there were no installation on the container
 // or the second regex which accepts everything and means that something in the container was installed.
 func (p *CnfFsDiff) ReelMatch(pattern, before, match string) *reel.Step {
-	if pattern == SuccessfulOutputRegex {
-		p.result = tnf.SUCCESS
-	} else {
+	p.result = tnf.SUCCESS
+	switch pattern {
+	case lib:
 		p.result = tnf.FAILURE
+	case bin:
+		p.result = tnf.FAILURE
+	case sbin:
+		p.result = tnf.FAILURE
+	case err:
+		p.result = tnf.ERROR
+	case successfulOutputRegex:
+		p.result = tnf.SUCCESS
 	}
 	return nil
 }
@@ -89,20 +97,20 @@ func (p *CnfFsDiff) ReelEOF() {
 }
 
 // Command returns command line args for checking the fs difference between a container and it's image
-func Command(containerID string) []string {
-	return []string{"/diff-fs.sh", containerID}
+func Command(containerID, nodeName string) []string {
+	return []string{"echo", "-e", "\"chroot /host\n\"", "podman", "diff", "--format", "json", containerID, "|", "oc", "debug", "node/" + nodeName}
 }
 
 // NewFsDiff creates a new `FsDiff` test which checks the fs difference between a container and it's image
-func NewFsDiff(timeout time.Duration, containerID string) *CnfFsDiff {
+func NewFsDiff(timeout time.Duration, containerID, nodeName string) *CnfFsDiff {
 	return &CnfFsDiff{
-		result:  tnf.ERROR,
+		result:  tnf.SUCCESS,
 		timeout: timeout,
-		args:    Command(containerID),
+		args:    Command(containerID, nodeName),
 	}
 }
 
 // GetReelFirstRegularExpressions returns the regular expressions used for matching in ReelFirst.
 func (p *CnfFsDiff) GetReelFirstRegularExpressions() []string {
-	return []string{SuccessfulOutputRegex, AcceptAllRegex}
+	return []string{err, bin, sbin, lib, successfulOutputRegex, acceptAllRegex}
 }

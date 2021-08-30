@@ -42,6 +42,8 @@ var _ = ginkgo.Describe(common.AccessControlTestKey, func() {
 		env := config.GetTestEnvironment()
 		ginkgo.BeforeEach(func() {
 			env.LoadAndRefresh()
+			gomega.Expect(len(env.PodsUnderTest)).ToNot(gomega.Equal(0))
+			gomega.Expect(len(env.ContainersUnderTest)).ToNot(gomega.Equal(0))
 		})
 
 		testNamespace(env)
@@ -52,7 +54,7 @@ var _ = ginkgo.Describe(common.AccessControlTestKey, func() {
 
 		// Run the tests that interact with the pods
 		ginkgo.When("under test", func() {
-			var allTests []string = testcases.GetConfiguredPodTests()
+			allTests := testcases.GetConfiguredPodTests()
 			for _, testType := range allTests {
 				testFile, err := testcases.LoadConfiguredTestFile(common.ConfiguredTestFile)
 				gomega.Expect(testFile).ToNot(gomega.BeNil())
@@ -73,7 +75,8 @@ var _ = ginkgo.Describe(common.AccessControlTestKey, func() {
 
 //nolint:gocritic,funlen // ignore hugeParam error. Pointers to loop iterator vars are bad and `testCmd` is likely to be such.
 func runTestOnPods(env *config.TestEnvironment, testCmd testcases.BaseTestCase, testType string) {
-	ginkgo.It(fmt.Sprintf("Running Pod test : %s", testCmd.Name), func() {
+	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestHostResourceIdentifier) + "-" + testCmd.Name
+	ginkgo.It(testID, func() {
 		context := common.GetContext()
 		for _, podUnderTest := range env.PodsUnderTest {
 			podName := podUnderTest.Name
@@ -132,11 +135,12 @@ func runTestOnPods(env *config.TestEnvironment, testCmd testcases.BaseTestCase, 
 
 func testNamespace(env *config.TestEnvironment) {
 	ginkgo.When("test deployment namespace", func() {
-		ginkgo.It("Should not be 'default' and should not begin with 'openshift-'", func() {
+		testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestNamespaceBestPracticesIdentifier)
+		ginkgo.It(testID, func() {
 			for _, podUnderTest := range env.PodsUnderTest {
 				podName := podUnderTest.Name
 				podNamespace := podUnderTest.Namespace
-				ginkgo.By(fmt.Sprintf("Reading namespace of podnamespace= %s podname= %s", podNamespace, podName))
+				ginkgo.By(fmt.Sprintf("Reading namespace of podnamespace= %s podname= %s, should not be 'default' or begin with openshift-", podNamespace, podName))
 				defer results.RecordResult(identifiers.TestNamespaceBestPracticesIdentifier)
 				gomega.Expect(podNamespace).To(gomega.Not(gomega.Equal("default")))
 				gomega.Expect(podNamespace).To(gomega.Not(gomega.HavePrefix("openshift-")))
@@ -152,7 +156,9 @@ func testRoles(env *config.TestEnvironment) {
 }
 
 func testServiceAccount(env *config.TestEnvironment) {
-	ginkgo.It("Should have a valid ServiceAccount name", func() {
+	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestPodServiceAccountBestPracticesIdentifier)
+	ginkgo.It(testID, func() {
+		ginkgo.By("Should have a valid ServiceAccount name")
 		for _, podUnderTest := range env.PodsUnderTest {
 			podName := podUnderTest.Name
 			podNamespace := podUnderTest.Namespace
@@ -172,7 +178,9 @@ func testServiceAccount(env *config.TestEnvironment) {
 }
 
 func testRoleBindings(env *config.TestEnvironment) {
-	ginkgo.It("Should not have RoleBinding in other namespaces", func() {
+	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestPodRoleBindingsBestPracticesIdentifier)
+	ginkgo.It(testID, func() {
+		ginkgo.By("Should not have RoleBinding in other namespaces")
 		for _, podUnderTest := range env.PodsUnderTest {
 			podName := podUnderTest.Name
 			podNamespace := podUnderTest.Namespace
@@ -197,7 +205,9 @@ func testRoleBindings(env *config.TestEnvironment) {
 }
 
 func testClusterRoleBindings(env *config.TestEnvironment) {
-	ginkgo.It("Should not have ClusterRoleBindings", func() {
+	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestPodRoleBindingsBestPracticesIdentifier)
+	ginkgo.It(testID, func() {
+		ginkgo.By("Should not have ClusterRoleBindings")
 		for _, podUnderTest := range env.PodsUnderTest {
 			podName := podUnderTest.Name
 			podNamespace := podUnderTest.Namespace

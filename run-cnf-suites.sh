@@ -4,10 +4,10 @@
 export OUTPUT_LOC="$PWD/test-network-function"
 
 usage() {
-	echo "$0 [-o OUTPUT_LOC] SUITE [... SUITE]"
+	echo "$0 [-o OUTPUT_LOC] [-f SUITE...] -s [SUITE...]"
 	echo "Call the script and list the test suites to run"
 	echo "  e.g."
-	echo "    $0 [ARGS] access-control lifecycle"
+	echo "    $0 [ARGS] -f access-control lifecycle"
 	echo "  will run the access-control and lifecycle suites"
 	echo ""
 	echo "Allowed suites are listed in the README."
@@ -18,45 +18,41 @@ usage_error() {
 	exit 1
 }
 
+FOCUS=""
+SKIP=""
 # Parge args beginning with "-"
 while [[ $1 == -* ]]; do
 	case "$1" in
 		-h|--help|-\?) usage; exit 0;;
 		-o) if (($# > 1)); then
-				OUTPUT_LOC=$2; shift 2
-			else
-				echo "-o requires an argument" 1>&2
-				exit 1
-			fi ;;
-		--) shift; break;;
-		-*) echo "invalid option: $1" 1>&2; usage_error;;
+				  OUTPUT_LOC=$2; shift
+			  else
+				  echo "-o requires an argument" 1>&2
+				  exit 1
+			  fi ;;
+    -s|--skip)
+        while (( "$#" >= 2 )) && ! [[ $2 = --* ]] && ! [[ $2 = -* ]] ; do
+          SKIP="$2|$SKIP"
+          shift
+        done;;
+		-f|--focus)
+        while (( "$#" >= 2 )) && ! [[ $2 = --* ]]  && ! [[ $2 = -* ]] ; do
+          FOCUS="$2|$FOCUS"
+          shift
+        done;;
+    -*) echo "invalid option: $1" 1>&2; usage_error;;
 	esac
+  shift
 done
 # specify Junit report file name.
-GINKGO_ARGS="-ginkgo.v -junit $OUTPUT_LOC -claimloc $OUTPUT_LOC -ginkgo.reportFile $OUTPUT_LOC/cnf-certification-tests_junit.xml"
-FOCUS=""
+GINKGO_ARGS="-junit $OUTPUT_LOC -claimloc $OUTPUT_LOC -ginkgo.reportFile $OUTPUT_LOC/cnf-certification-tests_junit.xml -ginkgo.v -test.v"
 
-for var in "$@"
-do
-	FOCUS="$var|$FOCUS"
-	# case "$var" in
-	# 	diagnostic) FOCUS="diagnostic|$FOCUS";;
-	# 	access-control) FOCUS="ac|$FOCUS";;
-	# 	affiliated-certification) FOCUS="affiliated-certification|$FOCUS";;
-	# 	lifecycle) FOCUS="lifecycle|$FOCUS";;
-	# 	platform-alteration) FOCUS="platform-alteration|$FOCUS";;
-	# 	generic) FOCUS="generic|$FOCUS";;
-	# 	observability) FOCUS="observability|$FOCUS";;
-	# 	operator) FOCUS="operator|$FOCUS";;
-	# 	networking) FOCUS="networking|$FOCUS";;
-	# 	*) usage_error;;
-	# esac
-done
 
 # If no focus is set then display usage and quit with a non-zero exit code.
-[ -z "$FOCUS" ] && usage_error
+[ -z "$FOCUS" ] && echo "no focus found" && usage_error
 
 FOCUS=${FOCUS%?}  # strip the trailing "|" from the concatenation
+SKIP=${SKIP%?} # strip the trailing "|" from the concatenation
 
 # Run cnf-feature-deploy test container if not running inside a container
 # cgroup file doesn't exist on MacOS. Consider that as not running in container as well
@@ -72,5 +68,8 @@ else
 	make -C $TNF_PARTNER_SRC_DIR install-partner-pods
 fi
 
-echo "Running with focus '$FOCUS'. Report will be output to '$OUTPUT_LOC'"
-cd ./test-network-function && ./test-network-function.test -ginkgo.focus="$FOCUS" ${GINKGO_ARGS}
+echo "Running with focus '$FOCUS'"
+echo "Running with skip  '$SKIP'"
+echo "Report will be output to '$OUTPUT_LOC'"
+echo "ginkgo arguments '${GINKGO_ARGS}'"
+cd ./test-network-function && ./test-network-function.test -ginkgo.focus="$FOCUS" -ginkgo.skip="$SKIP" ${GINKGO_ARGS}

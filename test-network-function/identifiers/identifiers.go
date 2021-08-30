@@ -19,6 +19,7 @@ package identifiers
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/test-network-function/test-network-function-claim/pkg/claim"
 	"github.com/test-network-function/test-network-function/test-network-function/common"
@@ -189,6 +190,11 @@ var (
 		Url:     formTestURL(common.LifecycleTestKey, "scaling"),
 		Version: versionOne,
 	}
+	// TestIsRedHatReleaseIdentifier ensures platform is defined
+	TestIsRedHatReleaseIdentifier = claim.Identifier{
+		Url:     formTestURL(common.PlatformAlterationTestKey, "isredhat-release"),
+		Version: versionOne,
+	}
 	// TestClusterCsiInfoIdentifier list Cluster CSIdriver Identifier retrieves Third Party CSI driver info.
 	TestClusterCsiInfoIdentifier = claim.Identifier{
 		Url:     formTestURL(common.DiagnosticTestKey, "cluster-csi-info"),
@@ -198,6 +204,12 @@ var (
 
 func formDescription(identifier claim.Identifier, description string) string {
 	return fmt.Sprintf("%s %s", identifier.Url, description)
+}
+
+// XformToGinkgoItIdentifier transform the claim.Identifier into a test Id that can be used to skip
+// specific tests
+func XformToGinkgoItIdentifier(identifier claim.Identifier) string {
+	return strings.ReplaceAll(strings.TrimPrefix(identifier.Url, url+"/"), "/", "-")
 }
 
 // Catalog is the JUnit testcase catalog of tests.
@@ -493,6 +505,13 @@ the changes for you.`,
 			First, The test starts getting the current replicaCount (N) of the deployment/s with the Pod Under Test. Then, it executes the 
 			scale-in oc command for (N-1) replicas. Lastly, it executes the scale-out oc command, restoring the original replicaCount of the deployment/s.`),
 		Remediation: `Make sure CNF deployments/replica sets can scale in/out successfully.`,
+	},
+	TestIsRedHatReleaseIdentifier: {
+		Identifier: TestIsRedHatReleaseIdentifier,
+		Type:       normativeResult,
+		Description: formDescription(TestIsRedHatReleaseIdentifier,
+			`The test verifies if the container base image is redhat.`),
+		Remediation: `build a new docker image that's based on UBI (redhat universal base image).`,
 	},
 	TestClusterCsiInfoIdentifier: {
 		Identifier: TestClusterCsiInfoIdentifier,

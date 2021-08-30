@@ -21,6 +21,7 @@ type ContainerIdentifier struct {
 	Namespace     string `yaml:"namespace" json:"namespace"`
 	PodName       string `yaml:"podName" json:"podName"`
 	ContainerName string `yaml:"containerName" json:"containerName"`
+	NodeName      string `yaml:"nodeName" json:"nodeName"`
 }
 
 // ContainerConfig contains the payload of container facets.

@@ -43,10 +43,10 @@ var PrivilegedPodJSON = string(`{
       "name": "HOST_PATH_CHECK",
       "skiptest": true,
        "loop": 0,
-      "command": "oc get pod  %s  -n %s -o json  | jq -r '.spec.hostpath.path'",
+      "command": "oc get pods %s -n %s -o go-template='{{ range .spec.volumes}}{{.hostPath.path}}{{end}}'",
       "action": "allow",
       "expectedstatus": [
-        "NULL_FALSE"
+        "^(<no value>)*$"
       ]
     },
     {

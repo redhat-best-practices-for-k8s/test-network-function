@@ -107,4 +107,4 @@ ENV TNF_PARTNER_SRC_DIR=$TNF_PARTNER_DIR/src
 ENV PATH="/usr/local/oc/bin:${PATH}"
 WORKDIR /usr/tnf
 ENV SHELL=/bin/bash
-CMD ["./run-cnf-suites.sh", "-o", "claim", "diagnostic", "generic"]
+CMD ["./run-cnf-suites.sh", "-o", "claim", "-f", "diagnostic"]

@@ -24,12 +24,14 @@ import (
 
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/generic"
 
+	"github.com/test-network-function/test-network-function/test-network-function/common"
 	"github.com/test-network-function/test-network-function/test-network-function/identifiers"
 	"github.com/test-network-function/test-network-function/test-network-function/results"
 
 	"github.com/onsi/ginkgo"
 	ginkgoconfig "github.com/onsi/ginkgo/config"
 	"github.com/onsi/gomega"
+	log "github.com/sirupsen/logrus"
 	"github.com/test-network-function/test-network-function/internal/api"
 	"github.com/test-network-function/test-network-function/pkg/config"
 	"github.com/test-network-function/test-network-function/pkg/config/configsections"
@@ -75,6 +77,11 @@ var (
 
 var _ = ginkgo.Describe(testSpecName, func() {
 	if testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusStrings, testSpecName) {
+		env := config.GetTestEnvironment()
+		ginkgo.BeforeEach(func() {
+			env.LoadAndRefresh()
+		})
+
 		defer ginkgo.GinkgoRecover()
 		ginkgo.When("a local shell is spawned", func() {
 			goExpectSpawner := interactive.NewGoExpectSpawner()
@@ -95,7 +102,8 @@ var _ = ginkgo.Describe(testSpecName, func() {
 
 // testOperatorsAreInstalledViaOLM ensures all configured operators have a proper OLM subscription.
 func testOperatorsAreInstalledViaOLM() {
-	ginkgo.It("operator-olm-installed", func() {
+	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestOperatorIsInstalledViaOLMIdentifier)
+	ginkgo.It(testID, func() {
 		_, operatorsInTest := getConfig()
 		for _, operatorInTest := range operatorsInTest {
 			defer results.RecordResult(identifiers.TestOperatorIsInstalledViaOLMIdentifier)
@@ -135,7 +143,8 @@ func getConfig() ([]configsections.CertifiedOperatorRequestInfo, []configsection
 }
 
 func itRunsTestsOnOperator() {
-	ginkgo.It("operator-certification", func() {
+	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestOperatorIsCertifiedIdentifier)
+	ginkgo.It(testID, func() {
 		operatorsToQuery, operatorsInTest := getConfig()
 		if len(operatorsToQuery) > 0 {
 			certAPIClient := api.NewHTTPClient()
@@ -150,7 +159,14 @@ func itRunsTestsOnOperator() {
 				}, eventuallyTimeoutSeconds, interval).Should(gomega.BeTrue())
 			}
 		}
-		gomega.Expect(operatorsInTest).ToNot(gomega.BeNil())
+		if common.IsMinikube() {
+			log.Info("Minikube detected: skipping operators test.")
+			return
+		}
+		if len(operatorsInTest) == 0 {
+			ginkgo.Fail("No operators to test were discovered.")
+		}
+
 		for _, op := range operatorsInTest {
 			// TODO: Gather facts for operator
 			for _, testType := range op.Tests {
@@ -189,18 +205,17 @@ func agrName(operatorName, subName, testName string) string {
 
 //nolint:gocritic // ignore hugeParam error. Pointers to loop iterator vars are bad and `testCmd` is likely to be such.
 func runTestsOnOperator(args []interface{}, name, namespace string, testCmd testcases.BaseTestCase) {
-	ginkgo.When(fmt.Sprintf("under test is: %s/%s ", namespace, name), func() {
-		ginkgo.It(fmt.Sprintf("tests for: %s", testCmd.Name), func() {
-			defer results.RecordResult(identifiers.TestOperatorInstallStatusIdentifier)
-			cmdArgs := strings.Split(fmt.Sprintf(testCmd.Command, args...), " ")
-			opInTest := operator.NewOperator(cmdArgs, name, namespace, testCmd.ExpectedStatus, testCmd.ResultType, testCmd.Action, defaultTimeout)
-			gomega.Expect(opInTest).ToNot(gomega.BeNil())
-			test, err := tnf.NewTest(context.GetExpecter(), opInTest, []reel.Handler{opInTest}, context.GetErrorChannel())
-			gomega.Expect(err).To(gomega.BeNil())
-			gomega.Expect(test).ToNot(gomega.BeNil())
-			testResult, err := test.Run()
-			gomega.Expect(err).To(gomega.BeNil())
-			gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
-		})
+	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestOperatorInstallStatusIdentifier) + "-" + testCmd.Name
+	ginkgo.It(testID, func() {
+		defer results.RecordResult(identifiers.TestOperatorInstallStatusIdentifier)
+		cmdArgs := strings.Split(fmt.Sprintf(testCmd.Command, args...), " ")
+		opInTest := operator.NewOperator(cmdArgs, name, namespace, testCmd.ExpectedStatus, testCmd.ResultType, testCmd.Action, defaultTimeout)
+		gomega.Expect(opInTest).ToNot(gomega.BeNil())
+		test, err := tnf.NewTest(context.GetExpecter(), opInTest, []reel.Handler{opInTest}, context.GetErrorChannel())
+		gomega.Expect(err).To(gomega.BeNil())
+		gomega.Expect(test).ToNot(gomega.BeNil())
+		testResult, err := test.Run()
+		gomega.Expect(err).To(gomega.BeNil())
+		gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
 	})
 }

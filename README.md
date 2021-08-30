@@ -38,7 +38,7 @@ The corresponding label prefix is:
 test-network-function.com/generic: target 
 ```
 
-When labelling a pod to be discovered and tested, the discoered pods are **in addition to** the ones
+When labelling a pod to be discovered and tested, the discovered pods are **in addition to** the ones
 explicitly configured in the testTarget sections of the config file.
 
 ### testTarget
@@ -140,28 +140,44 @@ For more information on the test suites, refer to [the cnf-features-deploy repos
 
 ## Running the tests with in a prebuild container
 
-A ready to run container is available at this repository: [quay.io](https://quay.io/repository/testnetworkfunction/test-network-function)
+### Pulling test image
+An image is built and is available at this repository: [quay.io](https://quay.io/repository/testnetworkfunction/test-network-function)
+The image can be pulled using :
+```shell script
+docker pull quay.io/testnetworkfunction/test-network-function
+```
+### Check cluster resources
+Some tests suites such as platform-alteration require node access to get node configuration like hugepage.
+In order to get the required information, the test suite does not ssh into nodes, but instead rely on [oc debug tools ](https://docs.openshift.com/container-platform/3.7/cli_reference/basic_cli_operations.html#debug). This tool makes it easier to fetch information from nodes and also to debug running pods.
 
-To pull the latest container and run the tests you use the following command. There are several required arguments:
+In short, oc debug tool will launch a new container ending with "-debug" suffix, the container will be destroyed once the debug session is done. To be able to create the debug pod,  the cluster should have enough resources, otherwise those tests would fail.
+
+**Note:**
+It's recommended to clean up disk space and make sure there's enough resources to deploy another container image in every node before starting the tests.
+### Run the tests
+``./run-tnf-container.sh`` script is used to launch the tests.  
+
+There are several required arguments:
 
 * `-t` gives the local directory that contains tnf config files set up for the test.
 * `-o` gives the local directory that the test results will be available in once the container exits.
-* Finally, list the specs to be run must be specified, space-separated.
+* `-f` gives the list of suites to be run, space separated.
 
 Optional arguments are:
 
 * `-i` gives a name to a custom TNF container image. Supports local images, as well as images from external registries.
-* `-k` gives a path to one or more kubeconfig files soto be used by the container to authenticate with the cluster. Paths must be separated by a colon.
+* `-k` gives a path to one or more kubeconfig files to be used by the container to authenticate with the cluster. Paths must be separated by a colon.
 * `-n` gives the network mode of the container. Defaults to `bridge`. See the [docker run --network parameter reference](https://docs.docker.com/engine/reference/run/#network-settings) for more information on how to configure network settings.
+* `-s` gives the name of tests that should be skipped
 
 If `-k` is not specified, autodiscovery is performed.
 The autodiscovery first looks for paths in the `$KUBECONFIG` environment variable on the host system, and if the variable is not set or is empty, the default configuration stored in `$HOME/.kube/config` is checked.
 
 ```shell script
-./run-tnf-container.sh -k ~/.kube/config -t ~/tnf/config -o ~/tnf/output diagnostic access-control
+./run-tnf-container.sh -k ~/.kube/config -t ~/tnf/config -o ~/tnf/output -f diagnostic access-control -s access-control-host-resource-PRIVILEGED_POD
 ```
 
-*Note*: Tests must be specified after all other arguments! see [General tests](#general-tests) for a list of available keywords.
+See [General tests](#general-tests) for a list of available keywords.
 
 *Note*: The `run-tnf-container.sh` script performs autodiscovery of selected TNF environment variables.  
 Currently supported environment variables include:
@@ -197,7 +213,7 @@ docker build -t test-network-function:v1.0.5 \
 To make `run-tnf-container.sh` use the newly built image, specify the custom TNF image using the `-i` parameter.
 
 ```shell script
-./run-tnf-container.sh -i test-network-function:v1.0.5 -t ~/tnf/config -o ~/tnf/output diagnostic access-control
+./run-tnf-container.sh -i test-network-function:v1.0.5 -t ~/tnf/config -o ~/tnf/output -f diagnostic access-control
 ```
  Note: see [General tests](#general-tests) for a list of available keywords.
 
@@ -257,7 +273,6 @@ cd test-network-function
 ### Building the Tests
 
 In order to build the test executable, first make sure you have satisfied the [dependencies](#dependencies).
-
 ```shell script
 make build-cnf-tests
 ```
@@ -272,11 +287,11 @@ script.
 Run any combination of the suites keywords listed at in the [General tests](#general-tests) section, e.g.
 
 ```shell script
-./run-cnf-suites.sh diagnostic
-./run-cnf-suites.sh diagnostic lifecycle
-./run-cnf-suites.sh diagnostic networking operator
-./run-cnf-suites.sh diagnostic platform-alteration
-./run-cnf-suites.sh diagnostic generic lifecycle affiliated-certification operator
+./run-cnf-suites.sh -f diagnostic
+./run-cnf-suites.sh -f diagnostic lifecycle
+./run-cnf-suites.sh -f diagnostic networking operator
+./run-cnf-suites.sh -f diagnostic platform-alteration
+./run-cnf-suites.sh -f diagnostic generic lifecycle affiliated-certification operator
 ```
 
 By default the claim file will be output into the same location as the test executable. The `-o` argument for
@@ -290,7 +305,7 @@ cd test-network-function && ./test-network-function.test --help
 *Gotcha:* The generic test suite requires that the CNF has both `ping` and `ip` binaries installed.  Please add them
 manually if the CNF under test does not include these.  Automated installation of missing dependencies is targeted
 for a future version.
-
+*Gotcha:* check that OCP cluster has resources to deploy [debug image](#check-cluster-resources)
 ## Available Test Specs
 
 There are two categories for CNF tests;  'General' and 'CNF-specific' (TODO).
@@ -461,6 +476,8 @@ operator
 
     /Users/$USER/cnf-cert/test-network-function/test-network-function/operator/suite.go:152
 ```
+## Log level 
+The optional LOG_LEVEL environment variable sets the log level. Defaults to "info" if not set. Valid values are: trace, debug, info, warn, error, fatal, panic.
 
 ## Grading Tool
 ### Overview
