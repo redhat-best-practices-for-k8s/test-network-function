@@ -44,7 +44,7 @@ Once the pods are found, all of their containers are also added to the target co
 #### podsUnderTest / containersUnderTest
 This section is usually not required if labels defined in the section above cover all resources that should be tested. If label based discovery is not sufficient, this section can be manually populated as shown in the commented part of the [sample config](test-network-function/tnf_config.yml). However, instrusive tests need to be skipped ([see here](#disable-intrusive-tests)) for a reliable test result. The pods and containers explicitly configured here are added to the target pod/container lists populated through label matching.
 
-For both configured and discovered pods/containers, the auto discovery mechanism will attempt to identify the default network device and all the IP addresses of the pods it
+For both configured and discovered pods/containers, the autodiscovery mechanism will attempt to identify the default network device and all the IP addresses of the pods it
 needs for network connectivity tests, though that information can be explicitly set using annotations if needed. For Pod IPs:
 
 * The annotation `test-network-function.com/multusips` is the highest priority, and must contain a JSON-encoded list of
@@ -69,7 +69,7 @@ not important, only its presence. Equivalent to `excludeContainersFromConnectivi
 
 #### operators
 
-The section can be configured as well as auto discovered. For manual configuration, see the commented part of the [sample config](test-network-function/tnf_config.yml). For auto discovery:
+The section can be configured as well as auto discovered. For manual configuration, see the commented part of the [sample config](test-network-function/tnf_config.yml). For autodiscovery:
 
 * CSVs to be tested by the `operator` spec are identified with the `test-network-function-com/operator=target`
 label. Any value is permitted but `target` is used here for consistency with the other specs.
@@ -114,7 +114,7 @@ This env var is optional, but highly recommended if running the test suite from 
 To set it, clone the partner [repo](https://github.com/test-network-function/cnf-certification-test-partner) and set TNF_PARTNER_SRC_DIR to point to it.
 
 ```shell script
-export TNF_PARTNER_SRC_DIR=~/code/cnf-certification-test-partner
+export TNF_PARTNER_SRC_DIR=/home/userid/code/cnf-certification-test-partner
 ```
 
 When this variable is set, the run-cnf-suites.sh script will deploy/refresh the partner deployments/pods in the cluster before starting the test run.
