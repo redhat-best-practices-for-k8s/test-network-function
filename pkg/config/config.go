@@ -180,7 +180,7 @@ func (env *TestEnvironment) doAutodiscover() {
 	env.PodsUnderTest = env.Config.PodsUnderTest
 	env.PartnerContainers = env.createContainers(env.Config.Partner.ContainerConfigList)
 	env.TestOrchestrator = env.PartnerContainers[env.Config.Partner.TestOrchestratorID]
-	env.TestDeployments = autodiscover.FindTestDeployments(&env.Config.TestTarget)
+	env.TestDeployments = autodiscover.FindTestDeployments(env.Config.TargetPodLabels, &env.Config.TestTarget)
 
 	log.Info(env.TestOrchestrator)
 	log.Info(env.ContainersUnderTest)

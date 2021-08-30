@@ -68,7 +68,7 @@ func FindTestTarget(labels []configsections.Label, target *configsections.TestTa
 
 // FindTestDeployments uses the containers' namespace to get its parent deployment. Filters out non CNF test deployments,
 // currently partner and fs_diff ones.
-func FindTestDeployments(target *configsections.TestTarget) (deployments []configsections.Deployment) {
+func FindTestDeployments(targetLabels []configsections.Label, target *configsections.TestTarget) (deployments []configsections.Deployment) {
 	namespaces := make(map[string]bool)
 
 	for _, cut := range target.ContainerConfigList {
@@ -78,24 +78,27 @@ func FindTestDeployments(target *configsections.TestTarget) (deployments []confi
 		}
 
 		namespaces[namespace] = true
-		deploymentResourceList, err := GetTargetDeploymentsByNamespace(namespace)
 
-		if err != nil {
-			log.Error("Unable to get deployment list from namespace ", namespace)
-		} else {
-			for _, deploymentResource := range deploymentResourceList.Items {
-				deployment := configsections.Deployment{
-					Name:      deploymentResource.GetName(),
-					Namespace: deploymentResource.GetNamespace(),
-					Replicas:  deploymentResource.GetReplicas(),
+		for _, label := range targetLabels {
+			deploymentResourceList, err := GetTargetDeploymentsByNamespace(namespace, label)
+
+			if err != nil {
+				log.Error("Unable to get deployment list from namespace ", namespace, ". Error: ", err)
+			} else {
+				for _, deploymentResource := range deploymentResourceList.Items {
+					deployment := configsections.Deployment{
+						Name:      deploymentResource.GetName(),
+						Namespace: deploymentResource.GetNamespace(),
+						Replicas:  deploymentResource.GetReplicas(),
+					}
+
+					deployments = append(deployments, deployment)
 				}
-
-				deployments = append(deployments, deployment)
 			}
 		}
 	}
 
-	return
+	return deployments
 }
 
 // buildPodUnderTest builds a single `configsections.Pod` from a PodResource

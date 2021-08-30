@@ -18,6 +18,8 @@ package autodiscover
 
 import (
 	"encoding/json"
+	"fmt"
+	"os/exec"
 
 	"github.com/test-network-function/test-network-function/pkg/config/configsections"
 )
@@ -67,13 +69,11 @@ func (deployment *DeploymentResource) GetLabels() map[string]string {
 
 // GetTargetDeploymentsByNamespace will return all pods with a given label value. If `labelValue` is an empty string, all pods with that
 // label will be returned, regardless of the labels value.
-func GetTargetDeploymentsByNamespace(namespace string) (*DeploymentList, error) {
-	// Filter out the deployments that match the exclusionLabels, currently the orchestrator and the fs_diff ones.
-	exclusionLabels := []configsections.Label{
-		{Namespace: tnfNamespace, Name: genericLabelName, Value: orchestratorValue},
-		{Namespace: tnfNamespace, Name: genericLabelName, Value: fsDiffMasterValue}}
+func GetTargetDeploymentsByNamespace(namespace string, targetLabel configsections.Label) (*DeploymentList, error) {
+	labelQuery := fmt.Sprintf("\"%s/%s\"==\"%s\"", targetLabel.Namespace, targetLabel.Name, targetLabel.Value)
+	jqArgs := fmt.Sprintf("'[.items[] | select(.spec.template.metadata.labels.%s)]'", labelQuery)
 
-	cmd := makeGetCommandByNamespace(namespace, resourceTypeDeployment, buildExclusionLabelsQuery(exclusionLabels))
+	cmd := exec.Command("bash", "-c", "oc get", resourceTypeDeployment, "-n", namespace, "-o json | jq ", jqArgs)
 
 	out, err := cmd.Output()
 	if err != nil {
@@ -81,7 +81,7 @@ func GetTargetDeploymentsByNamespace(namespace string) (*DeploymentList, error) 
 	}
 
 	var deploymentList DeploymentList
-	err = json.Unmarshal(out, &deploymentList)
+	err = json.Unmarshal(out, &deploymentList.Items)
 	if err != nil {
 		return nil, err
 	}
