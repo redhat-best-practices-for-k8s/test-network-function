@@ -62,6 +62,7 @@ be seen in [cnf-certification-test-partner](https://github.com/test-network-func
 the first entry found with `"default"=true` is used. This annotation is automatically managed in OpenShift but may not
 be present in K8s.
 
+If multus IP addresses are dicovered or configured, the partner pod needs to be deployed in the same namespace as the multus network interface for the connectivity test to pass. Refer to instruction [here](#specify-the-target-namespace-for-partner-pod-deployment)
 If a pod is not suitable for network connectivity tests because it lacks binaries (e.g. `ping`), it should be
 given the label `test-network-function.com/skip_connectivity_tests` to exclude it from those tests. The label value is
 not important, only its presence. Equivalent to `excludeContainersFromConnectivityTests` in the config file.
@@ -87,7 +88,7 @@ This section can also be discovered automatically and should be left commented o
 The `certifiedcontainerinfo` and `certifiedoperatorinfo` sections contain information about CNFs and Operators that are
 to be checked for certification status on Red Hat catalogs.
 
-## Runtime environement variables to skip or include tests
+## Runtime environement variables
 ### Turn off openshift required tests
 When test on CNFs that run on k8s only environment, execute shell command below before compile tool and run test shell script.
 
@@ -118,6 +119,14 @@ export TNF_PARTNER_SRC_DIR=/home/userid/code/cnf-certification-test-partner
 ```
 
 When this variable is set, the run-cnf-suites.sh script will deploy/refresh the partner deployments/pods in the cluster before starting the test run.
+
+### Specify the target namespace for partner pod deployment
+Set this variable to deploy partner pods in a custom namespace instead of the default `tnf` namesapce.
+
+```shell-script
+export NAMESPACE_TO_GENERATE="CNF-ns"
+```
+
 
 ### Execute test suites from openshift-kni/cnf-feature-deploy
 The test suites from openshift-kni/cnf-feature-deploy can be run prior to the actual CNF certification test execution and the results are incorporated in the same claim file if the following environment variable is set:
