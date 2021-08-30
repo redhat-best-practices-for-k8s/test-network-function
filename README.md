@@ -62,8 +62,7 @@ be seen in [cnf-certification-test-partner](https://github.com/test-network-func
 the first entry found with `"default"=true` is used. This annotation is automatically managed in OpenShift but may not
 be present in K8s.
 
-If multus IP addresses are dicovered or configured, the partner pod needs to be deployed in the same namespace as the multus network interface for the connectivity test to pass. Refer to instruction [here](#specify-the-target-namespace-for-partner-pod-deployment)
-If a pod is not suitable for network connectivity tests because it lacks binaries (e.g. `ping`), it should be
+If multus IP addresses are dicovered or configured, the partner pod needs to be deployed in the same namespace as the multus network interface for the connectivity test to pass. Refer to instruction [here](#specify-the-target-namespace-for-partner-pod-deployment). If a pod is not suitable for network connectivity tests because it lacks binaries (e.g. `ping`), it should be
 given the label `test-network-function.com/skip_connectivity_tests` to exclude it from those tests. The label value is
 not important, only its presence. Equivalent to `excludeContainersFromConnectivityTests` in the config file.
 
