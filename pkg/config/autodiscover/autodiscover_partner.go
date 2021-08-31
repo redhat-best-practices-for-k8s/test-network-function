@@ -24,7 +24,6 @@ import (
 const (
 	genericLabelName  = "generic"
 	orchestratorValue = "orchestrator"
-	fsDiffMasterValue = "fs_diff_master"
 )
 
 // FindTestPartner completes a `configsections.TestPartner` from the current state of the cluster,
@@ -37,15 +36,5 @@ func FindTestPartner(tp *configsections.TestPartner) {
 		}
 		tp.ContainerConfigList = append(tp.ContainerConfigList, orchestrator)
 		tp.TestOrchestratorID = orchestrator.ContainerIdentifier
-	}
-
-	if tp.FsDiffMasterContainerID.ContainerName == "" {
-		fsDiffMasterContainer, err := getContainerByLabel(configsections.Label{Namespace: tnfNamespace, Name: genericLabelName, Value: fsDiffMasterValue})
-		if err == nil {
-			tp.ContainerConfigList = append(tp.ContainerConfigList, fsDiffMasterContainer)
-			tp.FsDiffMasterContainerID = fsDiffMasterContainer.ContainerIdentifier
-		} else {
-			log.Warnf("an error (%s) occurred when getting the FS Diff Master Container. Attempting to continue", err)
-		}
 	}
 }

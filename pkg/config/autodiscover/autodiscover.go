@@ -113,6 +113,7 @@ func buildContainersFromPodResource(pr *PodResource) (containers []configsection
 		container.Namespace = pr.Metadata.Namespace
 		container.PodName = pr.Metadata.Name
 		container.ContainerName = containerResource.Name
+		container.NodeName = pr.Spec.NodeName
 		container.DefaultNetworkDevice, err = pr.getDefaultNetworkDeviceFromAnnotations()
 		if err != nil {
 			log.Warnf("error encountered getting default network device: %s", err)
