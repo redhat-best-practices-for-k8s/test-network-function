@@ -64,6 +64,8 @@ func FindTestTarget(labels []configsections.Label, target *configsections.TestTa
 	} else {
 		log.Warnf("an error (%s) occurred when looking for operaters by label", err)
 	}
+
+	target.DeploymentsUnderTest = append(target.DeploymentsUnderTest, FindTestDeployments(labels, target)...)
 }
 
 // FindTestDeployments uses the containers' namespace to get its parent deployment. Filters out non CNF test deployments,

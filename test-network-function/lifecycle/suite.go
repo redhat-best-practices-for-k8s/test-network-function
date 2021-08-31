@@ -120,7 +120,7 @@ func waitForAllDeploymentsReady(namespace string, timeout, pollingPeriod time.Du
 
 // restoreDeployments is the last attempt to restore the original test deployments' replicaCount
 func restoreDeployments(env *config.TestEnvironment) {
-	for _, deployment := range env.TestDeployments {
+	for _, deployment := range env.DeploymentsUnderTest {
 		// For each test deployment in the namespace, refresh the current replicas and compare.
 		deployments, notReadyDeployments := getDeployments(deployment.Namespace)
 
@@ -158,7 +158,14 @@ func testScaling(env *config.TestEnvironment) {
 		defer results.RecordResult(identifiers.TestScalingIdentifier)
 		defer restoreDeployments(env)
 
-		for _, deployment := range env.TestDeployments {
+		if len(env.DeploymentsUnderTest) == 0 {
+			ginkgo.Fail("No test deployments found.")
+		}
+
+		for _, deployment := range env.DeploymentsUnderTest {
+			ginkgo.By(fmt.Sprintf("Scaling Deployment=%s, Replicas=%d (ns=%s)",
+				deployment.Name, deployment.Replicas, deployment.Namespace))
+
 			replicaCount := deployment.Replicas
 
 			// ScaleIn, removing one pod from the replicaCount
@@ -390,9 +397,14 @@ func uncordonNode(node string) {
 func testPodAntiAffinity(env *config.TestEnvironment) {
 	ginkgo.When("CNF is designed in high availability mode ", func() {
 		ginkgo.It("Should set pod replica number greater than 1 and corresponding pod anti-affinity rules in deployment", func() {
-			for _, deployment := range env.TestDeployments {
-				defer results.RecordResult(identifiers.TestPodHighAvailabilityBestPractices)
+			if len(env.DeploymentsUnderTest) == 0 {
+				ginkgo.Fail("No test deployments found.")
+			}
 
+			for _, deployment := range env.DeploymentsUnderTest {
+				defer results.RecordResult(identifiers.TestPodHighAvailabilityBestPractices)
+				ginkgo.By(fmt.Sprintf("Testing Pod AntiAffinity on Deployment=%s, Replicas=%d (ns=%s)",
+					deployment.Name, deployment.Replicas, deployment.Namespace))
 				podAntiAffinity(deployment.Name, deployment.Namespace, deployment.Replicas)
 			}
 		})

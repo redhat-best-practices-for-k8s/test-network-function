@@ -67,13 +67,13 @@ func (deployment *DeploymentResource) GetLabels() map[string]string {
 	return deployment.Metadata.Labels
 }
 
-// GetTargetDeploymentsByNamespace will return all pods with a given label value. If `labelValue` is an empty string, all pods with that
-// label will be returned, regardless of the labels value.
+// GetTargetDeploymentsByNamespace will return all deployments that have pods with a given label.
 func GetTargetDeploymentsByNamespace(namespace string, targetLabel configsections.Label) (*DeploymentList, error) {
 	labelQuery := fmt.Sprintf("\"%s/%s\"==\"%s\"", targetLabel.Namespace, targetLabel.Name, targetLabel.Value)
 	jqArgs := fmt.Sprintf("'[.items[] | select(.spec.template.metadata.labels.%s)]'", labelQuery)
+	ocCmd := fmt.Sprintf("oc get %s -n %s -o json | jq %s", resourceTypeDeployment, namespace, jqArgs)
 
-	cmd := exec.Command("bash", "-c", "oc get", resourceTypeDeployment, "-n", namespace, "-o json | jq ", jqArgs)
+	cmd := exec.Command("bash", "-c", ocCmd)
 
 	out, err := cmd.Output()
 	if err != nil {

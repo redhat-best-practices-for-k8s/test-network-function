@@ -64,6 +64,8 @@ type TestPartner struct {
 
 // TestTarget is a collection of resources under test
 type TestTarget struct {
+	// DeploymentsUnderTest is the list of deployments that contain pods under test.
+	DeploymentsUnderTest []Deployment `yaml:"deploymentsUnderTest" json:"deploymentsUnderTest"`
 	// PodsUnderTest is the list of the pods that needs to be tested. Each entry is a single pod to be tested.
 	PodsUnderTest []Pod `yaml:"podsUnderTest,omitempty" json:"podsUnderTest,omitempty"`
 	// ContainerConfigList is the list of containers that needs to be tested.
