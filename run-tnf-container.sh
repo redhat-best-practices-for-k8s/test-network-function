@@ -175,7 +175,7 @@ while [[ $1 == -* ]]; do
       -n) if (($# > 1)); then
             export CONTAINER_NETWORK_MODE=$2; shift
           else
-            export CONTAINER_NETWORK_MODE ='host'; shift 2
+            export CONTAINER_NETWORK_MODE='host'; shift 2
           fi ;;
 
       -d) if (($# > 1)); then
