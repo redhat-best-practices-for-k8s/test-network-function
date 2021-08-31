@@ -361,3 +361,18 @@ func GetConfiguredPodTests() (cnfTests []string) {
 	log.WithField("cnfTests", cnfTests).Infof("got all tests from %s.", ConfiguredTestFile)
 	return cnfTests
 }
+
+// GetConfiguredOperatorTests loads the `configuredTestFile` and extracts
+// the names of test groups from it.
+func GetConfiguredOperatorTests() (operatorTests []string) {
+	configuredTests, err := LoadConfiguredTestFile(ConfiguredTestFile)
+	if err != nil {
+		log.Errorf("failed to load %s, continuing with no tests", ConfiguredTestFile)
+		return []string{}
+	}
+	for _, configuredTest := range configuredTests.OperatorTest {
+		operatorTests = append(operatorTests, configuredTest.Name)
+	}
+	log.WithField("operatorTests", operatorTests).Infof("got all tests from %s.", ConfiguredTestFile)
+	return operatorTests
+}
