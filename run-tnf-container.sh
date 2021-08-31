@@ -164,8 +164,7 @@ while [[ $1 == -* ]]; do
       -n) if (($# > 1)); then
             export CONTAINER_NETWORK_MODE=$2; shift 2
           else
-            echo "-n requires an argument" 1>&2
-            exit 1
+            export CONTAINER_NETWORK_MODE ='host'; shift 2
           fi ;;
       -d) if (($# > 1)); then
             export DNS_ARG=$2; shift 2
