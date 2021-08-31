@@ -125,7 +125,7 @@ When this variable is set, the run-cnf-suites.sh script will deploy/refresh the 
 Set this variable to deploy partner pods in a custom namespace instead of the default `tnf` namesapce.
 
 ```shell-script
-export NAMESPACE_TO_GENERATE="CNF-ns"
+export TNF_PARTNER_NAMESPACE="CNF-ns"
 ```
 
 
