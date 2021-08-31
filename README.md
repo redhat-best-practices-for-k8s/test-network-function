@@ -301,7 +301,7 @@ Run any combination of the suites keywords listed at in the [General tests](#gen
 ./run-cnf-suites.sh -f diagnostic lifecycle
 ./run-cnf-suites.sh -f diagnostic networking operator
 ./run-cnf-suites.sh -f diagnostic platform-alteration
-./run-cnf-suites.sh -f diagnostic generic lifecycle affiliated-certification operator
+./run-cnf-suites.sh -f diagnostic lifecycle affiliated-certification operator
 ```
 
 By default the claim file will be output into the same location as the test executable. The `-o` argument for
