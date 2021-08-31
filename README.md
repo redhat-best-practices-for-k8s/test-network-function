@@ -143,7 +143,7 @@ Optional arguments are:
 
 * `-i` gives a name to a custom TNF container image. Supports local images, as well as images from external registries.
 * `-k` gives a path to one or more kubeconfig files soto be used by the container to authenticate with the cluster. Paths must be separated by a colon.
-* `-n` gives the network mode of the container. Defaults to `bridge`. See the [docker run --network parameter reference](https://docs.docker.com/engine/reference/run/#network-settings) for more information on how to configure network settings.
+* `-n` gives the network mode of the container. Defaults set to `host`, if the node is in selinux enable then need to set the value to somthing that are not host. See the [docker run --network parameter reference](https://docs.docker.com/engine/reference/run/#network-settings) for more information on how to configure network settings.
 
 If `-k` is not specified, autodiscovery is performed.
 The autodiscovery first looks for paths in the `$KUBECONFIG` environment variable on the host system, and if the variable is not set or is empty, the default configuration stored in `$HOME/.kube/config` is checked.
