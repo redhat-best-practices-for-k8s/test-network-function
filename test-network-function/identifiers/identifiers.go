@@ -19,6 +19,7 @@ package identifiers
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/test-network-function/test-network-function-claim/pkg/claim"
 	"github.com/test-network-function/test-network-function/test-network-function/common"
@@ -179,16 +180,36 @@ var (
 		Url:     formTestURL(common.LifecycleTestKey, "container-shutdown"),
 		Version: versionOne,
 	}
-
+	// TestSysctlConfigsIdentifier ensures that the node's sysctl configs are consistent with the MachineConfig CR
+	TestSysctlConfigsIdentifier = claim.Identifier{
+		Url:     formTestURL(common.PlatformAlterationTestKey, "sysctl-config"),
+		Version: versionOne,
+	}
 	// TestScalingIdentifier ensures deployment scale in/out operations work correctly.
 	TestScalingIdentifier = claim.Identifier{
 		Url:     formTestURL(common.LifecycleTestKey, "scaling"),
+		Version: versionOne,
+	}
+	// TestIsRedHatReleaseIdentifier ensures platform is defined
+	TestIsRedHatReleaseIdentifier = claim.Identifier{
+		Url:     formTestURL(common.PlatformAlterationTestKey, "isredhat-release"),
+		Version: versionOne,
+	}
+	// TestClusterCsiInfoIdentifier list Cluster CSIdriver Identifier retrieves Third Party CSI driver info.
+	TestClusterCsiInfoIdentifier = claim.Identifier{
+		Url:     formTestURL(common.DiagnosticTestKey, "cluster-csi-info"),
 		Version: versionOne,
 	}
 )
 
 func formDescription(identifier claim.Identifier, description string) string {
 	return fmt.Sprintf("%s %s", identifier.Url, description)
+}
+
+// XformToGinkgoItIdentifier transform the claim.Identifier into a test Id that can be used to skip
+// specific tests
+func XformToGinkgoItIdentifier(identifier claim.Identifier) string {
+	return strings.ReplaceAll(strings.TrimPrefix(identifier.Url, url+"/"), "/", "-")
 }
 
 // Catalog is the JUnit testcase catalog of tests.
@@ -467,6 +488,15 @@ the changes for you.`,
 		Remediation: `Ensure that CNF Pod(s) utilize a configuration that supports High Availability.  
 			Additionally, ensure that there are available Nodes in the OpenShift cluster that can be utilized in the event that a host Node fails.`,
 	},
+	TestSysctlConfigsIdentifier: {
+		Identifier: TestSysctlConfigsIdentifier,
+		Type:       normativeResult,
+		Description: formDescription(TestPodRecreationIdentifier,
+			`tests that no one has changed the node's sysctl configs after the node
+			was created, the tests works by checking if the sysctl configs are consistent with the
+			MachineConfig CR which defines how the node should be configured`),
+		Remediation: `You should recreate the node or change the sysctls, recreating is recommended because there might be other unknown changes`,
+	},
 	TestScalingIdentifier: {
 		Identifier: TestScalingIdentifier,
 		Type:       normativeResult,
@@ -475,5 +505,18 @@ the changes for you.`,
 			First, The test starts getting the current replicaCount (N) of the deployment/s with the Pod Under Test. Then, it executes the 
 			scale-in oc command for (N-1) replicas. Lastly, it executes the scale-out oc command, restoring the original replicaCount of the deployment/s.`),
 		Remediation: `Make sure CNF deployments/replica sets can scale in/out successfully.`,
+	},
+	TestIsRedHatReleaseIdentifier: {
+		Identifier: TestIsRedHatReleaseIdentifier,
+		Type:       normativeResult,
+		Description: formDescription(TestIsRedHatReleaseIdentifier,
+			`The test verifies if the container base image is redhat.`),
+		Remediation: `build a new docker image that's based on UBI (redhat universal base image).`,
+	},
+	TestClusterCsiInfoIdentifier: {
+		Identifier: TestClusterCsiInfoIdentifier,
+		Type:       informativeResult,
+		Description: formDescription(TestClusterCsiInfoIdentifier,
+			`extracts CSI driver information in the cluster.`),
 	},
 }

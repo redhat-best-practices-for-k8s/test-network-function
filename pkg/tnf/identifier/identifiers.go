@@ -48,6 +48,7 @@ const (
 	currentKernelCmdlineArgsIdentifierURL = "http://test-network-function.com/tests/currentKernelCmdlineArgs"
 	grubKernelCmdlineArgsIdentifierURL    = "http://test-network-function.com/tests/grubKernelCmdlineArgs"
 	sysctlConfigFilesListIdentifierURL    = "http://test-network-function.com/tests/sysctlConfigFilesList"
+	sysctlAllConfigsArgsURL               = "http://test-network-function.com/tests/sysctlAllConfigsArgs"
 	readRemoteFileIdentifierURL           = "http://test-network-function.com/tests/readRemoteFile"
 	uncordonNodeIdentifierURL             = "http://test-network-function.com/tests/node/uncordon"
 	checkSubscriptionIdentifierURL        = "http://test-network-function.com/tests/operator/check-subscription"
@@ -56,8 +57,8 @@ const (
 	podantiaffinityIdentifierURL          = "http://test-network-function.com/tests/testPodHighAvailability"
 	shutdownIdentifierURL                 = "http://test-network-function.com/tests/shutdown"
 	scalingIdentifierURL                  = "http://test-network-function.com/tests/scaling"
-
-	versionOne = "v1.0.0"
+	csiDriverIdentifierURL                = "http://test-network-function.com/tests/csiDriver"
+	versionOne                            = "v1.0.0"
 )
 
 const (
@@ -557,6 +558,18 @@ var Catalog = map[string]TestCatalogEntry{
 			dependencies.OcBinaryName,
 		},
 	},
+	sysctlAllConfigsArgsURL: {
+		Identifier:  SysctlAllConfigsArgsIdentifier,
+		Description: "A test used to find all sysctl configuration args",
+		Type:        Normative,
+		IntrusionSettings: IntrusionSettings{
+			ModifiesSystem:           false,
+			ModificationIsPersistent: false,
+		},
+		BinaryDependencies: []string{
+			dependencies.SysctlBinaryName,
+		},
+	},
 	scalingIdentifierURL: {
 		Identifier: ScalingIdentifier,
 		Description: "A test to check the deployments scale in/out. The tests issues the oc scale " +
@@ -565,6 +578,18 @@ var Catalog = map[string]TestCatalogEntry{
 		Type: Normative,
 		IntrusionSettings: IntrusionSettings{
 			ModifiesSystem:           true,
+			ModificationIsPersistent: false,
+		},
+		BinaryDependencies: []string{
+			dependencies.OcBinaryName,
+		},
+	},
+	csiDriverIdentifierURL: {
+		Identifier:  CSIDriverIdentifier,
+		Description: "extracts the csi driver info in the cluser",
+		Type:        Normative,
+		IntrusionSettings: IntrusionSettings{
+			ModifiesSystem:           false,
 			ModificationIsPersistent: false,
 		},
 		BinaryDependencies: []string{
@@ -789,8 +814,21 @@ var ShutdownURLIdentifier = Identifier{
 	SemanticVersion: versionOne,
 }
 
+// SysctlAllConfigsArgsIdentifier is the Identifier used to represent a test that checks all args in all sysctl conf files ordered
+// in the same way as they are loaded by the os
+var SysctlAllConfigsArgsIdentifier = Identifier{
+	URL:             sysctlAllConfigsArgsURL,
+	SemanticVersion: versionOne,
+}
+
 // ScalingIdentifier is the Identifier used to represent a test that checks deployments scale in/out
 var ScalingIdentifier = Identifier{
 	URL:             scalingIdentifierURL,
+	SemanticVersion: versionOne,
+}
+
+// CSIDriverIdentifier is the Identifier used to represent the CSI driver test case.
+var CSIDriverIdentifier = Identifier{
+	URL:             csiDriverIdentifierURL,
 	SemanticVersion: versionOne,
 }

@@ -43,6 +43,7 @@ else
 endif
 
 COMMON_GO_ARGS=-race
+GIT_COMMIT=$(shell git rev-list -1 HEAD)
 
 # Run the unit tests and build all binaries
 build:
@@ -95,11 +96,11 @@ build-catalog-md:
 
 # build the CNF test binary
 build-cnf-tests:
-	PATH=${PATH}:${GOBIN} ginkgo build ./test-network-function
+	PATH=${PATH}:${GOBIN} ginkgo build -ldflags "-X github.com/test-network-function/test-network-function/test-network-function.GitCommit=${GIT_COMMIT}" ./test-network-function 
 	make build-catalog-md
 
 build-cnf-tests-debug:
-	PATH=${PATH}:${GOBIN} ginkgo build -gcflags "all=-N -l" -ldflags "-extldflags '-z relro -z now'" ./test-network-function
+	PATH=${PATH}:${GOBIN} ginkgo build -gcflags "all=-N -l" -ldflags "-X github.com/test-network-function/test-network-function/test-network-function.GitCommit=${GIT_COMMIT} -extldflags '-z relro -z now'" ./test-network-function
 	make build-catalog-md
 
 # run all CNF tests

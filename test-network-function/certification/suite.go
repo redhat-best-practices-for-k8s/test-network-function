@@ -41,43 +41,58 @@ var certAPIClient api.CertAPIClient
 
 var _ = ginkgo.Describe(common.AffiliatedCertTestKey, func() {
 	if testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusStrings, common.AffiliatedCertTestKey) {
-
-		// Query API for certification status of listed containers
-		ginkgo.When("getting certification status", func() {
-			conf := configpkg.GetConfigInstance()
-			cnfsToQuery := conf.CertifiedContainerInfo
-			if len(cnfsToQuery) > 0 {
-				certAPIClient = api.NewHTTPClient()
-				for _, cnfRequestInfo := range cnfsToQuery {
-					cnf := cnfRequestInfo
-					// Care: this test takes some time to run, failures at later points while before this has finished may be reported as a failure here. Read the failure reason carefully.
-					ginkgo.It(fmt.Sprintf("container %s/%s should eventually be verified as certified", cnf.Repository, cnf.Name), func() {
-						defer results.RecordResult(identifiers.TestContainerIsCertifiedIdentifier)
-						cnf := cnf // pin
-						gomega.Eventually(func() bool {
-							isCertified := certAPIClient.IsContainerCertified(cnf.Repository, cnf.Name)
-							return isCertified
-						}, eventuallyTimeoutSeconds, interval).Should(gomega.BeTrue())
-					})
-				}
-			}
+		env := configpkg.GetTestEnvironment()
+		ginkgo.BeforeEach(func() {
+			env.LoadAndRefresh()
 		})
 
-		operatorsToQuery := configpkg.GetConfigInstance().CertifiedOperatorInfo
+		testContainerCertificationStatus()
+		testOperatorCertificationStatus()
+	}
+})
+
+func testContainerCertificationStatus() {
+	// Query API for certification status of listed containers
+	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestContainerIsCertifiedIdentifier)
+	ginkgo.It(testID, func() {
+		env := configpkg.GetTestEnvironment()
+		cnfsToQuery := env.Config.CertifiedContainerInfo
+
+		ginkgo.By(fmt.Sprintf("Getting certification status. Number of containers to check: %d", len(cnfsToQuery)))
+		defer results.RecordResult(identifiers.TestContainerIsCertifiedIdentifier)
+
+		if len(cnfsToQuery) > 0 {
+			certAPIClient = api.NewHTTPClient()
+			for _, cnf := range cnfsToQuery {
+				cnf := cnf // pin
+				// Care: this test takes some time to run, failures at later points while before this has finished may be reported as a failure here. Read the failure reason carefully.
+				ginkgo.By(fmt.Sprintf("container %s/%s should eventually be verified as certified", cnf.Repository, cnf.Name))
+				gomega.Eventually(func() bool {
+					isCertified := certAPIClient.IsContainerCertified(cnf.Repository, cnf.Name)
+					return isCertified
+				}, eventuallyTimeoutSeconds, interval).Should(gomega.BeTrue())
+			}
+		}
+	})
+}
+
+func testOperatorCertificationStatus() {
+	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestOperatorIsCertifiedIdentifier)
+	ginkgo.It(testID, func() {
+		operatorsToQuery := configpkg.GetTestEnvironment().Config.CertifiedOperatorInfo
+		ginkgo.By(fmt.Sprintf("Verify operator as certified. Number of operators to check: %d", len(operatorsToQuery)))
+		defer results.RecordResult(identifiers.TestOperatorIsCertifiedIdentifier)
 		if len(operatorsToQuery) > 0 {
 			certAPIClient := api.NewHTTPClient()
 			for _, certified := range operatorsToQuery {
+				ginkgo.By(fmt.Sprintf("should eventually be verified as certified (operator %s/%s)", certified.Organization, certified.Name))
 				// Care: this test takes some time to run, failures at later points while before this has finished may be reported as a failure here. Read the failure reason carefully.
-				ginkgo.It(fmt.Sprintf("should eventually be verified as certified (operator %s/%s)", certified.Organization, certified.Name), func() {
-					defer results.RecordResult(identifiers.TestOperatorIsCertifiedIdentifier)
-					certified := certified // pin
-					gomega.Eventually(func() bool {
-						isCertified := certAPIClient.IsOperatorCertified(certified.Organization, certified.Name)
-						return isCertified
-					}, eventuallyTimeoutSeconds, interval).Should(gomega.BeTrue())
-				})
+				certified := certified // pin
+				gomega.Eventually(func() bool {
+					isCertified := certAPIClient.IsOperatorCertified(certified.Organization, certified.Name)
+					return isCertified
+				}, eventuallyTimeoutSeconds, interval).Should(gomega.BeTrue())
 			}
 		}
-
-	}
-})
+	})
+}

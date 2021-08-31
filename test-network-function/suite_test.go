@@ -37,6 +37,7 @@ import (
 
 	_ "github.com/test-network-function/test-network-function/test-network-function/accesscontrol"
 	_ "github.com/test-network-function/test-network-function/test-network-function/certification"
+	"github.com/test-network-function/test-network-function/test-network-function/common"
 	"github.com/test-network-function/test-network-function/test-network-function/diagnostic"
 	_ "github.com/test-network-function/test-network-function/test-network-function/generic"
 	_ "github.com/test-network-function/test-network-function/test-network-function/lifecycle"
@@ -48,6 +49,7 @@ import (
 )
 
 const (
+	programVersion                       = "3.0"
 	claimFileName                        = "claim.json"
 	claimFilePermissions                 = 0644
 	claimPathFlagKey                     = "claimloc"
@@ -67,6 +69,7 @@ const (
 var (
 	claimPath *string
 	junitPath *string
+	GitCommit string
 )
 
 func init() {
@@ -105,11 +108,13 @@ func loadJUnitXMLIntoMap(result map[string]interface{}, junitFilename, key strin
 	}
 }
 
-// TestTest invokes the CNF Certification Test Suite.
+//nolint:funlen // TestTest invokes the CNF Certification Test Suite.
 func TestTest(t *testing.T) {
 	// set up input flags and register failure handlers.
 	flag.Parse()
 	gomega.RegisterFailHandler(ginkgo.Fail)
+	log.Info("Version: ", programVersion, " ( ", GitCommit, " )")
+	common.SetLogLevel()
 
 	// Initialize the claim with the start time, tnf version, etc.
 	claimRoot := createClaimRoot()
@@ -184,7 +189,7 @@ func appendCNFFeatureValidationReportResults(junitPath *string, junitMap map[str
 // marshalConfigurations creates a byte stream representation of the test configurations.  In the event of an error,
 // this method fatally fails.
 func marshalConfigurations() []byte {
-	configurations, err := j.Marshal(config.GetConfigInstance())
+	configurations, err := j.Marshal(config.GetTestEnvironment().Config)
 	if err != nil {
 		log.Fatalf("error converting configurations to JSON: %v", err)
 	}
@@ -223,10 +228,12 @@ func generateNodes() map[string]interface{} {
 		nodeSummaryField = "nodeSummary"
 		cniPluginsField  = "cniPlugins"
 		nodesHwInfo      = "nodesHwInfo"
+		csiDriverInfo    = "csiDriver"
 	)
 	nodes := map[string]interface{}{}
 	nodes[nodeSummaryField] = diagnostic.GetNodeSummary()
 	nodes[cniPluginsField] = diagnostic.GetCniPlugins()
 	nodes[nodesHwInfo] = diagnostic.GetNodesHwInfo()
+	nodes[csiDriverInfo] = diagnostic.GetCsiDriverInfo()
 	return nodes
 }

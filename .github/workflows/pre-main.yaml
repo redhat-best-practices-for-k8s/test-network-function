@@ -19,6 +19,9 @@ env:
   TNF_OUTPUT_DIR: /tmp/tnf/output
   TNF_SRC_URL: 'https://github.com/${{ github.repository }}'
   TESTING_CMD_PARAMS: '-n host -i ${REGISTRY_LOCAL}/${IMAGE_NAME}:${IMAGE_TAG} -t ${TNF_CONFIG_DIR} -o ${TNF_OUTPUT_DIR}'
+  NAMESPACE_TO_GENERATE: tnf
+  TNF_PARTNER_DIR: '/usr/tnf-partner'
+  TNF_PARTNER_SRC_DIR: '${TNF_PARTNER_DIR}/src'
 
 jobs:
   lint:
@@ -42,7 +45,7 @@ jobs:
       - name: Install golint
         run: go get golang.org/x/lint/golint
 
-      # TODO: golangci-lint team recommends using a GitHub Action to perform golangci-lint responsibilities.  However,
+      # TODO: golangci-lint team recommends using a GitHub Action to perform golangci-lint responsibilities.  However
       # there does not appear to be a way to honor our existing .golangci.yml.  For now, mimic developer behavior.
       - name: Install golangci-lint
         run: curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.39.0
@@ -117,10 +120,10 @@ jobs:
       # Perform smoke tests.
 
       - name: 'Test: Run diagnostic test suite'
-        run: ./run-cnf-suites.sh diagnostic
+        run: ./run-cnf-suites.sh --focus diagnostic
 
       - name: 'Test: Run test suites'
-        run: ./run-cnf-suites.sh access-control lifecycle platform observablility networking
+        run: ./run-cnf-suites.sh --focus access-control lifecycle platform observablility networking affiliated-certification operator
 
       # Perform smoke tests using a TNF container.
 
@@ -141,10 +144,10 @@ jobs:
         shell: bash
 
       - name: 'Test: Run diagnostic test suite in a TNF container'
-        run: ./run-tnf-container.sh ${{ env.TESTING_CMD_PARAMS }} diagnostic
+        run: ./run-tnf-container.sh ${{ env.TESTING_CMD_PARAMS }} -f diagnostic
 
       - name: 'Test: Run generic test suite in a TNF container'
-        run: ./run-tnf-container.sh ${{ env.TESTING_CMD_PARAMS }} generic access-control
+        run: ./run-tnf-container.sh ${{ env.TESTING_CMD_PARAMS }} -f access-control lifecycle platform observablility networking affiliated-certification operator
 
       # Push the new unstable TNF image to Quay.io.
 

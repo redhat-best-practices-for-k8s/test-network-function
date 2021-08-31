@@ -24,12 +24,14 @@ import (
 
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/generic"
 
+	"github.com/test-network-function/test-network-function/test-network-function/common"
 	"github.com/test-network-function/test-network-function/test-network-function/identifiers"
 	"github.com/test-network-function/test-network-function/test-network-function/results"
 
 	"github.com/onsi/ginkgo"
 	ginkgoconfig "github.com/onsi/ginkgo/config"
 	"github.com/onsi/gomega"
+	log "github.com/sirupsen/logrus"
 	"github.com/test-network-function/test-network-function/internal/api"
 	"github.com/test-network-function/test-network-function/pkg/config"
 	"github.com/test-network-function/test-network-function/pkg/config/configsections"
@@ -75,6 +77,11 @@ var (
 
 var _ = ginkgo.Describe(testSpecName, func() {
 	if testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusStrings, testSpecName) {
+		env := config.GetTestEnvironment()
+		ginkgo.BeforeEach(func() {
+			env.LoadAndRefresh()
+		})
+
 		defer ginkgo.GinkgoRecover()
 		ginkgo.When("a local shell is spawned", func() {
 			goExpectSpawner := interactive.NewGoExpectSpawner()
@@ -95,17 +102,15 @@ var _ = ginkgo.Describe(testSpecName, func() {
 
 // testOperatorsAreInstalledViaOLM ensures all configured operators have a proper OLM subscription.
 func testOperatorsAreInstalledViaOLM() {
-	_, operatorsInTest := getConfig()
-	for _, operatorInTest := range operatorsInTest {
-		ginkgo.Context("an operator is installed", func() {
-			ginkgo.When("subscriptions are polled", func() {
-				ginkgo.It(fmt.Sprintf("%s in namespace %s Should have a valid subscription", operatorInTest.SubscriptionName, operatorInTest.Namespace), func() {
-					defer results.RecordResult(identifiers.TestOperatorIsInstalledViaOLMIdentifier)
-					testOperatorIsInstalledViaOLM(operatorInTest.SubscriptionName, operatorInTest.Namespace)
-				})
-			})
-		})
-	}
+	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestOperatorIsInstalledViaOLMIdentifier)
+	ginkgo.It(testID, func() {
+		_, operatorsInTest := getConfig()
+		for _, operatorInTest := range operatorsInTest {
+			defer results.RecordResult(identifiers.TestOperatorIsInstalledViaOLMIdentifier)
+			ginkgo.By(fmt.Sprintf("%s in namespace %s Should have a valid subscription", operatorInTest.SubscriptionName, operatorInTest.Namespace))
+			testOperatorIsInstalledViaOLM(operatorInTest.SubscriptionName, operatorInTest.Namespace)
+		}
+	})
 }
 
 // testOperatorIsInstalledViaOLM tests that an operator is installed via OLM.
@@ -131,54 +136,63 @@ func testOperatorIsInstalledViaOLM(subscriptionName, subscriptionNamespace strin
 }
 
 func getConfig() ([]configsections.CertifiedOperatorRequestInfo, []configsections.Operator) {
-	conf := config.GetConfigInstance()
+	conf := config.GetTestEnvironment().Config
 	operatorsToQuery := conf.CertifiedOperatorInfo
 	operatorsInTest := conf.Operators
 	return operatorsToQuery, operatorsInTest
 }
 
 func itRunsTestsOnOperator() {
-	operatorsToQuery, operatorsInTest := getConfig()
-	if len(operatorsToQuery) > 0 {
-		certAPIClient := api.NewHTTPClient()
-		for _, certified := range operatorsToQuery {
-			// Care: this test takes some time to run, failures at later points while before this has finished may be reported as a failure here. Read the failure reason carefully.
-			ginkgo.It(fmt.Sprintf("should eventually be verified as certified (operator %s/%s)", certified.Organization, certified.Name), func() {
+	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestOperatorIsCertifiedIdentifier)
+	ginkgo.It(testID, func() {
+		operatorsToQuery, operatorsInTest := getConfig()
+		if len(operatorsToQuery) > 0 {
+			certAPIClient := api.NewHTTPClient()
+			for _, certified := range operatorsToQuery {
+				// Care: this test takes some time to run, failures at later points while before this has finished may be reported as a failure here. Read the failure reason carefully.
+				ginkgo.By(fmt.Sprintf("should eventually be verified as certified (operator %s/%s)", certified.Organization, certified.Name))
 				defer results.RecordResult(identifiers.TestOperatorIsCertifiedIdentifier)
 				certified := certified // pin
 				gomega.Eventually(func() bool {
 					isCertified := certAPIClient.IsOperatorCertified(certified.Organization, certified.Name)
 					return isCertified
 				}, eventuallyTimeoutSeconds, interval).Should(gomega.BeTrue())
-			})
-		}
-	}
-	gomega.Expect(operatorsInTest).ToNot(gomega.BeNil())
-	for _, op := range operatorsInTest {
-		// TODO: Gather facts for operator
-		for _, testType := range op.Tests {
-			testFile, err := testcases.LoadConfiguredTestFile(configuredTestFile)
-			gomega.Expect(testFile).ToNot(gomega.BeNil())
-			gomega.Expect(err).To(gomega.BeNil())
-			testConfigure := testcases.ContainsConfiguredTest(testFile.OperatorTest, testType)
-			renderedTestCase, err := testConfigure.RenderTestCaseSpec(testcases.Operator, testType)
-			gomega.Expect(err).To(gomega.BeNil())
-			gomega.Expect(renderedTestCase).ToNot(gomega.BeNil())
-			for _, testCase := range renderedTestCase.TestCase {
-				if testCase.SkipTest {
-					continue
-				}
-				if testCase.ExpectedType == testcases.Function {
-					for _, val := range testCase.ExpectedStatus {
-						testCase.ExpectedStatusFn(op.Name, testcases.StatusFunctionType(val))
-					}
-				}
-				name := agrName(op.Name, op.SubscriptionName, testCase.Name)
-				args := []interface{}{name, op.Namespace}
-				runTestsOnOperator(args, name, op.Namespace, testCase)
 			}
 		}
-	}
+		if common.IsMinikube() {
+			log.Info("Minikube detected: skipping operators test.")
+			return
+		}
+		if len(operatorsInTest) == 0 {
+			ginkgo.Fail("No operators to test were discovered.")
+		}
+
+		for _, op := range operatorsInTest {
+			// TODO: Gather facts for operator
+			for _, testType := range op.Tests {
+				testFile, err := testcases.LoadConfiguredTestFile(configuredTestFile)
+				gomega.Expect(testFile).ToNot(gomega.BeNil())
+				gomega.Expect(err).To(gomega.BeNil())
+				testConfigure := testcases.ContainsConfiguredTest(testFile.OperatorTest, testType)
+				renderedTestCase, err := testConfigure.RenderTestCaseSpec(testcases.Operator, testType)
+				gomega.Expect(err).To(gomega.BeNil())
+				gomega.Expect(renderedTestCase).ToNot(gomega.BeNil())
+				for _, testCase := range renderedTestCase.TestCase {
+					if testCase.SkipTest {
+						continue
+					}
+					if testCase.ExpectedType == testcases.Function {
+						for _, val := range testCase.ExpectedStatus {
+							testCase.ExpectedStatusFn(op.Name, testcases.StatusFunctionType(val))
+						}
+					}
+					name := agrName(op.Name, op.SubscriptionName, testCase.Name)
+					args := []interface{}{name, op.Namespace}
+					runTestsOnOperator(args, name, op.Namespace, testCase)
+				}
+			}
+		}
+	})
 }
 
 func agrName(operatorName, subName, testName string) string {
@@ -191,18 +205,17 @@ func agrName(operatorName, subName, testName string) string {
 
 //nolint:gocritic // ignore hugeParam error. Pointers to loop iterator vars are bad and `testCmd` is likely to be such.
 func runTestsOnOperator(args []interface{}, name, namespace string, testCmd testcases.BaseTestCase) {
-	ginkgo.When(fmt.Sprintf("under test is: %s/%s ", namespace, name), func() {
-		ginkgo.It(fmt.Sprintf("tests for: %s", testCmd.Name), func() {
-			defer results.RecordResult(identifiers.TestOperatorInstallStatusIdentifier)
-			cmdArgs := strings.Split(fmt.Sprintf(testCmd.Command, args...), " ")
-			opInTest := operator.NewOperator(cmdArgs, name, namespace, testCmd.ExpectedStatus, testCmd.ResultType, testCmd.Action, defaultTimeout)
-			gomega.Expect(opInTest).ToNot(gomega.BeNil())
-			test, err := tnf.NewTest(context.GetExpecter(), opInTest, []reel.Handler{opInTest}, context.GetErrorChannel())
-			gomega.Expect(err).To(gomega.BeNil())
-			gomega.Expect(test).ToNot(gomega.BeNil())
-			testResult, err := test.Run()
-			gomega.Expect(err).To(gomega.BeNil())
-			gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
-		})
+	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestOperatorInstallStatusIdentifier) + "-" + testCmd.Name
+	ginkgo.It(testID, func() {
+		defer results.RecordResult(identifiers.TestOperatorInstallStatusIdentifier)
+		cmdArgs := strings.Split(fmt.Sprintf(testCmd.Command, args...), " ")
+		opInTest := operator.NewOperator(cmdArgs, name, namespace, testCmd.ExpectedStatus, testCmd.ResultType, testCmd.Action, defaultTimeout)
+		gomega.Expect(opInTest).ToNot(gomega.BeNil())
+		test, err := tnf.NewTest(context.GetExpecter(), opInTest, []reel.Handler{opInTest}, context.GetErrorChannel())
+		gomega.Expect(err).To(gomega.BeNil())
+		gomega.Expect(test).ToNot(gomega.BeNil())
+		testResult, err := test.Run()
+		gomega.Expect(err).To(gomega.BeNil())
+		gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
 	})
 }

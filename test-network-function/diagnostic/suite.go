@@ -11,12 +11,14 @@ import (
 	"github.com/test-network-function/test-network-function/test-network-function/results"
 
 	"github.com/onsi/ginkgo"
+	ginkgoconfig "github.com/onsi/ginkgo/config"
 	"github.com/onsi/gomega"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/generic"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodedebug"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodenames"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
+	"github.com/test-network-function/test-network-function/pkg/tnf/testcases"
 )
 
 const (
@@ -35,8 +37,17 @@ var (
 
 	nodesHwInfo = NodesHwInfo{}
 
+	// csiDriver stores the csi driver JSON output of `oc get csidriver -o json`
+	csiDriver = make(map[string]interface{})
+
 	// nodesTestPath is the file location of the nodes.json test case relative to the project root.
 	nodesTestPath = path.Join("pkg", "tnf", "handlers", "node", "nodes.json")
+
+	// csiDriverTestPath is the file location of the csidriver.json test case relative to the project root.
+	csiDriverTestPath = path.Join("pkg", "tnf", "handlers", "csidriver", "csidriver.json")
+
+	// relativeCsiDriverTestPath is the relative path to the csidriver.json test case.
+	relativeCsiDriverTestPath = path.Join(pathRelativeToRoot, csiDriverTestPath)
 
 	// pathRelativeToRoot is used to calculate relative filepaths for the `test-network-function` executable entrypoint.
 	pathRelativeToRoot = path.Join("..")
@@ -52,43 +63,56 @@ var (
 )
 
 var _ = ginkgo.Describe(common.DiagnosticTestKey, func() {
-	ginkgo.When("a cluster is set up and installed with OpenShift", func() {
-		ginkgo.It("should report all available nodeSummary", func() {
-			defer results.RecordResult(identifiers.TestExtractNodeInformationIdentifier)
-			context := common.GetContext()
+	if testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusStrings, common.DiagnosticTestKey) {
+		ginkgo.When("a cluster is set up and installed with OpenShift", func() {
+			testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestExtractNodeInformationIdentifier)
+			ginkgo.It(testID, func() {
+				defer results.RecordResult(identifiers.TestExtractNodeInformationIdentifier)
+				context := common.GetContext()
 
-			test, handlers, jsonParseResult, err := generic.NewGenericFromJSONFile(relativeNodesTestPath, relativeSchemaPath)
-			gomega.Expect(err).To(gomega.BeNil())
-			gomega.Expect(jsonParseResult).ToNot(gomega.BeNil())
-			gomega.Expect(jsonParseResult.Valid()).To(gomega.BeTrue())
-			gomega.Expect(handlers).ToNot(gomega.BeNil())
-			gomega.Expect(test).ToNot(gomega.BeNil())
+				test, handlers, jsonParseResult, err := generic.NewGenericFromJSONFile(relativeNodesTestPath, relativeSchemaPath)
+				gomega.Expect(err).To(gomega.BeNil())
+				gomega.Expect(jsonParseResult).ToNot(gomega.BeNil())
+				gomega.Expect(jsonParseResult.Valid()).To(gomega.BeTrue())
+				gomega.Expect(handlers).ToNot(gomega.BeNil())
+				gomega.Expect(test).ToNot(gomega.BeNil())
 
-			tester, err := tnf.NewTest(context.GetExpecter(), *test, handlers, context.GetErrorChannel())
-			gomega.Expect(err).To(gomega.BeNil())
-			gomega.Expect(tester).ToNot(gomega.BeNil())
+				tester, err := tnf.NewTest(context.GetExpecter(), *test, handlers, context.GetErrorChannel())
+				gomega.Expect(err).To(gomega.BeNil())
+				gomega.Expect(tester).ToNot(gomega.BeNil())
 
-			result, err := tester.Run()
-			gomega.Expect(err).To(gomega.BeNil())
-			gomega.Expect(result).To(gomega.Equal(tnf.SUCCESS))
+				result, err := tester.Run()
+				gomega.Expect(err).To(gomega.BeNil())
+				gomega.Expect(result).To(gomega.Equal(tnf.SUCCESS))
 
-			genericTest := (*test).(*generic.Generic)
-			gomega.Expect(genericTest).ToNot(gomega.BeNil())
-			matches := genericTest.Matches
-			gomega.Expect(len(matches)).To(gomega.Equal(1))
-			match := genericTest.GetMatches()[0]
-			err = json.Unmarshal([]byte(match.Match), &nodeSummary)
-			gomega.Expect(err).To(gomega.BeNil())
+				genericTest := (*test).(*generic.Generic)
+				gomega.Expect(genericTest).ToNot(gomega.BeNil())
+				matches := genericTest.Matches
+				gomega.Expect(len(matches)).To(gomega.Equal(1))
+				match := genericTest.GetMatches()[0]
+				err = json.Unmarshal([]byte(match.Match), &nodeSummary)
+				gomega.Expect(err).To(gomega.BeNil())
+			})
+			ginkgo.By("should report all CNI plugins")
+			testID = identifiers.XformToGinkgoItIdentifier(identifiers.TestListCniPluginsIdentifier)
+			ginkgo.It(testID, func() {
+				defer results.RecordResult(identifiers.TestListCniPluginsIdentifier)
+				testCniPlugins()
+			})
+			ginkgo.By("should report nodes HW info")
+			testID = identifiers.XformToGinkgoItIdentifier(identifiers.TestNodesHwInfoIdentifier)
+			ginkgo.It(testID, func() {
+				defer results.RecordResult(identifiers.TestNodesHwInfoIdentifier)
+				testNodesHwInfo()
+			})
+			ginkgo.By("should report cluster CSI driver info")
+			testID = identifiers.XformToGinkgoItIdentifier(identifiers.TestClusterCsiInfoIdentifier)
+			ginkgo.It(testID, func() {
+				defer results.RecordResult(identifiers.TestClusterCsiInfoIdentifier)
+				listClusterCSIInfo()
+			})
 		})
-		ginkgo.It("should report all CNI plugins", func() {
-			defer results.RecordResult(identifiers.TestListCniPluginsIdentifier)
-			testCniPlugins()
-		})
-		ginkgo.It("should report nodes HW info", func() {
-			defer results.RecordResult(identifiers.TestNodesHwInfoIdentifier)
-			testNodesHwInfo()
-		})
-	})
+	}
 })
 
 // CniPlugin holds info about a CNI plugin
@@ -125,6 +149,11 @@ func GetCniPlugins() []CniPlugin {
 // GetNodesHwInfo returns an object with HW info of one master and one worker
 func GetNodesHwInfo() NodesHwInfo {
 	return nodesHwInfo
+}
+
+// GetCsiDriverInfo returns the CSI driver info of running `oc get csidriver -o json`.
+func GetCsiDriverInfo() map[string]interface{} {
+	return csiDriver
 }
 
 func getFirstNode(labelFilter map[string]*string) string {
@@ -270,4 +299,32 @@ func getNodeLspci(nodeName string) []string {
 	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
 	gomega.Expect(err).To(gomega.BeNil())
 	return tester.Processed
+}
+
+// check CSI driver info in cluster
+func listClusterCSIInfo() {
+	if common.IsMinikube() {
+		ginkgo.Skip("CSI is not checked in minikube")
+	}
+	context := common.GetContext()
+	test, handlers, result, err := generic.NewGenericFromJSONFile(relativeCsiDriverTestPath, common.RelativeSchemaPath)
+	gomega.Expect(err).To(gomega.BeNil())
+	gomega.Expect(result).ToNot(gomega.BeNil())
+	gomega.Expect(result.Valid()).To(gomega.BeTrue())
+	gomega.Expect(handlers).ToNot(gomega.BeNil())
+	gomega.Expect(len(handlers)).To(gomega.Equal(1))
+	gomega.Expect(test).ToNot(gomega.BeNil())
+	tester, err := tnf.NewTest(context.GetExpecter(), *test, handlers, context.GetErrorChannel())
+	gomega.Expect(err).To(gomega.BeNil())
+	gomega.Expect(tester).ToNot(gomega.BeNil())
+	testResult, err := tester.Run()
+	gomega.Expect(err).To(gomega.BeNil())
+	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
+	genericTest := (*test).(*generic.Generic)
+	gomega.Expect(genericTest).ToNot(gomega.BeNil())
+	matches := genericTest.Matches
+	gomega.Expect(len(matches)).To(gomega.Equal(1))
+	match := genericTest.GetMatches()[0]
+	err = json.Unmarshal([]byte(match.Match), &csiDriver)
+	gomega.Expect(err).To(gomega.BeNil())
 }

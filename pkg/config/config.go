@@ -20,25 +20,28 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"time"
 
+	"github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
 	"github.com/test-network-function/test-network-function/pkg/config/autodiscover"
 	"github.com/test-network-function/test-network-function/pkg/config/configsections"
+	"github.com/test-network-function/test-network-function/pkg/tnf"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/ipaddr"
+	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
+	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
 	"gopkg.in/yaml.v2"
 )
 
 const (
 	configurationFilePathEnvironmentVariableKey = "TNF_CONFIGURATION_PATH"
 	defaultConfigurationFilePath                = "tnf_config.yml"
+	defaultTimeoutSeconds                       = 10
 )
 
 var (
-	// configInstance is the singleton instance of loaded config, accessed through GetConfigInstance
-	configInstance configsections.TestConfiguration
-	// loaded tracks if the config has been loaded to prevent it being reloaded.
-	loaded = false
-	// set when an intrusive test has done something that would cause Pod/Container to be recreated
-	needsRefresh = false
+	// testEnvironment is the singleton instance of `TestEnvironment`, accessed through `GetTestEnvironment`
+	testEnvironment TestEnvironment
 )
 
 // getConfigurationFilePathFromEnvironment returns the test configuration file.
@@ -50,9 +53,82 @@ func getConfigurationFilePathFromEnvironment() string {
 	return defaultConfigurationFilePath
 }
 
+// Container is a construct which follows the Container design pattern.  Essentially, a Container holds the
+// pertinent information to perform a test against or using an Operating System Container.  This includes facets such
+// as the reference to the interactive.Oc instance, the reference to the test configuration, and the default network
+// IP address.
+type Container struct {
+	ContainerConfiguration  configsections.ContainerConfig
+	Oc                      *interactive.Oc
+	DefaultNetworkIPAddress string
+	ContainerIdentifier     configsections.ContainerIdentifier
+}
+
+// DefaultTimeout for creating new interactive sessions (oc, ssh, tty)
+var DefaultTimeout = time.Duration(defaultTimeoutSeconds) * time.Second
+
+// Helper used to instantiate an OpenShift Client Session.
+func getOcSession(pod, container, namespace string, timeout time.Duration, options ...interactive.Option) *interactive.Oc {
+	// Spawn an interactive OC shell using a goroutine (needed to avoid cross expect.Expecter interaction).  Extract the
+	// Oc reference from the goroutine through a channel.  Performs basic sanity checking that the Oc session is set up
+	// correctly.
+	var containerOc *interactive.Oc
+	ocChan := make(chan *interactive.Oc)
+	var chOut <-chan error
+
+	goExpectSpawner := interactive.NewGoExpectSpawner()
+	var spawner interactive.Spawner = goExpectSpawner
+
+	go func() {
+		oc, outCh, err := interactive.SpawnOc(&spawner, pod, container, namespace, timeout, options...)
+		gomega.Expect(outCh).ToNot(gomega.BeNil())
+		gomega.Expect(err).To(gomega.BeNil())
+		ocChan <- oc
+	}()
+
+	// Set up a go routine which reads from the error channel
+	go func() {
+		err := <-chOut
+		gomega.Expect(err).To(gomega.BeNil())
+	}()
+
+	containerOc = <-ocChan
+
+	gomega.Expect(containerOc).ToNot(gomega.BeNil())
+
+	return containerOc
+}
+
+// Extract a container IP address for a particular device.  This is needed since container default network IP address
+// is served by dhcp, and thus is ephemeral.
+func getContainerDefaultNetworkIPAddress(oc *interactive.Oc, dev string) string {
+	log.Infof("Getting IP Information for: %s(%s) in ns=%s", oc.GetPodName(), oc.GetPodContainerName(), oc.GetPodNamespace())
+	ipTester := ipaddr.NewIPAddr(DefaultTimeout, dev)
+	test, err := tnf.NewTest(oc.GetExpecter(), ipTester, []reel.Handler{ipTester}, oc.GetErrorChannel())
+	gomega.Expect(err).To(gomega.BeNil())
+	test.RunAndValidateTest()
+	return ipTester.GetIPv4Address()
+}
+
+// TestEnvironment includes the representation of the current state of the test targets and parters as well as the test configuration
+type TestEnvironment struct {
+	ContainersUnderTest map[configsections.ContainerIdentifier]*Container
+	PartnerContainers   map[configsections.ContainerIdentifier]*Container
+	PodsUnderTest       []configsections.Pod
+	// ContainersToExcludeFromConnectivityTests is a set used for storing the containers that should be excluded from
+	// connectivity testing.
+	ContainersToExcludeFromConnectivityTests map[configsections.ContainerIdentifier]interface{}
+	TestOrchestrator                         *Container
+	Config                                   configsections.TestConfiguration
+	// loaded tracks if the config has been loaded to prevent it being reloaded.
+	loaded bool
+	// set when an intrusive test has done something that would cause Pod/Container to be recreated
+	needsRefresh bool
+}
+
 // loadConfigFromFile loads a config file once.
-func loadConfigFromFile(filePath string) error {
-	if loaded {
+func (env *TestEnvironment) loadConfigFromFile(filePath string) error {
+	if env.loaded {
 		return fmt.Errorf("cannot load config from file when a config is already loaded")
 	}
 	log.Info("Loading config from file: ", filePath)
@@ -62,39 +138,77 @@ func loadConfigFromFile(filePath string) error {
 		return err
 	}
 
-	err = yaml.Unmarshal(contents, &configInstance)
+	err = yaml.Unmarshal(contents, &env.Config)
 	if err != nil {
 		return err
 	}
-	loaded = true
+	env.loaded = true
 	return nil
 }
 
-// GetConfigInstance provides access to the singleton ConfigFile instance.
-func GetConfigInstance() configsections.TestConfiguration {
-	if !loaded {
+// LoadAndRefresh loads the config file if not loaded already and performs autodiscovery if needed
+func (env *TestEnvironment) LoadAndRefresh() {
+	if !env.loaded {
 		filePath := getConfigurationFilePathFromEnvironment()
 		log.Debugf("GetConfigInstance before config loaded, loading from file: %s", filePath)
-		err := loadConfigFromFile(filePath)
+		err := env.loadConfigFromFile(filePath)
 		if err != nil {
 			log.Fatalf("unable to load configuration file: %s", err)
 		}
-		autodiscover.FillTestPartner(&configInstance.TestPartner)
-		discoverTestTargets()
-	} else if needsRefresh {
-		discoverTestTargets()
+		env.doAutodiscover()
+	} else if env.needsRefresh {
+		env.Config.Partner = configsections.TestPartner{}
+		env.Config.TestTarget = configsections.TestTarget{}
+		env.doAutodiscover()
 	}
-	return configInstance
 }
 
-func discoverTestTargets() {
+func (env *TestEnvironment) doAutodiscover() {
 	if autodiscover.PerformAutoDiscovery() {
-		configInstance.TestTarget = autodiscover.FindTestTarget(configInstance.TargetPodLabels)
+		autodiscover.FindTestTarget(env.Config.TargetPodLabels, &env.Config.TestTarget)
 	}
-	needsRefresh = false
+	autodiscover.FindTestPartner(&env.Config.Partner)
+
+	log.Infof("Test Configuration: %+v", *env)
+
+	for _, cid := range env.Config.ExcludeContainersFromConnectivityTests {
+		env.ContainersToExcludeFromConnectivityTests[cid] = ""
+	}
+	env.ContainersUnderTest = env.createContainers(env.Config.ContainerConfigList)
+	env.PodsUnderTest = env.Config.PodsUnderTest
+	env.PartnerContainers = env.createContainers(env.Config.Partner.ContainerConfigList)
+	env.TestOrchestrator = env.PartnerContainers[env.Config.Partner.TestOrchestratorID]
+	log.Info(env.TestOrchestrator)
+	log.Info(env.ContainersUnderTest)
+	env.needsRefresh = false
+}
+
+// createContainers contains the general steps involved in creating "oc" sessions and other configuration. A map of the
+// aggregate information is returned.
+func (env *TestEnvironment) createContainers(containerDefinitions []configsections.ContainerConfig) map[configsections.ContainerIdentifier]*Container {
+	createdContainers := make(map[configsections.ContainerIdentifier]*Container)
+	for _, c := range containerDefinitions {
+		oc := getOcSession(c.PodName, c.ContainerName, c.Namespace, DefaultTimeout, interactive.Verbose(true))
+		var defaultIPAddress = "UNKNOWN"
+		if _, ok := env.ContainersToExcludeFromConnectivityTests[c.ContainerIdentifier]; !ok {
+			defaultIPAddress = getContainerDefaultNetworkIPAddress(oc, c.DefaultNetworkDevice)
+		}
+		createdContainers[c.ContainerIdentifier] = &Container{
+			ContainerConfiguration:  c,
+			Oc:                      oc,
+			DefaultNetworkIPAddress: defaultIPAddress,
+			ContainerIdentifier:     c.ContainerIdentifier,
+		}
+	}
+	return createdContainers
 }
 
 // SetNeedsRefresh marks the config stale so that the next getInstance call will redo discovery
-func SetNeedsRefresh() {
-	needsRefresh = true
+func (env *TestEnvironment) SetNeedsRefresh() {
+	env.needsRefresh = true
+}
+
+// GetTestEnvironment provides the current state of test environment
+func GetTestEnvironment() *TestEnvironment {
+	return &testEnvironment
 }

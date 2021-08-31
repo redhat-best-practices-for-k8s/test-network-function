@@ -69,7 +69,7 @@ func makeGetCommand(resourceType, labelQuery string) *exec.Cmd {
 }
 
 // getContainersByLabel builds `config.Container`s from containers in pods matching a label.
-func getContainersByLabel(label configsections.Label) (containers []configsections.Container, err error) {
+func getContainersByLabel(label configsections.Label) (containers []configsections.ContainerConfig, err error) {
 	pods, err := GetPodsByLabel(label)
 	if err != nil {
 		return nil, err
@@ -94,7 +94,7 @@ func getContainerIdentifiersByLabel(label configsections.Label) (containerIDs []
 
 // getContainerByLabel returns exactly one container with the given label. If any other number of containers is found
 // then an error is returned along with an empty `config.Container`.
-func getContainerByLabel(label configsections.Label) (container configsections.Container, err error) {
+func getContainerByLabel(label configsections.Label) (container configsections.ContainerConfig, err error) {
 	containers, err := getContainersByLabel(label)
 	if err != nil {
 		return container, err
@@ -106,13 +106,14 @@ func getContainerByLabel(label configsections.Label) (container configsections.C
 }
 
 // buildContainersFromPodResource builds `configsections.Container`s from a `PodResource`
-func buildContainersFromPodResource(pr *PodResource) (containers []configsections.Container) {
+func buildContainersFromPodResource(pr *PodResource) (containers []configsections.ContainerConfig) {
 	for _, containerResource := range pr.Spec.Containers {
 		var err error
-		var container configsections.Container
+		var container configsections.ContainerConfig
 		container.Namespace = pr.Metadata.Namespace
 		container.PodName = pr.Metadata.Name
 		container.ContainerName = containerResource.Name
+		container.NodeName = pr.Spec.NodeName
 		container.DefaultNetworkDevice, err = pr.getDefaultNetworkDeviceFromAnnotations()
 		if err != nil {
 			log.Warnf("error encountered getting default network device: %s", err)

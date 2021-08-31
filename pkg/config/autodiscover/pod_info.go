@@ -50,9 +50,11 @@ type PodResource struct {
 		Annotations map[string]string `json:"annotations"`
 	} `json:"metadata"`
 	Spec struct {
-		Containers []struct {
+		ServiceAccount string `json:"serviceaccountname"`
+		Containers     []struct {
 			Name string `json:"name"`
 		} `json:"containers"`
+		NodeName string `json:"nodeName"`
 	} `json:"spec"`
 	Status struct {
 		PodIPs []map[string]string `json:"podIPs"`
@@ -156,7 +158,9 @@ func GetPodsByLabel(label configsections.Label) (*PodList, error) {
 	if err != nil {
 		return nil, err
 	}
-
+	log.Debug("JSON output for all pods labeled with: ", label)
+	log.Debug("Command: ", cmd)
+	log.Debug(string(out))
 	var podList PodList
 	err = json.Unmarshal(out, &podList)
 	if err != nil {
