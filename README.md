@@ -38,11 +38,11 @@ The corresponding label used to match pods is:
 test-network-function.com/generic: target 
 ```
 
-Once the pods are found, all of their containers are also added to the target container list.
+Once the pods are found, all of their containers are also added to the target container list. A target deployments list will also be created with all the deployments which the test pods belong to.
 
 ### testTarget
 #### podsUnderTest / containersUnderTest / deploymentsUnderTest
-This section is usually not required if labels defined in the section above cover all resources that should be tested. If label based discovery is not sufficient, this section can be manually populated as shown in the commented part of the [sample config](test-network-function/tnf_config.yml). However, instrusive tests need to be skipped ([see here](#disable-intrusive-tests)) for a reliable test result. The pods and containers explicitly configured here are added to the target pod/container lists populated through label matching.
+This section is usually not required if labels defined in the section above cover all resources that should be tested. If label based discovery is not sufficient, this section can be manually populated as shown in the commented part of the [sample config](test-network-function/tnf_config.yml). However, instrusive tests need to be skipped ([see here](#disable-intrusive-tests)) for a reliable test result. The pods, containers and deployments explicitly configured here are added to the target pod/container/deployments lists populated through label matching.
 
 For both configured and discovered pods/containers, the autodiscovery mechanism will attempt to identify the default network device and all the IP addresses of the pods it
 needs for network connectivity tests, though that information can be explicitly set using annotations if needed. For Pod IPs:
