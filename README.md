@@ -235,12 +235,6 @@ To make `run-tnf-container.sh` use the newly built image, specify the custom TNF
 
 Currently, all available tests are part of the "CNF Certification Test Suite" test suite, which serves as the entrypoint to run all test specs.
 By default, `test-network-function` emits results to `test-network-function/cnf-certification-tests_junit.xml`.
-
-The included default configuration is for running `diagnostic`  suite on the trivial example at
-[cnf-certification-test-partner](https://github.com/test-network-function/cnf-certification-test-partner). To configure the tests for your own environment, 
-
-please see the example [tnf_config.yml](https://github.com/test-network-function/test-network-function/blob/main/test-network-function/tnf_config.yml).
-
 ### Dependencies
 
 At a minimum, the following dependencies must be installed *prior* to running `make install-tools`.
