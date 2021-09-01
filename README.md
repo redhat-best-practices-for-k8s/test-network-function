@@ -73,7 +73,7 @@ not important, only its presence. Equivalent to `excludeContainersFromConnectivi
 
 The section can be configured as well as auto discovered. For manual configuration, see the commented part of the [sample config](test-network-function/tnf_config.yml). For autodiscovery:
 
-* CSVs to be tested by the `operator` spec are identified with the `test-network-function-com/operator=target`
+* CSVs to be tested by the `operator` spec are identified with the `test-network-function.com/operator=target`
 label. Any value is permitted but `target` is used here for consistency with the other specs.
 * Defining which tests are to be run on the operator is done using the `test-network-function.com/operator_tests`
 annotation. This is equivalent to the `test-network-function.com/container_tests` and behaves the same.
