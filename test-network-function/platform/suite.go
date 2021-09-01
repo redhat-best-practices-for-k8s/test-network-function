@@ -87,7 +87,7 @@ var _ = ginkgo.Describe(common.PlatformAlterationTestKey, func() {
 
 // testIsRedHatRelease fetch the configuration and test containers attached to oc is Red Hat based.
 func testIsRedHatRelease(env *config.TestEnvironment) {
-	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestNonTaintedNodeKernelsIdentifier)
+	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestIsRedHatReleaseIdentifier)
 	ginkgo.It(testID, func() {
 		ginkgo.By("should report a proper Red Hat version")
 		defer results.RecordResult(identifiers.TestIsRedHatReleaseIdentifier)

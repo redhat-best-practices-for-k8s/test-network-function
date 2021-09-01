@@ -72,7 +72,7 @@ for local_path_index in "${!local_kubeconfig_paths[@]}"; do
 	container_path=$(get_container_tnf_kubeconfig_path_from_index $local_path_index)
 
 	container_tnf_kubeconfig_paths+=($container_path)
-	container_tnf_kubeconfig_volume_bindings+=("$local_path:$container_path:ro")
+	container_tnf_kubeconfig_volume_bindings+=("$local_path:$container_path:Z")
 done
 
 TNF_IMAGE="${TNF_IMAGE:-$TNF_OFFICIAL_IMAGE}"
