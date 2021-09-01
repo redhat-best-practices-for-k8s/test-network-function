@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/test-network-function/test-network-function/pkg/tnf"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/common"
 	"github.com/test-network-function/test-network-function/pkg/tnf/identifier"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
 )
@@ -42,8 +43,8 @@ func NewReadBootConfig(timeout time.Duration, nodeName /*, entryName*/ string) *
 		timeout: timeout,
 		result:  tnf.ERROR,
 		args: []string{
-			// "echo", "\"cat /host/boot/loader/entries/" + entryName + "\"", "|", "oc", "debug", "--preserve-pod=true", "node/" + nodeName,
-			"echo", "\"cat /host/boot/loader/entries/\\`ls /host/boot/loader/entries/ | sort | tail -n 1\\`\"", "|", "oc", "debug", "-q", "node/" + nodeName,
+			// "echo", "\"cat /host/boot/loader/entries/" + entryName + "\"", "|", common.GetOcDebugCommand(), "--preserve-pod=true", "node/" + nodeName,
+			"echo", "\"cat /host/boot/loader/entries/\\`ls /host/boot/loader/entries/ | sort | tail -n 1\\`\"", "|", common.GetOcDebugCommand(), "-q", "node/" + nodeName,
 		},
 	}
 }

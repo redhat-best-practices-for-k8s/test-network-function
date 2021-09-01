@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/test-network-function/test-network-function/pkg/tnf"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/common"
 	"github.com/test-network-function/test-network-function/pkg/tnf/identifier"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
 )
@@ -41,7 +42,7 @@ func NewNodeTainted(timeout time.Duration, nodeName string) *NodeTainted {
 		timeout: timeout,
 		result:  tnf.ERROR,
 		args: []string{
-			"echo", "cat", "/proc/sys/kernel/tainted", "|", "oc", "debug", "node/" + nodeName,
+			"echo", "cat", "/proc/sys/kernel/tainted", "|", common.GetOcDebugCommand(), "node/" + nodeName,
 		},
 	}
 }

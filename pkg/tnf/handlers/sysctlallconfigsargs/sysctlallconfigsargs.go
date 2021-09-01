@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/test-network-function/test-network-function/pkg/tnf"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/common"
 	"github.com/test-network-function/test-network-function/pkg/tnf/identifier"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
 )
@@ -43,7 +44,7 @@ func NewSysctlAllConfigsArgs(timeout time.Duration, nodeName string) *SysctlAllC
 		timeout: timeout,
 		result:  tnf.ERROR,
 		args: []string{
-			"echo", "\"sysctl --system\"", "|", "oc", "debug", "-q", "node/" + nodeName,
+			"echo", "\"sysctl --system\"", "|", common.GetOcDebugCommand(), "-q", "node/" + nodeName,
 		},
 	}
 }

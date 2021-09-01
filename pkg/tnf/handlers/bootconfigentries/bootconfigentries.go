@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"github.com/test-network-function/test-network-function/pkg/tnf"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/common"
 	"github.com/test-network-function/test-network-function/pkg/tnf/identifier"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
 )
@@ -43,7 +44,7 @@ func NewBootConfigEntries(timeout time.Duration, nodeName string) *BootConfigEnt
 		timeout: timeout,
 		result:  tnf.ERROR,
 		args: []string{
-			"echo", "\"ls /host/boot/loader/entries/\"", "|", "oc", "debug", "--preserve-pod=true", "node/" + nodeName,
+			"echo", "\"ls /host/boot/loader/entries/\"", "|", common.GetOcDebugCommand(), "--preserve-pod=true", "node/" + nodeName,
 		},
 	}
 }
