@@ -156,6 +156,8 @@ The image can be pulled using :
 ```shell script
 docker pull quay.io/testnetworkfunction/test-network-function
 ```
+### Cluster requirement
+To run all the tests, OCP cluster should provide at least 3 worker nodes. If that's not the case, then ``platform-alteration`` test suite should be skipped.
 ### Check cluster resources
 Some tests suites such as platform-alteration require node access to get node configuration like hugepage.
 In order to get the required information, the test suite does not ssh into nodes, but instead rely on [oc debug tools ](https://docs.openshift.com/container-platform/3.7/cli_reference/basic_cli_operations.html#debug). This tool makes it easier to fetch information from nodes and also to debug running pods.
@@ -231,14 +233,11 @@ To make `run-tnf-container.sh` use the newly built image, specify the custom TNF
 
 ## Building and running the standalone test executable
 
-Currently, all available tests are part of the "CNF Certification Test Suite" test suite, which serves as the entrypoint
-to run all test specs.  `CNF Certification 3.0` is not containerized, and involves pulling, building, then running the
-tests.
-
+Currently, all available tests are part of the "CNF Certification Test Suite" test suite, which serves as the entrypoint to run all test specs.
 By default, `test-network-function` emits results to `test-network-function/cnf-certification-tests_junit.xml`.
 
-The included default configuration is for running `generic` and `multus` suites on the trivial example at
-[cnf-certification-test-partner](https://github.com/test-network-function/cnf-certification-test-partner).  To configure for your
+The included default configuration is for running `diagnostic`  suite on the trivial example at
+[cnf-certification-test-partner](https://github.com/test-network-function/cnf-certification-test-partner). To configure for your
 own environment, please see [config.md](docs/config.md).
 
 ### Dependencies
