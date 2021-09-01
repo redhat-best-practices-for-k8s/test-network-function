@@ -237,8 +237,9 @@ Currently, all available tests are part of the "CNF Certification Test Suite" te
 By default, `test-network-function` emits results to `test-network-function/cnf-certification-tests_junit.xml`.
 
 The included default configuration is for running `diagnostic`  suite on the trivial example at
-[cnf-certification-test-partner](https://github.com/test-network-function/cnf-certification-test-partner). To configure for your
-own environment, please see [config.md](docs/config.md).
+[cnf-certification-test-partner](https://github.com/test-network-function/cnf-certification-test-partner). To configure the tests for your own environment, 
+
+please see the example [tnf_config.yml](https://github.com/test-network-function/test-network-function/blob/main/test-network-function/tnf_config.yml).
 
 ### Dependencies
 
