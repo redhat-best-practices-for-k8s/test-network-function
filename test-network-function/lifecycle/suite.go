@@ -23,6 +23,7 @@ import (
 	"time"
 
 	"github.com/test-network-function/test-network-function/pkg/config"
+	"github.com/test-network-function/test-network-function/pkg/config/configsections"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/generic"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/scaling"
 	"github.com/test-network-function/test-network-function/pkg/tnf/testcases"
@@ -133,22 +134,22 @@ func restoreDeployments(env *config.TestEnvironment) {
 			log.Warn("Deployment ", deployment.Name, " replicaCount (", deployment.Replicas, ") needs to be restored.")
 
 			// Try to scale to the original deployment's replicaCount.
-			runScalingTest(deployment.Namespace, deployment.Name, deployment.Replicas)
+			runScalingTest(deployment)
 
 			env.SetNeedsRefresh()
 		}
 	}
 }
 
-// runScalingTest Runs a Scaling handler TC with a given replicaCount and waits for all the deployments to be ready.
-func runScalingTest(namespace, deploymentName string, replicaCount int) {
-	handler := scaling.NewScaling(common.DefaultTimeout, namespace, deploymentName, replicaCount)
+// runScalingTest Runs a Scaling handler TC and waits for all the deployments to be ready.
+func runScalingTest(deployment configsections.Deployment) {
+	handler := scaling.NewScaling(common.DefaultTimeout, deployment.Namespace, deployment.Name, deployment.Replicas)
 	test, err := tnf.NewTest(common.GetContext().GetExpecter(), handler, []reel.Handler{handler}, common.GetContext().GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
 	common.RunAndValidateTest(test)
 
 	// Wait until the deployment is ready
-	waitForAllDeploymentsReady(namespace, scalingTimeout, scalingPollingPeriod)
+	waitForAllDeploymentsReady(deployment.Namespace, scalingTimeout, scalingPollingPeriod)
 }
 
 func testScaling(env *config.TestEnvironment) {
@@ -159,7 +160,7 @@ func testScaling(env *config.TestEnvironment) {
 		defer restoreDeployments(env)
 
 		if len(env.DeploymentsUnderTest) == 0 {
-			ginkgo.Fail("No test deployments found.")
+			ginkgo.Skip("No test deployments found.")
 		}
 
 		for _, deployment := range env.DeploymentsUnderTest {
@@ -169,10 +170,12 @@ func testScaling(env *config.TestEnvironment) {
 			replicaCount := deployment.Replicas
 
 			// ScaleIn, removing one pod from the replicaCount
-			runScalingTest(deployment.Namespace, deployment.Name, (replicaCount - 1))
+			deployment.Replicas = replicaCount - 1
+			runScalingTest(deployment)
 
 			// Scaleout, restoring the original replicaCount number
-			runScalingTest(deployment.Namespace, deployment.Name, replicaCount)
+			deployment.Replicas = replicaCount
+			runScalingTest(deployment)
 
 			// Ensure next tests/test suites receive a refreshed config.
 			env.SetNeedsRefresh()
@@ -396,9 +399,11 @@ func uncordonNode(node string) {
 // Pod antiaffinity test for all deployments
 func testPodAntiAffinity(env *config.TestEnvironment) {
 	ginkgo.When("CNF is designed in high availability mode ", func() {
-		ginkgo.It("Should set pod replica number greater than 1 and corresponding pod anti-affinity rules in deployment", func() {
+		testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestPodHighAvailabilityBestPractices)
+		ginkgo.It(testID, func() {
+			ginkgo.By("Should set pod replica number greater than 1 and corresponding pod anti-affinity rules in deployment")
 			if len(env.DeploymentsUnderTest) == 0 {
-				ginkgo.Fail("No test deployments found.")
+				ginkgo.Skip("No test deployments found.")
 			}
 
 			for _, deployment := range env.DeploymentsUnderTest {

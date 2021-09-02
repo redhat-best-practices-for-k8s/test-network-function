@@ -105,6 +105,16 @@ func newConfig(configPath string) (*TestConfiguration, error) {
 	return conf, nil
 }
 
+func loadDeploymentsConfig() {
+	test.DeploymentsUnderTest = []Deployment{
+		{
+			Name:      deploymentName,
+			Namespace: testNameSpace,
+			Replicas:  deploymentReplicas,
+		},
+	}
+}
+
 func loadPodConfig() {
 	test.PodsUnderTest = []Pod{
 		{
@@ -120,9 +130,6 @@ func loadOperatorConfig() {
 	operator.Name = operatorName
 	operator.Namespace = operatorNameSpace
 	setCrdsAndInstances()
-	dep := Deployment{}
-	dep.Name = deploymentName
-	dep.Replicas = deploymentReplicas
 	operator.Tests = []string{testcases.OperatorStatus}
 	test.Operators = append(test.Operators, operator)
 	loadPodConfig()
@@ -146,6 +153,7 @@ func setCrdsAndInstances() {
 func loadFullConfig() {
 	loadOperatorConfig()
 	loadPodConfig()
+	loadDeploymentsConfig()
 }
 
 func setup(configType string) {
@@ -159,6 +167,7 @@ func setup(configType string) {
 		loadFullConfig()
 	case cnfConfig:
 		loadPodConfig()
+		loadDeploymentsConfig()
 	case operatorConfig:
 		loadOperatorConfig()
 	}
