@@ -323,10 +323,8 @@ the same hacks.'`),
 		Description: formDescription(TestOperatorInstallStatusIdentifier,
 			`Ensures that CNF Operators abide by best practices.  The following is tested:
 1. The Operator CSV reports "Installed" status.
-2. Check that the operator is not configured with privileged rights.
-If clusterPermissions exists in the CSV,
-and the clusterPermissions[].rules[].resourceNames is not empty then we fail the test.
-Otherwise, the test passes. In case the test fails, we need to analyze the need for the privilege mode.`),
+2. The operator is not installed with privileged rights. Test passes if clusterPermissions is not present in the CSV manifest or is present 
+with no resourceNames under its rules.`),
 	},
 
 	TestOperatorIsCertifiedIdentifier: {
