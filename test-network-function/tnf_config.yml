@@ -25,10 +25,7 @@ targetPodLabels:
 #       namespace: default
 #       subscriptionName: etcd
 #       autogenerate: false
-#   deploymentsUnderTest:
-#     - name: test
-#       namespace: tnf
-#       replicas: 2
+
 
 # The following section does not require manual configuration as autodiscovery is on by default.
 # Partner pods deployed automatically from the cnf-test-partner-repo should have all the labels
