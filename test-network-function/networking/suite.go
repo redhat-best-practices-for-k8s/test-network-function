@@ -98,6 +98,9 @@ func testMultusNetworkConnectivity(env *config.TestEnvironment, count int) {
 		testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestICMPv4ConnectivityIdentifier)
 		ginkgo.It(testID, func() {
 			for _, cut := range env.ContainersUnderTest {
+				if _, ok := env.ContainersToExcludeFromConnectivityTests[cut.ContainerIdentifier]; ok {
+					continue
+				}
 				for _, multusIPAddress := range cut.ContainerConfiguration.MultusIPAddresses {
 					testOrchestrator := env.TestOrchestrator
 					ginkgo.By(fmt.Sprintf("a Ping is issued from %s(%s) to %s(%s) %s", testOrchestrator.Oc.GetPodName(),

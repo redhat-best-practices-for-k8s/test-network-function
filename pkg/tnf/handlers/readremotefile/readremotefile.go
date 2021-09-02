@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/test-network-function/test-network-function/pkg/tnf"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/common"
 	"github.com/test-network-function/test-network-function/pkg/tnf/identifier"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
 )
@@ -42,7 +43,7 @@ func NewReadRemoteFile(timeout time.Duration, nodeName, filePath string) *ReadRe
 		timeout: timeout,
 		result:  tnf.ERROR,
 		args: []string{
-			"echo", "\"cat /host" + filePath + "\"", "|", "oc", "debug", "-q", "node/" + nodeName,
+			"echo", "\"cat /host" + filePath + "\"", "|", common.GetOcDebugCommand(), "-q", "node/" + nodeName,
 		},
 	}
 }
