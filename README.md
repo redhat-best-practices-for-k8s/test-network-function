@@ -330,13 +330,13 @@ appropriate for the CNF(s) under test. Test suites group tests by topic area:
 
 Suite|Test Spec Description|Minimum OpenShift Version
 ---|---|---
-`access-control`|The access-control test suite is used to test  service account, namespace and cluster/pod role binding for the pods under test. It also tests the pods/containers configuration.|4.4.3
-`affiliated-certification`|The affiliated-certification test suite verifies that the containers in the pod under test and operator under test are certified by Redhat|4.4.3
-`diagnostic`|The diagnostic test suite is used to gather node information from an OpenShift cluster.  The diagnostic test suite should be run whenever generating a claim.json file.|4.4.3
-`lifecycle`| The lifecycle test suite verifies the pods deployment, creation, shutdown and  survivability. |4.4.3
-`networking`|The networking test suite contains tests that check connectivity and networking config related best practices.|4.4.3
-`operator`|The operator test suite is designed to test basic Kubernetes Operator functionality.|4.4.3
-`platform-alteration`| verifies that key platform configuration is not modified by the CNF under test|4.4.3
+`access-control`|The access-control test suite is used to test  service account, namespace and cluster/pod role binding for the pods under test. It also tests the pods/containers configuration.|4.6.0
+`affiliated-certification`|The affiliated-certification test suite verifies that the containers in the pod under test and operator under test are certified by Redhat|4.6.0
+`diagnostic`|The diagnostic test suite is used to gather node information from an OpenShift cluster.  The diagnostic test suite should be run whenever generating a claim.json file.|4.6.0
+`lifecycle`| The lifecycle test suite verifies the pods deployment, creation, shutdown and  survivability. |4.6.0
+`networking`|The networking test suite contains tests that check connectivity and networking config related best practices.|4.6.0
+`operator`|The operator test suite is designed to test basic Kubernetes Operator functionality.|4.6.0
+`platform-alteration`| verifies that key platform configuration is not modified by the CNF under test|4.6.0
 
 Please consult [CATALOG.md](CATALOG.md) for a detailed description of tests in each suite.
 
