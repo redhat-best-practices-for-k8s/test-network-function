@@ -179,7 +179,9 @@ Suggested Remediation|Ensure that your Operator is installed via OLM.
 Property|Description
 ---|---
 Version|v1.0.0
-Description|http://test-network-function.com/testcases/operator/install-status Ensures that CNF Operators abide by best practices.  The following is tested: 1. The Operator CSV reports "Installed" status. 2. Controls the actions that pods created by the operator can perform (e.g. checks that the operator is not configured with privileged rights). If clusterPermissions exists in the CSV, and can perform the clusterPermissions[]. rules[].resourceNames is not empty then we fail the test. Otherwise, the test passes. In case the test fails, we need to analyze the need for the privilege mode.
+Description|http://test-network-function.com/testcases/operator/install-status Ensures that CNF Operators abide by best practices.  The following is tested: 1. The Operator CSV reports "Installed" status. 2. Check that the operator is not configured with privileged rights. If clusterPermissions exists in the CSV,
+and the clusterPermissions[]. rules[].resourceNames is not empty then we fail the test.
+Otherwise, the test passes. In case the test fails, we need to analyze the need for the privilege mode.
 Result Type|normative
 Suggested Remediation|Ensure that your Operator abides by the Operator Best Practices mentioned in the description.
 ### http://test-network-function.com/testcases/platform-alteration/base-image
