@@ -75,8 +75,6 @@ The section can be configured as well as auto discovered. For manual configurati
 
 * CSVs to be tested by the `operator` spec are identified with the `test-network-function.com/operator=target`
 label. Any value is permitted but `target` is used here for consistency with the other specs.
-* Defining which tests are to be run on the operator is done using the `test-network-function.com/operator_tests`
-annotation. This is equivalent to the `test-network-function.com/container_tests` and behaves the same.
 * `test-network-function.com/subscription_name` is optional and should contain a JSON-encoded string that's the name of
 the subscription for this CSV. If unset, the CSV name will be used.
 
@@ -126,6 +124,13 @@ Set this variable to deploy partner pods in a custom namespace instead of the de
 
 ```shell-script
 export TNF_PARTNER_NAMESPACE="CNF-ns"
+```
+
+### Specify the image id to be used with oc debug commands
+In disconnected environment, only specific versions of images are mirrored to the local repo. For the `oc debug` command (used by a number of tests) to work, set TNF_OC_DEBUG_IMAGE_ID:
+
+```shell-script
+export TNF_OC_DEBUG_IMAGE_ID="quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:0f5ce898fbad3671fecd6f797130f950fb1abdbaf0d8154c22e2b59c74e3a918"
 ```
 
 
