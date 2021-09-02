@@ -161,6 +161,8 @@ The image can be pulled using :
 ```shell script
 docker pull quay.io/testnetworkfunction/test-network-function
 ```
+### Cluster requirement
+To run all the tests, OCP cluster should provide enough resources to drain nodes and reschedule pods. If that's not the case, then ``lifecycle-pod-recreation`` test should be skipped.
 ### Check cluster resources
 Some tests suites such as platform-alteration require node access to get node configuration like hugepage.
 In order to get the required information, the test suite does not ssh into nodes, but instead rely on [oc debug tools ](https://docs.openshift.com/container-platform/3.7/cli_reference/basic_cli_operations.html#debug). This tool makes it easier to fetch information from nodes and also to debug running pods.
@@ -236,16 +238,8 @@ To make `run-tnf-container.sh` use the newly built image, specify the custom TNF
 
 ## Building and running the standalone test executable
 
-Currently, all available tests are part of the "CNF Certification Test Suite" test suite, which serves as the entrypoint
-to run all test specs.  `CNF Certification 3.0` is not containerized, and involves pulling, building, then running the
-tests.
-
+Currently, all available tests are part of the "CNF Certification Test Suite" test suite, which serves as the entrypoint to run all test specs.
 By default, `test-network-function` emits results to `test-network-function/cnf-certification-tests_junit.xml`.
-
-The included default configuration is for running `generic` and `multus` suites on the trivial example at
-[cnf-certification-test-partner](https://github.com/test-network-function/cnf-certification-test-partner).  To configure for your
-own environment, please see [config.md](docs/config.md).
-
 ### Dependencies
 
 At a minimum, the following dependencies must be installed *prior* to running `make install-tools`.
@@ -341,13 +335,13 @@ appropriate for the CNF(s) under test. Test suites group tests by topic area:
 
 Suite|Test Spec Description|Minimum OpenShift Version
 ---|---|---
-`access-control`|The access-control test suite is used to test  service account, namespace and cluster/pod role binding for the pods under test. It also tests the pods/containers configuration.|4.4.3
-`affiliated-certification`|The affiliated-certification test suite verifies that the containers in the pod under test and operator under test are certified by Redhat|4.4.3
-`diagnostic`|The diagnostic test suite is used to gather node information from an OpenShift cluster.  The diagnostic test suite should be run whenever generating a claim.json file.|4.4.3
-`lifecycle`| The lifecycle test suite verifies the pods deployment, creation, shutdown and  survivability. |4.4.3
-`networking`|The networking test suite contains tests that check connectivity and networking config related best practices.|4.4.3
-`operator`|The operator test suite is designed to test basic Kubernetes Operator functionality.|4.4.3
-`platform-alteration`| verifies that key platform configuration is not modified by the CNF under test|4.4.3
+`access-control`|The access-control test suite is used to test  service account, namespace and cluster/pod role binding for the pods under test. It also tests the pods/containers configuration.|4.6.0
+`affiliated-certification`|The affiliated-certification test suite verifies that the containers in the pod under test and operator under test are certified by Redhat|4.6.0
+`diagnostic`|The diagnostic test suite is used to gather node information from an OpenShift cluster.  The diagnostic test suite should be run whenever generating a claim.json file.|4.6.0
+`lifecycle`| The lifecycle test suite verifies the pods deployment, creation, shutdown and  survivability. |4.6.0
+`networking`|The networking test suite contains tests that check connectivity and networking config related best practices.|4.6.0
+`operator`|The operator test suite is designed to test basic Kubernetes Operator functionality.|4.6.0
+`platform-alteration`| verifies that key platform configuration is not modified by the CNF under test|4.6.0
 
 Please consult [CATALOG.md](CATALOG.md) for a detailed description of tests in each suite.
 
@@ -547,7 +541,7 @@ output.
 For example:
 
 ```shell script
-TNF_DEFAULT_BUFFER_SIZE=32768 ./run-cnf-suites.sh diagnostic generic
+TNF_DEFAULT_BUFFER_SIZE=32768 ./run-cnf-suites.sh -f diagnostic
 ```
 
 ## Issue-161 Some containers under test do not contain `ping` or `ip` binary utilities
