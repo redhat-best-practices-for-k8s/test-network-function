@@ -536,7 +536,7 @@ output.
 For example:
 
 ```shell script
-TNF_DEFAULT_BUFFER_SIZE=32768 ./run-cnf-suites.sh diagnostic generic
+TNF_DEFAULT_BUFFER_SIZE=32768 ./run-cnf-suites.sh -f diagnostic
 ```
 
 ## Issue-161 Some containers under test do not contain `ping` or `ip` binary utilities
