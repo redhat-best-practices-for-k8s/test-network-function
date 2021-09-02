@@ -20,6 +20,8 @@ import (
 	"encoding/json"
 	"fmt"
 
+	log "github.com/sirupsen/logrus"
+
 	"github.com/test-network-function/test-network-function/pkg/config/configsections"
 )
 
@@ -75,7 +77,9 @@ func GetCSVsByLabel(labelName, labelValue string) (*CSVList, error) {
 	if err != nil {
 		return nil, err
 	}
-
+	log.Debug("JSON output for all pods labeled with: ", labelName)
+	log.Debug("Command: ", cmd)
+	log.Debug(string(out))
 	var csvList CSVList
 	err = json.Unmarshal(out, &csvList)
 	if err != nil {

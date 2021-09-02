@@ -30,7 +30,6 @@ import (
 	"github.com/onsi/ginkgo"
 	ginkgoconfig "github.com/onsi/ginkgo/config"
 	"github.com/onsi/gomega"
-	log "github.com/sirupsen/logrus"
 	"github.com/test-network-function/test-network-function/pkg/config"
 	"github.com/test-network-function/test-network-function/pkg/config/configsections"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
@@ -132,11 +131,6 @@ func getConfig() ([]configsections.CertifiedOperatorRequestInfo, []configsection
 }
 
 func itRunsTestsOnOperator() {
-	if common.IsMinikube() {
-		log.Info("Minikube detected: skipping operators test.")
-		return
-	}
-
 	for _, testType := range testcases.GetConfiguredOperatorTests() {
 		testFile, err := testcases.LoadConfiguredTestFile(configuredTestFile)
 		gomega.Expect(testFile).ToNot(gomega.BeNil())
