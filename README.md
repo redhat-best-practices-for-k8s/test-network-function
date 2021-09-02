@@ -41,7 +41,7 @@ test-network-function.com/generic: target
 Once the pods are found, all of their containers are also added to the target container list.
 
 ### testTarget
-#### podsUnderTest / containersUnderTest / deploymentsUnderTest
+#### podsUnderTest / containersUnderTest
 This section is usually not required if labels defined in the section above cover all resources that should be tested. If label based discovery is not sufficient, this section can be manually populated as shown in the commented part of the [sample config](test-network-function/tnf_config.yml). However, instrusive tests need to be skipped ([see here](#disable-intrusive-tests)) for a reliable test result. The pods and containers explicitly configured here are added to the target pod/container lists populated through label matching.
 
 For both configured and discovered pods/containers, the autodiscovery mechanism will attempt to identify the default network device and all the IP addresses of the pods it
