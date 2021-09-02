@@ -30,7 +30,7 @@ const (
 // using labels and annotations to populate the data, if it's not fully configured
 func FindTestPartner(tp *configsections.TestPartner) {
 	if tp.TestOrchestratorID.ContainerName == "" {
-		orchestrator, err := getContainerByLabel(configsections.Label{Namespace: tnfNamespace, Name: genericLabelName, Value: orchestratorValue})
+		orchestrator, err := getContainerByLabel(configsections.Label{Prefix: tnfLabelPrefix, Name: genericLabelName, Value: orchestratorValue})
 		if err != nil {
 			log.Fatalf("failed to identify a single test orchestrator container: %s", err)
 		}

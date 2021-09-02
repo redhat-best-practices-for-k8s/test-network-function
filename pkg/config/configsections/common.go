@@ -18,9 +18,9 @@ package configsections
 
 // Label ns/name/value for resource lookup
 type Label struct {
-	Namespace string `yaml:"namespace" json:"namespace"`
-	Name      string `yaml:"name" json:"name"`
-	Value     string `yaml:"value" json:"value"`
+	Prefix string `yaml:"prefix" json:"prefix"`
+	Name   string `yaml:"name" json:"name"`
+	Value  string `yaml:"value" json:"value"`
 }
 
 // Operator struct defines operator manifest for testing
