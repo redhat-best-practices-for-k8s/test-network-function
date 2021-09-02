@@ -80,19 +80,7 @@ func (p *CnfFsDiff) ReelMatch(pattern, before, match string) *reel.Step {
 	switch pattern {
 	case err:
 		p.result = tnf.ERROR
-	case varlibrpm:
-		p.result = tnf.FAILURE
-	case varlibdpkg:
-		p.result = tnf.FAILURE
-	case bin:
-		p.result = tnf.FAILURE
-	case sbin:
-		p.result = tnf.FAILURE
-	case usrbin:
-		p.result = tnf.FAILURE
-	case usrsbin:
-		p.result = tnf.FAILURE
-	case usrlib:
+	case varlibrpm, varlibdpkg, bin, sbin, lib, usrbin, usrsbin, usrlib:
 		p.result = tnf.FAILURE
 	case successfulOutputRegex:
 		p.result = tnf.SUCCESS
