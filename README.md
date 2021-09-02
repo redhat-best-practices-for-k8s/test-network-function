@@ -157,7 +157,7 @@ The image can be pulled using :
 docker pull quay.io/testnetworkfunction/test-network-function
 ```
 ### Cluster requirement
-To run all the tests, OCP cluster should provide enough resources to drain nodes and reschdule pods. If that's not the case, then ``lifecycle-pod-recreation`` test should be skipped.
+To run all the tests, OCP cluster should provide enough resources to drain nodes and reschedule pods. If that's not the case, then ``lifecycle-pod-recreation`` test should be skipped.
 ### Check cluster resources
 Some tests suites such as platform-alteration require node access to get node configuration like hugepage.
 In order to get the required information, the test suite does not ssh into nodes, but instead rely on [oc debug tools ](https://docs.openshift.com/container-platform/3.7/cli_reference/basic_cli_operations.html#debug). This tool makes it easier to fetch information from nodes and also to debug running pods.
