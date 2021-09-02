@@ -179,7 +179,7 @@ Suggested Remediation|Ensure that your Operator is installed via OLM.
 Property|Description
 ---|---
 Version|v1.0.0
-Description|http://test-network-function.com/testcases/operator/install-status Ensures that CNF Operators abide by best practices.  The following is tested: 1. The Operator CSV reports "Installed" status. 2. TODO: Describe operator scc check.
+Description|http://test-network-function.com/testcases/operator/install-status Ensures that CNF Operators abide by best practices.  The following is tested: 1. The Operator CSV reports "Installed" status. 2. The Operator is not installed with privileged rights. Test passes if clusterPermissions is not present in the CSV manifest or is present with no resourceNames under its rules.
 Result Type|normative
 Suggested Remediation|Ensure that your Operator abides by the Operator Best Practices mentioned in the description.
 ### http://test-network-function.com/testcases/platform-alteration/base-image
@@ -499,7 +499,7 @@ Runtime Binaries Required|`oc`, `cat`, `echo`
 Property|Description
 ---|---
 Version|v1.0.0
-Description|An operator-specific test used to exercise the behavior of a given operator.  In the current offering, we check if the operator ClusterServiceVersion (CSV) is installed properly.  A CSV is a YAML manifest created from Operator metadata that assists the Operator Lifecycle Manager (OLM) in running the Operator.
+Description|An operator-specific test used to exercise the behavior of a given operator.  In the current offering, we check if the operator ClusterServiceVersion (CSV) is installed properly. A CSV is a YAML manifest created from Operator metadata that assists the Operator Lifecycle Manager (OLM) in running the Operator.
 Result Type|normative
 Intrusive|false
 Modifications Persist After Test|false
