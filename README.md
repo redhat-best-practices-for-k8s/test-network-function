@@ -75,8 +75,6 @@ The section can be configured as well as auto discovered. For manual configurati
 
 * CSVs to be tested by the `operator` spec are identified with the `test-network-function.com/operator=target`
 label. Any value is permitted but `target` is used here for consistency with the other specs.
-* Defining which tests are to be run on the operator is done using the `test-network-function.com/operator_tests`
-annotation. This is equivalent to the `test-network-function.com/container_tests` and behaves the same.
 * `test-network-function.com/subscription_name` is optional and should contain a JSON-encoded string that's the name of
 the subscription for this CSV. If unset, the CSV name will be used.
 
@@ -128,6 +126,13 @@ Set this variable to deploy partner pods in a custom namespace instead of the de
 export TNF_PARTNER_NAMESPACE="CNF-ns"
 ```
 
+### Specify the image id to be used with oc debug commands
+In disconnected environment, only specific versions of images are mirrored to the local repo. For the `oc debug` command (used by a number of tests) to work, set TNF_OC_DEBUG_IMAGE_ID:
+
+```shell-script
+export TNF_OC_DEBUG_IMAGE_ID="quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:0f5ce898fbad3671fecd6f797130f950fb1abdbaf0d8154c22e2b59c74e3a918"
+```
+
 
 ### Execute test suites from openshift-kni/cnf-feature-deploy
 The test suites from openshift-kni/cnf-feature-deploy can be run prior to the actual CNF certification test execution and the results are incorporated in the same claim file if the following environment variable is set:
@@ -156,6 +161,8 @@ The image can be pulled using :
 ```shell script
 docker pull quay.io/testnetworkfunction/test-network-function
 ```
+### Cluster requirement
+To run all the tests, OCP cluster should provide enough resources to drain nodes and reschedule pods. If that's not the case, then ``lifecycle-pod-recreation`` test should be skipped.
 ### Check cluster resources
 Some tests suites such as platform-alteration require node access to get node configuration like hugepage.
 In order to get the required information, the test suite does not ssh into nodes, but instead rely on [oc debug tools ](https://docs.openshift.com/container-platform/3.7/cli_reference/basic_cli_operations.html#debug). This tool makes it easier to fetch information from nodes and also to debug running pods.
@@ -231,16 +238,8 @@ To make `run-tnf-container.sh` use the newly built image, specify the custom TNF
 
 ## Building and running the standalone test executable
 
-Currently, all available tests are part of the "CNF Certification Test Suite" test suite, which serves as the entrypoint
-to run all test specs.  `CNF Certification 3.0` is not containerized, and involves pulling, building, then running the
-tests.
-
+Currently, all available tests are part of the "CNF Certification Test Suite" test suite, which serves as the entrypoint to run all test specs.
 By default, `test-network-function` emits results to `test-network-function/cnf-certification-tests_junit.xml`.
-
-The included default configuration is for running `generic` and `multus` suites on the trivial example at
-[cnf-certification-test-partner](https://github.com/test-network-function/cnf-certification-test-partner).  To configure for your
-own environment, please see [config.md](docs/config.md).
-
 ### Dependencies
 
 At a minimum, the following dependencies must be installed *prior* to running `make install-tools`.
@@ -336,13 +335,13 @@ appropriate for the CNF(s) under test. Test suites group tests by topic area:
 
 Suite|Test Spec Description|Minimum OpenShift Version
 ---|---|---
-`access-control`|The access-control test suite is used to test  service account, namespace and cluster/pod role binding for the pods under test. It also tests the pods/containers configuration.|4.4.3
-`affiliated-certification`|The affiliated-certification test suite verifies that the containers in the pod under test and operator under test are certified by Redhat|4.4.3
-`diagnostic`|The diagnostic test suite is used to gather node information from an OpenShift cluster.  The diagnostic test suite should be run whenever generating a claim.json file.|4.4.3
-`lifecycle`| The lifecycle test suite verifies the pods deployment, creation, shutdown and  survivability. |4.4.3
-`networking`|The networking test suite contains tests that check connectivity and networking config related best practices.|4.4.3
-`operator`|The operator test suite is designed to test basic Kubernetes Operator functionality.|4.4.3
-`platform-alteration`| verifies that key platform configuration is not modified by the CNF under test|4.4.3
+`access-control`|The access-control test suite is used to test  service account, namespace and cluster/pod role binding for the pods under test. It also tests the pods/containers configuration.|4.6.0
+`affiliated-certification`|The affiliated-certification test suite verifies that the containers in the pod under test and operator under test are certified by Redhat|4.6.0
+`diagnostic`|The diagnostic test suite is used to gather node information from an OpenShift cluster.  The diagnostic test suite should be run whenever generating a claim.json file.|4.6.0
+`lifecycle`| The lifecycle test suite verifies the pods deployment, creation, shutdown and  survivability. |4.6.0
+`networking`|The networking test suite contains tests that check connectivity and networking config related best practices.|4.6.0
+`operator`|The operator test suite is designed to test basic Kubernetes Operator functionality.|4.6.0
+`platform-alteration`| verifies that key platform configuration is not modified by the CNF under test|4.6.0
 
 Please consult [CATALOG.md](CATALOG.md) for a detailed description of tests in each suite.
 
@@ -542,7 +541,7 @@ output.
 For example:
 
 ```shell script
-TNF_DEFAULT_BUFFER_SIZE=32768 ./run-cnf-suites.sh diagnostic generic
+TNF_DEFAULT_BUFFER_SIZE=32768 ./run-cnf-suites.sh -f diagnostic
 ```
 
 ## Issue-161 Some containers under test do not contain `ping` or `ip` binary utilities

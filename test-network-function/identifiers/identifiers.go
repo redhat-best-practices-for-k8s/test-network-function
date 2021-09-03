@@ -323,7 +323,8 @@ the same hacks.'`),
 		Description: formDescription(TestOperatorInstallStatusIdentifier,
 			`Ensures that CNF Operators abide by best practices.  The following is tested:
 1. The Operator CSV reports "Installed" status.
-2. TODO: Describe operator scc check.`),
+2. The operator is not installed with privileged rights. Test passes if clusterPermissions is not present in the CSV manifest or is present 
+with no resourceNames under its rules.`),
 	},
 
 	TestOperatorIsCertifiedIdentifier: {
