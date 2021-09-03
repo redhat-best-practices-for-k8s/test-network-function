@@ -28,7 +28,7 @@ import (
 
 const (
 	disableAutodiscoverEnvVar = "TNF_DISABLE_CONFIG_AUTODISCOVER"
-	tnfNamespace              = "test-network-function.com"
+	tnfLabelPrefix            = "test-network-function.com"
 	labelTemplate             = "%s/%s"
 
 	// anyLabelValue is the value that will allow any value for a label when building the label query.
@@ -49,15 +49,15 @@ func buildLabelName(labelNS, labelName string) string {
 }
 
 func buildAnnotationName(annotationName string) string {
-	return buildLabelName(tnfNamespace, annotationName)
+	return buildLabelName(tnfLabelPrefix, annotationName)
 }
 
 func buildLabelQuery(label configsections.Label) string {
-	namespacedLabel := buildLabelName(label.Namespace, label.Name)
+	fullLabelName := buildLabelName(label.Prefix, label.Name)
 	if label.Value != anyLabelValue {
-		return fmt.Sprintf("%s=%s", namespacedLabel, label.Value)
+		return fmt.Sprintf("%s=%s", fullLabelName, label.Value)
 	}
-	return namespacedLabel
+	return fullLabelName
 }
 
 func makeGetCommand(resourceType, labelQuery string) *exec.Cmd {
@@ -100,7 +100,7 @@ func getContainerByLabel(label configsections.Label) (container configsections.C
 		return container, err
 	}
 	if len(containers) != 1 {
-		return container, fmt.Errorf("expected exactly one container, got %d for label %s/%s=%s", len(containers), label.Namespace, label.Name, label.Value)
+		return container, fmt.Errorf("expected exactly one container, got %d for label %s/%s=%s", len(containers), label.Prefix, label.Name, label.Value)
 	}
 	return containers[0], nil
 }

@@ -72,7 +72,7 @@ for local_path_index in "${!local_kubeconfig_paths[@]}"; do
 	container_path=$(get_container_tnf_kubeconfig_path_from_index $local_path_index)
 
 	container_tnf_kubeconfig_paths+=($container_path)
-	container_tnf_kubeconfig_volume_bindings+=("$local_path:$container_path:ro")
+	container_tnf_kubeconfig_volume_bindings+=("$local_path:$container_path:Z")
 done
 
 TNF_IMAGE="${TNF_IMAGE:-$TNF_OFFICIAL_IMAGE}"
@@ -107,6 +107,8 @@ ${TNF_CONTAINER_CLIENT} run --rm $DNS_ARG \
 	-e TNF_MINIKUBE_ONLY=$CONTAINER_TNF_MINIKUBE_ONLY \
 	-e TNF_NON_INTRUSIVE_ONLY=$CONTAINER_TNF_NON_INTRUSIVE_ONLY \
 	-e TNF_DISABLE_CONFIG_AUTODISCOVER=$CONTAINER_TNF_DISABLE_CONFIG_AUTODISCOVER \
+	-e TNF_PARTNER_NAMESPACE=$TNF_PARTNER_NAMESPACE \
+	-e TNF_OC_DEBUG_IMAGE_ID=$TNF_OC_DEBUG_IMAGE_ID \
 	-e LOG_LEVEL=$LOG_LEVEL \
 	-e PATH=/usr/bin:/usr/local/oc/bin \
 	$TNF_IMAGE \

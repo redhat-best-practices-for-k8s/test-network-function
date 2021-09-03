@@ -49,7 +49,7 @@ func FindTestTarget(labels []configsections.Label, target *configsections.TestTa
 		}
 	}
 	// Containers to exclude from connectivity tests are optional
-	identifiers, err := getContainerIdentifiersByLabel(configsections.Label{Namespace: tnfNamespace, Name: skipConnectivityTestsLabel, Value: anyLabelValue})
+	identifiers, err := getContainerIdentifiersByLabel(configsections.Label{Prefix: tnfLabelPrefix, Name: skipConnectivityTestsLabel, Value: anyLabelValue})
 	target.ExcludeContainersFromConnectivityTests = identifiers
 
 	if err != nil {

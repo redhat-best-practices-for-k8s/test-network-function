@@ -117,7 +117,7 @@ Property|Description
 Version|v1.0.0
 Description|http://test-network-function.com/testcases/lifecycle/pod-owner-type tests that CNF Pod(s) are deployed as part of a ReplicaSet(s).
 Result Type|normative
-Suggested Remediation|Deploy the CNF using DaemonSet or ReplicaSet.
+Suggested Remediation|Deploy the CNF using ReplicaSet.
 ### http://test-network-function.com/testcases/lifecycle/pod-recreation
 
 Property|Description
@@ -165,7 +165,7 @@ Property|Description
 Version|v1.0.0
 Description|http://test-network-function.com/testcases/networking/service-type tests that each CNF Service does not utilize NodePort(s).
 Result Type|normative
-Suggested Remediation|Ensure Services are not configured to not use NodePort(s).
+Suggested Remediation|Ensure Services are not configured to use NodePort(s).
 ### http://test-network-function.com/testcases/operator/install-source
 
 Property|Description
@@ -179,7 +179,7 @@ Suggested Remediation|Ensure that your Operator is installed via OLM.
 Property|Description
 ---|---
 Version|v1.0.0
-Description|http://test-network-function.com/testcases/operator/install-status Ensures that CNF Operators abide by best practices.  The following is tested: 1. The Operator CSV reports "Installed" status. 2. TODO: Describe operator scc check.
+Description|http://test-network-function.com/testcases/operator/install-status Ensures that CNF Operators abide by best practices.  The following is tested: 1. The Operator CSV reports "Installed" status. 2. The operator is not installed with privileged rights. Test passes if clusterPermissions is not present in the CSV manifest or is present  with no resourceNames under its rules.
 Result Type|normative
 Suggested Remediation|Ensure that your Operator abides by the Operator Best Practices mentioned in the description.
 ### http://test-network-function.com/testcases/platform-alteration/base-image

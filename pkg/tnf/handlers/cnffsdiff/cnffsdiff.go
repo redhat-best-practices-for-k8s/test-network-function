@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/test-network-function/test-network-function/pkg/tnf"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/common"
 	"github.com/test-network-function/test-network-function/pkg/tnf/identifier"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
 )
@@ -32,9 +33,14 @@ type CnfFsDiff struct {
 }
 
 const (
-	bin                   = `(?m)\/bin`
-	sbin                  = `(?m)\/sbin`
-	lib                   = `(?m)\/lib`
+	varlibrpm             = `(?m)[\t|\s]\/var\/lib\/rpm[.]*`
+	varlibdpkg            = `(?m)[\t|\s]\/var\/lib\/dpkg[.]*`
+	bin                   = `(?m)[\t|\s]\/bin[.]*`
+	sbin                  = `(?m)[\t|\s]\/sbin[.]*`
+	lib                   = `(?m)[\t|\s]\/lib[.]*`
+	usrbin                = `(?m)[\t|\s]\/usr\/bin[.]*`
+	usrsbin               = `(?m)[\t|\s]\/usr\/sbin[.]*`
+	usrlib                = `(?m)[\t|\s]\/usr\/lib[.]*`
 	err                   = `(?m)Error`
 	successfulOutputRegex = `(?m){}`
 	acceptAllRegex        = `(?m)(.|\n)+`
@@ -73,14 +79,10 @@ func (p *CnfFsDiff) ReelFirst() *reel.Step {
 func (p *CnfFsDiff) ReelMatch(pattern, before, match string) *reel.Step {
 	p.result = tnf.SUCCESS
 	switch pattern {
-	case lib:
-		p.result = tnf.FAILURE
-	case bin:
-		p.result = tnf.FAILURE
-	case sbin:
-		p.result = tnf.FAILURE
 	case err:
 		p.result = tnf.ERROR
+	case varlibrpm, varlibdpkg, bin, sbin, lib, usrbin, usrsbin, usrlib:
+		p.result = tnf.FAILURE
 	case successfulOutputRegex:
 		p.result = tnf.SUCCESS
 	}
@@ -98,7 +100,7 @@ func (p *CnfFsDiff) ReelEOF() {
 
 // Command returns command line args for checking the fs difference between a container and it's image
 func Command(containerID, nodeName string) []string {
-	return []string{"echo", "-e", "\"chroot /host\n\"", "podman", "diff", "--format", "json", containerID, "|", "oc", "debug", "node/" + nodeName}
+	return []string{"echo", "-e", "\"chroot /host\n\"", "podman", "diff", "--format", "json", containerID, "|", common.GetOcDebugCommand(), "node/" + nodeName}
 }
 
 // NewFsDiff creates a new `FsDiff` test which checks the fs difference between a container and it's image
@@ -112,5 +114,5 @@ func NewFsDiff(timeout time.Duration, containerID, nodeName string) *CnfFsDiff {
 
 // GetReelFirstRegularExpressions returns the regular expressions used for matching in ReelFirst.
 func (p *CnfFsDiff) GetReelFirstRegularExpressions() []string {
-	return []string{err, bin, sbin, lib, successfulOutputRegex, acceptAllRegex}
+	return []string{err, varlibrpm, varlibdpkg, bin, sbin, lib, usrbin, usrsbin, usrlib, successfulOutputRegex, acceptAllRegex}
 }

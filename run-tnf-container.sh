@@ -29,6 +29,7 @@ export TNF_CMD="./run-cnf-suites.sh"
 export OUTPUT_ARG="-o"
 export FOCUS_ARG="-f"
 export SKIP_ARG="-s"
+export CONTAINER_NETWORK_MODE='host'
 
 usage() {
 	read -d '' usage_prompt <<- EOF
@@ -178,7 +179,7 @@ while [[ $1 == -* ]]; do
             echo "-n requires an argument" 1>&2
             exit 1
           fi
-          echo "-n CONTAINER_NETWORK_MODE"
+          echo "-n $CONTAINER_NETWORK_MODE"
           ;;
       -d) if (($# > 1)); then
             export DNS_ARG=$2; shift 2

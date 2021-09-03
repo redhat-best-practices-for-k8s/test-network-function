@@ -172,6 +172,8 @@ func (env *TestEnvironment) doAutodiscover() {
 
 	log.Infof("Test Configuration: %+v", *env)
 
+	env.ContainersToExcludeFromConnectivityTests = make(map[configsections.ContainerIdentifier]interface{})
+
 	for _, cid := range env.Config.ExcludeContainersFromConnectivityTests {
 		env.ContainersToExcludeFromConnectivityTests[cid] = ""
 	}
