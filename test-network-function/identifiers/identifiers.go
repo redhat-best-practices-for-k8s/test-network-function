@@ -438,8 +438,7 @@ that there are no changes to the following directories:
 	TestUnalteredStartupBootParamsIdentifier: {
 		Identifier: TestUnalteredStartupBootParamsIdentifier,
 		Type:       normativeResult,
-		Remediation: `Ensure that boot parameters are set directly through the MachineConfigOperator, or indirectly through the
-PerfromanceAddonOperator.  Boot parameters should not be changed directly through the Node, as OpenShift should manage
+		Remediation: `Ensure that boot parameters are set directly through the MachineConfigOperator, or indirectly through the PerformanceAddonOperator.  Boot parameters should not be changed directly through the Node, as OpenShift should manage
 the changes for you.`,
 		Description: formDescription(TestUnalteredStartupBootParamsIdentifier,
 			`tests that boot parameters are set through the MachineConfigOperator, and not set manually on the Node.`),
