@@ -24,6 +24,11 @@ testTarget:
       tests:
         - PRIVILEGED_POD
         - PRIVILEGED_ROLE
+  deploymentsUnderTest:
+    - name: test
+      namespace: default
+      replicas: 2
+
 testPartner:
   partnerContainers:
     - namespace: default

@@ -49,7 +49,7 @@ func FindTestTarget(labels []configsections.Label, target *configsections.TestTa
 		}
 	}
 	// Containers to exclude from connectivity tests are optional
-	identifiers, err := getContainerIdentifiersByLabel(configsections.Label{Namespace: tnfNamespace, Name: skipConnectivityTestsLabel, Value: anyLabelValue})
+	identifiers, err := getContainerIdentifiersByLabel(configsections.Label{Prefix: tnfLabelPrefix, Name: skipConnectivityTestsLabel, Value: anyLabelValue})
 	target.ExcludeContainersFromConnectivityTests = identifiers
 
 	if err != nil {
@@ -64,6 +64,43 @@ func FindTestTarget(labels []configsections.Label, target *configsections.TestTa
 	} else {
 		log.Warnf("an error (%s) occurred when looking for operaters by label", err)
 	}
+
+	target.DeploymentsUnderTest = append(target.DeploymentsUnderTest, FindTestDeployments(labels, target)...)
+}
+
+// FindTestDeployments uses the containers' namespace to get its parent deployment. Filters out non CNF test deployments,
+// currently partner and fs_diff ones.
+func FindTestDeployments(targetLabels []configsections.Label, target *configsections.TestTarget) (deployments []configsections.Deployment) {
+	namespaces := make(map[string]bool)
+
+	for _, cut := range target.ContainerConfigList {
+		namespace := cut.ContainerIdentifier.Namespace
+		if _, alreadyProcessed := namespaces[namespace]; alreadyProcessed {
+			continue
+		}
+
+		namespaces[namespace] = true
+
+		for _, label := range targetLabels {
+			deploymentResourceList, err := GetTargetDeploymentsByNamespace(namespace, label)
+
+			if err != nil {
+				log.Error("Unable to get deployment list from namespace ", namespace, ". Error: ", err)
+			} else {
+				for _, deploymentResource := range deploymentResourceList.Items {
+					deployment := configsections.Deployment{
+						Name:      deploymentResource.GetName(),
+						Namespace: deploymentResource.GetNamespace(),
+						Replicas:  deploymentResource.GetReplicas(),
+					}
+
+					deployments = append(deployments, deployment)
+				}
+			}
+		}
+	}
+
+	return deployments
 }
 
 // buildPodUnderTest builds a single `configsections.Pod` from a PodResource

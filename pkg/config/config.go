@@ -112,9 +112,10 @@ func getContainerDefaultNetworkIPAddress(oc *interactive.Oc, dev string) string 
 
 // TestEnvironment includes the representation of the current state of the test targets and parters as well as the test configuration
 type TestEnvironment struct {
-	ContainersUnderTest map[configsections.ContainerIdentifier]*Container
-	PartnerContainers   map[configsections.ContainerIdentifier]*Container
-	PodsUnderTest       []configsections.Pod
+	ContainersUnderTest  map[configsections.ContainerIdentifier]*Container
+	PartnerContainers    map[configsections.ContainerIdentifier]*Container
+	PodsUnderTest        []configsections.Pod
+	DeploymentsUnderTest []configsections.Deployment
 	// ContainersToExcludeFromConnectivityTests is a set used for storing the containers that should be excluded from
 	// connectivity testing.
 	ContainersToExcludeFromConnectivityTests map[configsections.ContainerIdentifier]interface{}
@@ -180,6 +181,8 @@ func (env *TestEnvironment) doAutodiscover() {
 	env.PodsUnderTest = env.Config.PodsUnderTest
 	env.PartnerContainers = env.createContainers(env.Config.Partner.ContainerConfigList)
 	env.TestOrchestrator = env.PartnerContainers[env.Config.Partner.TestOrchestratorID]
+	env.DeploymentsUnderTest = env.Config.DeploymentsUnderTest
+
 	log.Info(env.TestOrchestrator)
 	log.Info(env.ContainersUnderTest)
 	env.needsRefresh = false
