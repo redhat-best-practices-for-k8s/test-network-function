@@ -38,7 +38,7 @@ The corresponding label used to match pods is:
 test-network-function.com/generic: target 
 ```
 
-Once the pods are found, all of their containers are also added to the target container list.
+Once the pods are found, all of their containers are also added to the target container list. A target deployments list will also be created with all the deployments which the test pods belong to.
 
 ### testTarget
 #### podsUnderTest / containersUnderTest
