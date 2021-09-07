@@ -68,9 +68,9 @@ jobs:
         with:
           ref: ${{ github.sha }}
 
-      - name: logs david
-        run: ls; ls .. ; oc get pods -ntnf -owide
-        
+      - name: logs david1
+        run: ls -lh; ls -lh ..
+
       - name: Rebuild mocks
         run: go get github.com/golang/mock/mockgen && make mocks
 
@@ -121,7 +121,8 @@ jobs:
         uses: ./cnf-certification-test-partner/.github/actions/create-local-test-infra-resources
         with:
           working_directory: cnf-certification-test-partner
-
+      - name: logs david2
+        run: ls -lh; ls -lh .. ; oc get pods -ntnf -owide
       # Perform smoke tests.
 
       - name: 'Test: Run diagnostic test suite'
