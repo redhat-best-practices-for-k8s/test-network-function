@@ -1,7 +1,8 @@
 {
   "metadata": {
     "annotations": {
-		"test-network-function.com/operator_tests": "[\"OPERATOR_STATUS\", \"ANOTHER_TEST\"]"
+		"test-network-function.com/operator_tests": "[\"OPERATOR_STATUS\", \"ANOTHER_TEST\"]",
+    "test-network-function.com/subscription_name": "[\"nginx-operator-v0-0-1-sub\"]"
     },
     "labels": {
 		"test-network-function.com/operator": "target"

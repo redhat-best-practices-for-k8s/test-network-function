@@ -136,13 +136,13 @@ func buildOperatorFromCSVResource(csv *CSVResource) (op configsections.Operator)
 		op.Tests = tests
 	}
 
-	var subscriptionName string
+	var subscriptionName []string
 	err = csv.GetAnnotationValue(subscriptionNameAnnotationName, &subscriptionName)
 	if err != nil {
-		log.Warnf("unable to get a subscription name annotation from CSV %s (%s), the CSV name will be used", csv.Metadata.Name, err)
+		log.Warnf("unable to get a subscription name annotation from CSV %s (error: %s).", csv.Metadata.Name, err)
+	} else {
+		op.SubscriptionName = subscriptionName[0]
 	}
-	op.SubscriptionName = subscriptionName
-
 	return op
 }
 
