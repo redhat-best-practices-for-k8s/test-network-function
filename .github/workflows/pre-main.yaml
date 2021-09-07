@@ -68,6 +68,9 @@ jobs:
         with:
           ref: ${{ github.sha }}
 
+      - name: logs david
+        run: ls; ls .. ; oc get pods -ntnf -owide
+        
       - name: Rebuild mocks
         run: go get github.com/golang/mock/mockgen && make mocks
 
