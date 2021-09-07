@@ -111,6 +111,8 @@ jobs:
 
       - name: Start the minikube cluster for `local-test-infra`
         uses: ./cnf-certification-test-partner/.github/actions/start-minikube
+        with:
+          working_directory: cnf-certification-test-partner
 
       - name: Create `local-test-infra` OpenShift resources
         uses: ./cnf-certification-test-partner/.github/actions/create-local-test-infra-resources
