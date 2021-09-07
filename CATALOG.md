@@ -117,7 +117,7 @@ Property|Description
 Version|v1.0.0
 Description|http://test-network-function.com/testcases/lifecycle/pod-owner-type tests that CNF Pod(s) are deployed as part of a ReplicaSet(s).
 Result Type|normative
-Suggested Remediation|Deploy the CNF using DaemonSet or ReplicaSet.
+Suggested Remediation|Deploy the CNF using ReplicaSet.
 ### http://test-network-function.com/testcases/lifecycle/pod-recreation
 
 Property|Description
@@ -165,7 +165,7 @@ Property|Description
 Version|v1.0.0
 Description|http://test-network-function.com/testcases/networking/service-type tests that each CNF Service does not utilize NodePort(s).
 Result Type|normative
-Suggested Remediation|Ensure Services are not configured to not use NodePort(s).
+Suggested Remediation|Ensure Services are not configured to use NodePort(s).
 ### http://test-network-function.com/testcases/operator/install-source
 
 Property|Description
@@ -197,7 +197,7 @@ Property|Description
 Version|v1.0.0
 Description|http://test-network-function.com/testcases/platform-alteration/boot-params tests that boot parameters are set through the MachineConfigOperator, and not set manually on the Node.
 Result Type|normative
-Suggested Remediation|Ensure that boot parameters are set directly through the MachineConfigOperator, or indirectly through the PerfromanceAddonOperator.  Boot parameters should not be changed directly through the Node, as OpenShift should manage the changes for you.
+Suggested Remediation|Ensure that boot parameters are set directly through the MachineConfigOperator, or indirectly through the PerformanceAddonOperator.  Boot parameters should not be changed directly through the Node, as OpenShift should manage the changes for you.
 ### http://test-network-function.com/testcases/platform-alteration/hugepages-config
 
 Property|Description
