@@ -35,10 +35,10 @@ var (
 
 // FindTestTarget finds test targets from the current state of the cluster,
 // using labels and annotations, and add them to the `configsections.TestTarget` passed in.
-func FindTestTarget(labels []configsections.Label, target *configsections.TestTarget) {
+func FindTestTarget(labels []configsections.Label, target *configsections.TestTarget, namespace string) {
 	// find pods by label
 	for _, l := range labels {
-		pods, err := GetPodsByLabel(l)
+		pods, err := GetPodsByLabel(l, namespace)
 		if err == nil {
 			for i := range pods.Items {
 				target.PodsUnderTest = append(target.PodsUnderTest, buildPodUnderTest(&pods.Items[i]))
@@ -49,14 +49,14 @@ func FindTestTarget(labels []configsections.Label, target *configsections.TestTa
 		}
 	}
 	// Containers to exclude from connectivity tests are optional
-	identifiers, err := getContainerIdentifiersByLabel(configsections.Label{Prefix: tnfLabelPrefix, Name: skipConnectivityTestsLabel, Value: anyLabelValue})
+	identifiers, err := getContainerIdentifiersByLabel(configsections.Label{Prefix: tnfLabelPrefix, Name: skipConnectivityTestsLabel, Value: anyLabelValue}, namespace)
 	target.ExcludeContainersFromConnectivityTests = identifiers
 
 	if err != nil {
 		log.Warnf("an error (%s) occurred when getting the containers to exclude from connectivity tests. Attempting to continue", err)
 	}
 
-	csvs, err := GetCSVsByLabel(operatorLabelName, anyLabelValue)
+	csvs, err := GetCSVsByLabel(operatorLabelName, anyLabelValue, namespace)
 	if err == nil {
 		for i := range csvs.Items {
 			target.Operators = append(target.Operators, buildOperatorFromCSVResource(&csvs.Items[i]))
@@ -65,41 +65,28 @@ func FindTestTarget(labels []configsections.Label, target *configsections.TestTa
 		log.Warnf("an error (%s) occurred when looking for operaters by label", err)
 	}
 
-	target.DeploymentsUnderTest = append(target.DeploymentsUnderTest, FindTestDeployments(labels, target)...)
+	target.DeploymentsUnderTest = append(target.DeploymentsUnderTest, FindTestDeployments(labels, target, namespace)...)
 }
 
 // FindTestDeployments uses the containers' namespace to get its parent deployment. Filters out non CNF test deployments,
 // currently partner and fs_diff ones.
-func FindTestDeployments(targetLabels []configsections.Label, target *configsections.TestTarget) (deployments []configsections.Deployment) {
-	namespaces := make(map[string]bool)
-
-	for _, cut := range target.ContainerConfigList {
-		namespace := cut.ContainerIdentifier.Namespace
-		if _, alreadyProcessed := namespaces[namespace]; alreadyProcessed {
-			continue
-		}
-
-		namespaces[namespace] = true
-
-		for _, label := range targetLabels {
-			deploymentResourceList, err := GetTargetDeploymentsByNamespace(namespace, label)
-
-			if err != nil {
-				log.Error("Unable to get deployment list from namespace ", namespace, ". Error: ", err)
-			} else {
-				for _, deploymentResource := range deploymentResourceList.Items {
-					deployment := configsections.Deployment{
-						Name:      deploymentResource.GetName(),
-						Namespace: deploymentResource.GetNamespace(),
-						Replicas:  deploymentResource.GetReplicas(),
-					}
-
-					deployments = append(deployments, deployment)
+func FindTestDeployments(targetLabels []configsections.Label, target *configsections.TestTarget, namespace string) (deployments []configsections.Deployment) {
+	for _, label := range targetLabels {
+		deploymentResourceList, err := GetTargetDeploymentsByNamespace(namespace, label)
+		if err != nil {
+			log.Error("Unable to get deployment list from namespace ", namespace, ". Error: ", err)
+		} else {
+			for _, deploymentResource := range deploymentResourceList.Items {
+				deployment := configsections.Deployment{
+					Name:      deploymentResource.GetName(),
+					Namespace: deploymentResource.GetNamespace(),
+					Replicas:  deploymentResource.GetReplicas(),
 				}
+
+				deployments = append(deployments, deployment)
 			}
 		}
 	}
-
 	return deployments
 }
 
