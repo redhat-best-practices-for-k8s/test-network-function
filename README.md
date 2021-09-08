@@ -142,19 +142,10 @@ The test suites from openshift-kni/cnf-feature-deploy can be run prior to the ac
 
 
 ```shell script
-export VERIFY_CNF_FEATURES=true
+export TNF_RUN_CFD_TEST=true
 ```
 
-Currently, these suites are skipped:
-* performance
-* sriov
-* ptp
-* sctp
-* xt_u32
-* dpdk
-* ovn
-
-For more information on the test suites, refer to [the cnf-features-deploy repository](https://github.com/openshift-kni/cnf-features-deploy/tree/release-4.6)
+By default, the image with release tag `4.6` is used and the ginkgo skip argument is set to `performance|sriov|ptp|sctp|xt_u32|dpdk|ovn`. To override the default behavior, set these environment variables: `TNF_CFD_IMAGE_TAG` and `TNF_CFD_SKIP`. For more information on the test suites, refer to [the cnf-features-deploy repository](https://github.com/openshift-kni/cnf-features-deploy)
 
 ## Running the tests with in a prebuild container
 
