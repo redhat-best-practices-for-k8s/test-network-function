@@ -22,8 +22,11 @@ In the diagram above:
 
 ## Test Configuration
 
-The Test Network Function support auto-configuration using labels and annotations, but also a static configuration using a file. The following sections describe how to configure the TNF via labels/annotation and the corresponding settings in the config file. A sample config file can be found [here](test-network-function/tnf_config.yml).
+The Test Network Function support auto-configuration using labels and annotations. The following sections describe how to configure the TNF via labels/annotation and the corresponding settings in the config file. A sample config file can be found [here](test-network-function/tnf_config.yml).
 
+### targetNameSpaces
+
+A single namespace should be specified in the [configuration file](test-network-function/tnf_config.yml). This namespace will be used by auto-configuration to discover the Pods under test. It's preferred not to run multiple tests in different namespaces in parallel, some tests are intrusive and can cause failures if two tests are running simultaneously.
 ### targetPodLabels
 The goal of this section is to specify the label to be used to identify the CNF resources under test. It's highly recommended that the labels should be defined in pod definition rather than added after pod is created, as labels added later on will be lost in case the pod gets rescheduled. In case of pods defined as part a deployment, it's best to use the same label as the one defined in the `spec.selector.matchLabels` section of the deployment yaml. The prefix field can be used to avoid naming collision with other labels.
 ```shell script
