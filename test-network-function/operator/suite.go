@@ -69,7 +69,9 @@ var _ = ginkgo.Describe(testSpecName, func() {
 		env := config.GetTestEnvironment()
 		ginkgo.BeforeEach(func() {
 			env.LoadAndRefresh()
-			gomega.Expect(len(env.OperatorsUnderTest)).ToNot(gomega.Equal(0))
+			if len(env.OperatorsUnderTest) == 0 {
+				ginkgo.Skip("No Operator found.")
+			}
 		})
 
 		defer ginkgo.GinkgoRecover()
