@@ -22,8 +22,11 @@ In the diagram above:
 
 ## Test Configuration
 
-The Test Network Function support auto-configuration using labels and annotations, but also a static configuration using a file. The following sections describe how to configure the TNF via labels/annotation and the corresponding settings in the config file. A sample config file can be found [here](test-network-function/tnf_config.yml).
+The Test Network Function support autodiscovery using labels and annotations. The following sections describe how to configure the TNF via labels/annotation and the corresponding settings in the config file. A sample config file can be found [here](test-network-function/tnf_config.yml).
 
+### targetNameSpaces
+
+A single namespace should be specified in the [configuration file](test-network-function/tnf_config.yml). This namespace will be used by autodiscovery to find the Pods under test. To run multiple tests in different namespaces simultaneously, intrusive tests should be disabled by setting ``TNF_NON_INTRUSIVE_ONLY`` to true.
 ### targetPodLabels
 The goal of this section is to specify the label to be used to identify the CNF resources under test. It's highly recommended that the labels should be defined in pod definition rather than added after pod is created, as labels added later on will be lost in case the pod gets rescheduled. In case of pods defined as part a deployment, it's best to use the same label as the one defined in the `spec.selector.matchLabels` section of the deployment yaml. The prefix field can be used to avoid naming collision with other labels.
 ```shell script
@@ -139,19 +142,10 @@ The test suites from openshift-kni/cnf-feature-deploy can be run prior to the ac
 
 
 ```shell script
-export VERIFY_CNF_FEATURES=true
+export TNF_RUN_CFD_TEST=true
 ```
 
-Currently, these suites are skipped:
-* performance
-* sriov
-* ptp
-* sctp
-* xt_u32
-* dpdk
-* ovn
-
-For more information on the test suites, refer to [the cnf-features-deploy repository](https://github.com/openshift-kni/cnf-features-deploy/tree/release-4.6)
+By default, the image with release tag `4.6` is used and the ginkgo skip argument is set to `performance|sriov|ptp|sctp|xt_u32|dpdk|ovn`. To override the default behavior, set these environment variables: `TNF_CFD_IMAGE_TAG` and `TNF_CFD_SKIP`. For more information on the test suites, refer to [the cnf-features-deploy repository](https://github.com/openshift-kni/cnf-features-deploy)
 
 ## Running the tests with in a prebuild container
 

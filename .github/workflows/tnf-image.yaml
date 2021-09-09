@@ -20,7 +20,7 @@ env:
   REGISTRY_LOCAL: localhost
   IMAGE_NAME: testnetworkfunction/test-network-function
   IMAGE_TAG: latest
-  CURRENT_VERSION_GENERIC_BRANCH: 2.0.x
+  CURRENT_VERSION_GENERIC_BRANCH: 3.0.x
   TNF_CONTAINER_CLIENT: docker
   TNF_MINIKUBE_ONLY: true
   TNF_NON_INTRUSIVE_ONLY: true
@@ -100,7 +100,9 @@ jobs:
 
       - name: Start the minikube cluster for `local-test-infra`
         uses: ./cnf-certification-test-partner/.github/actions/start-minikube
-
+        with:
+          working_directory: cnf-certification-test-partner
+          
       - name: Create `local-test-infra` OpenShift resources
         uses: ./cnf-certification-test-partner/.github/actions/create-local-test-infra-resources
         with:
@@ -115,10 +117,7 @@ jobs:
         shell: bash
 
       - name: 'Test: Run diagnostic test suite in a TNF container'
-        run: ./run-tnf-container.sh ${{ env.TESTING_CMD_PARAMS }} diagnostic
-
-      - name: 'Test: Run generic test suite in a TNF container'
-        run: ./run-tnf-container.sh ${{ env.TESTING_CMD_PARAMS }} generic
+        run: ./run-tnf-container.sh ${{ env.TESTING_CMD_PARAMS }} -f diagnostic      
 
       # Push the new TNF image to Quay.io.
 

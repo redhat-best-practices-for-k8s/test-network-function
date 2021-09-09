@@ -60,17 +60,17 @@ func buildLabelQuery(label configsections.Label) string {
 	return fullLabelName
 }
 
-func makeGetCommand(resourceType, labelQuery string) *exec.Cmd {
+func makeGetCommand(resourceType, labelQuery, namespace string) *exec.Cmd {
 	// TODO: shell expecter
-	cmd := exec.Command("oc", "get", resourceType, "-A", "-o", "json", "-l", labelQuery)
+	cmd := exec.Command("oc", "get", resourceType, "-n", namespace, "-o", "json", "-l", labelQuery)
 	log.Debug("Issuing get command ", cmd.Args)
 
 	return cmd
 }
 
 // getContainersByLabel builds `config.Container`s from containers in pods matching a label.
-func getContainersByLabel(label configsections.Label) (containers []configsections.ContainerConfig, err error) {
-	pods, err := GetPodsByLabel(label)
+func getContainersByLabel(label configsections.Label, namespace string) (containers []configsections.ContainerConfig, err error) {
+	pods, err := GetPodsByLabel(label, namespace)
 	if err != nil {
 		return nil, err
 	}
@@ -81,8 +81,8 @@ func getContainersByLabel(label configsections.Label) (containers []configsectio
 }
 
 // getContainerIdentifiersByLabel builds `config.ContainerIdentifier`s from containers in pods matching a label.
-func getContainerIdentifiersByLabel(label configsections.Label) (containerIDs []configsections.ContainerIdentifier, err error) {
-	containers, err := getContainersByLabel(label)
+func getContainerIdentifiersByLabel(label configsections.Label, namespace string) (containerIDs []configsections.ContainerIdentifier, err error) {
+	containers, err := getContainersByLabel(label, namespace)
 	if err != nil {
 		return nil, err
 	}
@@ -94,8 +94,8 @@ func getContainerIdentifiersByLabel(label configsections.Label) (containerIDs []
 
 // getContainerByLabel returns exactly one container with the given label. If any other number of containers is found
 // then an error is returned along with an empty `config.Container`.
-func getContainerByLabel(label configsections.Label) (container configsections.ContainerConfig, err error) {
-	containers, err := getContainersByLabel(label)
+func getContainerByLabel(label configsections.Label, namespace string) (container configsections.ContainerConfig, err error) {
+	containers, err := getContainersByLabel(label, namespace)
 	if err != nil {
 		return container, err
 	}

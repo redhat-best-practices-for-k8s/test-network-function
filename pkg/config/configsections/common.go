@@ -40,10 +40,18 @@ type Operator struct {
 	SubscriptionName string `yaml:"subscriptionName" json:"subscriptionName"`
 }
 
+// Namespace struct defines namespace properties
+type Namespace struct {
+	Name string `yaml:"name" json:"name"`
+}
+
 // TestConfiguration provides test related configuration
 type TestConfiguration struct {
 	// Custom Pod labels for discovering containers/pods under test
 	TargetPodLabels []Label `yaml:"targetPodLabels,omitempty" json:"targetPodLabels,omitempty"`
+	// targetNameSpaces to be used in
+	TargetNameSpaces []Namespace `yaml:"targetNameSpaces" json:"targetNameSpaces"`
+
 	// TestTarget contains k8s resources that can be targeted by tests
 	TestTarget `yaml:"testTarget" json:"testTarget"`
 	// TestPartner contains the helper containers that can be used to facilitate tests

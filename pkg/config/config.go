@@ -117,6 +117,7 @@ type TestEnvironment struct {
 	PodsUnderTest        []configsections.Pod
 	DeploymentsUnderTest []configsections.Deployment
 	OperatorsUnderTest   []configsections.Operator
+	NameSpaceUnderTest   string
 	// ContainersToExcludeFromConnectivityTests is a set used for storing the containers that should be excluded from
 	// connectivity testing.
 	ContainersToExcludeFromConnectivityTests map[configsections.ContainerIdentifier]interface{}
@@ -161,15 +162,20 @@ func (env *TestEnvironment) LoadAndRefresh() {
 	} else if env.needsRefresh {
 		env.Config.Partner = configsections.TestPartner{}
 		env.Config.TestTarget = configsections.TestTarget{}
+		env.TestOrchestrator = nil
 		env.doAutodiscover()
 	}
 }
 
 func (env *TestEnvironment) doAutodiscover() {
-	if autodiscover.PerformAutoDiscovery() {
-		autodiscover.FindTestTarget(env.Config.TargetPodLabels, &env.Config.TestTarget)
+	if len(env.Config.TargetNameSpaces) != 1 {
+		log.Fatal("a single namespace should be specified in config file")
 	}
-	autodiscover.FindTestPartner(&env.Config.Partner)
+	env.NameSpaceUnderTest = env.Config.TargetNameSpaces[0].Name
+	if autodiscover.PerformAutoDiscovery() {
+		autodiscover.FindTestTarget(env.Config.TargetPodLabels, &env.Config.TestTarget, env.NameSpaceUnderTest)
+	}
+	autodiscover.FindTestPartner(&env.Config.Partner, env.NameSpaceUnderTest)
 
 	log.Infof("Test Configuration: %+v", *env)
 
