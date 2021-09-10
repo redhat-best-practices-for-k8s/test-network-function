@@ -41,7 +41,6 @@ const (
 	usrbin                = `(?m)[\t|\s]\/usr\/bin[.]*`
 	usrsbin               = `(?m)[\t|\s]\/usr\/sbin[.]*`
 	usrlib                = `(?m)[\t|\s]\/usr\/lib[.]*`
-	err                   = `(?m)Error`
 	successfulOutputRegex = `(?m){}`
 	acceptAllRegex        = `(?m)(.|\n)+`
 )
@@ -79,8 +78,6 @@ func (p *CnfFsDiff) ReelFirst() *reel.Step {
 func (p *CnfFsDiff) ReelMatch(pattern, before, match string) *reel.Step {
 	p.result = tnf.SUCCESS
 	switch pattern {
-	case err:
-		p.result = tnf.ERROR
 	case varlibrpm, varlibdpkg, bin, sbin, lib, usrbin, usrsbin, usrlib:
 		p.result = tnf.FAILURE
 	case successfulOutputRegex:
@@ -114,5 +111,5 @@ func NewFsDiff(timeout time.Duration, containerID, nodeName string) *CnfFsDiff {
 
 // GetReelFirstRegularExpressions returns the regular expressions used for matching in ReelFirst.
 func (p *CnfFsDiff) GetReelFirstRegularExpressions() []string {
-	return []string{err, varlibrpm, varlibdpkg, bin, sbin, lib, usrbin, usrsbin, usrlib, successfulOutputRegex, acceptAllRegex}
+	return []string{varlibrpm, varlibdpkg, bin, sbin, lib, usrbin, usrsbin, usrlib, successfulOutputRegex, acceptAllRegex}
 }
