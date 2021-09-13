@@ -19,11 +19,15 @@ package autodiscover
 import (
 	"fmt"
 	"os"
-	"os/exec"
 	"strconv"
 
+	"github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
 	"github.com/test-network-function/test-network-function/pkg/config/configsections"
+	"github.com/test-network-function/test-network-function/pkg/tnf"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/command"
+	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
+	"github.com/test-network-function/test-network-function/test-network-function/common"
 )
 
 const (
@@ -60,12 +64,13 @@ func buildLabelQuery(label configsections.Label) string {
 	return namespacedLabel
 }
 
-func makeGetCommand(resourceType, labelQuery string) *exec.Cmd {
-	// TODO: shell expecter
-	cmd := exec.Command("oc", "get", resourceType, "-A", "-o", "json", "-l", labelQuery)
-	log.Debug("Issuing get command ", cmd.Args)
+func makeGetCommand(resourceType, labelQuery string) (string, error) { //*exec.Cmd { //string{
+	handler := command.NewCommand(common.DefaultTimeout, resourceType, labelQuery)
+	test, err := tnf.NewTest(common.GetContext().GetExpecter(), handler, []reel.Handler{handler}, common.GetContext().GetErrorChannel())
+	gomega.Expect(err).To(gomega.BeNil())
+	common.RunAndValidateTest(test)
 
-	return cmd
+	return handler.Output, err
 }
 
 // getContainersByLabel builds `config.Container`s from containers in pods matching a label.

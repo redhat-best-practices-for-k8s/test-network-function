@@ -30,6 +30,9 @@ const (
 	CutBinaryName = "cut"
 
 	// HostnameBinaryName is the name of the Unix `hostname` command.
+	CommandBinaryName = "command"
+
+	// HostnameBinaryName is the name of the Unix `hostname` command.
 	HostnameBinaryName = "hostname"
 
 	// IPBinaryName is the name of the Unix `ip` command.
