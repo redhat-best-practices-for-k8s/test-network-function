@@ -32,7 +32,7 @@ import (
 
 const (
 	disableAutodiscoverEnvVar = "TNF_DISABLE_CONFIG_AUTODISCOVER"
-	tnfNamespace              = "test-network-function.com"
+	tnfLabelPrefix            = "test-network-function.com"
 	labelTemplate             = "%s/%s"
 
 	// anyLabelValue is the value that will allow any value for a label when building the label query.
@@ -53,29 +53,30 @@ func buildLabelName(labelNS, labelName string) string {
 }
 
 func buildAnnotationName(annotationName string) string {
-	return buildLabelName(tnfNamespace, annotationName)
+	return buildLabelName(tnfLabelPrefix, annotationName)
 }
 
 func buildLabelQuery(label configsections.Label) string {
-	namespacedLabel := buildLabelName(label.Namespace, label.Name)
+	fullLabelName := buildLabelName(label.Prefix, label.Name)
 	if label.Value != anyLabelValue {
-		return fmt.Sprintf("%s=%s", namespacedLabel, label.Value)
+		return fmt.Sprintf("%s=%s", fullLabelName, label.Value)
 	}
-	return namespacedLabel
+	return fullLabelName
 }
+
 
 func makeGetCommand(resourceType, labelQuery string) (string, error) { //*exec.Cmd { //string{
 	handler := command.NewCommand(common.DefaultTimeout, resourceType, labelQuery)
 	test, err := tnf.NewTest(common.GetContext().GetExpecter(), handler, []reel.Handler{handler}, common.GetContext().GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
 	common.RunAndValidateTest(test)
-
+  
 	return handler.Output, err
 }
 
 // getContainersByLabel builds `config.Container`s from containers in pods matching a label.
-func getContainersByLabel(label configsections.Label) (containers []configsections.ContainerConfig, err error) {
-	pods, err := GetPodsByLabel(label)
+func getContainersByLabel(label configsections.Label, namespace string) (containers []configsections.ContainerConfig, err error) {
+	pods, err := GetPodsByLabel(label, namespace)
 	if err != nil {
 		return nil, err
 	}
@@ -86,8 +87,8 @@ func getContainersByLabel(label configsections.Label) (containers []configsectio
 }
 
 // getContainerIdentifiersByLabel builds `config.ContainerIdentifier`s from containers in pods matching a label.
-func getContainerIdentifiersByLabel(label configsections.Label) (containerIDs []configsections.ContainerIdentifier, err error) {
-	containers, err := getContainersByLabel(label)
+func getContainerIdentifiersByLabel(label configsections.Label, namespace string) (containerIDs []configsections.ContainerIdentifier, err error) {
+	containers, err := getContainersByLabel(label, namespace)
 	if err != nil {
 		return nil, err
 	}
@@ -99,13 +100,13 @@ func getContainerIdentifiersByLabel(label configsections.Label) (containerIDs []
 
 // getContainerByLabel returns exactly one container with the given label. If any other number of containers is found
 // then an error is returned along with an empty `config.Container`.
-func getContainerByLabel(label configsections.Label) (container configsections.ContainerConfig, err error) {
-	containers, err := getContainersByLabel(label)
+func getContainerByLabel(label configsections.Label, namespace string) (container configsections.ContainerConfig, err error) {
+	containers, err := getContainersByLabel(label, namespace)
 	if err != nil {
 		return container, err
 	}
 	if len(containers) != 1 {
-		return container, fmt.Errorf("expected exactly one container, got %d for label %s/%s=%s", len(containers), label.Namespace, label.Name, label.Value)
+		return container, fmt.Errorf("expected exactly one container, got %d for label %s/%s=%s", len(containers), label.Prefix, label.Name, label.Value)
 	}
 	return containers[0], nil
 }

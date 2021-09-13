@@ -323,7 +323,8 @@ the same hacks.'`),
 		Description: formDescription(TestOperatorInstallStatusIdentifier,
 			`Ensures that CNF Operators abide by best practices.  The following is tested:
 1. The Operator CSV reports "Installed" status.
-2. TODO: Describe operator scc check.`),
+2. The operator is not installed with privileged rights. Test passes if clusterPermissions is not present in the CSV manifest or is present 
+with no resourceNames under its rules.`),
 	},
 
 	TestOperatorIsCertifiedIdentifier: {
@@ -374,7 +375,7 @@ ClusterRoleBindings, if possible.`,
 	TestPodDeploymentBestPracticesIdentifier: {
 		Identifier:  TestPodDeploymentBestPracticesIdentifier,
 		Type:        normativeResult,
-		Remediation: `Deploy the CNF using DaemonSet or ReplicaSet.`,
+		Remediation: `Deploy the CNF using ReplicaSet.`,
 		Description: formDescription(TestPodDeploymentBestPracticesIdentifier,
 			`tests that CNF Pod(s) are deployed as part of a ReplicaSet(s).`),
 	},
@@ -398,7 +399,7 @@ ClusterRoleBindings, if possible.`,
 	TestServicesDoNotUseNodeportsIdentifier: {
 		Identifier:  TestServicesDoNotUseNodeportsIdentifier,
 		Type:        normativeResult,
-		Remediation: `Ensure Services are not configured to not use NodePort(s).`,
+		Remediation: `Ensure Services are not configured to use NodePort(s).`,
 		Description: formDescription(TestServicesDoNotUseNodeportsIdentifier,
 			`tests that each CNF Service does not utilize NodePort(s).`),
 	},
@@ -437,8 +438,7 @@ that there are no changes to the following directories:
 	TestUnalteredStartupBootParamsIdentifier: {
 		Identifier: TestUnalteredStartupBootParamsIdentifier,
 		Type:       normativeResult,
-		Remediation: `Ensure that boot parameters are set directly through the MachineConfigOperator, or indirectly through the
-PerfromanceAddonOperator.  Boot parameters should not be changed directly through the Node, as OpenShift should manage
+		Remediation: `Ensure that boot parameters are set directly through the MachineConfigOperator, or indirectly through the PerformanceAddonOperator.  Boot parameters should not be changed directly through the Node, as OpenShift should manage
 the changes for you.`,
 		Description: formDescription(TestUnalteredStartupBootParamsIdentifier,
 			`tests that boot parameters are set through the MachineConfigOperator, and not set manually on the Node.`),

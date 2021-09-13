@@ -20,11 +20,26 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/test-network-function/test-network-function/pkg/config/configsections"
 )
 
 const (
 	filePath = "testdata/tnf_test_config.yml"
 )
+
+const (
+	testDeploymentsNumber   = 1
+	testDeploymentName      = "test"
+	testDeploymentNamespace = "default"
+	testDeploymentReplicas  = 2
+)
+
+func testLoadedDeployments(t *testing.T, deployments []configsections.Deployment) {
+	assert.Equal(t, len(deployments), testDeploymentsNumber)
+	assert.Equal(t, deployments[0].Name, testDeploymentName)
+	assert.Equal(t, deployments[0].Namespace, testDeploymentNamespace)
+	assert.Equal(t, deployments[0].Replicas, testDeploymentReplicas)
+}
 
 func TestLoadConfigFromFile(t *testing.T) {
 	env := GetTestEnvironment()
@@ -33,4 +48,5 @@ func TestLoadConfigFromFile(t *testing.T) {
 	assert.Equal(t, env.Config.Partner.TestOrchestratorID.Namespace, "default")
 	assert.Equal(t, env.Config.Partner.TestOrchestratorID.ContainerName, "partner")
 	assert.Equal(t, env.Config.Partner.TestOrchestratorID.PodName, "partner")
+	testLoadedDeployments(t, env.Config.DeploymentsUnderTest)
 }

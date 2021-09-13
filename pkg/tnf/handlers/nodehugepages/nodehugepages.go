@@ -22,6 +22,7 @@ import (
 	"time"
 
 	"github.com/test-network-function/test-network-function/pkg/tnf"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/common"
 	"github.com/test-network-function/test-network-function/pkg/tnf/identifier"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
 )
@@ -47,7 +48,7 @@ func NewNodeHugepages(timeout time.Duration, node string, hugepagesz, hugepages 
 		timeout:    timeout,
 		result:     tnf.ERROR,
 		args: []string{
-			"echo", "\"grep -E 'HugePages_Total:|Hugepagesize:' /proc/meminfo\"", "|", "oc", "debug", "node/" + node,
+			"echo", "\"grep -E 'HugePages_Total:|Hugepagesize:' /proc/meminfo\"", "|", common.GetOcDebugCommand(), "node/" + node,
 		},
 	}
 }

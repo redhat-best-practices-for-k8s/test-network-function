@@ -28,11 +28,12 @@ const (
 
 // FindTestPartner completes a `configsections.TestPartner` from the current state of the cluster,
 // using labels and annotations to populate the data, if it's not fully configured
-func FindTestPartner(tp *configsections.TestPartner) {
+func FindTestPartner(tp *configsections.TestPartner, namespace string) {
 	if tp.TestOrchestratorID.ContainerName == "" {
-		orchestrator, err := getContainerByLabel(configsections.Label{Namespace: tnfNamespace, Name: genericLabelName, Value: orchestratorValue})
+		orchestrator, err := getContainerByLabel(configsections.Label{Prefix: tnfLabelPrefix, Name: genericLabelName, Value: orchestratorValue}, namespace)
 		if err != nil {
-			log.Fatalf("failed to identify a single test orchestrator container: %s", err)
+			log.Errorf("failed to identify a single test orchestrator container: %s", err)
+			return
 		}
 		tp.ContainerConfigList = append(tp.ContainerConfigList, orchestrator)
 		tp.TestOrchestratorID = orchestrator.ContainerIdentifier

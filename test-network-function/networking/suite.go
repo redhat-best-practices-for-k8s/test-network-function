@@ -73,6 +73,9 @@ func testDefaultNetworkConnectivity(env *config.TestEnvironment, count int) {
 	ginkgo.When("Testing network connectivity", func() {
 		testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestICMPv4ConnectivityIdentifier)
 		ginkgo.It(testID, func() {
+			if env.TestOrchestrator == nil {
+				ginkgo.Skip("Orchestrator is not deployed, skip this test")
+			}
 			for _, cut := range env.ContainersUnderTest {
 				if _, ok := env.ContainersToExcludeFromConnectivityTests[cut.ContainerIdentifier]; ok {
 					continue
@@ -97,7 +100,13 @@ func testMultusNetworkConnectivity(env *config.TestEnvironment, count int) {
 	ginkgo.When("Testing network connectivity", func() {
 		testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestICMPv4ConnectivityIdentifier)
 		ginkgo.It(testID, func() {
+			if env.TestOrchestrator == nil {
+				ginkgo.Skip("Orchestrator is not deployed, skip this test")
+			}
 			for _, cut := range env.ContainersUnderTest {
+				if _, ok := env.ContainersToExcludeFromConnectivityTests[cut.ContainerIdentifier]; ok {
+					continue
+				}
 				for _, multusIPAddress := range cut.ContainerConfiguration.MultusIPAddresses {
 					testOrchestrator := env.TestOrchestrator
 					ginkgo.By(fmt.Sprintf("a Ping is issued from %s(%s) to %s(%s) %s", testOrchestrator.Oc.GetPodName(),
