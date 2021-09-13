@@ -112,9 +112,12 @@ func getContainerDefaultNetworkIPAddress(oc *interactive.Oc, dev string) string 
 
 // TestEnvironment includes the representation of the current state of the test targets and parters as well as the test configuration
 type TestEnvironment struct {
-	ContainersUnderTest map[configsections.ContainerIdentifier]*Container
-	PartnerContainers   map[configsections.ContainerIdentifier]*Container
-	PodsUnderTest       []configsections.Pod
+	ContainersUnderTest  map[configsections.ContainerIdentifier]*Container
+	PartnerContainers    map[configsections.ContainerIdentifier]*Container
+	PodsUnderTest        []configsections.Pod
+	DeploymentsUnderTest []configsections.Deployment
+	OperatorsUnderTest   []configsections.Operator
+	NameSpaceUnderTest   string
 	// ContainersToExcludeFromConnectivityTests is a set used for storing the containers that should be excluded from
 	// connectivity testing.
 	ContainersToExcludeFromConnectivityTests map[configsections.ContainerIdentifier]interface{}
@@ -159,17 +162,24 @@ func (env *TestEnvironment) LoadAndRefresh() {
 	} else if env.needsRefresh {
 		env.Config.Partner = configsections.TestPartner{}
 		env.Config.TestTarget = configsections.TestTarget{}
+		env.TestOrchestrator = nil
 		env.doAutodiscover()
 	}
 }
 
 func (env *TestEnvironment) doAutodiscover() {
-	if autodiscover.PerformAutoDiscovery() {
-		autodiscover.FindTestTarget(env.Config.TargetPodLabels, &env.Config.TestTarget)
+	if len(env.Config.TargetNameSpaces) != 1 {
+		log.Fatal("a single namespace should be specified in config file")
 	}
-	autodiscover.FindTestPartner(&env.Config.Partner)
+	env.NameSpaceUnderTest = env.Config.TargetNameSpaces[0].Name
+	if autodiscover.PerformAutoDiscovery() {
+		autodiscover.FindTestTarget(env.Config.TargetPodLabels, &env.Config.TestTarget, env.NameSpaceUnderTest)
+	}
+	autodiscover.FindTestPartner(&env.Config.Partner, env.NameSpaceUnderTest)
 
 	log.Infof("Test Configuration: %+v", *env)
+
+	env.ContainersToExcludeFromConnectivityTests = make(map[configsections.ContainerIdentifier]interface{})
 
 	for _, cid := range env.Config.ExcludeContainersFromConnectivityTests {
 		env.ContainersToExcludeFromConnectivityTests[cid] = ""
@@ -178,6 +188,8 @@ func (env *TestEnvironment) doAutodiscover() {
 	env.PodsUnderTest = env.Config.PodsUnderTest
 	env.PartnerContainers = env.createContainers(env.Config.Partner.ContainerConfigList)
 	env.TestOrchestrator = env.PartnerContainers[env.Config.Partner.TestOrchestratorID]
+	env.DeploymentsUnderTest = env.Config.DeploymentsUnderTest
+	env.OperatorsUnderTest = env.Config.Operators
 	log.Info(env.TestOrchestrator)
 	log.Info(env.ContainersUnderTest)
 	env.needsRefresh = false

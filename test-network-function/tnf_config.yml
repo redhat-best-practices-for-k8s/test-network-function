@@ -1,5 +1,7 @@
+targetNameSpaces:
+  - name: tnf
 targetPodLabels:
-  - namespace: test-network-function.com
+  - prefix: test-network-function.com
     name: generic
     value: target
 # The following section does not require manual configuration as autodiscovery is on by default

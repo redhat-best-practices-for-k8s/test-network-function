@@ -19,7 +19,7 @@ env:
   TNF_OUTPUT_DIR: /tmp/tnf/output
   TNF_SRC_URL: 'https://github.com/${{ github.repository }}'
   TESTING_CMD_PARAMS: '-n host -i ${REGISTRY_LOCAL}/${IMAGE_NAME}:${IMAGE_TAG} -t ${TNF_CONFIG_DIR} -o ${TNF_OUTPUT_DIR}'
-  NAMESPACE_TO_GENERATE: tnf
+  TNF_PARTNER_NAMESPACE: tnf
   TNF_PARTNER_DIR: '/usr/tnf-partner'
   TNF_PARTNER_SRC_DIR: '${TNF_PARTNER_DIR}/src'
 
@@ -111,6 +111,8 @@ jobs:
 
       - name: Start the minikube cluster for `local-test-infra`
         uses: ./cnf-certification-test-partner/.github/actions/start-minikube
+        with:
+          working_directory: cnf-certification-test-partner
 
       - name: Create `local-test-infra` OpenShift resources
         uses: ./cnf-certification-test-partner/.github/actions/create-local-test-infra-resources
@@ -124,7 +126,6 @@ jobs:
 
       - name: 'Test: Run test suites'
         run: ./run-cnf-suites.sh --focus access-control lifecycle platform observablility networking affiliated-certification operator
-
       # Perform smoke tests using a TNF container.
 
       - name: Build the `test-network-function` image

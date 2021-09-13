@@ -18,9 +18,9 @@ package configsections
 
 // Label ns/name/value for resource lookup
 type Label struct {
-	Namespace string `yaml:"namespace" json:"namespace"`
-	Name      string `yaml:"name" json:"name"`
-	Value     string `yaml:"value" json:"value"`
+	Prefix string `yaml:"prefix" json:"prefix"`
+	Name   string `yaml:"name" json:"name"`
+	Value  string `yaml:"value" json:"value"`
 }
 
 // Operator struct defines operator manifest for testing
@@ -40,10 +40,18 @@ type Operator struct {
 	SubscriptionName string `yaml:"subscriptionName" json:"subscriptionName"`
 }
 
+// Namespace struct defines namespace properties
+type Namespace struct {
+	Name string `yaml:"name" json:"name"`
+}
+
 // TestConfiguration provides test related configuration
 type TestConfiguration struct {
 	// Custom Pod labels for discovering containers/pods under test
 	TargetPodLabels []Label `yaml:"targetPodLabels,omitempty" json:"targetPodLabels,omitempty"`
+	// targetNameSpaces to be used in
+	TargetNameSpaces []Namespace `yaml:"targetNameSpaces" json:"targetNameSpaces"`
+
 	// TestTarget contains k8s resources that can be targeted by tests
 	TestTarget `yaml:"testTarget" json:"testTarget"`
 	// TestPartner contains the helper containers that can be used to facilitate tests
@@ -64,6 +72,8 @@ type TestPartner struct {
 
 // TestTarget is a collection of resources under test
 type TestTarget struct {
+	// DeploymentsUnderTest is the list of deployments that contain pods under test.
+	DeploymentsUnderTest []Deployment `yaml:"deploymentsUnderTest" json:"deploymentsUnderTest"`
 	// PodsUnderTest is the list of the pods that needs to be tested. Each entry is a single pod to be tested.
 	PodsUnderTest []Pod `yaml:"podsUnderTest,omitempty" json:"podsUnderTest,omitempty"`
 	// ContainerConfigList is the list of containers that needs to be tested.

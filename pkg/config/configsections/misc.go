@@ -34,15 +34,6 @@ type Crd struct {
 	Instances []Instance `yaml:"instances" json:"instances"`
 }
 
-// Deployment defines deployment resources
-type Deployment struct {
-	// Name is the name of the deployment specified in the CSV
-	Name string `yaml:"name" json:"name"`
-
-	// Replicas is no of replicas that are expected for this deployment as specified in the CSV
-	Replicas string `yaml:"replicas" json:"replicas"`
-}
-
 // Permission defines roles and cluster roles resources
 type Permission struct {
 	// Name is the name of Roles and Cluster Roles that is specified in the CSV

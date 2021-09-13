@@ -30,9 +30,7 @@ import (
 	"github.com/onsi/ginkgo"
 	ginkgoconfig "github.com/onsi/ginkgo/config"
 	"github.com/onsi/gomega"
-	log "github.com/sirupsen/logrus"
 	"github.com/test-network-function/test-network-function/pkg/config"
-	"github.com/test-network-function/test-network-function/pkg/config/configsections"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/operator"
 	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
@@ -71,6 +69,9 @@ var _ = ginkgo.Describe(testSpecName, func() {
 		env := config.GetTestEnvironment()
 		ginkgo.BeforeEach(func() {
 			env.LoadAndRefresh()
+			if len(env.OperatorsUnderTest) == 0 {
+				ginkgo.Skip("No Operator found.")
+			}
 		})
 
 		defer ginkgo.GinkgoRecover()
@@ -83,18 +84,17 @@ var _ = ginkgo.Describe(testSpecName, func() {
 			})
 		})
 		ginkgo.Context("Runs test on operators", func() {
-			itRunsTestsOnOperator()
+			itRunsTestsOnOperator(env)
 		})
-		testOperatorsAreInstalledViaOLM()
+		testOperatorsAreInstalledViaOLM(env)
 	}
 })
 
 // testOperatorsAreInstalledViaOLM ensures all configured operators have a proper OLM subscription.
-func testOperatorsAreInstalledViaOLM() {
+func testOperatorsAreInstalledViaOLM(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestOperatorIsInstalledViaOLMIdentifier)
 	ginkgo.It(testID, func() {
-		_, operatorsInTest := getConfig()
-		for _, operatorInTest := range operatorsInTest {
+		for _, operatorInTest := range env.OperatorsUnderTest {
 			defer results.RecordResult(identifiers.TestOperatorIsInstalledViaOLMIdentifier)
 			ginkgo.By(fmt.Sprintf("%s in namespace %s Should have a valid subscription", operatorInTest.SubscriptionName, operatorInTest.Namespace))
 			testOperatorIsInstalledViaOLM(operatorInTest.SubscriptionName, operatorInTest.Namespace)
@@ -124,19 +124,7 @@ func testOperatorIsInstalledViaOLM(subscriptionName, subscriptionNamespace strin
 	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
 }
 
-func getConfig() ([]configsections.CertifiedOperatorRequestInfo, []configsections.Operator) {
-	conf := config.GetTestEnvironment().Config
-	operatorsToQuery := conf.CertifiedOperatorInfo
-	operatorsInTest := conf.Operators
-	return operatorsToQuery, operatorsInTest
-}
-
-func itRunsTestsOnOperator() {
-	if common.IsMinikube() {
-		log.Info("Minikube detected: skipping operators test.")
-		return
-	}
-
+func itRunsTestsOnOperator(env *config.TestEnvironment) {
 	for _, testType := range testcases.GetConfiguredOperatorTests() {
 		testFile, err := testcases.LoadConfiguredTestFile(configuredTestFile)
 		gomega.Expect(testFile).ToNot(gomega.BeNil())
@@ -149,17 +137,17 @@ func itRunsTestsOnOperator() {
 			if testCase.SkipTest {
 				continue
 			}
-			runTestsOnOperator(testCase)
+			runTestsOnOperator(env, testCase)
 		}
 	}
 }
 
 //nolint:gocritic // ignore hugeParam error. Pointers to loop iterator vars are bad and `testCmd` is likely to be such.
-func runTestsOnOperator(testCase testcases.BaseTestCase) {
+func runTestsOnOperator(env *config.TestEnvironment, testCase testcases.BaseTestCase) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestOperatorInstallStatusIdentifier) + "-" + testCase.Name
 	ginkgo.It(testID, func() {
 		defer results.RecordResult(identifiers.TestOperatorInstallStatusIdentifier)
-		for _, op := range config.GetTestEnvironment().Config.Operators {
+		for _, op := range env.OperatorsUnderTest {
 			if testCase.ExpectedType == testcases.Function {
 				for _, val := range testCase.ExpectedStatus {
 					testCase.ExpectedStatusFn(op.Name, testcases.StatusFunctionType(val))

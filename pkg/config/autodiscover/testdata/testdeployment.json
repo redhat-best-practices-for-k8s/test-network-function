@@ -1,0 +1,15 @@
+
+{
+    "apiVersion": "apps/v1",
+    "kind": "Deployment",
+    "metadata": {
+        "labels": {
+            "app": "test"
+        },
+        "name": "test",
+        "namespace": "tnf"
+    },
+    "spec": {
+        "replicas": 2
+    }
+}
