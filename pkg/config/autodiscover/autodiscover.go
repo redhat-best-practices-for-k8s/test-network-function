@@ -64,8 +64,8 @@ func buildLabelQuery(label configsections.Label) string {
 	return fullLabelName
 }
 
-func makeGetCommand(resourceType, labelQuery string) (string, error) {
-	handler := command.NewCommand(common.DefaultTimeout, resourceType, labelQuery)
+func makeGetCommand(resourceType, labelQuery, namespace string) (string, error) {
+	handler := command.NewCommand(common.DefaultTimeout, resourceType, labelQuery, namespace)
 	test, err := tnf.NewTest(common.GetContext().GetExpecter(), handler, []reel.Handler{handler}, common.GetContext().GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
 	common.RunAndValidateTest(test)
