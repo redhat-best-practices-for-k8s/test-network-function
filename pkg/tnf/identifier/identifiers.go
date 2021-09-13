@@ -611,7 +611,7 @@ var Catalog = map[string]TestCatalogEntry{
 	},
 }
 
-//CommandIdentifier is  the Identifier used to represent the generic command test case.
+// CommandIdentifier is  the Identifier used to represent the generic command test case.
 var CommandIdentifier = Identifier{
 	URL:             commandIdentifierURL,
 	SemanticVersion: versionOne,

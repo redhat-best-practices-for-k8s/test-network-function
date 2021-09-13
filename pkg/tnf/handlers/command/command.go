@@ -40,7 +40,7 @@ const (
 )
 
 // NewCommand creates a new command handler.
-func NewCommand(timeout time.Duration, deploymentName string, labelQuery string) *Command {
+func NewCommand(timeout time.Duration, deploymentName, labelQuery string) *Command {
 	command := fmt.Sprintf(ocCommand, deploymentName, labelQuery)
 	return &Command{
 		timeout: timeout,
