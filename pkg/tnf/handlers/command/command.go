@@ -43,7 +43,7 @@ const (
 func NewCommand(timeout time.Duration, resourceType, labelQuery, namespace string) *Command {
 	command := fmt.Sprintf(ocCommand, resourceType, namespace, labelQuery)
 	return &Command{
-		timeout: 2 * timeout,
+		timeout: timeout,
 		result:  tnf.ERROR,
 		args:    strings.Fields(command),
 	}
