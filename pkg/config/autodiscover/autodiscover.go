@@ -68,7 +68,11 @@ func makeGetCommand(resourceType, labelQuery, namespace string) (string, error) 
 	handler := command.NewCommand(common.DefaultTimeout, resourceType, labelQuery, namespace)
 	test, err := tnf.NewTest(common.GetContext().GetExpecter(), handler, []reel.Handler{handler}, common.GetContext().GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
-	common.RunAndValidateTest(test)
+	testResult, err := test.Run()
+
+	if testResult != tnf.SUCCESS {
+		log.Error("Oc get command failed -> ", handler.Args())
+	}
 
 	return handler.Output, err
 }

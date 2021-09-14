@@ -43,7 +43,7 @@ const (
 func NewCommand(timeout time.Duration, resourceType, labelQuery, namespace string) *Command {
 	command := fmt.Sprintf(ocCommand, resourceType, namespace, labelQuery)
 	return &Command{
-		timeout: timeout,
+		timeout: 2 * timeout,
 		result:  tnf.ERROR,
 		args:    strings.Fields(command),
 	}
@@ -80,10 +80,10 @@ func (h *Command) ReelFirst() *reel.Step {
 
 // ReelMatch parses the Command output and set the test result on match.
 func (h *Command) ReelMatch(_, _, match string) *reel.Step {
-	h.result = tnf.ERROR
+	h.result = tnf.SUCCESS
 	h.Output = match
+
 	return nil
-	// TODO : add the matching logic in here
 }
 
 // ReelTimeout does nothing, Command requires no explicit intervention for a timeout.
