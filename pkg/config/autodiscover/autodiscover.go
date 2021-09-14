@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
@@ -34,7 +35,7 @@ const (
 	disableAutodiscoverEnvVar = "TNF_DISABLE_CONFIG_AUTODISCOVER"
 	tnfLabelPrefix            = "test-network-function.com"
 	labelTemplate             = "%s/%s"
-
+	makeGetCommandTimeout     = 2
 	// anyLabelValue is the value that will allow any value for a label when building the label query.
 	anyLabelValue = ""
 )
@@ -65,7 +66,7 @@ func buildLabelQuery(label configsections.Label) string {
 }
 
 func makeGetCommand(resourceType, labelQuery, namespace string) (string, error) {
-	handler := command.NewCommand(common.DefaultTimeout, resourceType, labelQuery, namespace)
+	handler := command.NewCommand(time.Duration(makeGetCommandTimeout)*time.Second, resourceType, labelQuery, namespace)
 	test, err := tnf.NewTest(common.GetContext().GetExpecter(), handler, []reel.Handler{handler}, common.GetContext().GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
 	testResult, err := test.Run()
