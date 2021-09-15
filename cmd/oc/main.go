@@ -37,7 +37,7 @@ const (
 )
 
 func parseArgs() (*interactive.Oc, <-chan error, string, time.Duration, error) { //nolint:gocritic //permit unnamed return values
-	timeout := flag.Int("t", 2, "Timeout in seconds")
+	timeout := flag.Int("t", 2, "Timeout in seconds") //nolint:gomnd
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "usage: %s [-t timeout] pod container targetIpAddress ?oc-exec-opt ... oc-exec-opt?\n", os.Args[0])
 		flag.PrintDefaults()
@@ -70,7 +70,7 @@ func main() {
 		os.Exit(tnf.ExitCodeMap[result])
 	}
 
-	request := ping.NewPing(timeoutDuration, targetIPAddress, 5)
+	request := ping.NewPing(timeoutDuration, targetIPAddress, 5) //nolint:gomnd
 	chain := []reel.Handler{request}
 	test, err := tnf.NewTest(oc.GetExpecter(), request, chain, ch)
 

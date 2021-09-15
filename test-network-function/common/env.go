@@ -80,7 +80,7 @@ func logLevel() string {
 	logLevel := os.Getenv("LOG_LEVEL")
 	if logLevel == "" {
 		log.Info("LOG_LEVEL environment is not set, defaulting to DEBUG")
-		logLevel = "debug"
+		logLevel = "debug" //nolint:goconst
 	}
 	return logLevel
 }

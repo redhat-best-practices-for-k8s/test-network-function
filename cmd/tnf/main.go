@@ -44,7 +44,7 @@ func generateHandlerFiles(cmd *cobra.Command, args []string) error {
 	handlerDirectory = path.Join(pathrelativetoroot, "pkg", "tnf", "handlers")
 	newHandlerDirectory := path.Join(handlerDirectory, handlername)
 
-	err := os.Mkdir(newHandlerDirectory, 0755)
+	err := os.Mkdir(newHandlerDirectory, 0755) //nolint:gomnd
 	if err != nil {
 		return err
 	}

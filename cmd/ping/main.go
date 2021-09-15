@@ -37,7 +37,7 @@ const (
 )
 
 func parseArgs() (*ping.Ping, time.Duration) {
-	timeout := flag.Int("t", 2, "Timeout in seconds")
+	timeout := flag.Int("t", 2, "Timeout in seconds") //nolint:gomnd
 	count := flag.Int("c", 1, "Number of requests to send")
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "usage: %s [-t timeout] [-c count] host\n", os.Args[0])
