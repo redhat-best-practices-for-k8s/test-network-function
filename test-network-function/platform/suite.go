@@ -66,22 +66,13 @@ var _ = ginkgo.Describe(common.PlatformAlterationTestKey, func() {
 			// use this boolean to turn off tests that require OS packages
 			if !common.IsMinikube() {
 				testContainersFsDiff(env)
+				testTainted()
+				testHugepages()
+				testBootParams(env)
+				testSysctlConfigs(env)
 			}
+			testIsRedHatRelease(env)
 		})
-
-		testTainted()
-		testHugepages()
-
-		if !common.IsMinikube() {
-			testBootParams(env)
-		}
-
-		if !common.IsMinikube() {
-			testSysctlConfigs(env)
-		}
-
-		testIsRedHatRelease(env)
-
 	}
 })
 
@@ -297,9 +288,6 @@ func testSysctlConfigsHelper(podName, podNamespace string) {
 }
 
 func testTainted() {
-	if common.IsMinikube() {
-		return
-	}
 	var nodeNames []string
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestNonTaintedNodeKernelsIdentifier)
 	ginkgo.It(testID, func() {
@@ -337,9 +325,6 @@ func testTainted() {
 }
 
 func testHugepages() {
-	if common.IsMinikube() {
-		return
-	}
 	var nodeNames []string
 	var clusterHugepages, clusterHugepagesz int
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestHugepagesNotManuallyManipulated)
