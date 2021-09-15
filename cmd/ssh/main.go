@@ -37,7 +37,7 @@ const (
 )
 
 func parseArgs() (*interactive.Context, string, time.Duration, error) {
-	timeout := flag.Int("t", 2, "Timeout in seconds") //nolint:gomnd
+	timeout := flag.Int("t", 2, "Timeout in seconds")
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "usage: %s [-t timeout] user host targetIpAddress\n", os.Args[0])
 		flag.PrintDefaults()
@@ -67,7 +67,7 @@ func main() {
 		os.Exit(tnf.ExitCodeMap[result])
 	}
 
-	request := ping.NewPing(timeoutDuration, targetIPAddress, 5) //nolint:gomnd
+	request := ping.NewPing(timeoutDuration, targetIPAddress, 5)
 	chain := []reel.Handler{request}
 	test, err := tnf.NewTest(context.GetExpecter(), request, chain, context.GetErrorChannel())
 
