@@ -251,7 +251,7 @@ func runOcCmd(_ *cobra.Command, args []string) {
 	// oc shell creation.
 	goExpectSpawner := interactive.NewGoExpectSpawner()
 	var spawnContext interactive.Spawner = goExpectSpawner
-	oc, ch, err := interactive.SpawnOc(&spawnContext, pod, container, namespace, (*tester).Timeout(), interactive.Verbose(true))
+	oc, ch, err := interactive.SpawnOc(&spawnContext, pod, container, namespace, (*tester).Timeout(), interactive.Verbose(true), interactive.SendTimeout((*tester).Timeout()))
 	if err != nil {
 		fatalError("could not create the oc expecter", err, testExpecterCreationFailedExitCode)
 	}
