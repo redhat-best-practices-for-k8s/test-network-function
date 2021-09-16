@@ -146,6 +146,11 @@ type GoExpectSpawner struct {
 	verboseWriterIsSet bool
 	// verboseWriter is an alternate destination for verbose logs.
 	verboseWriter io.Writer
+
+	// sendTimeoutIsSet tracks whether the Send command timeout is set.
+	sendTimeoutIsSet bool
+	// sendTimeout is the timeout of send command
+	sendTimeout time.Duration
 }
 
 // Option is a function pointer to enable lightweight optionals for GoExpectSpawner.
@@ -191,6 +196,16 @@ func VerboseWriter(verboseWriter io.Writer) Option {
 	}
 }
 
+// SendTimeout sets the timeout of send command
+func SendTimeout(timeout time.Duration) Option {
+	return func(g *GoExpectSpawner) Option {
+		g.sendTimeoutIsSet = true
+		prev := g.sendTimeout
+		g.sendTimeout = timeout
+		return SendTimeout(prev)
+	}
+}
+
 // getDefaultBufferSize returns the default buffer size as sourced from TNF_DEFAULT_BUFFER_SIZE.  If
 // TNF_DEFAULT_BUFFER_SIZE is not set or cannot be parsed as an integer, defaultBufferSize is returned.
 func getDefaultBufferSize() int {
@@ -226,6 +241,10 @@ func (g *GoExpectSpawner) GetGoExpectOptions() []expect.Option {
 
 	if g.verboseWriterIsSet {
 		opts = append(opts, expect.VerboseWriter(g.verboseWriter))
+	}
+
+	if g.sendTimeoutIsSet {
+		opts = append(opts, expect.SendTimeout(g.sendTimeout))
 	}
 
 	return opts
