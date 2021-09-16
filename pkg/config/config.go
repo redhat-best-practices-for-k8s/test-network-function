@@ -74,7 +74,6 @@ func getOcSession(pod, container, namespace string, timeout time.Duration, optio
 	// correctly.
 	var containerOc *interactive.Oc
 	ocChan := make(chan *interactive.Oc)
-	var chOut <-chan error
 
 	goExpectSpawner := interactive.NewGoExpectSpawner()
 	var spawner interactive.Spawner = goExpectSpawner
@@ -83,13 +82,12 @@ func getOcSession(pod, container, namespace string, timeout time.Duration, optio
 		oc, outCh, err := interactive.SpawnOc(&spawner, pod, container, namespace, timeout, options...)
 		gomega.Expect(outCh).ToNot(gomega.BeNil())
 		gomega.Expect(err).To(gomega.BeNil())
+		// Set up a go routine which reads from the error channel
+		go func() {
+			err := <-outCh
+			gomega.Expect(err).To(gomega.BeNil())
+		}()
 		ocChan <- oc
-	}()
-
-	// Set up a go routine which reads from the error channel
-	go func() {
-		err := <-chOut
-		gomega.Expect(err).To(gomega.BeNil())
 	}()
 
 	containerOc = <-ocChan
