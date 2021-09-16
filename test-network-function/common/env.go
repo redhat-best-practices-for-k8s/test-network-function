@@ -44,7 +44,7 @@ var DefaultTimeout = time.Duration(defaultTimeoutSeconds) * time.Second
 
 // GetContext spawns a new shell session and returns its context
 func GetContext() *interactive.Context {
-	context, err := interactive.SpawnShell(interactive.CreateGoExpectSpawner(), DefaultTimeout, interactive.Verbose(true), interactive.SendTimeout(DefaultTimeout*time.Second))
+	context, err := interactive.SpawnShell(interactive.CreateGoExpectSpawner(), DefaultTimeout, interactive.Verbose(true), interactive.SendTimeout(DefaultTimeout))
 	gomega.Expect(err).To(gomega.BeNil())
 	gomega.Expect(context).ToNot(gomega.BeNil())
 	gomega.Expect(context.GetExpecter()).ToNot(gomega.BeNil())

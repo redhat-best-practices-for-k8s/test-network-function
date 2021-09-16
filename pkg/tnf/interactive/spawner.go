@@ -243,6 +243,10 @@ func (g *GoExpectSpawner) GetGoExpectOptions() []expect.Option {
 		opts = append(opts, expect.VerboseWriter(g.verboseWriter))
 	}
 
+	if g.sendTimeoutIsSet {
+		opts = append(opts, expect.SendTimeout(g.sendTimeout))
+	}
+
 	return opts
 }
 

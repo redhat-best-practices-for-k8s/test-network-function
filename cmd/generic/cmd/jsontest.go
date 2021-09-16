@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"time"
 
 	expect "github.com/google/goexpect"
 	"github.com/google/goterm/term"
@@ -224,7 +225,7 @@ func runSSHCmd(_ *cobra.Command, args []string) {
 	// SSH shell creation.
 	goExpectSpawner := interactive.NewGoExpectSpawner()
 	var spawnContext interactive.Spawner = goExpectSpawner
-	context, err := interactive.SpawnSSH(&spawnContext, user, host, (*tester).Timeout(), interactive.Verbose(true))
+	context, err := interactive.SpawnSSH(&spawnContext, user, host, (*tester).Timeout(), interactive.Verbose(true), interactive.SendTimeout(10*time.Second))
 	if err != nil {
 		fatalError("could not create the ssh expecter", err, testExpecterCreationFailedExitCode)
 	}
