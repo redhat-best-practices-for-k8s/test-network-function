@@ -146,6 +146,11 @@ type GoExpectSpawner struct {
 	verboseWriterIsSet bool
 	// verboseWriter is an alternate destination for verbose logs.
 	verboseWriter io.Writer
+
+	// sendTimeoutIsSet tracks whether the Send command timeout is set.
+	sendTimeoutIsSet bool
+	// sendTimeout is the timeout of send command
+	sendTimeout time.Duration
 }
 
 // Option is a function pointer to enable lightweight optionals for GoExpectSpawner.
@@ -188,6 +193,16 @@ func VerboseWriter(verboseWriter io.Writer) Option {
 		prev := g.verboseWriter
 		g.verboseWriter = verboseWriter
 		return VerboseWriter(prev)
+	}
+}
+
+// SendTimeout sets the timeout of send command
+func SendTimeout(timeout time.Duration) Option {
+	return func(g *GoExpectSpawner) Option {
+		g.sendTimeoutIsSet = true
+		prev := g.sendTimeout
+		g.sendTimeout = timeout
+		return SendTimeout(prev)
 	}
 }
 
