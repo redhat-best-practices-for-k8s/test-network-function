@@ -99,13 +99,17 @@ func getOcSession(pod, container, namespace string, timeout time.Duration, optio
 
 // Extract a container IP address for a particular device.  This is needed since container default network IP address
 // is served by dhcp, and thus is ephemeral.
-func getContainerDefaultNetworkIPAddress(oc *interactive.Oc, dev string) string {
+func getContainerDefaultNetworkIPAddress(oc *interactive.Oc, dev string) (string, error) {
 	log.Infof("Getting IP Information for: %s(%s) in ns=%s", oc.GetPodName(), oc.GetPodContainerName(), oc.GetPodNamespace())
 	ipTester := ipaddr.NewIPAddr(DefaultTimeout, dev)
 	test, err := tnf.NewTest(oc.GetExpecter(), ipTester, []reel.Handler{ipTester}, oc.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
-	test.RunAndValidateTest()
-	return ipTester.GetIPv4Address()
+	result, err := test.Run()
+	if result == tnf.SUCCESS && err == nil {
+		return ipTester.GetIPv4Address(), nil
+	}
+	return "", fmt.Errorf("failed to get IP information for %s(%s) in ns=%s, result=%v, err=%v",
+		oc.GetPodName(), oc.GetPodContainerName(), oc.GetPodNamespace(), result, err)
 }
 
 // TestEnvironment includes the representation of the current state of the test targets and parters as well as the test configuration
@@ -200,8 +204,13 @@ func (env *TestEnvironment) createContainers(containerDefinitions []configsectio
 	for _, c := range containerDefinitions {
 		oc := getOcSession(c.PodName, c.ContainerName, c.Namespace, DefaultTimeout, interactive.Verbose(true), interactive.SendTimeout(DefaultTimeout))
 		var defaultIPAddress = "UNKNOWN"
+		var err error
 		if _, ok := env.ContainersToExcludeFromConnectivityTests[c.ContainerIdentifier]; !ok {
-			defaultIPAddress = getContainerDefaultNetworkIPAddress(oc, c.DefaultNetworkDevice)
+			defaultIPAddress, err = getContainerDefaultNetworkIPAddress(oc, c.DefaultNetworkDevice)
+			if err != nil {
+				log.Warnf("Adding container to the ExcludeFromConnectivityTests list due to: %v", err)
+				env.ContainersToExcludeFromConnectivityTests[c.ContainerIdentifier] = ""
+			}
 		}
 		createdContainers[c.ContainerIdentifier] = &Container{
 			ContainerConfiguration:  c,
