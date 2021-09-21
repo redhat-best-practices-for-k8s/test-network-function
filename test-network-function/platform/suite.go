@@ -71,7 +71,6 @@ var _ = ginkgo.Describe(common.PlatformAlterationTestKey, func() {
 			testSysctlConfigs(env)
 		}
 		testIsRedHatRelease(env)
-		})
 	}
 })
 
