@@ -65,6 +65,12 @@ type SpawnFunc interface {
 
 	// Wait consult exec.Cmd.Wait
 	Wait() error
+
+	// IsRunning returns true if the shell hasn't exited yet.
+	IsRunning() bool
+
+	// Args returns the command and arguments used to spawn the shell.
+	Args() []string
 }
 
 // ExecSpawnFunc is an implementation of SpawnFunc using exec.Cmd.
@@ -83,6 +89,16 @@ func (e *ExecSpawnFunc) Command(name string, arg ...string) *SpawnFunc {
 // Wait wraps exec.Cmd.Wait.
 func (e *ExecSpawnFunc) Wait() error {
 	return e.cmd.Wait()
+}
+
+// IsRunning returns true if e.Cmd.ProcessState is nil, false otherwise
+func (e *ExecSpawnFunc) IsRunning() bool {
+	return e.cmd.ProcessState == nil
+}
+
+// Args wraps e.Cmd.Args
+func (e *ExecSpawnFunc) Args() []string {
+	return e.cmd.Args
 }
 
 // Start wraps exec.Cmd.Start.
@@ -327,7 +343,13 @@ func (g *GoExpectSpawner) spawnGeneric(spawnFunc *SpawnFunc, stdinPipe io.WriteC
 		Close: func() error {
 			return nil
 		},
-		Check: func() bool { return true },
+		Check: func() bool {
+			if !(*spawnFunc).IsRunning() {
+				log.Error("Unable to spawn shell. Cmd: " + strings.Join((*spawnFunc).Args(), " "))
+				return false
+			}
+			return true
+		},
 	}, timeout, opts...)
 	// coax out the typing
 	var expecter expect.Expecter = gexpecter
