@@ -294,7 +294,6 @@ func LogStdErr(cmdLine string, stderrpipe io.Reader) {
 			log.Warn(err)
 			return
 		}
-		time.Sleep(100 * time.Millisecond) //nolint:gomnd //100 ms variable used only here
 	}
 }
 
