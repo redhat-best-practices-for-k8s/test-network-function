@@ -62,17 +62,15 @@ var _ = ginkgo.Describe(common.PlatformAlterationTestKey, func() {
 			gomega.Expect(len(env.PodsUnderTest)).ToNot(gomega.Equal(0))
 			gomega.Expect(len(env.ContainersUnderTest)).ToNot(gomega.Equal(0))
 		})
-		ginkgo.Context("Container does not have additional packages installed", func() {
-			// use this boolean to turn off tests that require OS packages
-			if !common.IsMinikube() {
-				testContainersFsDiff(env)
-				testTainted()
-				testHugepages()
-				testBootParams(env)
-				testSysctlConfigs(env)
-			}
-			testIsRedHatRelease(env)
-		})
+		// use this boolean to turn off tests that require OS packages
+		if !common.IsMinikube() {
+			testContainersFsDiff(env)
+			testTainted()
+			testHugepages()
+			testBootParams(env)
+			testSysctlConfigs(env)
+		}
+		testIsRedHatRelease(env)
 	}
 })
 
@@ -104,22 +102,24 @@ func testContainerIsRedHatRelease(cut *config.Container) {
 
 // testContainersFsDiff test that all CUT didn't install new packages are starting
 func testContainersFsDiff(env *config.TestEnvironment) {
-	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestUnalteredBaseImageIdentifier)
-	ginkgo.It(testID, func() {
-		var badContainers []string
-		for _, cut := range env.ContainersUnderTest {
-			podName := cut.Oc.GetPodName()
-			containerName := cut.Oc.GetPodContainerName()
-			context := cut.Oc
-			nodeName := cut.ContainerConfiguration.NodeName
-			ginkgo.By(fmt.Sprintf("%s(%s) should not install new packages after starting", podName, containerName))
-			testResult, err := testContainerFsDiff(nodeName, context)
-			if testResult != tnf.SUCCESS || err != nil {
-				badContainers = append(badContainers, containerName)
-				ginkgo.By(fmt.Sprintf("pod %s container %s did update/install/modify additional packages", podName, containerName))
+	ginkgo.Context("Container does not have additional packages installed", func() {
+		testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestUnalteredBaseImageIdentifier)
+		ginkgo.It(testID, func() {
+			var badContainers []string
+			for _, cut := range env.ContainersUnderTest {
+				podName := cut.Oc.GetPodName()
+				containerName := cut.Oc.GetPodContainerName()
+				context := cut.Oc
+				nodeName := cut.ContainerConfiguration.NodeName
+				ginkgo.By(fmt.Sprintf("%s(%s) should not install new packages after starting", podName, containerName))
+				testResult, err := testContainerFsDiff(nodeName, context)
+				if testResult != tnf.SUCCESS || err != nil {
+					badContainers = append(badContainers, containerName)
+					ginkgo.By(fmt.Sprintf("pod %s container %s did update/install/modify additional packages", podName, containerName))
+				}
 			}
-		}
-		gomega.Expect(badContainers).To(gomega.BeNil())
+			gomega.Expect(badContainers).To(gomega.BeNil())
+		})
 	})
 }
 
