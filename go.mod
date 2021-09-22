@@ -1,5 +1,7 @@
 module github.com/test-network-function/test-network-function
 
+replace github.com/test-network-function/test-network-function-claim => github.com/edcdavid/test-network-function-claim v1.0.5
+
 go 1.14
 
 require (
@@ -18,6 +20,7 @@ require (
 	github.com/stretchr/testify v1.7.0
 	github.com/test-network-function/test-network-function-claim v1.0.3
 	github.com/xeipuuv/gojsonschema v1.2.0
+	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616 // indirect
 	golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c // indirect
 	google.golang.org/grpc v1.40.0
 	gopkg.in/yaml.v2 v2.4.0

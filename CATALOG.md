@@ -625,3 +625,13 @@ Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`oc`
 
+### http://test-network-function.com/tests/versionOcp
+Property|Description
+---|---
+Version|v1.0.0
+Description|extracts OCP versions from the cluster
+Result Type|normative
+Intrusive|false
+Modifications Persist After Test|false
+Runtime Binaries Required|`oc`
+

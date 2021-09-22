@@ -200,6 +200,11 @@ var (
 		Url:     formTestURL(common.DiagnosticTestKey, "cluster-csi-info"),
 		Version: versionOne,
 	}
+	// TestversionOcpIdentifier list Cluster CSIdriver Identifier retrieves Third Party CSI driver info.
+	TestversionOcpIdentifier = claim.Identifier{
+		Url:     formTestURL(common.DiagnosticTestKey, "versionocp"),
+		Version: versionOne,
+	}
 )
 
 func formDescription(identifier claim.Identifier, description string) string {
