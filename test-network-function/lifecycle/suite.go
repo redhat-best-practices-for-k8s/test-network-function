@@ -290,7 +290,7 @@ func testPodsRecreation(env *config.TestEnvironment) {
 		if len(notReadyDeployments) != 0 {
 			ginkgo.Skip("Can not test when deployments are not ready")
 		}
-		gomega.Expect(notReadyDeployments).To(gomega.BeEmpty())
+
 		ginkgo.By("Should return map of nodes to deployments")
 		nodesSorted := getDeploymentsNodes(env.NameSpaceUnderTest)
 
