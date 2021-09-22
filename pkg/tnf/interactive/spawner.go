@@ -18,6 +18,7 @@ package interactive
 
 import (
 	"bufio"
+	"fmt"
 	"io"
 	"os"
 	"os/exec"
@@ -325,7 +326,7 @@ func (g *GoExpectSpawner) Spawn(command string, args []string, timeout time.Dura
 		return nil, err
 	}
 
-	cmdLine := strings.Join(args, " ")
+	cmdLine := fmt.Sprintf("%s %s", command, strings.Join(args, " "))
 	logCmdMirrorPipe(cmdLine, stderrPipe, "STDERR", false)
 	stdoutPipe = logCmdMirrorPipe(cmdLine, stdoutPipe, "STDOUT", true)
 
