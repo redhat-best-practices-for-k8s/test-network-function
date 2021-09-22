@@ -282,7 +282,7 @@ func NewGoExpectSpawner() *GoExpectSpawner {
 }
 
 // LogStdErr logs stderr output to logger (warning)
-func LogStdErr(cmdLine string, stderrpipe io.Reader) {
+func logStdErr(cmdLine string, stderrpipe io.Reader) {
 	buf := bufio.NewReader(stderrpipe)
 
 	for {
@@ -317,7 +317,7 @@ func (g *GoExpectSpawner) Spawn(command string, args []string, timeout time.Dura
 	}
 
 	cmdLine := strings.Join(args, " ")
-	go LogStdErr(cmdLine, stderrPipe)
+	go logStdErr(cmdLine, stderrPipe)
 
 	err = g.startCommand(spawnFunc, command, args)
 	if err != nil {
