@@ -116,6 +116,7 @@ func TestTest(t *testing.T) {
 	gomega.RegisterFailHandler(ginkgo.Fail)
 	log.Info("Version: ", programVersion, " ( ", GitCommit, " )")
 	common.SetLogLevel()
+	common.SetLogFormat()
 	tnfcommon.OcDebugImageID = common.GetOcDebugImageID()
 
 	// Initialize the claim with the start time, tnf version, etc.

@@ -17,8 +17,10 @@
 package common
 
 import (
+	"fmt"
 	"os"
 	"path"
+	"runtime"
 	"strconv"
 	"time"
 
@@ -94,4 +96,18 @@ func SetLogLevel() {
 	}
 	log.Info("Log level set to:", aLogLevel)
 	log.SetLevel(aLogLevel)
+}
+
+// SetLogFormat sets the log format for logrus
+func SetLogFormat() {
+	customFormatter := new(log.TextFormatter)
+	customFormatter.TimestampFormat = time.StampMilli
+	customFormatter.PadLevelText = true
+	customFormatter.FullTimestamp = true
+	log.SetReportCaller(true)
+	customFormatter.CallerPrettyfier = func(f *runtime.Frame) (string, string) {
+		_, filename := path.Split(f.File)
+		return strconv.Itoa(f.Line) + "]", fmt.Sprintf("[%s:", filename)
+	}
+	log.SetFormatter(customFormatter)
 }
