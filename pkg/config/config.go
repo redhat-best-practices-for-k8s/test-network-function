@@ -84,8 +84,15 @@ func getOcSession(pod, container, namespace string, timeout time.Duration, optio
 		gomega.Expect(err).To(gomega.BeNil())
 		// Set up a go routine which reads from the error channel
 		go func() {
-			err := <-outCh
-			gomega.Expect(err).To(gomega.BeNil())
+			for {
+				select {
+				case err := <-outCh:
+					log.Errorf("SpawnOc error: %v from %s %s", err, oc.GetPodName(), oc.GetPodContainerName())
+					gomega.Expect(err).To(gomega.BeNil())
+				case <-oc.GetDoneChannel():
+					break
+				}
+			}
 		}()
 		ocChan <- oc
 	}()
