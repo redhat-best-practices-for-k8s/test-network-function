@@ -282,19 +282,28 @@ func NewGoExpectSpawner() *GoExpectSpawner {
 }
 
 // LogStdErr logs stderr output to logger (warning)
-func logStdErr(cmdLine string, stderrpipe io.Reader) {
-	buf := bufio.NewReader(stderrpipe)
+func logCmdMirrorPipe(cmdLine string, pipeToMirror io.Reader, name string, trace bool) io.Reader {
+	originalPipe := pipeToMirror
+	r, w, _ := os.Pipe()
+	tr := io.TeeReader(originalPipe, w)
 
-	for {
-		line, _, err := buf.ReadLine()
-		log.Warn("STDERR for " + cmdLine + " : " + string(line))
-
-		if err != nil {
-			// Some Error has happened, goroutine about to exit
-			log.Warn(err)
-			return
+	go func() {
+		for {
+			buf := bufio.NewReader(tr)
+			line, _, err := buf.ReadLine()
+			if trace {
+				log.Trace(name + " for " + cmdLine + " : " + string(line))
+			} else {
+				log.Warn(name + " for " + cmdLine + " : " + string(line))
+			}
+			if err != nil {
+				// Some Error has happened, goroutine about to exit
+				log.Warnf("Exiting cmd log mirroring goroutine. Error: %s", err)
+				return
+			}
 		}
-	}
+	}()
+	return r
 }
 
 // Spawn creates a subprocess, setting standard input and standard output appropriately.  This is the base method to
@@ -317,7 +326,8 @@ func (g *GoExpectSpawner) Spawn(command string, args []string, timeout time.Dura
 	}
 
 	cmdLine := strings.Join(args, " ")
-	go logStdErr(cmdLine, stderrPipe)
+	logCmdMirrorPipe(cmdLine, stderrPipe, "STDERR", false)
+	stdoutPipe = logCmdMirrorPipe(cmdLine, stdoutPipe, "STDOUT", true)
 
 	err = g.startCommand(spawnFunc, command, args)
 	if err != nil {
