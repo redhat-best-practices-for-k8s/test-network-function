@@ -282,7 +282,7 @@ func NewGoExpectSpawner() *GoExpectSpawner {
 	return &GoExpectSpawner{}
 }
 
-// LogStdErr logs stderr output to logger (warning)
+// logCmdMirrorPipe logs specified pipe output to logger.
 func logCmdMirrorPipe(cmdLine string, pipeToMirror io.Reader, name string, trace bool) io.Reader {
 	originalPipe := pipeToMirror
 	r, w, _ := os.Pipe()
