@@ -289,8 +289,8 @@ func logCmdMirrorPipe(cmdLine string, pipeToMirror io.Reader, name string, trace
 	tr := io.TeeReader(originalPipe, w)
 
 	go func() {
+		buf := bufio.NewReader(tr)
 		for {
-			buf := bufio.NewReader(tr)
 			line, _, err := buf.ReadLine()
 			if trace {
 				log.Trace(name + " for " + cmdLine + " : " + string(line))
