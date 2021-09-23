@@ -44,6 +44,7 @@ func init() {
 var (
 	defaultGoExpectArgs            = []interactive.Option{interactive.Verbose(true)}
 	defaultStdout, defaultStdin, _ = os.Pipe()
+	defaultStderr, _, _            = os.Pipe()
 	errStart                       = errors.New("start failed")
 	errStdInPipe                   = errors.New("failed to access stdin")
 )
@@ -61,6 +62,10 @@ type goExpectSpawnerTestCase struct {
 	stdoutPipeShouldBeCalled bool
 	stdoutPipeReturnValue    io.Reader
 	stdoutPipeReturnErr      error
+
+	stderrPipeShouldBeCalled bool
+	stderrPipeReturnValue    io.Reader
+	stderrPipeReturnErr      error
 
 	startShouldBeCalled bool
 	startReturnErr      error
@@ -87,6 +92,10 @@ var goExpectSpawnerTestCases = map[string]goExpectSpawnerTestCase{
 		stdoutPipeReturnValue:    nil,
 		stdoutPipeReturnErr:      nil,
 
+		stderrPipeShouldBeCalled: false,
+		stderrPipeReturnValue:    nil,
+		stderrPipeReturnErr:      nil,
+
 		startShouldBeCalled: false,
 		startReturnErr:      nil,
 
@@ -110,13 +119,44 @@ var goExpectSpawnerTestCases = map[string]goExpectSpawnerTestCase{
 		stdoutPipeReturnValue:    nil,
 		stdoutPipeReturnErr:      errStdInPipe,
 
+		stderrPipeShouldBeCalled: false,
+		stderrPipeReturnValue:    nil,
+		stderrPipeReturnErr:      nil,
+
 		startShouldBeCalled: false,
 		startReturnErr:      nil,
 
 		goExpectSpawnerSpawnReturnContextIsNil: true,
 		goExpectSpawnerSpawnReturnErr:          errStdInPipe,
 	},
-	// 3. Progressing past the creation of stdin/stdout, now cause Start to fail.
+	// 2. Progressing past the creation of stdin and stdout, now cause stderr to fail.
+	"stderr_pipe_creation_failure": {
+		// The command is unimportant
+		goExpectSpawnerSpawnCommand: "ls",
+		goExpectSpawnerSpawnArgs:    []string{"-al"},
+		goExpectSpawnerSpawnTimeout: testTimeoutDuration,
+		goExpectSpawnerSpawnOpts:    defaultGoExpectArgs,
+
+		stdinPipeShouldBeCalled: true,
+		stdinPipeReturnValue:    defaultStdin,
+		stdinPipeReturnErr:      nil,
+
+		stdoutPipeShouldBeCalled: true,
+		stdoutPipeReturnValue:    defaultStdout,
+		stdoutPipeReturnErr:      nil,
+
+		// cause StderrPipe() call to fail and ensure the error cascades.
+		stderrPipeShouldBeCalled: true,
+		stderrPipeReturnValue:    nil,
+		stderrPipeReturnErr:      errStdInPipe,
+
+		startShouldBeCalled: false,
+		startReturnErr:      nil,
+
+		goExpectSpawnerSpawnReturnContextIsNil: true,
+		goExpectSpawnerSpawnReturnErr:          errStdInPipe,
+	},
+	// 3. Progressing past the creation of stdin/stdout/stderr, now cause Start to fail.
 	"start_failure": {
 		// The command is unimportant
 		goExpectSpawnerSpawnCommand: "ls",
@@ -131,6 +171,10 @@ var goExpectSpawnerTestCases = map[string]goExpectSpawnerTestCase{
 		stdoutPipeShouldBeCalled: true,
 		stdoutPipeReturnValue:    defaultStdout,
 		stdoutPipeReturnErr:      nil,
+
+		stderrPipeShouldBeCalled: true,
+		stderrPipeReturnValue:    defaultStderr,
+		stderrPipeReturnErr:      nil,
 
 		// cause Start() call to fail and make sure the error cascades out of Spawn().
 		startShouldBeCalled: true,
@@ -154,6 +198,10 @@ var goExpectSpawnerTestCases = map[string]goExpectSpawnerTestCase{
 		stdoutPipeShouldBeCalled: true,
 		stdoutPipeReturnValue:    defaultStdout,
 		stdoutPipeReturnErr:      nil,
+
+		stderrPipeShouldBeCalled: true,
+		stderrPipeReturnValue:    defaultStderr,
+		stderrPipeReturnErr:      nil,
 
 		startShouldBeCalled: true,
 		startReturnErr:      nil,
@@ -179,6 +227,10 @@ func TestGoExpectSpawner_Spawn(t *testing.T) {
 
 		if testCase.stdoutPipeShouldBeCalled {
 			mockSpawnFunc.EXPECT().StdoutPipe().Return(testCase.stdoutPipeReturnValue, testCase.stdoutPipeReturnErr)
+		}
+
+		if testCase.stderrPipeShouldBeCalled {
+			mockSpawnFunc.EXPECT().StderrPipe().Return(testCase.stderrPipeReturnValue, testCase.stderrPipeReturnErr)
 		}
 
 		if testCase.startShouldBeCalled {
@@ -224,6 +276,10 @@ func TestExecSpawnFunc(t *testing.T) {
 	stdout, err := (*cmd).StdoutPipe()
 	assert.Nil(t, err)
 	assert.NotNil(t, stdout)
+
+	stderr, err := (*cmd).StderrPipe()
+	assert.Nil(t, err)
+	assert.NotNil(t, stderr)
 
 	err = (*cmd).Start()
 	assert.Nil(t, err)
