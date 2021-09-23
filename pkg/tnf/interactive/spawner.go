@@ -17,6 +17,8 @@
 package interactive
 
 import (
+	"bufio"
+	"fmt"
 	"io"
 	"os"
 	"os/exec"
@@ -58,6 +60,9 @@ type SpawnFunc interface {
 
 	// StdoutPipe consult exec.Cmd.StdoutPipe
 	StdoutPipe() (io.Reader, error)
+
+	// StderrPipe consult exec.Cmd.StderrPipe
+	StderrPipe() (io.Reader, error)
 
 	// Wait consult exec.Cmd.Wait
 	Wait() error
@@ -110,6 +115,11 @@ func (e *ExecSpawnFunc) StdinPipe() (io.WriteCloser, error) {
 // StdoutPipe wraps exec.Cmd.Stdoutpipe
 func (e *ExecSpawnFunc) StdoutPipe() (io.Reader, error) {
 	return e.cmd.StdoutPipe()
+}
+
+// StderrPipe wraps exec.Cmd.Stderrpipe
+func (e *ExecSpawnFunc) StderrPipe() (io.Reader, error) {
+	return e.cmd.StderrPipe()
 }
 
 // Spawner provides an interface for creating interactive sessions such as oc, ssh, or shell.
@@ -272,6 +282,31 @@ func NewGoExpectSpawner() *GoExpectSpawner {
 	return &GoExpectSpawner{}
 }
 
+// logCmdMirrorPipe logs specified pipe output to logger.
+func logCmdMirrorPipe(cmdLine string, pipeToMirror io.Reader, name string, trace bool) io.Reader {
+	originalPipe := pipeToMirror
+	r, w, _ := os.Pipe()
+	tr := io.TeeReader(originalPipe, w)
+
+	go func() {
+		buf := bufio.NewReader(tr)
+		for {
+			line, _, err := buf.ReadLine()
+			if trace {
+				log.Trace(name + " for " + cmdLine + " : " + string(line))
+			} else {
+				log.Warn(name + " for " + cmdLine + " : " + string(line))
+			}
+			if err != nil {
+				// Some Error has happened, goroutine about to exit
+				log.Warnf("Exiting cmd log mirroring goroutine. Error: %s", err)
+				return
+			}
+		}
+	}()
+	return r
+}
+
 // Spawn creates a subprocess, setting standard input and standard output appropriately.  This is the base method to
 // create any interactive PTY based process.
 func (g *GoExpectSpawner) Spawn(command string, args []string, timeout time.Duration, opts ...Option) (*Context, error) {
@@ -286,10 +321,15 @@ func (g *GoExpectSpawner) Spawn(command string, args []string, timeout time.Dura
 	}
 
 	spawnFunc = (*spawnFunc).Command(command, args...)
-	stdinPipe, stdoutPipe, err := g.unpackPipes(spawnFunc)
+	stdinPipe, stdoutPipe, stderrPipe, err := g.unpackPipes(spawnFunc)
 	if err != nil {
 		return nil, err
 	}
+
+	cmdLine := fmt.Sprintf("%s %s", command, strings.Join(args, " "))
+	logCmdMirrorPipe(cmdLine, stderrPipe, "STDERR", false)
+	stdoutPipe = logCmdMirrorPipe(cmdLine, stdoutPipe, "STDOUT", true)
+
 	err = g.startCommand(spawnFunc, command, args)
 	if err != nil {
 		return nil, err
@@ -337,17 +377,21 @@ func (g *GoExpectSpawner) startCommand(spawnFunc *SpawnFunc, command string, arg
 	return err
 }
 
-// Helper method to unpack stdin and stdout.
-func (g *GoExpectSpawner) unpackPipes(spawnFunc *SpawnFunc) (io.WriteCloser, io.Reader, error) {
+//nolint:gocritic // Helper method to unpack stdin and stdout.
+func (g *GoExpectSpawner) unpackPipes(spawnFunc *SpawnFunc) (io.WriteCloser, io.Reader, io.Reader, error) {
 	stdinPipe, err := g.extractStdinPipe(spawnFunc)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 	stdoutPipe, err := g.extractStdoutPipe(spawnFunc)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
-	return stdinPipe, stdoutPipe, err
+	stderrPipe, err := g.extractStderrPipe(spawnFunc)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	return stdinPipe, stdoutPipe, stderrPipe, err
 }
 
 // Helper method to extract stdin.
@@ -366,6 +410,15 @@ func (g *GoExpectSpawner) extractStdoutPipe(spawnFunc *SpawnFunc) (io.Reader, er
 		log.Errorf("Couldn't extract stdout for the given process: %v", err)
 	}
 	return stdout, err
+}
+
+// Helper method to extract stdout.
+func (g *GoExpectSpawner) extractStderrPipe(spawnFunc *SpawnFunc) (io.Reader, error) {
+	stderr, err := (*spawnFunc).StderrPipe()
+	if err != nil {
+		log.Errorf("Couldn't extract stderr for the given process: %v", err)
+	}
+	return stderr, err
 }
 
 // CreateGoExpectSpawner creates a GoExpectSpawner implementation and returns it as a *Spawner for type compatibility
