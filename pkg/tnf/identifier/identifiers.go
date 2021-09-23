@@ -59,6 +59,7 @@ const (
 	scalingIdentifierURL                  = "http://test-network-function.com/tests/scaling"
 	csiDriverIdentifierURL                = "http://test-network-function.com/tests/csiDriver"
 	clusterVersionIdentifierURL           = "http://test-network-function.com/tests/clusterVersion"
+	crdStatusIdentifierURL                = "http://test-network-function.com/tests/crdStatus"
 	versionOne                            = "v1.0.0"
 )
 
@@ -849,5 +850,11 @@ var CSIDriverIdentifier = Identifier{
 // ClusterVersionIdentifier is the Identifier used to represent the OCP versions test case.
 var ClusterVersionIdentifier = Identifier{
 	URL:             clusterVersionIdentifierURL,
+	SemanticVersion: versionOne,
+}
+
+// CrdStatusIdentifier is the Identifier used to represent a test that checks that CRDs have a status subresource.
+var CrdStatusIdentifier = Identifier{
+	URL:             crdStatusIdentifierURL,
 	SemanticVersion: versionOne,
 }

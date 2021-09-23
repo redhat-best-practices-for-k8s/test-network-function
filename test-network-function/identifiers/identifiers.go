@@ -205,6 +205,11 @@ var (
 		Url:     formTestURL(common.DiagnosticTestKey, "clusterversion"),
 		Version: versionOne,
 	}
+	// TestCrdsStatusSubresourceIdentifier ensures all CRDs have a valid status subresource
+	TestCrdsStatusSubresourceIdentifier = claim.Identifier{
+		Url:     formTestURL(common.DiagnosticTestKey, "crd-status"),
+		Version: versionOne,
+	}
 )
 
 func formDescription(identifier claim.Identifier, description string) string {
@@ -529,5 +534,12 @@ the changes for you.`,
 		Type:       informativeResult,
 		Description: formDescription(TestclusterVersionIdentifier,
 			`extracts OCP versions from the cluster.`),
+	},
+	TestCrdsStatusSubresourceIdentifier: {
+		Identifier: TestCrdsStatusSubresourceIdentifier,
+		Type:       informativeResult,
+		Description: formDescription(TestCrdsStatusSubresourceIdentifier,
+			`checks that all CRDs have a status subresource specification.`),
+		Remediation: `make sure that all the CRDs have a meaningful status specification.`,
 	},
 }

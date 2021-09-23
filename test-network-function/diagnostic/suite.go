@@ -13,8 +13,11 @@ import (
 	"github.com/onsi/ginkgo"
 	ginkgoconfig "github.com/onsi/ginkgo/config"
 	"github.com/onsi/gomega"
+	"github.com/test-network-function/test-network-function/pkg/config"
+	"github.com/test-network-function/test-network-function/pkg/config/autodiscover"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/clusterversion"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/crdstatus"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/generic"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodedebug"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodenames"
@@ -67,6 +70,9 @@ var (
 
 var _ = ginkgo.Describe(common.DiagnosticTestKey, func() {
 	if testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusStrings, common.DiagnosticTestKey) {
+		env := config.GetTestEnvironment()
+		env.LoadAndRefresh()
+
 		ginkgo.When("a cluster is set up and installed with OpenShift", func() {
 
 			ginkgo.By("should report OCP version")
@@ -121,6 +127,12 @@ var _ = ginkgo.Describe(common.DiagnosticTestKey, func() {
 			ginkgo.It(testID, func() {
 				defer results.RecordResult(identifiers.TestClusterCsiInfoIdentifier)
 				listClusterCSIInfo()
+			})
+			ginkgo.By("CRDs should have a status subresource")
+			testID = identifiers.XformToGinkgoItIdentifier(identifiers.TestCrdsStatusSubresourceIdentifier)
+			ginkgo.It(testID, func() {
+				defer results.RecordResult(identifiers.TestCrdsStatusSubresourceIdentifier)
+				testCrds(env)
 			})
 		})
 	}
@@ -354,4 +366,30 @@ func listClusterCSIInfo() {
 	match := genericTest.GetMatches()[0]
 	err = json.Unmarshal([]byte(match.Match), &csiDriver)
 	gomega.Expect(err).To(gomega.BeNil())
+}
+
+func testCrds(env *config.TestEnvironment) {
+	var labels []string
+
+	for _, configLabel := range env.Config.TargetPodLabels {
+		labels = append(labels, autodiscover.BuildLabelQuery(configLabel))
+	}
+
+	handler := crdstatus.NewCrdStatus(defaultTestTimeout, labels)
+	test, err := tnf.NewTest(common.GetContext().GetExpecter(), handler, []reel.Handler{handler}, common.GetContext().GetErrorChannel())
+	gomega.Expect(err).To(gomega.BeNil())
+	testResult, err := test.Run()
+	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
+	gomega.Expect(err).To(gomega.BeNil())
+
+	if len(handler.CrdItems) == 0 {
+		ginkgo.Skip("No CRDs found using target labels.")
+	}
+
+	for _, crd := range handler.CrdItems {
+		ginkgo.By("Checking CRD: " + crd.Name)
+		if crd.Status == nil {
+			ginkgo.Fail("CRD " + crd.Name + " does not have status spec.")
+		}
+	}
 }

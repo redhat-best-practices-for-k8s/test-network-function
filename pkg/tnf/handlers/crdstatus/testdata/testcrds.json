@@ -1,0 +1,19 @@
+[
+    {
+      "name": "crdwithstatus1.tnf.com",
+      "kind": "CrdWithStatus1",
+      "status": {
+        "properties": {
+          "replicas": {
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      }
+    },
+    {
+      "name": "crdwithoutstatus2.tnf.com",
+      "kind": "CrdWithoutStatus2",
+      "status": null
+    }
+  ]

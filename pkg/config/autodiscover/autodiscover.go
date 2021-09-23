@@ -41,6 +41,16 @@ func PerformAutoDiscovery() (doAuto bool) {
 	return !doAuto
 }
 
+// BuildLabelQuery converts a configsection Label to a string label "ns/label=value" or "label=value" (in
+// case the namespace field is empty).
+func BuildLabelQuery(label configsections.Label) string {
+	fullLabelName := buildLabelName(label.Prefix, label.Name)
+	if label.Value != anyLabelValue {
+		return fmt.Sprintf("%s=%s", fullLabelName, label.Value)
+	}
+	return fullLabelName
+}
+
 func buildLabelName(labelNS, labelName string) string {
 	if labelNS == "" {
 		return labelName
@@ -50,14 +60,6 @@ func buildLabelName(labelNS, labelName string) string {
 
 func buildAnnotationName(annotationName string) string {
 	return buildLabelName(tnfLabelPrefix, annotationName)
-}
-
-func buildLabelQuery(label configsections.Label) string {
-	fullLabelName := buildLabelName(label.Prefix, label.Name)
-	if label.Value != anyLabelValue {
-		return fmt.Sprintf("%s=%s", fullLabelName, label.Value)
-	}
-	return fullLabelName
 }
 
 func makeGetCommand(resourceType, labelQuery, namespace string) *exec.Cmd {
