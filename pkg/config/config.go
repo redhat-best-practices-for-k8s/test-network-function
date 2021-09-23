@@ -87,8 +87,8 @@ func getOcSession(pod, container, namespace string, timeout time.Duration, optio
 			for {
 				select {
 				case err := <-outCh:
-					log.Errorf("SpawnOc error: %v from %s %s", err, oc.GetPodName(), oc.GetPodContainerName())
-					gomega.Expect(err).To(gomega.BeNil())
+					log.Fatalf("OC session to container %s/%s is broken due to: %v, aborting the test run", oc.GetPodName(), oc.GetPodContainerName(), err)
+					os.Exit(1)
 				case <-oc.GetDoneChannel():
 					break
 				}
