@@ -524,4 +524,10 @@ the changes for you.`,
 		Description: formDescription(TestClusterCsiInfoIdentifier,
 			`extracts CSI driver information in the cluster.`),
 	},
+	TestClusterCsiInfoIdentifier: {
+		Identifier: TestclusterVersionIdentifier,
+		Type:       informativeResult,
+		Description: formDescription(TestclusterVersionIdentifier,
+			`extracts OCP versions from the cluster.`),
+	},
 }

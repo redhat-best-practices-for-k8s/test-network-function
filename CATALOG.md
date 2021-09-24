@@ -62,12 +62,12 @@ Version|v1.0.0
 Description|http://test-network-function.com/testcases/affiliated-certification/operator-is-certified tests whether CNF Operators have passed the Red Hat Operator Certification Program (OCP).
 Result Type|normative
 Suggested Remediation|Ensure that your Operator has passed Red Hat's Operator Certification Program (OCP).
-### http://test-network-function.com/testcases/diagnostic/cluster-csi-info
+### http://test-network-function.com/testcases/diagnostic/clusterversion
 
 Property|Description
 ---|---
 Version|v1.0.0
-Description|http://test-network-function.com/testcases/diagnostic/cluster-csi-info extracts CSI driver information in the cluster.
+Description|http://test-network-function.com/testcases/diagnostic/clusterversion extracts OCP versions from the cluster.
 Result Type|informative
 Suggested Remediation|
 ### http://test-network-function.com/testcases/diagnostic/extract-node-information
