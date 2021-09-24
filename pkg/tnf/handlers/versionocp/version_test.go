@@ -33,14 +33,24 @@ func Test_NewNodeNames(t *testing.T) {
 	assert.Equal(t, newVer.Result(), tnf.ERROR)
 }
 
-func Test_ReelFirstPositive(t *testing.T) {
+func Test_ReelFirstPositiveOcp(t *testing.T) {
 	newVer := ver.NewVersionOCP(testTimeoutDuration)
 	assert.NotNil(t, newVer)
 	firstStep := newVer.ReelFirst()
 	re := regexp.MustCompile(firstStep.Expect[0])
-	matches := re.FindStringSubmatch(testInputSuccess)
+	matches := re.FindStringSubmatch(testInputSuccessOcp)
 	assert.Len(t, matches, 1)
-	assert.Equal(t, testInputSuccess, matches[0])
+	assert.Equal(t, testInputSuccessOcp, matches[0])
+}
+
+func Test_ReelFirstPositiveMinikube(t *testing.T) {
+	newVer := ver.NewVersionOCP(testTimeoutDuration)
+	assert.NotNil(t, newVer)
+	firstStep := newVer.ReelFirst()
+	re := regexp.MustCompile(firstStep.Expect[0])
+	matches := re.FindStringSubmatch(testInputSuccessMinikube)
+	assert.Len(t, matches, 1)
+	assert.Equal(t, testInputSuccessMinikube, matches[0])
 }
 
 func Test_ReelFirstPositiveEmpty(t *testing.T) {
@@ -62,13 +72,26 @@ func Test_ReelFirstNegative(t *testing.T) {
 	assert.Len(t, matches, 0)
 }
 
-func Test_ReelMatchSuccess(t *testing.T) {
+func Test_ReelMatchSuccessOcp(t *testing.T) {
 	newVer := ver.NewVersionOCP(testTimeoutDuration)
 	assert.NotNil(t, newVer)
-	step := newVer.ReelMatch("", "", testInputSuccess)
+	step := newVer.ReelMatch("", "", testInputSuccessOcp)
 	assert.Nil(t, step)
 	assert.Equal(t, tnf.SUCCESS, newVer.Result())
-	assert.Len(t, newVer.GetVersions(), 3)
+	assert.Equal(t, newVer.GetVersions().Oc, "4.7.16")
+	assert.Equal(t, newVer.GetVersions().Ocp, "4.8.3")
+	assert.Equal(t, newVer.GetVersions().K8s, "v1.21.1+051ac4f")
+}
+
+func Test_ReelMatchSuccessMinikube(t *testing.T) {
+	newVer := ver.NewVersionOCP(testTimeoutDuration)
+	assert.NotNil(t, newVer)
+	step := newVer.ReelMatch("", "", testInputSuccessMinikube)
+	assert.Nil(t, step)
+	assert.Equal(t, tnf.SUCCESS, newVer.Result())
+	assert.Equal(t, newVer.GetVersions().Oc, "4.7.16")
+	assert.Equal(t, newVer.GetVersions().Ocp, "n/a")
+	assert.Equal(t, newVer.GetVersions().K8s, "v1.21.1+051ac4f")
 }
 
 func Test_ReelMatchFail(t *testing.T) {
@@ -77,7 +100,9 @@ func Test_ReelMatchFail(t *testing.T) {
 	step := newVer.ReelMatch("", "", testInputFailure)
 	assert.Nil(t, step)
 	assert.Equal(t, tnf.FAILURE, newVer.Result())
-	assert.Len(t, newVer.GetVersions(), 1)
+	assert.Equal(t, newVer.GetVersions().Ocp, "")
+	assert.Equal(t, newVer.GetVersions().Oc, "")
+	assert.Equal(t, newVer.GetVersions().K8s, "")
 }
 
 // Just ensure there are no panics.
@@ -88,8 +113,9 @@ func Test_ReelEof(t *testing.T) {
 }
 
 const (
-	testTimeoutDuration = time.Second * 2
-	testInputError      = ""
-	testInputFailure    = "NAME\n"
-	testInputSuccess    = "Client Version: 4.7.16\nServer Version: 4.8.3\nKubernetes Version: v1.21.1+051ac4f\n"
+	testTimeoutDuration      = time.Second * 2
+	testInputError           = ""
+	testInputFailure         = "NAME\n"
+	testInputSuccessOcp      = "Client Version: 4.7.16\nServer Version: 4.8.3\nKubernetes Version: v1.21.1+051ac4f\n"
+	testInputSuccessMinikube = "Client Version: 4.7.16\nKubernetes Version: v1.21.1+051ac4f\n"
 )

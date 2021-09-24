@@ -31,12 +31,17 @@ const (
 	numVersionsMinikube = 2
 )
 
-// VersionOCP holds OCP version strings
+// VersionOCP holds OCP version strings and test metadata
 type VersionOCP struct {
-	versions []string
+	versions ClusterVersion
 	result   int
 	timeout  time.Duration
 	args     []string
+}
+
+// ClusterVersion holds OCP version strings
+type ClusterVersion struct {
+	Ocp, Oc, K8s string
 }
 
 // NewVersionOCP creates a new VersionOCP tnf.Test.
@@ -56,7 +61,7 @@ func (ver *VersionOCP) Args() []string {
 }
 
 // GetVersions returns OCP client version.
-func (ver *VersionOCP) GetVersions() []string {
+func (ver *VersionOCP) GetVersions() ClusterVersion {
 	return ver.versions
 }
 
@@ -96,12 +101,22 @@ func deleteEmpty(s []string) []string {
 // ReelMatch ensures that list of nodes is not empty and stores the names as []string
 func (ver *VersionOCP) ReelMatch(_, _, match string) *reel.Step {
 	re := regexp.MustCompile("(Server Version: )|(Client Version: )|(Kubernetes Version: )|(\n)")
-	ver.versions = re.Split(match, -1)
-	ver.versions = deleteEmpty(ver.versions)
-	if len(ver.versions) != numVersionsOcp && len(ver.versions) != numVersionsMinikube {
+	versions := re.Split(match, -1)
+	versions = deleteEmpty(versions)
+	if len(versions) != numVersionsOcp && len(versions) != numVersionsMinikube {
 		ver.result = tnf.FAILURE
+		return nil
+	}
+	ver.result = tnf.SUCCESS
+
+	if len(versions) == numVersionsOcp {
+		ver.versions.Oc = versions[0]
+		ver.versions.Ocp = versions[1]
+		ver.versions.K8s = versions[2]
 	} else {
-		ver.result = tnf.SUCCESS
+		ver.versions.Oc = versions[0]
+		ver.versions.Ocp = "n/a"
+		ver.versions.K8s = versions[1]
 	}
 	return nil
 }

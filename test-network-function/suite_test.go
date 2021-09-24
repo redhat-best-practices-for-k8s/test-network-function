@@ -168,9 +168,9 @@ func incorporateVersions(claimData *claim.Claim) {
 	claimData.Versions = &claim.Versions{
 		Tnf:          getTNFVersion().Tag,
 		TnfGitCommit: GitCommit,
-		OcClient:     diagnostic.GetVersionsOcp()[0],
-		Ocp:          diagnostic.GetVersionsOcp()[1],
-		K8s:          diagnostic.GetVersionsOcp()[2],
+		OcClient:     diagnostic.GetVersionsOcp().Oc,
+		Ocp:          diagnostic.GetVersionsOcp().Ocp,
+		K8s:          diagnostic.GetVersionsOcp().K8s,
 	}
 }
 

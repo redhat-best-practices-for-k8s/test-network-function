@@ -36,7 +36,7 @@ var (
 
 	cniPlugins = make([]CniPlugin, 0)
 
-	versionsOcp = make([]string, 0)
+	versionsOcp versionocp.ClusterVersion
 
 	nodesHwInfo = NodesHwInfo{}
 
@@ -158,7 +158,7 @@ func GetCniPlugins() []CniPlugin {
 }
 
 // GetVersionsOcp return OCP versions
-func GetVersionsOcp() []string {
+func GetVersionsOcp() versionocp.ClusterVersion {
 	return versionsOcp
 }
 
@@ -224,7 +224,6 @@ func testOcpVersion() {
 	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
 	gomega.Expect(err).To(gomega.BeNil())
 	versionsOcp = tester.GetVersions()
-	gomega.Expect(versionsOcp).NotTo(gomega.BeEmpty())
 }
 
 func testCniPlugins() {
