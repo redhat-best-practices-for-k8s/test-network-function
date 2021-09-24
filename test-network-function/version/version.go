@@ -18,7 +18,7 @@ package version
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"os"
 	"path"
 )
 
@@ -34,7 +34,7 @@ type Version struct {
 
 // GetVersion extracts the test-network-function version.
 func GetVersion() (*Version, error) {
-	contents, err := ioutil.ReadFile(defaultVersionFile)
+	contents, err := os.ReadFile(defaultVersionFile)
 	if err != nil {
 		return nil, err
 	}
