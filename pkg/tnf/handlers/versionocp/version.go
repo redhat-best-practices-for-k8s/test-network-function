@@ -26,8 +26,8 @@ import (
 )
 
 const (
-	verRegex    = "(?s).+"
-	numVersionsOcp = 3
+	verRegex            = "(?s).+"
+	numVersionsOcp      = 3
 	numVersionsMinikube = 2
 )
 
@@ -98,7 +98,7 @@ func (ver *VersionOCP) ReelMatch(_, _, match string) *reel.Step {
 	re := regexp.MustCompile("(Server Version: )|(Client Version: )|(Kubernetes Version: )|(\n)")
 	ver.versions = re.Split(match, -1)
 	ver.versions = deleteEmpty(ver.versions)
-	if len(ver.versions) != numVersionsOcp && len(ver.versions) != numVersionsMinikube  {
+	if len(ver.versions) != numVersionsOcp && len(ver.versions) != numVersionsMinikube {
 		ver.result = tnf.FAILURE
 	} else {
 		ver.result = tnf.SUCCESS
