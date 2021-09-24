@@ -14,7 +14,7 @@
 // with this program; if not, write to the Free Software Foundation, Inc.,
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-package versionocp
+package clusterversion
 
 import (
 	"regexp"
@@ -31,8 +31,8 @@ const (
 	numVersionsMinikube = 2
 )
 
-// VersionOCP holds OCP version strings and test metadata
-type VersionOCP struct {
+// TestMetadata holds OCP version strings and test metadata
+type TestMetadata struct {
 	versions ClusterVersion
 	result   int
 	timeout  time.Duration
@@ -44,11 +44,11 @@ type ClusterVersion struct {
 	Ocp, Oc, K8s string
 }
 
-// NewVersionOCP creates a new VersionOCP tnf.Test.
+// NewClusterVersion creates a new TestMetadata tnf.Test.
 // Just gets the ocp version for client and server
-func NewVersionOCP(timeout time.Duration) *VersionOCP {
+func NewClusterVersion(timeout time.Duration) *TestMetadata {
 	args := []string{"oc", "version"}
-	return &VersionOCP{
+	return &TestMetadata{
 		timeout: timeout,
 		result:  tnf.ERROR,
 		args:    args,
@@ -56,32 +56,32 @@ func NewVersionOCP(timeout time.Duration) *VersionOCP {
 }
 
 // Args returns the command line args for the test.
-func (ver *VersionOCP) Args() []string {
+func (ver *TestMetadata) Args() []string {
 	return ver.args
 }
 
 // GetVersions returns OCP client version.
-func (ver *VersionOCP) GetVersions() ClusterVersion {
+func (ver *TestMetadata) GetVersions() ClusterVersion {
 	return ver.versions
 }
 
 // GetIdentifier returns the tnf.Test specific identifiesa.
-func (ver *VersionOCP) GetIdentifier() identifier.Identifier {
-	return identifier.VersionOcpIdentifier
+func (ver *TestMetadata) GetIdentifier() identifier.Identifier {
+	return identifier.ClusterVersionIdentifier
 }
 
 // Timeout returns the timeout in seconds for the test.
-func (ver *VersionOCP) Timeout() time.Duration {
+func (ver *TestMetadata) Timeout() time.Duration {
 	return ver.timeout
 }
 
 // Result returns the test result.
-func (ver *VersionOCP) Result() int {
+func (ver *TestMetadata) Result() int {
 	return ver.result
 }
 
 // ReelFirst returns a step which expects the ping statistics within the test timeout.
-func (ver *VersionOCP) ReelFirst() *reel.Step {
+func (ver *TestMetadata) ReelFirst() *reel.Step {
 	return &reel.Step{
 		Expect:  []string{verRegex},
 		Timeout: ver.timeout,
@@ -99,7 +99,7 @@ func deleteEmpty(s []string) []string {
 }
 
 // ReelMatch ensures that list of nodes is not empty and stores the names as []string
-func (ver *VersionOCP) ReelMatch(_, _, match string) *reel.Step {
+func (ver *TestMetadata) ReelMatch(_, _, match string) *reel.Step {
 	re := regexp.MustCompile("(Server Version: )|(Client Version: )|(Kubernetes Version: )|(\n)")
 	versions := re.Split(match, -1)
 	versions = deleteEmpty(versions)
@@ -122,10 +122,10 @@ func (ver *VersionOCP) ReelMatch(_, _, match string) *reel.Step {
 }
 
 // ReelTimeout does nothing;  no action is necessary upon timeout.
-func (ver *VersionOCP) ReelTimeout() *reel.Step {
+func (ver *TestMetadata) ReelTimeout() *reel.Step {
 	return nil
 }
 
 // ReelEOF does nothing;  no action is necessary upon EOF.
-func (ver *VersionOCP) ReelEOF() {
+func (ver *TestMetadata) ReelEOF() {
 }

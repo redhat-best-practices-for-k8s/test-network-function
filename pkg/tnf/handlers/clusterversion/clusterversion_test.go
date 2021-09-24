@@ -14,7 +14,7 @@
 // with this program; if not, write to the Free Software Foundation, Inc.,
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-package versionocp_test
+package clusterversion_test
 
 import (
 	"regexp"
@@ -23,18 +23,18 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
-	ver "github.com/test-network-function/test-network-function/pkg/tnf/handlers/versionocp"
+	ver "github.com/test-network-function/test-network-function/pkg/tnf/handlers/clusterversion"
 )
 
 func Test_NewNodeNames(t *testing.T) {
-	newVer := ver.NewVersionOCP(testTimeoutDuration)
+	newVer := ver.NewClusterVersion(testTimeoutDuration)
 	assert.NotNil(t, newVer)
 	assert.Equal(t, testTimeoutDuration, newVer.Timeout())
 	assert.Equal(t, newVer.Result(), tnf.ERROR)
 }
 
 func Test_ReelFirstPositiveOcp(t *testing.T) {
-	newVer := ver.NewVersionOCP(testTimeoutDuration)
+	newVer := ver.NewClusterVersion(testTimeoutDuration)
 	assert.NotNil(t, newVer)
 	firstStep := newVer.ReelFirst()
 	re := regexp.MustCompile(firstStep.Expect[0])
@@ -44,7 +44,7 @@ func Test_ReelFirstPositiveOcp(t *testing.T) {
 }
 
 func Test_ReelFirstPositiveMinikube(t *testing.T) {
-	newVer := ver.NewVersionOCP(testTimeoutDuration)
+	newVer := ver.NewClusterVersion(testTimeoutDuration)
 	assert.NotNil(t, newVer)
 	firstStep := newVer.ReelFirst()
 	re := regexp.MustCompile(firstStep.Expect[0])
@@ -54,7 +54,7 @@ func Test_ReelFirstPositiveMinikube(t *testing.T) {
 }
 
 func Test_ReelFirstPositiveEmpty(t *testing.T) {
-	newVer := ver.NewVersionOCP(testTimeoutDuration)
+	newVer := ver.NewClusterVersion(testTimeoutDuration)
 	assert.NotNil(t, newVer)
 	firstStep := newVer.ReelFirst()
 	re := regexp.MustCompile(firstStep.Expect[0])
@@ -64,7 +64,7 @@ func Test_ReelFirstPositiveEmpty(t *testing.T) {
 }
 
 func Test_ReelFirstNegative(t *testing.T) {
-	newVer := ver.NewVersionOCP(testTimeoutDuration)
+	newVer := ver.NewClusterVersion(testTimeoutDuration)
 	assert.NotNil(t, newVer)
 	firstStep := newVer.ReelFirst()
 	re := regexp.MustCompile(firstStep.Expect[0])
@@ -73,7 +73,7 @@ func Test_ReelFirstNegative(t *testing.T) {
 }
 
 func Test_ReelMatchSuccessOcp(t *testing.T) {
-	newVer := ver.NewVersionOCP(testTimeoutDuration)
+	newVer := ver.NewClusterVersion(testTimeoutDuration)
 	assert.NotNil(t, newVer)
 	step := newVer.ReelMatch("", "", testInputSuccessOcp)
 	assert.Nil(t, step)
@@ -84,7 +84,7 @@ func Test_ReelMatchSuccessOcp(t *testing.T) {
 }
 
 func Test_ReelMatchSuccessMinikube(t *testing.T) {
-	newVer := ver.NewVersionOCP(testTimeoutDuration)
+	newVer := ver.NewClusterVersion(testTimeoutDuration)
 	assert.NotNil(t, newVer)
 	step := newVer.ReelMatch("", "", testInputSuccessMinikube)
 	assert.Nil(t, step)
@@ -95,7 +95,7 @@ func Test_ReelMatchSuccessMinikube(t *testing.T) {
 }
 
 func Test_ReelMatchFail(t *testing.T) {
-	newVer := ver.NewVersionOCP(testTimeoutDuration)
+	newVer := ver.NewClusterVersion(testTimeoutDuration)
 	assert.NotNil(t, newVer)
 	step := newVer.ReelMatch("", "", testInputFailure)
 	assert.Nil(t, step)
@@ -107,7 +107,7 @@ func Test_ReelMatchFail(t *testing.T) {
 
 // Just ensure there are no panics.
 func Test_ReelEof(t *testing.T) {
-	newVer := ver.NewVersionOCP(testTimeoutDuration)
+	newVer := ver.NewClusterVersion(testTimeoutDuration)
 	assert.NotNil(t, newVer)
 	newVer.ReelEOF()
 }

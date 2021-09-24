@@ -235,6 +235,16 @@ Suggested Remediation|Test failure indicates that the underlying Node's' kernel 
 ## Test Case Building Blocks Catalog
 
 A number of Test Case Building Blocks, or `tnf.Test`s, are included out of the box.  This is a summary of the available implementations:
+### http://test-network-function.com/tests/clusterVersion
+Property|Description
+---|---
+Version|v1.0.0
+Description|extracts OCP versions from the cluster
+Result Type|normative
+Intrusive|false
+Modifications Persist After Test|false
+Runtime Binaries Required|`oc`
+
 ### http://test-network-function.com/tests/clusterrolebinding
 Property|Description
 ---|---
@@ -620,16 +630,6 @@ Property|Description
 ---|---
 Version|v1.0.0
 Description|A generic test used to check pod's replica and podAntiAffinity configuration in high availability mode
-Result Type|normative
-Intrusive|false
-Modifications Persist After Test|false
-Runtime Binaries Required|`oc`
-
-### http://test-network-function.com/tests/versionOcp
-Property|Description
----|---
-Version|v1.0.0
-Description|extracts OCP versions from the cluster
 Result Type|normative
 Intrusive|false
 Modifications Persist After Test|false

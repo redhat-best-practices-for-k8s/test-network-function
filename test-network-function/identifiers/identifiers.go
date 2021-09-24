@@ -200,9 +200,9 @@ var (
 		Url:     formTestURL(common.DiagnosticTestKey, "cluster-csi-info"),
 		Version: versionOne,
 	}
-	// TestversionOcpIdentifier list Cluster CSIdriver Identifier retrieves Third Party CSI driver info.
-	TestversionOcpIdentifier = claim.Identifier{
-		Url:     formTestURL(common.DiagnosticTestKey, "versionocp"),
+	// TestclusterVersionIdentifier list Cluster CSIdriver Identifier retrieves Third Party CSI driver info.
+	TestclusterVersionIdentifier = claim.Identifier{
+		Url:     formTestURL(common.DiagnosticTestKey, "clusterversion"),
 		Version: versionOne,
 	}
 )

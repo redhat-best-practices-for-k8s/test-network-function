@@ -14,10 +14,10 @@ import (
 	ginkgoconfig "github.com/onsi/ginkgo/config"
 	"github.com/onsi/gomega"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/clusterversion"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/generic"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodedebug"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodenames"
-	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/versionocp"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
 	"github.com/test-network-function/test-network-function/pkg/tnf/testcases"
 )
@@ -36,7 +36,7 @@ var (
 
 	cniPlugins = make([]CniPlugin, 0)
 
-	versionsOcp versionocp.ClusterVersion
+	versionsOcp clusterversion.ClusterVersion
 
 	nodesHwInfo = NodesHwInfo{}
 
@@ -70,9 +70,9 @@ var _ = ginkgo.Describe(common.DiagnosticTestKey, func() {
 		ginkgo.When("a cluster is set up and installed with OpenShift", func() {
 
 			ginkgo.By("should report OCP version")
-			testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestversionOcpIdentifier)
+			testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestclusterVersionIdentifier)
 			ginkgo.It(testID, func() {
-				defer results.RecordResult(identifiers.TestversionOcpIdentifier)
+				defer results.RecordResult(identifiers.TestclusterVersionIdentifier)
 				testOcpVersion()
 			})
 
@@ -158,7 +158,7 @@ func GetCniPlugins() []CniPlugin {
 }
 
 // GetVersionsOcp return OCP versions
-func GetVersionsOcp() versionocp.ClusterVersion {
+func GetVersionsOcp() clusterversion.ClusterVersion {
 	return versionsOcp
 }
 
@@ -217,7 +217,7 @@ func listNodeCniPlugins(nodeName string) []CniPlugin {
 
 func testOcpVersion() {
 	context := common.GetContext()
-	tester := versionocp.NewVersionOCP(defaultTestTimeout)
+	tester := clusterversion.NewClusterVersion(defaultTestTimeout)
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
 	testResult, err := test.Run()
