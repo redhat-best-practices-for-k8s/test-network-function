@@ -70,7 +70,7 @@ var _ = ginkgo.Describe(common.DiagnosticTestKey, func() {
 		ginkgo.When("a cluster is set up and installed with OpenShift", func() {
 
 			ginkgo.By("should report OCP version")
-			testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestListCniPluginsIdentifier)
+			testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestversionOcpIdentifier)
 			ginkgo.It(testID, func() {
 				defer results.RecordResult(identifiers.TestversionOcpIdentifier)
 				testOcpVersion()

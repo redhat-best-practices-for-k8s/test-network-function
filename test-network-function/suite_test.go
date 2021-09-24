@@ -166,11 +166,11 @@ func getTNFVersion() *version.Version {
 // incorporateTNFVersion adds the TNF version to the claim.
 func incorporateVersions(claimData *claim.Claim) {
 	claimData.Versions = &claim.Versions{
-		Tnf:      getTNFVersion().Tag,
+		Tnf:          getTNFVersion().Tag,
 		TnfGitCommit: GitCommit,
-		OcClient: diagnostic.GetVersionsOcp()[0],
-		Ocp:      diagnostic.GetVersionsOcp()[1],
-		K8s:      diagnostic.GetVersionsOcp()[2],
+		OcClient:     diagnostic.GetVersionsOcp()[0],
+		Ocp:          diagnostic.GetVersionsOcp()[1],
+		K8s:          diagnostic.GetVersionsOcp()[2],
 	}
 }
 
