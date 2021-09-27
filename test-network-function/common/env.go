@@ -100,14 +100,17 @@ func SetLogLevel() {
 
 // SetLogFormat sets the log format for logrus
 func SetLogFormat() {
+	log.Info("debug format initialization: start")
 	customFormatter := new(log.TextFormatter)
 	customFormatter.TimestampFormat = time.StampMilli
 	customFormatter.PadLevelText = true
 	customFormatter.FullTimestamp = true
+	customFormatter.ForceColors = true
 	log.SetReportCaller(true)
 	customFormatter.CallerPrettyfier = func(f *runtime.Frame) (string, string) {
 		_, filename := path.Split(f.File)
 		return strconv.Itoa(f.Line) + "]", fmt.Sprintf("[%s:", filename)
 	}
 	log.SetFormatter(customFormatter)
+	log.Error("debug format initialization: done")
 }
