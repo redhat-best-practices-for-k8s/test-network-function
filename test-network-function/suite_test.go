@@ -124,12 +124,12 @@ func TestTest(t *testing.T) {
 	claimData := claimRoot.Claim
 	claimData.Configurations = make(map[string]interface{})
 	claimData.Nodes = make(map[string]interface{})
-	incorporateTNFVersion(claimData)
 
 	// run the test suite
 	ginkgo.RunSpecs(t, CnfCertificationTestSuiteName)
 	endTime := time.Now()
 
+	incorporateVersions(claimData)
 	// process the test results from this test suite, the cnf-features-deploy test suite, and any extra informational
 	// messages.
 	junitMap := make(map[string]interface{})
@@ -164,9 +164,13 @@ func getTNFVersion() *version.Version {
 }
 
 // incorporateTNFVersion adds the TNF version to the claim.
-func incorporateTNFVersion(claimData *claim.Claim) {
+func incorporateVersions(claimData *claim.Claim) {
 	claimData.Versions = &claim.Versions{
-		Tnf: getTNFVersion().Tag,
+		Tnf:          getTNFVersion().Tag,
+		TnfGitCommit: GitCommit,
+		OcClient:     diagnostic.GetVersionsOcp().Oc,
+		Ocp:          diagnostic.GetVersionsOcp().Ocp,
+		K8s:          diagnostic.GetVersionsOcp().K8s,
 	}
 }
 
