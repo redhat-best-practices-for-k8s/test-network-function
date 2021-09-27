@@ -528,6 +528,6 @@ the changes for you.`,
 		Identifier: TestclusterVersionIdentifier,
 		Type:       informativeResult,
 		Description: formDescription(TestclusterVersionIdentifier,
-			`extracts OCP versions from the cluster.`),
+			`Extracts OCP versions from the cluster.`),
 	},
 }
