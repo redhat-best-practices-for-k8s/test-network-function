@@ -41,8 +41,8 @@ func FindTestTarget(labels []configsections.Label, target *configsections.TestTa
 		pods, err := GetPodsByLabel(l, namespace)
 		if err == nil {
 			for i := range pods.Items {
-				target.PodsUnderTest = append(target.PodsUnderTest, buildPodUnderTest(&pods.Items[i]))
-				target.ContainerConfigList = append(target.ContainerConfigList, buildContainersFromPodResource(&pods.Items[i])...)
+				target.PodsUnderTest = append(target.PodsUnderTest, buildPodUnderTest(pods.Items[i]))
+				target.ContainerConfigList = append(target.ContainerConfigList, buildContainersFromPodResource(pods.Items[i])...)
 			}
 		} else {
 			log.Warnf("failed to query by label: %v %v", l, err)
