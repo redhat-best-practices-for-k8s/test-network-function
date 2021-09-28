@@ -38,16 +38,17 @@ var (
 
 // PodList holds the data from an `oc get pods -o json` command
 type PodList struct {
-	Items []PodResource `json:"items"`
+	Items []*PodResource `json:"items"`
 }
 
 // PodResource is a single Pod from an `oc get pods -o json` command
 type PodResource struct {
 	Metadata struct {
-		Name        string            `json:"name"`
-		Namespace   string            `json:"namespace"`
-		Labels      map[string]string `json:"labels"`
-		Annotations map[string]string `json:"annotations"`
+		Name              string            `json:"name"`
+		Namespace         string            `json:"namespace"`
+		DeletionTimestamp string            `json:"deletionTimestamp"`
+		Labels            map[string]string `json:"labels"`
+		Annotations       map[string]string `json:"annotations"`
 	} `json:"metadata"`
 	Spec struct {
 		ServiceAccount string `json:"serviceaccountname"`
@@ -167,5 +168,13 @@ func GetPodsByLabel(label configsections.Label, namespace string) (*PodList, err
 		return nil, err
 	}
 
+	// Filter out terminating pods
+	var pods []*PodResource
+	for _, pod := range podList.Items {
+		if pod.Metadata.DeletionTimestamp == "" {
+			pods = append(pods, pod)
+		}
+	}
+	podList.Items = pods
 	return &podList, nil
 }

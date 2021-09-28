@@ -211,7 +211,7 @@ Suggested Remediation|HugePage settings should be configured either directly thr
 Property|Description
 ---|---
 Version|v1.0.0
-Description|http://test-network-function.com/testcases/platform-alteration/isredhat-release The test verifies if the container base image is redhat.
+Description|http://test-network-function.com/testcases/platform-alteration/isredhat-release verifies if the container base image is redhat.
 Result Type|normative
 Suggested Remediation|build a new docker image that's based on UBI (redhat universal base image).
 ### http://test-network-function.com/testcases/platform-alteration/sysctl-config
