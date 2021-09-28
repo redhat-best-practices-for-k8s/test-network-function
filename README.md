@@ -129,7 +129,7 @@ Set this variable to deploy partner pods in a custom namespace instead of the de
 export TNF_PARTNER_NAMESPACE="CNF-ns"
 ```
 
-### Variabls to set when running in disconnected environment
+### Disconnected environment
 In disconnected environment, only specific versions of images are mirrored to the local repo. For the `oc debug` command (used by a number of tests) to work, set TNF_OC_DEBUG_IMAGE_ID:
 
 ```shell-script
