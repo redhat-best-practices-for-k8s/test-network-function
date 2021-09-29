@@ -186,8 +186,6 @@ func (env *TestEnvironment) doAutodiscover() {
 	}
 	autodiscover.FindTestPartner(&env.Config.Partner, env.NameSpaceUnderTest)
 
-	log.Infof("Test Configuration: %+v", *env)
-
 	env.ContainersToExcludeFromConnectivityTests = make(map[configsections.ContainerIdentifier]interface{})
 
 	for _, cid := range env.Config.ExcludeContainersFromConnectivityTests {
@@ -199,8 +197,7 @@ func (env *TestEnvironment) doAutodiscover() {
 	env.TestOrchestrator = env.PartnerContainers[env.Config.Partner.TestOrchestratorID]
 	env.DeploymentsUnderTest = env.Config.DeploymentsUnderTest
 	env.OperatorsUnderTest = env.Config.Operators
-	log.Info(env.TestOrchestrator)
-	log.Info(env.ContainersUnderTest)
+	log.Infof("Test Configuration: %+v", *env)
 	env.needsRefresh = false
 }
 
