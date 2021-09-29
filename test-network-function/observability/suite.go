@@ -68,6 +68,7 @@ func testLogging(env *config.TestEnvironment) {
 }
 func loggingTest(c configsections.ContainerIdentifier) {
 	context := common.GetContext()
+
 	values := make(map[string]interface{})
 	values["POD_NAMESPACE"] = c.Namespace
 	values["POD_NAME"] = c.PodName

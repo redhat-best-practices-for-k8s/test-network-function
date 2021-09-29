@@ -62,12 +62,12 @@ Version|v1.0.0
 Description|http://test-network-function.com/testcases/affiliated-certification/operator-is-certified tests whether CNF Operators have passed the Red Hat Operator Certification Program (OCP).
 Result Type|normative
 Suggested Remediation|Ensure that your Operator has passed Red Hat's Operator Certification Program (OCP).
-### http://test-network-function.com/testcases/diagnostic/cluster-csi-info
+### http://test-network-function.com/testcases/diagnostic/clusterversion
 
 Property|Description
 ---|---
 Version|v1.0.0
-Description|http://test-network-function.com/testcases/diagnostic/cluster-csi-info extracts CSI driver information in the cluster.
+Description|http://test-network-function.com/testcases/diagnostic/clusterversion extracts OCP versions from the cluster.
 Result Type|informative
 Suggested Remediation|
 ### http://test-network-function.com/testcases/diagnostic/extract-node-information
@@ -211,7 +211,7 @@ Suggested Remediation|HugePage settings should be configured either directly thr
 Property|Description
 ---|---
 Version|v1.0.0
-Description|http://test-network-function.com/testcases/platform-alteration/isredhat-release The test verifies if the container base image is redhat.
+Description|http://test-network-function.com/testcases/platform-alteration/isredhat-release verifies if the container base image is redhat.
 Result Type|normative
 Suggested Remediation|build a new docker image that's based on UBI (redhat universal base image).
 ### http://test-network-function.com/testcases/platform-alteration/sysctl-config
@@ -235,6 +235,16 @@ Suggested Remediation|Test failure indicates that the underlying Node's' kernel 
 ## Test Case Building Blocks Catalog
 
 A number of Test Case Building Blocks, or `tnf.Test`s, are included out of the box.  This is a summary of the available implementations:
+### http://test-network-function.com/tests/clusterVersion
+Property|Description
+---|---
+Version|v1.0.0
+Description|extracts OCP versions from the cluster
+Result Type|normative
+Intrusive|false
+Modifications Persist After Test|false
+Runtime Binaries Required|`oc`
+
 ### http://test-network-function.com/tests/clusterrolebinding
 Property|Description
 ---|---

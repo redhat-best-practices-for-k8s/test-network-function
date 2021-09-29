@@ -106,7 +106,7 @@ func DisableTerminalPromptEmulation() Option {
 }
 
 // Each Step can have zero or more expectations (Step.Expect).  This method follows the Adapter design pattern;  a raw
-// array of strings is turned into a corresponding array of exepct.Batcher.  This method side-effects the input
+// array of strings is turned into a corresponding array of expect.Batcher.  This method side-effects the input
 // expectations array, following the Builder design pattern.  Finally, the first match is stored in the firstMatch
 // output parameter.
 func (r *Reel) batchExpectations(expectations []string, batcher []expect.Batcher, firstMatch *string) []expect.Batcher {

@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"path"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/test-network-function/test-network-function/pkg/config"
@@ -141,6 +142,26 @@ func restoreDeployments(env *config.TestEnvironment) {
 	}
 }
 
+func closeOcSessionsByDeployment(containers map[configsections.ContainerIdentifier]*config.Container, deployment configsections.Deployment) {
+	for cid, c := range containers {
+		if cid.Namespace == deployment.Namespace && strings.HasPrefix(cid.PodName, deployment.Name+"-") {
+			log.Infof("Closing session to %s %s", cid.PodName, cid.ContainerName)
+			c.Oc.Close()
+			delete(containers, cid)
+		}
+	}
+}
+
+func closeOcSessionsByNode(containers map[configsections.ContainerIdentifier]*config.Container, nodeName string) {
+	for cid, c := range containers {
+		if cid.NodeName == nodeName {
+			log.Infof("Closing session to %s %s", cid.PodName, cid.ContainerName)
+			c.Oc.Close()
+			delete(containers, cid)
+		}
+	}
+}
+
 // runScalingTest Runs a Scaling handler TC and waits for all the deployments to be ready.
 func runScalingTest(deployment configsections.Deployment) {
 	handler := scaling.NewScaling(common.DefaultTimeout, deployment.Namespace, deployment.Name, deployment.Replicas)
@@ -166,6 +187,8 @@ func testScaling(env *config.TestEnvironment) {
 		for _, deployment := range env.DeploymentsUnderTest {
 			ginkgo.By(fmt.Sprintf("Scaling Deployment=%s, Replicas=%d (ns=%s)",
 				deployment.Name, deployment.Replicas, deployment.Namespace))
+
+			closeOcSessionsByDeployment(env.ContainersUnderTest, deployment)
 
 			replicaCount := deployment.Replicas
 
@@ -275,49 +298,39 @@ func shutdownTest(podNamespace, podName string) {
 func testPodsRecreation(env *config.TestEnvironment) {
 	var deployments dp.DeploymentMap
 	var notReadyDeployments []string
-	nodesNames := make(map[string]node)
-	namespaces := make(map[string]bool)
+
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestPodRecreationIdentifier)
 	ginkgo.It(testID, func() {
 		env.SetNeedsRefresh()
 		ginkgo.By("Testing node draining effect of deployment")
-		for _, podUnderTest := range env.PodsUnderTest {
-			podNamespace := podUnderTest.Namespace
-			ginkgo.By(fmt.Sprintf("test deployment in namespace %s", podNamespace))
-			deployments, notReadyDeployments = getDeployments(podNamespace)
-			if len(deployments) == 0 {
-				return
-			}
-			if _, exists := namespaces[podNamespace]; exists {
-				continue
-			}
-			namespaces[podNamespace] = true
-			// We require that all deployments have the desired number of replicas and are all up to date
-			if len(notReadyDeployments) != 0 {
-				ginkgo.Skip("Can not test when deployments are not ready")
-			}
-			gomega.Expect(notReadyDeployments).To(gomega.BeEmpty())
-			ginkgo.By("Should return map of nodes to deployments")
-			nodesSorted := getDeploymentsNodes(podNamespace)
-			for _, n := range nodesSorted {
-				if _, exists := nodesNames[n.name]; !exists {
-					nodesNames[n.name] = n
-				}
-			}
+
+		ginkgo.By(fmt.Sprintf("test deployment in namespace %s", env.NameSpaceUnderTest))
+		deployments, notReadyDeployments = getDeployments(env.NameSpaceUnderTest)
+		if len(deployments) == 0 {
+			return
 		}
+		// We require that all deployments have the desired number of replicas and are all up to date
+		if len(notReadyDeployments) != 0 {
+			ginkgo.Skip("Can not test when deployments are not ready")
+		}
+
+		ginkgo.By("Should return map of nodes to deployments")
+		nodesSorted := getDeploymentsNodes(env.NameSpaceUnderTest)
+
 		ginkgo.By("should create new replicas when node is drained")
 		defer results.RecordResult(identifiers.TestPodRecreationIdentifier)
-		for _, n := range nodesNames {
+		for _, n := range nodesSorted {
+			closeOcSessionsByNode(env.ContainersUnderTest, n.name)
+			closeOcSessionsByNode(env.PartnerContainers, n.name)
 			// drain node
 			drainNode(n.name) // should go in this
 			// verify deployments are ready again
-			for namespace := range namespaces {
-				_, notReadyDeployments = getDeployments(namespace)
-				if len(notReadyDeployments) != 0 {
-					uncordonNode(n.name)
-					ginkgo.Fail(fmt.Sprintf("did not create replicas when noede %s is drained", n.name))
-				}
+			_, notReadyDeployments = getDeployments(env.NameSpaceUnderTest)
+			if len(notReadyDeployments) != 0 {
+				uncordonNode(n.name)
+				ginkgo.Fail(fmt.Sprintf("did not create replicas when node %s is drained", n.name))
 			}
+
 			uncordonNode(n.name)
 		}
 	})

@@ -200,6 +200,11 @@ var (
 		Url:     formTestURL(common.DiagnosticTestKey, "cluster-csi-info"),
 		Version: versionOne,
 	}
+	// TestclusterVersionIdentifier list Cluster CSIdriver Identifier retrieves Third Party CSI driver info.
+	TestclusterVersionIdentifier = claim.Identifier{
+		Url:     formTestURL(common.DiagnosticTestKey, "clusterversion"),
+		Version: versionOne,
+	}
 )
 
 func formDescription(identifier claim.Identifier, description string) string {
@@ -510,7 +515,7 @@ the changes for you.`,
 		Identifier: TestIsRedHatReleaseIdentifier,
 		Type:       normativeResult,
 		Description: formDescription(TestIsRedHatReleaseIdentifier,
-			`The test verifies if the container base image is redhat.`),
+			`verifies if the container base image is redhat.`),
 		Remediation: `build a new docker image that's based on UBI (redhat universal base image).`,
 	},
 	TestClusterCsiInfoIdentifier: {
@@ -518,5 +523,11 @@ the changes for you.`,
 		Type:       informativeResult,
 		Description: formDescription(TestClusterCsiInfoIdentifier,
 			`extracts CSI driver information in the cluster.`),
+	},
+	TestClusterCsiInfoIdentifier: {
+		Identifier: TestclusterVersionIdentifier,
+		Type:       informativeResult,
+		Description: formDescription(TestclusterVersionIdentifier,
+			`extracts OCP versions from the cluster.`),
 	},
 }

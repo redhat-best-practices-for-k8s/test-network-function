@@ -14,6 +14,7 @@ import (
 	ginkgoconfig "github.com/onsi/ginkgo/config"
 	"github.com/onsi/gomega"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/clusterversion"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/generic"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodedebug"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodenames"
@@ -34,6 +35,8 @@ var (
 	nodeSummary = make(map[string]interface{})
 
 	cniPlugins = make([]CniPlugin, 0)
+
+	versionsOcp clusterversion.ClusterVersion
 
 	nodesHwInfo = NodesHwInfo{}
 
@@ -65,7 +68,15 @@ var (
 var _ = ginkgo.Describe(common.DiagnosticTestKey, func() {
 	if testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusStrings, common.DiagnosticTestKey) {
 		ginkgo.When("a cluster is set up and installed with OpenShift", func() {
-			testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestExtractNodeInformationIdentifier)
+
+			ginkgo.By("should report OCP version")
+			testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestclusterVersionIdentifier)
+			ginkgo.It(testID, func() {
+				defer results.RecordResult(identifiers.TestclusterVersionIdentifier)
+				testOcpVersion()
+			})
+
+			testID = identifiers.XformToGinkgoItIdentifier(identifiers.TestExtractNodeInformationIdentifier)
 			ginkgo.It(testID, func() {
 				defer results.RecordResult(identifiers.TestExtractNodeInformationIdentifier)
 				context := common.GetContext()
@@ -146,6 +157,11 @@ func GetCniPlugins() []CniPlugin {
 	return cniPlugins
 }
 
+// GetVersionsOcp return OCP versions
+func GetVersionsOcp() clusterversion.ClusterVersion {
+	return versionsOcp
+}
+
 // GetNodesHwInfo returns an object with HW info of one master and one worker
 func GetNodesHwInfo() NodesHwInfo {
 	return nodesHwInfo
@@ -197,6 +213,17 @@ func listNodeCniPlugins(nodeName string) []CniPlugin {
 		})
 	}
 	return result
+}
+
+func testOcpVersion() {
+	context := common.GetContext()
+	tester := clusterversion.NewClusterVersion(defaultTestTimeout)
+	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
+	gomega.Expect(err).To(gomega.BeNil())
+	testResult, err := test.Run()
+	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
+	gomega.Expect(err).To(gomega.BeNil())
+	versionsOcp = tester.GetVersions()
 }
 
 func testCniPlugins() {

@@ -28,15 +28,18 @@ env:
   TNF_CONFIG_DIR: /tmp/tnf/config
   TNF_OUTPUT_DIR: /tmp/tnf/output
   TNF_SRC_URL: 'https://github.com/${{ github.repository }}'
+  PARTNER_REPO: test-network-function/cnf-certification-test-partner
+  PARTNER_SRC_URL: 'https://github.com/${PARTNER_REPO}'
   TESTING_CMD_PARAMS: '-n host -i ${REGISTRY_LOCAL}/${IMAGE_NAME}:${IMAGE_TAG} -t ${TNF_CONFIG_DIR} -o ${TNF_OUTPUT_DIR}'
 
 jobs:
-  get-latest-tnf-version-number:
-    name: 'Get the version number of the latest release'
+  get-latest-release-version-numbers:
+    name: 'Get the version numbers of the latest release components'
     if: ${{ github.repository_owner == 'test-network-function' }}
     runs-on: ubuntu-20.04
     outputs:
       TNF_VERSION: ${{ steps.set_tnf_version.outputs.version_number }}
+      PARTNER_VERSION: ${{ steps.set_tnf_version.outputs.partner_version_number }}
 
     steps:
       - name: Checkout generic working branch of the current version
@@ -52,22 +55,26 @@ jobs:
         run: |
           echo Version tag: $VERSION_FROM_FILE
           echo "::set-output name=version_number::$VERSION_FROM_FILE"
+          echo Partner version tag: $VERSION_FROM_FILE_PARTNER
+          echo "::set-output name=partner_version_number::$VERSION_FROM_FILE_PARTNER"
         id: set_tnf_version
         env:
-          VERSION_FROM_FILE: ${{ fromJSON(steps.get_version_json_file.outputs.json)['tag'] }}
+          VERSION_FROM_FILE: ${{ fromJSON(steps.get_version_json_file.outputs.json).tag }}
+          VERSION_FROM_FILE_PARTNER: ${{ fromJSON(steps.get_version_json_file.outputs.json).partner_tag }}
 
   test-and-push-tnf-image:
     name: 'Test and push the `test-network-function` image'
-    needs: [get-latest-tnf-version-number]
+    needs: [get-latest-release-version-numbers]
     runs-on: ubuntu-20.04
     env:
       SHELL: /bin/bash
       KUBECONFIG: '/home/runner/.kube/config'
-      TNF_VERSION: ${{ needs['get-latest-tnf-version-number'].outputs.TNF_VERSION }}
+      TNF_VERSION: ${{ needs['get-latest-release-version-numbers'].outputs.TNF_VERSION }}
+      PARTNER_VERSION: ${{ needs['get-latest-release-version-numbers'].outputs.PARTNER_VERSION }}
 
     steps:
       - name: Ensure $TNF_VERSION and $IMAGE_TAG are set
-        run: '[[ -n "$TNF_VERSION" ]] && [[ -n "$IMAGE_TAG" ]]'
+        run: '[[ -n "$TNF_VERSION" ]] && [[ -n "$IMAGE_TAG" ]] && [[ -n "$PARTNER_VERSION" ]]'
 
       - name: Check whether the version tag exists on remote
         run: git ls-remote --exit-code $TNF_SRC_URL refs/tags/$TNF_VERSION
@@ -75,6 +82,13 @@ jobs:
       - name: (if tag is missing) Display debug message
         if: ${{ failure() }}
         run: echo "Tag '$TNF_VERSION' does not exist on remote $TNF_SRC_URL"
+
+      - name: Check whether the version tag exists on remote
+        run: git ls-remote --exit-code ${{ env.PARTNER_SRC_URL }} refs/tags/$PARTNER_VERSION
+
+      - name: (if partner_tag is missing) Display debug message
+        if: ${{ failure() }}
+        run: echo "Tag '$PARTNER_VERSION' does not exist on remote $PARTNER_SRC_URL"
 
       - name: Checkout the version tag
         uses: actions/checkout@v2
@@ -97,7 +111,9 @@ jobs:
         with:
           repository: test-network-function/cnf-certification-test-partner
           path: cnf-certification-test-partner
-
+          with:
+          ref: ${{ env.PARTNER_VERSION }}
+          
       - name: Start the minikube cluster for `local-test-infra`
         uses: ./cnf-certification-test-partner/.github/actions/start-minikube
         with:
