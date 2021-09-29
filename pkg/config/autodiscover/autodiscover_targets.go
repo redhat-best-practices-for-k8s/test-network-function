@@ -19,7 +19,11 @@ package autodiscover
 import (
 	log "github.com/sirupsen/logrus"
 	"github.com/test-network-function/test-network-function/pkg/config/configsections"
+	"github.com/test-network-function/test-network-function/pkg/tnf"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodenames"
+	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
 	"github.com/test-network-function/test-network-function/pkg/tnf/testcases"
+	"github.com/test-network-function/test-network-function/test-network-function/common"
 )
 
 const (
@@ -66,6 +70,50 @@ func FindTestTarget(labels []configsections.Label, target *configsections.TestTa
 	}
 
 	target.DeploymentsUnderTest = append(target.DeploymentsUnderTest, FindTestDeployments(labels, target, namespace)...)
+	target.Nodes = append(target.Nodes, GetNodesList()...)
+}
+
+func GetNodesList() (Nodes []configsections.Nodes) {
+	var nodeNames []string
+	var types []string
+	var Existinarray int = 0
+	context := common.GetContext()
+	tester := nodenames.NewNodeNames(common.DefaultTimeout, map[string]*string{"node-role.kubernetes.io/master": nil})
+	test, _ := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
+	test.Run()
+	nodeNames = tester.GetNodeNames()
+	for i := range nodeNames {
+		Node := configsections.Nodes{
+			Name: nodeNames[i],
+			Type: append(types, "master"),
+		}
+		Nodes = append(Nodes, Node)
+
+	}
+
+	context = common.GetContext()
+	tester = nodenames.NewNodeNames(common.DefaultTimeout, map[string]*string{"node-role.kubernetes.io/worker": nil})
+	test, _ = tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
+	test.Run()
+	nodeNames = tester.GetNodeNames()
+	for i := range nodeNames {
+		Node := configsections.Nodes{
+			Name: nodeNames[i],
+			Type: append(types, "worker"),
+		}
+		for j := range Nodes {
+			if nodeNames[i] == Nodes[j].Name {
+				Nodes[j].Type = append(Nodes[j].Type, "worker")
+				Existinarray = 1
+			}
+		}
+		if Existinarray == 0 {
+			Nodes = append(Nodes, Node)
+		}
+
+	}
+	return Nodes
+
 }
 
 // FindTestDeployments uses the containers' namespace to get its parent deployment. Filters out non CNF test deployments,

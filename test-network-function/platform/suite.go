@@ -41,7 +41,6 @@ import (
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/mckernelarguments"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodehugepages"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodemcname"
-	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodenames"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodetainted"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/podnodename"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/readbootconfig"
@@ -65,8 +64,8 @@ var _ = ginkgo.Describe(common.PlatformAlterationTestKey, func() {
 		// use this boolean to turn off tests that require OS packages
 		if !common.IsMinikube() {
 			testContainersFsDiff(env)
-			testTainted()
-			testHugepages()
+			testTainted(env)
+			testHugepages(env)
 			testBootParams(env)
 			testSysctlConfigs(env)
 		}
@@ -287,66 +286,39 @@ func testSysctlConfigsHelper(podName, podNamespace string) {
 	}
 }
 
-func testTainted() {
-	var nodeNames []string
+func testTainted(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestNonTaintedNodeKernelsIdentifier)
 	ginkgo.It(testID, func() {
 		ginkgo.By("Testing tainted nodes in cluster")
-		ginkgo.By("Should return list of node names")
-		context := common.GetContext()
-		tester := nodenames.NewNodeNames(common.DefaultTimeout, nil)
-		test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
-		gomega.Expect(err).To(gomega.BeNil())
-		testResult, err := test.Run()
-		gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
-		gomega.Expect(err).To(gomega.BeNil())
-		nodeNames = tester.GetNodeNames()
-		gomega.Expect(nodeNames).NotTo(gomega.BeNil())
-		ginkgo.By("Should not have tainted nodes")
-		defer results.RecordResult(identifiers.TestNonTaintedNodeKernelsIdentifier)
-		if len(nodeNames) == 0 {
-			ginkgo.Skip("Can't test tainted nodes when list of nodes is empty. Please check previous tests.")
-		}
+
 		var taintedNodes []string
-		for _, node := range nodeNames {
+		for _, node := range env.Nodes {
 			context := common.GetContext()
-			tester := nodetainted.NewNodeTainted(common.DefaultTimeout, node)
+			tester := nodetainted.NewNodeTainted(common.DefaultTimeout, node.Name)
 			test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 			gomega.Expect(err).To(gomega.BeNil())
 			testResult, err := test.Run()
 			gomega.Expect(testResult).NotTo(gomega.Equal(tnf.ERROR))
 			gomega.Expect(err).To(gomega.BeNil())
 			if testResult == tnf.FAILURE {
-				taintedNodes = append(taintedNodes, node)
+				taintedNodes = append(taintedNodes, node.Name)
 			}
 		}
 		gomega.Expect(taintedNodes).To(gomega.BeNil())
 	})
 }
 
-func testHugepages() {
-	var nodeNames []string
+func testHugepages(env *config.TestEnvironment) {
 	var clusterHugepages, clusterHugepagesz int
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestHugepagesNotManuallyManipulated)
 	ginkgo.It(testID, func() {
 		defer results.RecordResult(identifiers.TestHugepagesNotManuallyManipulated)
-		ginkgo.By("Should return list of worker node names")
+		ginkgo.By("Should return cluster's hugepages configuration")
 		context := common.GetContext()
-		tester := nodenames.NewNodeNames(common.DefaultTimeout, map[string]*string{"node-role.kubernetes.io/worker": nil})
-		test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
+		hugepageTester := hugepages.NewHugepages(common.DefaultTimeout)
+		test, err := tnf.NewTest(context.GetExpecter(), hugepageTester, []reel.Handler{hugepageTester}, context.GetErrorChannel())
 		gomega.Expect(err).To(gomega.BeNil())
 		testResult, err := test.Run()
-		gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
-		gomega.Expect(err).To(gomega.BeNil())
-		nodeNames = tester.GetNodeNames()
-		gomega.Expect(nodeNames).NotTo(gomega.BeNil())
-
-		ginkgo.By("Should return cluster's hugepages configuration")
-		context = common.GetContext()
-		hugepageTester := hugepages.NewHugepages(common.DefaultTimeout)
-		test, err = tnf.NewTest(context.GetExpecter(), hugepageTester, []reel.Handler{hugepageTester}, context.GetErrorChannel())
-		gomega.Expect(err).To(gomega.BeNil())
-		testResult, err = test.Run()
 		gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
 		gomega.Expect(err).To(gomega.BeNil())
 		clusterHugepages = hugepageTester.GetHugepages()
@@ -355,17 +327,23 @@ func testHugepages() {
 		ginkgo.By("Should have same configuration as cluster")
 		ginkgo.By(fmt.Sprintf("cluster is configured with clusterHugepages=%d ; clusterHugepagesz=%d", clusterHugepages, clusterHugepagesz))
 		var badNodes []string
-		for _, node := range nodeNames {
-			context := common.GetContext()
-			tester := nodehugepages.NewNodeHugepages(common.DefaultTimeout, node, clusterHugepagesz, clusterHugepages)
-			test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
-			gomega.Expect(err).To(gomega.BeNil())
-			testResult, err := test.Run()
-			gomega.Expect(err).To(gomega.BeNil())
-			if testResult != tnf.SUCCESS {
-				badNodes = append(badNodes, node)
-				ginkgo.By(fmt.Sprintf("node=%s hugepage config does not match machineconfig", node))
+		for _, node := range env.Nodes {
+			for i := range node.Type {
+				if node.Type[i] == "worker" {
+					context := common.GetContext()
+					tester := nodehugepages.NewNodeHugepages(common.DefaultTimeout, node.Name, clusterHugepagesz, clusterHugepages)
+					test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
+					gomega.Expect(err).To(gomega.BeNil())
+					testResult, err := test.Run()
+					gomega.Expect(err).To(gomega.BeNil())
+					if testResult != tnf.SUCCESS {
+						badNodes = append(badNodes, node.Name)
+						ginkgo.By(fmt.Sprintf("node=%s hugepage config does not match machineconfig", node.Name))
+					}
+				}
+
 			}
+
 		}
 		gomega.Expect(badNodes).To(gomega.BeNil())
 	})
