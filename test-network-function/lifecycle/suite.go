@@ -152,6 +152,16 @@ func closeOcSessionsByDeployment(containers map[configsections.ContainerIdentifi
 	}
 }
 
+func closeOcSessionsByNode(containers map[configsections.ContainerIdentifier]*config.Container, nodeName string) {
+	for cid, c := range containers {
+		if cid.NodeName == nodeName {
+			log.Infof("Closing session to %s %s", cid.PodName, cid.ContainerName)
+			c.Oc.Close()
+			delete(containers, cid)
+		}
+	}
+}
+
 // runScalingTest Runs a Scaling handler TC and waits for all the deployments to be ready.
 func runScalingTest(deployment configsections.Deployment) {
 	handler := scaling.NewScaling(common.DefaultTimeout, deployment.Namespace, deployment.Name, deployment.Replicas)
@@ -324,16 +334,6 @@ func testPodsRecreation(env *config.TestEnvironment) {
 			uncordonNode(n.name)
 		}
 	})
-}
-
-func closeOcSessionsByNode(containers map[configsections.ContainerIdentifier]*config.Container, nodeName string) {
-	for cid, c := range containers {
-		if cid.NodeName == nodeName {
-			log.Infof("Closing session to %s %s", cid.PodName, cid.ContainerName)
-			c.Oc.Close()
-			delete(containers, cid)
-		}
-	}
 }
 
 type node struct {
