@@ -35,12 +35,8 @@ type Command struct {
 	// adding special parameters
 }
 
-const (
-	ocCommand = "oc get %s -n %s -o json -l %s"
-)
-
 // NewCommand creates a new command handler.
-func NewCommand(timeout time.Duration, resourceType, labelQuery, namespace string) *Command {
+func NewCommand(timeout time.Duration, resourceType, labelQuery, namespace, ocCommand string) *Command {
 	command := fmt.Sprintf(ocCommand, resourceType, namespace, labelQuery)
 	return &Command{
 		timeout: timeout,

@@ -38,6 +38,7 @@ const (
 	makeGetCommandTimeout     = 2
 	// anyLabelValue is the value that will allow any value for a label when building the label query.
 	anyLabelValue = ""
+	ocCommand     = "oc get %s -n %s -o json -l %s"
 )
 
 // PerformAutoDiscovery checks the environment variable to see if autodiscovery should be performed
@@ -66,7 +67,7 @@ func buildLabelQuery(label configsections.Label) string {
 }
 
 func makeGetCommand(resourceType, labelQuery, namespace string) (string, error) {
-	handler := command.NewCommand(time.Duration(makeGetCommandTimeout)*time.Second, resourceType, labelQuery, namespace)
+	handler := command.NewCommand(time.Duration(makeGetCommandTimeout)*time.Second, resourceType, labelQuery, namespace, ocCommand)
 	test, err := tnf.NewTest(common.GetContext().GetExpecter(), handler, []reel.Handler{handler}, common.GetContext().GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
 	testResult, err := test.Run()
