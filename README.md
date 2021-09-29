@@ -123,7 +123,7 @@ export TNF_PARTNER_SRC_DIR=/home/userid/code/cnf-certification-test-partner
 When this variable is set, the run-cnf-suites.sh script will deploy/refresh the partner deployments/pods in the cluster before starting the test run.
 
 ### Specify the target namespace for partner pod deployment
-Set this variable to deploy partner pods in a custom namespace instead of the default `tnf` namesapce.
+Set this variable to deploy partner pods in a custom namespace instead of the default `tnf` namespace.
 
 ```shell-script
 export TNF_PARTNER_NAMESPACE="CNF-ns"
