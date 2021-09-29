@@ -74,7 +74,7 @@ func FindTestTarget(labels []configsections.Label, target *configsections.TestTa
 }
 
 // GetNodesList Function that return a list of node and what is the type of them.
-func GetNodesList() (Nodes []configsections.Nodes) {
+func GetNodesList() (nodes []configsections.Nodes) {
 	var nodeNames []string
 	var types []string
 	var Existinarray int = 0
@@ -84,11 +84,11 @@ func GetNodesList() (Nodes []configsections.Nodes) {
 	test.Run()
 	nodeNames = tester.GetNodeNames()
 	for i := range nodeNames {
-		Node := configsections.Nodes{
+		node := configsections.Nodes{
 			Name: nodeNames[i],
 			Type: append(types, "master"),
 		}
-		Nodes = append(Nodes, Node)
+		nodes = append(nodes, node)
 
 	}
 
@@ -98,22 +98,22 @@ func GetNodesList() (Nodes []configsections.Nodes) {
 	test.Run()
 	nodeNames = tester.GetNodeNames()
 	for i := range nodeNames {
-		Node := configsections.Nodes{
+		node := configsections.Nodes{
 			Name: nodeNames[i],
 			Type: append(types, "worker"),
 		}
-		for j := range Nodes {
-			if nodeNames[i] == Nodes[j].Name {
-				Nodes[j].Type = append(Nodes[j].Type, "worker")
+		for j := range nodes {
+			if nodeNames[i] == nodes[j].Name {
+				nodes[j].Type = append(nodes[j].Type, "worker")
 				Existinarray = 1
 			}
 		}
 		if Existinarray == 0 {
-			Nodes = append(Nodes, Node)
+			nodes = append(nodes, node)
 		}
 
 	}
-	return Nodes
+	return nodes
 
 }
 
