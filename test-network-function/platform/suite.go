@@ -344,7 +344,6 @@ func testHugepages(env *config.TestEnvironment) {
 					badNodes = append(badNodes, node.Name)
 					ginkgo.By(fmt.Sprintf("node=%s hugepage config does not match machineconfig", node.Name))
 				}
-
 			}
 		}
 		gomega.Expect(badNodes).To(gomega.BeNil())
