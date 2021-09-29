@@ -81,40 +81,44 @@ func GetNodesList() (nodes []configsections.Nodes) {
 	context := common.GetContext()
 	tester := nodenames.NewNodeNames(common.DefaultTimeout, map[string]*string{"node-role.kubernetes.io/master": nil})
 	test, _ := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
-	test.Run()
-	nodeNames = tester.GetNodeNames()
-	for i := range nodeNames {
-		node := configsections.Nodes{
-			Name: nodeNames[i],
-			Type: append(types, "master"),
+	_, err := test.Run()
+	if err != nil {
+		log.Error("Unable to get node list ", ". Error: ", err)
+	} else {
+		nodeNames = tester.GetNodeNames()
+		for i := range nodeNames {
+			node := configsections.Nodes{
+				Name: nodeNames[i],
+				Type: append(types, "master"),
+			}
+			nodes = append(nodes, node)
 		}
-		nodes = append(nodes, node)
-
 	}
-
 	context = common.GetContext()
 	tester = nodenames.NewNodeNames(common.DefaultTimeout, map[string]*string{"node-role.kubernetes.io/worker": nil})
 	test, _ = tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
-	test.Run()
-	nodeNames = tester.GetNodeNames()
-	for i := range nodeNames {
-		node := configsections.Nodes{
-			Name: nodeNames[i],
-			Type: append(types, "worker"),
-		}
-		for j := range nodes {
-			if nodeNames[i] == nodes[j].Name {
-				nodes[j].Type = append(nodes[j].Type, "worker")
-				Existinarray = 1
+	_, err = test.Run()
+	if err != nil {
+		log.Error("Unable to get node list ", ". Error: ", err)
+	} else {
+		nodeNames = tester.GetNodeNames()
+		for i := range nodeNames {
+			node := configsections.Nodes{
+				Name: nodeNames[i],
+				Type: append(types, "worker"),
+			}
+			for j := range nodes {
+				if nodeNames[i] == nodes[j].Name {
+					nodes[j].Type = append(nodes[j].Type, "worker")
+					Existinarray = 1
+				}
+			}
+			if Existinarray == 0 {
+				nodes = append(nodes, node)
 			}
 		}
-		if Existinarray == 0 {
-			nodes = append(nodes, node)
-		}
-
 	}
 	return nodes
-
 }
 
 // FindTestDeployments uses the containers' namespace to get its parent deployment. Filters out non CNF test deployments,

@@ -50,6 +50,8 @@ import (
 	utils "github.com/test-network-function/test-network-function/pkg/utils"
 )
 
+var worker = "worker"
+
 //
 // All actual test code belongs below here.  Utilities belong above.
 //
@@ -329,7 +331,7 @@ func testHugepages(env *config.TestEnvironment) {
 		var badNodes []string
 		for _, node := range env.Nodes {
 			for i := range node.Type {
-				if node.Type[i] == "worker" {
+				if node.Type[i] == worker {
 					context := common.GetContext()
 					tester := nodehugepages.NewNodeHugepages(common.DefaultTimeout, node.Name, clusterHugepagesz, clusterHugepages)
 					test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
@@ -341,9 +343,7 @@ func testHugepages(env *config.TestEnvironment) {
 						ginkgo.By(fmt.Sprintf("node=%s hugepage config does not match machineconfig", node.Name))
 					}
 				}
-
 			}
-
 		}
 		gomega.Expect(badNodes).To(gomega.BeNil())
 	})
