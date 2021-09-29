@@ -73,6 +73,7 @@ func FindTestTarget(labels []configsections.Label, target *configsections.TestTa
 	target.Nodes = append(target.Nodes, GetNodesList()...)
 }
 
+// Function that return a list of node and what is the type of them
 func GetNodesList() (Nodes []configsections.Nodes) {
 	var nodeNames []string
 	var types []string
