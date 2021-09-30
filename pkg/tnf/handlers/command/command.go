@@ -17,7 +17,6 @@
 package command
 
 import (
-	"fmt"
 	"strings"
 	"time"
 
@@ -35,13 +34,12 @@ type Command struct {
 	// adding special parameters
 }
 
-// NewCommand creates a new command handler.
-func NewCommand(timeout time.Duration, resourceType, labelQuery, namespace, ocCommand string) *Command {
-	command := fmt.Sprintf(ocCommand, resourceType, namespace, labelQuery)
+// NewGetCommand creates a new command handler.
+func NewGetCommand(timeout time.Duration, ocCommand string) *Command {
 	return &Command{
 		timeout: timeout,
 		result:  tnf.ERROR,
-		args:    strings.Fields(command),
+		args:    strings.Fields(ocCommand),
 	}
 }
 
@@ -53,7 +51,6 @@ func (h *Command) Args() []string {
 // GetIdentifier returns the tnf.Test specific identifier.
 func (h *Command) GetIdentifier() identifier.Identifier {
 	return identifier.CommandIdentifier
-	// Create identifier CommandIdentifier.
 }
 
 // Timeout return the timeout for the test.
@@ -69,7 +66,7 @@ func (h *Command) Result() int {
 // ReelFirst returns a step which expects an Command summary for the given device.
 func (h *Command) ReelFirst() *reel.Step {
 	return &reel.Step{
-		Expect:  []string{".*"}, // TODO : pass the list of possible regex in here
+		Expect:  []string{".*"},
 		Timeout: h.timeout,
 	}
 }
@@ -85,10 +82,8 @@ func (h *Command) ReelMatch(_, _, match string) *reel.Step {
 // ReelTimeout does nothing, Command requires no explicit intervention for a timeout.
 func (h *Command) ReelTimeout() *reel.Step {
 	return nil
-	// TODO : fill the stub
 }
 
 // ReelEOF does nothing, Command requires no explicit intervention for EOF.
 func (h *Command) ReelEOF() {
-	// TODO : fill the stub
 }

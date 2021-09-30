@@ -29,9 +29,6 @@ const (
 	// CutBinaryName is the name of the Unix `cut` command.
 	CutBinaryName = "cut"
 
-	// CommandBinaryName is the name of the Unix `command` command.
-	CommandBinaryName = "command"
-
 	// HostnameBinaryName is the name of the Unix `hostname` command.
 	HostnameBinaryName = "hostname"
 

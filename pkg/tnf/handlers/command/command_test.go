@@ -17,44 +17,49 @@
 package command
 
 import (
+	"regexp"
 	"testing"
+	"time"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/test-network-function/test-network-function/pkg/tnf"
 )
 
 const (
-// adding special variable
+	testTimeoutDuration = time.Second * 1
 )
 
-// Command_Args()
-func TestCommand_Args(t *testing.T) {
-	// Todo: Write test for function Command_Args.
-}
-
-// Command_GetIdentifier
-func TestCommand_GetIdentifier(t *testing.T) {
-	// Todo : write test for function Command_GetIdentifier.
-}
+var (
+	testcommandTargetLabels = "oc get %s -n %s -o json -l %s"
+)
 
 // Command_ReelFirst
 func TestCommand_ReelFirst(t *testing.T) {
-	// Todo : write test for function Command_ReelFirst.
+	handler := NewGetCommand(testTimeoutDuration, testcommandTargetLabels)
+	assert.NotNil(t, handler)
+	firstStep := handler.ReelFirst()
+	assert.NotNil(t, firstStep.Expect[0])
+	_ = regexp.MustCompile(firstStep.Expect[0])
 }
 
 // Command_ReelEof
 func TestCommand_ReelEof(t *testing.T) {
-	// Todo : write test for function Command_ReelEof.
+	handler := NewGetCommand(testTimeoutDuration, testcommandTargetLabels)
+	assert.NotNil(t, handler)
+	handler.ReelEOF()
 }
 
 // Command_ReelTimeout
 func TestCommand_ReelTimeout(t *testing.T) {
-	// Todo : write test for function Command_ReelTimeout.
-}
-
-// Command_ReelMatch
-func TestCommand_ReelMatch(t *testing.T) {
-	// Todo : write test for function Command_ReelMatch.
+	handler := NewGetCommand(testTimeoutDuration, testcommandTargetLabels)
+	assert.NotNil(t, handler)
+	assert.Nil(t, handler.ReelTimeout())
 }
 
 // NewCommand
 func TestNewCommand(t *testing.T) {
-	// Todo : write test for function TestNewCommand.
+	handler := NewGetCommand(testTimeoutDuration, testcommandTargetLabels)
+	assert.NotNil(t, handler)
+	assert.Equal(t, testTimeoutDuration, handler.Timeout())
+	assert.Equal(t, handler.Result(), tnf.ERROR)
 }
