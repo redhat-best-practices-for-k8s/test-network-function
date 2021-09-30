@@ -26,16 +26,16 @@ var worker = "worker"
 var master = "master"
 
 func (Node) IsMaster(node Node) bool {
-	for i := range node.Type {
-		if node.Type[i] == master {
+	for _, typ := range node.Type {
+		if typ == master {
 			return true
 		}
 	}
 	return false
 }
 func (Node) IsWorker(node Node) bool {
-	for i := range node.Type {
-		if node.Type[i] == worker {
+	for _, typ := range node.Type {
+		if typ == worker {
 			return true
 		}
 	}
