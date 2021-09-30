@@ -2,12 +2,12 @@ package main
 
 import (
 	"bufio"
-	"log"
 	"os"
 	"path"
 	"strings"
 	"text/template"
 
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -16,11 +16,13 @@ type myHandler struct {
 	LowerHandlername string
 }
 
-var (
-	pathrelativetoroot string
-	handlerDirectory   string
-	handlername        string
+const (
+	envHandlersFolder  = "TNF_HANDLERS_SRC"
+	docFileName        = "doc.go"
+	handlerFolderPerms = 0755
+)
 
+var (
 	rootCmd = &cobra.Command{
 		Use:   "tnf",
 		Short: "A CLI for creating, validating, and test-network-function tests.",
@@ -36,53 +38,97 @@ var (
 		Short: "adding new handler.",
 		RunE:  generateHandlerFiles,
 	}
+
+	defaultHandlersFolder = path.Join("pkg", "tnf", "handlers")
 )
 
-func generateHandlerFiles(cmd *cobra.Command, args []string) error {
-	handlername = args[0]
-	pathrelativetoroot = path.Join("..", "..")
-	handlerDirectory = path.Join(pathrelativetoroot, "pkg", "tnf", "handlers")
-	newHandlerDirectory := path.Join(handlerDirectory, handlername)
+func getHandlersDirectory() (string, error) {
+	handlersDirectory := os.Getenv(envHandlersFolder)
 
-	err := os.Mkdir(newHandlerDirectory, 0755)
-	if err != nil {
-		return err
+	if handlersDirectory == "" {
+		log.Warnf("Environment variable %s not set. Handlers base folder will be set to ./%s",
+			envHandlersFolder, defaultHandlersFolder)
+
+		handlersDirectory = defaultHandlersFolder
+	} else {
+		log.Infof("Env var %s found. Handlers directory: %s", envHandlersFolder, handlersDirectory)
 	}
 
-	myhandler := myHandler{LowerHandlername: handlername, UpperHandlername: strings.Title(handlername)}
+	// Convert to absolute path.
+	if !path.IsAbs(handlersDirectory) {
+		cwd, err := os.Getwd()
+		if err != nil {
+			return "", err
+		}
 
-	// pathfile this is the path of the file from template file that will creat
-
-	pathfile := path.Join(handlerDirectory, "handler_template", "doc.tmpl")
-	namefile := "" + "doc.go"
-	err = createfile(pathfile, namefile, myhandler, newHandlerDirectory) // here creating file by doc.tmpl
-	if err != nil {
-		return err
+		handlersDirectory = path.Join(cwd, handlersDirectory)
 	}
 
-	pathfile = path.Join(handlerDirectory, "handler_template", "handler_test.tmpl")
-	namefile = "" + myhandler.LowerHandlername + "_test.go"
-	err = createfile(pathfile, namefile, myhandler, newHandlerDirectory) // here creating file by template_test.tmpl
-	if err != nil {
-		return err
-	}
-
-	pathfile = path.Join(handlerDirectory, "handler_template", "handler.tmpl")
-	namefile = "" + myhandler.LowerHandlername + ".go"
-	err = createfile(pathfile, namefile, myhandler, newHandlerDirectory) // here creating file by template.tmpl
-	if err != nil {
-		return err
-	}
-	return err
+	return handlersDirectory, nil
 }
 
-func createfile(pathfile, namefile string, myhandler myHandler, newHandlerDirectory string) error {
-	ftpl, err := template.ParseFiles(pathfile)
+func generateHandlerFilesFromTemplates(handlerTemplatesDirectory, newHandlerDirectory string, myhandler myHandler) error {
+	templateFilePath := path.Join(handlerTemplatesDirectory, "doc.tmpl")
+	renderedFileName := docFileName
+
+	if err := createfile(templateFilePath, renderedFileName, myhandler, newHandlerDirectory); err != nil {
+		return err
+	}
+
+	templateFilePath = path.Join(handlerTemplatesDirectory, "handler_test.tmpl")
+	renderedFileName = myhandler.LowerHandlername + "_test.go"
+
+	if err := createfile(templateFilePath, renderedFileName, myhandler, newHandlerDirectory); err != nil {
+		return err
+	}
+
+	templateFilePath = path.Join(handlerTemplatesDirectory, "handler.tmpl")
+	renderedFileName = myhandler.LowerHandlername + ".go"
+
+	if err := createfile(templateFilePath, renderedFileName, myhandler, newHandlerDirectory); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func generateHandlerFiles(cmd *cobra.Command, args []string) error {
+	handlername := args[0]
+	myhandler := myHandler{LowerHandlername: strings.ToLower(handlername), UpperHandlername: strings.Title(handlername)}
+
+	handlersDirectory, err := getHandlersDirectory()
+	if err != nil {
+		log.Fatalf("Unable to get handlers path.")
+		return err
+	}
+
+	handlerTemplatesDirectory := path.Join(handlersDirectory, "handler_template")
+
+	log.Infof("Using absolute path for tnf handlers directory: %s", handlersDirectory)
+	newHandlerDirectory := path.Join(handlersDirectory, myhandler.LowerHandlername)
+
+	err = os.Mkdir(newHandlerDirectory, handlerFolderPerms)
+	if err != nil {
+		log.Fatal("Unable to create handler directory " + newHandlerDirectory)
+		os.Exit(1)
+	}
+
+	err = generateHandlerFilesFromTemplates(handlerTemplatesDirectory, newHandlerDirectory, myhandler)
 	if err != nil {
 		return err
 	}
 
-	temp := path.Join(newHandlerDirectory, namefile)
+	log.Infof("Handler files for %s successfully created in %s\n", myhandler.UpperHandlername, path.Join(newHandlerDirectory))
+	return nil
+}
+
+func createfile(templateFilePath, outputFileName string, myhandler myHandler, newHandlerDirectory string) error {
+	ftpl, err := template.ParseFiles(templateFilePath)
+	if err != nil {
+		return err
+	}
+
+	temp := path.Join(newHandlerDirectory, outputFileName)
 	f, err := os.Create(temp)
 	if err != nil {
 		return err
