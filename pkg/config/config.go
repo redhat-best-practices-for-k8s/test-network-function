@@ -207,10 +207,6 @@ func (env *TestEnvironment) doAutodiscover() {
 	env.needsRefresh = false
 }
 
-//func creatnodelist (Node []configsections ) map[string]configsections.Node{
-
-//}
-
 // createContainers contains the general steps involved in creating "oc" sessions and other configuration. A map of the
 // aggregate information is returned.
 func (env *TestEnvironment) createContainers(containerDefinitions []configsections.ContainerConfig) map[configsections.ContainerIdentifier]*Container {
