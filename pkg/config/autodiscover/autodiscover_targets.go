@@ -84,14 +84,14 @@ func GetNodesList() (nodes map[string]configsections.Node) {
 	_, err := test.Run()
 	if err != nil {
 		log.Error("Unable to get node list ", ". Error: ", err)
+		return
 	} else {
 		nodeNames = tester.GetNodeNames()
 		for i := range nodeNames {
-			node := configsections.Node{
+			nodes[nodeNames[i]] = configsections.Node{
 				Name: nodeNames[i],
 				Type: append(types, "master"),
 			}
-			nodes[nodeNames[i]] = node
 		}
 	}
 	context = common.GetContext()
@@ -109,11 +109,10 @@ func GetNodesList() (nodes map[string]configsections.Node) {
 				nodes[nodeNames[i]] = nod
 
 			} else {
-				node := configsections.Node{
+				nodes[nodeNames[i]] = configsections.Node{
 					Name: nodeNames[i],
 					Type: append(types, "worker"),
 				}
-				nodes[nodeNames[i]] = node
 			}
 		}
 	}
