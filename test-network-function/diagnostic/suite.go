@@ -192,7 +192,7 @@ func getMasterNodeName(env *config.TestEnvironment) string {
 			return node.Name
 		}
 	}
-	return "null"
+	return ""
 }
 
 func getWorkerNodeName(env *config.TestEnvironment) string {
@@ -201,7 +201,7 @@ func getWorkerNodeName(env *config.TestEnvironment) string {
 			return node.Name
 		}
 	}
-	return "null"
+	return ""
 }
 
 func listNodeCniPlugins(nodeName string) []CniPlugin {
