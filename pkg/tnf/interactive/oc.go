@@ -52,6 +52,8 @@ type Oc struct {
 	spawnErr error
 	// error channel for interactive error stream
 	errorChannel <-chan error
+	// done channel to notify the go routine that monitors the error channel
+	doneChannel chan bool
 }
 
 // SpawnOc creates an OpenShift Client subprocess, spawning the appropriate underlying PTY.
@@ -62,7 +64,7 @@ func SpawnOc(spawner *Spawner, pod, container, namespace string, timeout time.Du
 		return nil, context.GetErrorChannel(), err
 	}
 	errorChannel := context.GetErrorChannel()
-	return &Oc{pod: pod, container: container, namespace: namespace, timeout: timeout, opts: opts, expecter: context.GetExpecter(), spawnErr: err, errorChannel: errorChannel}, errorChannel, nil
+	return &Oc{pod: pod, container: container, namespace: namespace, timeout: timeout, opts: opts, expecter: context.GetExpecter(), spawnErr: err, errorChannel: errorChannel, doneChannel: make(chan bool)}, errorChannel, nil
 }
 
 // GetExpecter returns a reference to the expect.Expecter reference used to control the OpenShift client.
@@ -108,4 +110,14 @@ func (o *Oc) GetOptions() []Option {
 // GetErrorChannel returns the error channel for interactive monitoring.
 func (o *Oc) GetErrorChannel() <-chan error {
 	return o.errorChannel
+}
+
+// GetDoneChannel returns the receive only done channel
+func (o *Oc) GetDoneChannel() <-chan bool {
+	return o.doneChannel
+}
+
+// Close sends the signal to the done channel
+func (o *Oc) Close() {
+	o.doneChannel <- true
 }

@@ -87,7 +87,7 @@ func getContainersByLabel(label configsections.Label, namespace string) (contain
 		return nil, err
 	}
 	for i := range pods.Items {
-		containers = append(containers, buildContainersFromPodResource(&pods.Items[i])...)
+		containers = append(containers, buildContainersFromPodResource(pods.Items[i])...)
 	}
 	return containers, nil
 }

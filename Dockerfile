@@ -70,7 +70,7 @@ WORKDIR ${TNF_SRC_DIR}
 RUN make install-tools && \
 	make mocks && \
 	make update-deps && \
-	make build-cnf-tests
+	make build-cnf-tests-debug
 
 #  Extract what's needed to run at a seperate location
 RUN mkdir ${TNF_BIN_DIR} && \

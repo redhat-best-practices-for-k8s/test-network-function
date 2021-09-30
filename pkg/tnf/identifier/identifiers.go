@@ -59,6 +59,7 @@ const (
 	shutdownIdentifierURL                 = "http://test-network-function.com/tests/shutdown"
 	scalingIdentifierURL                  = "http://test-network-function.com/tests/scaling"
 	csiDriverIdentifierURL                = "http://test-network-function.com/tests/csiDriver"
+	clusterVersionIdentifierURL           = "http://test-network-function.com/tests/clusterVersion"
 	versionOne                            = "v1.0.0"
 )
 
@@ -597,6 +598,18 @@ var Catalog = map[string]TestCatalogEntry{
 			dependencies.OcBinaryName,
 		},
 	},
+	clusterVersionIdentifierURL: {
+		Identifier:  ClusterVersionIdentifier,
+		Description: "extracts OCP versions from the cluster",
+		Type:        Normative,
+		IntrusionSettings: IntrusionSettings{
+			ModifiesSystem:           false,
+			ModificationIsPersistent: false,
+		},
+		BinaryDependencies: []string{
+			dependencies.OcBinaryName,
+		},
+	},
 }
 
 // CommandIdentifier is  the Identifier used to represent the generic command test case.
@@ -837,5 +850,11 @@ var ScalingIdentifier = Identifier{
 // CSIDriverIdentifier is the Identifier used to represent the CSI driver test case.
 var CSIDriverIdentifier = Identifier{
 	URL:             csiDriverIdentifierURL,
+	SemanticVersion: versionOne,
+}
+
+// ClusterVersionIdentifier is the Identifier used to represent the OCP versions test case.
+var ClusterVersionIdentifier = Identifier{
+	URL:             clusterVersionIdentifierURL,
 	SemanticVersion: versionOne,
 }
