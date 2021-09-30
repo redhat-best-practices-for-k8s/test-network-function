@@ -50,8 +50,6 @@ import (
 	utils "github.com/test-network-function/test-network-function/pkg/utils"
 )
 
-var worker = "worker"
-
 //
 // All actual test code belongs below here.  Utilities belong above.
 //
