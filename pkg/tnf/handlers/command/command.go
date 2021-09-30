@@ -35,11 +35,11 @@ type Command struct {
 }
 
 // NewGetCommand creates a new command handler.
-func NewGetCommand(timeout time.Duration, ocCommand string) *Command {
+func NewGetCommand(timeout time.Duration, command string) *Command {
 	return &Command{
 		timeout: timeout,
 		result:  tnf.ERROR,
-		args:    strings.Fields(ocCommand),
+		args:    strings.Fields(command),
 	}
 }
 
