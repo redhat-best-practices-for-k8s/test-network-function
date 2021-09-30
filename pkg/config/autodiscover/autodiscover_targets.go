@@ -70,14 +70,14 @@ func FindTestTarget(labels []configsections.Label, target *configsections.TestTa
 	}
 
 	target.DeploymentsUnderTest = append(target.DeploymentsUnderTest, FindTestDeployments(labels, target, namespace)...)
-	target.Nodes = append(target.Nodes, GetNodesList()...)
+	target.Nodes = GetNodesList()
 }
 
 // GetNodesList Function that return a list of node and what is the type of them.
-func GetNodesList() (nodes []configsections.Nodes) {
+func GetNodesList() (nodes map[string]configsections.Node) {
+	nodes = make(map[string]configsections.Node)
 	var nodeNames []string
 	var types []string
-	var Existinarray int = 0
 	context := common.GetContext()
 	tester := nodenames.NewNodeNames(common.DefaultTimeout, map[string]*string{"node-role.kubernetes.io/master": nil})
 	test, _ := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
@@ -87,11 +87,11 @@ func GetNodesList() (nodes []configsections.Nodes) {
 	} else {
 		nodeNames = tester.GetNodeNames()
 		for i := range nodeNames {
-			node := configsections.Nodes{
+			node := configsections.Node{
 				Name: nodeNames[i],
 				Type: append(types, "master"),
 			}
-			nodes = append(nodes, node)
+			nodes[nodeNames[i]] = node
 		}
 	}
 	context = common.GetContext()
@@ -103,18 +103,17 @@ func GetNodesList() (nodes []configsections.Nodes) {
 	} else {
 		nodeNames = tester.GetNodeNames()
 		for i := range nodeNames {
-			node := configsections.Nodes{
-				Name: nodeNames[i],
-				Type: append(types, "worker"),
-			}
-			for j := range nodes {
-				if nodeNames[i] == nodes[j].Name {
-					nodes[j].Type = append(nodes[j].Type, "worker")
-					Existinarray = 1
+			if _, ok := nodes[nodeNames[i]]; ok {
+				var nod = nodes[nodeNames[i]]
+				nod.Type = append(nod.Type, "worker")
+				nodes[nodeNames[i]] = nod
+
+			} else {
+				node := configsections.Node{
+					Name: nodeNames[i],
+					Type: append(types, "worker"),
 				}
-			}
-			if Existinarray == 0 {
-				nodes = append(nodes, node)
+				nodes[nodeNames[i]] = node
 			}
 		}
 	}

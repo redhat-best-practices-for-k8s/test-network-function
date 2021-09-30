@@ -127,7 +127,7 @@ type TestEnvironment struct {
 	DeploymentsUnderTest []configsections.Deployment
 	OperatorsUnderTest   []configsections.Operator
 	NameSpaceUnderTest   string
-	Nodes                []configsections.Nodes
+	Nodes                map[string]configsections.Node
 
 	// ContainersToExcludeFromConnectivityTests is a set used for storing the containers that should be excluded from
 	// connectivity testing.
@@ -206,6 +206,10 @@ func (env *TestEnvironment) doAutodiscover() {
 	log.Info(env.ContainersUnderTest)
 	env.needsRefresh = false
 }
+
+//func creatnodelist (Node []configsections ) map[string]configsections.Node{
+
+//}
 
 // createContainers contains the general steps involved in creating "oc" sessions and other configuration. A map of the
 // aggregate information is returned.
