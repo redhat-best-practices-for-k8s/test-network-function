@@ -174,7 +174,7 @@ func GetCsiDriverInfo() map[string]interface{} {
 
 func getMasterNodeName(env *config.TestEnvironment) string {
 	for _, node := range env.Nodes {
-		if node.IsMaster(node) {
+		if node.IsMaster() {
 			return node.Name
 		}
 	}
@@ -183,7 +183,7 @@ func getMasterNodeName(env *config.TestEnvironment) string {
 
 func getWorkerNodeName(env *config.TestEnvironment) string {
 	for _, node := range env.Nodes {
-		if node.IsWorker(node) {
+		if node.IsWorker() {
 			return node.Name
 		}
 	}

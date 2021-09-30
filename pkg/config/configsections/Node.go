@@ -16,16 +16,16 @@
 
 package configsections
 
+var worker = "worker"
+var master = "master"
+
 // Nodes defines in the cluster. with name of the node and the type of this node master/worker,,,,,
 type Node struct {
 	Name string
 	Type []string
 }
 
-var worker = "worker"
-var master = "master"
-
-func (Node) IsMaster(node Node) bool {
+func (node Node) IsMaster() bool {
 	for _, typ := range node.Type {
 		if typ == master {
 			return true
@@ -33,7 +33,7 @@ func (Node) IsMaster(node Node) bool {
 	}
 	return false
 }
-func (Node) IsWorker(node Node) bool {
+func (node Node) IsWorker() bool {
 	for _, typ := range node.Type {
 		if typ == worker {
 			return true

@@ -330,7 +330,7 @@ func testHugepages(env *config.TestEnvironment) {
 		ginkgo.By(fmt.Sprintf("cluster is configured with clusterHugepages=%d ; clusterHugepagesz=%d", clusterHugepages, clusterHugepagesz))
 		var badNodes []string
 		for _, node := range env.Nodes {
-			if node.IsWorker(node) {
+			if node.IsWorker() {
 				context := common.GetContext()
 				tester := nodehugepages.NewNodeHugepages(common.DefaultTimeout, node.Name, clusterHugepagesz, clusterHugepages)
 				test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
