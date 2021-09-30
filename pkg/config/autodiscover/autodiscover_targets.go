@@ -90,7 +90,7 @@ func GetNodesList() (nodes map[string]configsections.Node) {
 		for i := range nodeNames {
 			nodes[nodeNames[i]] = configsections.Node{
 				Name: nodeNames[i],
-				Type: append(types, "master"),
+				Type: []string{"master"},
 			}
 		}
 	}
