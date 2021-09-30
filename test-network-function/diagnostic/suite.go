@@ -18,7 +18,6 @@ import (
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/clusterversion"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/generic"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodedebug"
-	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodenames"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
 	"github.com/test-network-function/test-network-function/pkg/tnf/testcases"
 )
@@ -171,19 +170,6 @@ func GetNodesHwInfo() NodesHwInfo {
 // GetCsiDriverInfo returns the CSI driver info of running `oc get csidriver -o json`.
 func GetCsiDriverInfo() map[string]interface{} {
 	return csiDriver
-}
-
-func getFirstNode(labelFilter map[string]*string) string {
-	context := common.GetContext()
-	tester := nodenames.NewNodeNames(defaultTestTimeout, labelFilter)
-	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
-	gomega.Expect(err).To(gomega.BeNil())
-	testResult, err := test.Run()
-	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
-	gomega.Expect(err).To(gomega.BeNil())
-	nodeNames := tester.GetNodeNames()
-	gomega.Expect(nodeNames).NotTo(gomega.BeEmpty())
-	return nodeNames[0]
 }
 
 func getMasterNodeName(env *config.TestEnvironment) string {
