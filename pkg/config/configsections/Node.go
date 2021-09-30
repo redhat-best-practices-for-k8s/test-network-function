@@ -21,3 +21,23 @@ type Node struct {
 	Name string
 	Type []string
 }
+
+var worker = "worker"
+var master = "master"
+
+func (Node) IsMaster(node Node) bool {
+	for i := range node.Type {
+		if node.Type[i] == master {
+			return true
+		}
+	}
+	return false
+}
+func (Node) IsWorker(node Node) bool {
+	for i := range node.Type {
+		if node.Type[i] == worker {
+			return true
+		}
+	}
+	return false
+}
