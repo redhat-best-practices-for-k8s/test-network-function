@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/test-network-function/test-network-function/pkg/tnf"
+	"github.com/test-network-function/test-network-function/pkg/tnf/identifier"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
 )
 
@@ -51,8 +52,9 @@ func (h *{{ .UpperHandlername }}) Args() []string {
 }
 
 // GetIdentifier returns the tnf.Test specific identifier.
-func (h *{{ .UpperHandlername }}) GetIdentifier() {
+func (h *{{ .UpperHandlername }}) GetIdentifier() identifier.Identifier {
 	// Return the {{ .UpperHandlername }} handler identifier.
+	return identifier.Identifier{}
 }
 
 // Timeout returns the timeout for the test.

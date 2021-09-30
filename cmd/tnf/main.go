@@ -68,25 +68,22 @@ func getHandlersDirectory() (string, error) {
 }
 
 func generateHandlerFilesFromTemplates(handlerTemplatesDirectory, newHandlerDirectory string, myhandler myHandler) error {
-	templateFilePath := path.Join(handlerTemplatesDirectory, "doc.tmpl")
-	renderedFileName := docFileName
-
-	if err := createfile(templateFilePath, renderedFileName, myhandler, newHandlerDirectory); err != nil {
-		return err
+	type fileToRender struct {
+		templatePath     string
+		renderedFileName string
 	}
 
-	templateFilePath = path.Join(handlerTemplatesDirectory, "handler_test.tmpl")
-	renderedFileName = myhandler.LowerHandlername + "_test.go"
-
-	if err := createfile(templateFilePath, renderedFileName, myhandler, newHandlerDirectory); err != nil {
-		return err
+	filesToRender := []fileToRender{
+		{templatePath: path.Join(handlerTemplatesDirectory, "doc.tmpl"), renderedFileName: docFileName},
+		{templatePath: path.Join(handlerTemplatesDirectory, "handler_test.tmpl"), renderedFileName: myhandler.LowerHandlername + "_test.go"},
+		{templatePath: path.Join(handlerTemplatesDirectory, "handler.tmpl"), renderedFileName: myhandler.LowerHandlername + ".go"},
 	}
 
-	templateFilePath = path.Join(handlerTemplatesDirectory, "handler.tmpl")
-	renderedFileName = myhandler.LowerHandlername + ".go"
-
-	if err := createfile(templateFilePath, renderedFileName, myhandler, newHandlerDirectory); err != nil {
-		return err
+	for _, renderedFileName := range filesToRender {
+		if err := createfile(renderedFileName.templatePath, renderedFileName.renderedFileName, myhandler, newHandlerDirectory); err != nil {
+			log.Errorf("Unable to create rendered file %s on %s", renderedFileName, newHandlerDirectory)
+			return err
+		}
 	}
 
 	return nil
