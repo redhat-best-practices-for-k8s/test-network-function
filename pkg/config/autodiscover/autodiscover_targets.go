@@ -77,7 +77,6 @@ func FindTestTarget(labels []configsections.Label, target *configsections.TestTa
 func GetNodesList() (nodes map[string]configsections.Node) {
 	nodes = make(map[string]configsections.Node)
 	var nodeNames []string
-	var types []string
 	context := common.GetContext()
 	tester := nodenames.NewNodeNames(common.DefaultTimeout, map[string]*string{"node-role.kubernetes.io/master": nil})
 	test, _ := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
