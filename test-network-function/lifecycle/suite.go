@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"path"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/test-network-function/test-network-function/pkg/config"
@@ -141,6 +142,26 @@ func restoreDeployments(env *config.TestEnvironment) {
 	}
 }
 
+func closeOcSessionsByDeployment(containers map[configsections.ContainerIdentifier]*config.Container, deployment configsections.Deployment) {
+	for cid, c := range containers {
+		if cid.Namespace == deployment.Namespace && strings.HasPrefix(cid.PodName, deployment.Name+"-") {
+			log.Infof("Closing session to %s %s", cid.PodName, cid.ContainerName)
+			c.Oc.Close()
+			delete(containers, cid)
+		}
+	}
+}
+
+func closeOcSessionsByNode(containers map[configsections.ContainerIdentifier]*config.Container, nodeName string) {
+	for cid, c := range containers {
+		if cid.NodeName == nodeName {
+			log.Infof("Closing session to %s %s", cid.PodName, cid.ContainerName)
+			c.Oc.Close()
+			delete(containers, cid)
+		}
+	}
+}
+
 // runScalingTest Runs a Scaling handler TC and waits for all the deployments to be ready.
 func runScalingTest(deployment configsections.Deployment) {
 	handler := scaling.NewScaling(common.DefaultTimeout, deployment.Namespace, deployment.Name, deployment.Replicas)
@@ -166,6 +187,8 @@ func testScaling(env *config.TestEnvironment) {
 		for _, deployment := range env.DeploymentsUnderTest {
 			ginkgo.By(fmt.Sprintf("Scaling Deployment=%s, Replicas=%d (ns=%s)",
 				deployment.Name, deployment.Replicas, deployment.Namespace))
+
+			closeOcSessionsByDeployment(env.ContainersUnderTest, deployment)
 
 			replicaCount := deployment.Replicas
 
@@ -297,8 +320,8 @@ func testPodsRecreation(env *config.TestEnvironment) {
 		ginkgo.By("should create new replicas when node is drained")
 		defer results.RecordResult(identifiers.TestPodRecreationIdentifier)
 		for _, n := range nodesSorted {
-			closeOcSessions(env.ContainersUnderTest, n.name)
-			closeOcSessions(env.PartnerContainers, n.name)
+			closeOcSessionsByNode(env.ContainersUnderTest, n.name)
+			closeOcSessionsByNode(env.PartnerContainers, n.name)
 			// drain node
 			drainNode(n.name) // should go in this
 			// verify deployments are ready again
@@ -311,16 +334,6 @@ func testPodsRecreation(env *config.TestEnvironment) {
 			uncordonNode(n.name)
 		}
 	})
-}
-
-func closeOcSessions(containers map[configsections.ContainerIdentifier]*config.Container, nodeName string) {
-	for cid, c := range containers {
-		if cid.NodeName == nodeName {
-			log.Infof("Closing session to %s %s", cid.PodName, cid.ContainerName)
-			c.Oc.Close()
-			delete(containers, cid)
-		}
-	}
 }
 
 type node struct {

@@ -123,7 +123,7 @@ export TNF_PARTNER_SRC_DIR=/home/userid/code/cnf-certification-test-partner
 When this variable is set, the run-cnf-suites.sh script will deploy/refresh the partner deployments/pods in the cluster before starting the test run.
 
 ### Specify the target namespace for partner pod deployment
-Set this variable to deploy partner pods in a custom namespace instead of the default `tnf` namesapce.
+Set this variable to deploy partner pods in a custom namespace instead of the default `tnf` namespace.
 
 ```shell-script
 export TNF_PARTNER_NAMESPACE="CNF-ns"
@@ -243,7 +243,7 @@ At a minimum, the following dependencies must be installed *prior* to running `m
 
 Dependency|Minimum Version
 ---|---
-[GoLang](https://golang.org/dl/)|1.14
+[GoLang](https://golang.org/dl/)|1.16
 [golangci-lint](https://golangci-lint.run/usage/install/)|1.32.2
 [jq](https://stedolan.github.io/jq/)|1.6
 [OpenShift Client](https://docs.openshift.com/container-platform/4.4/welcome/index.html)|4.4
