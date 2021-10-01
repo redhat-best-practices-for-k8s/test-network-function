@@ -39,27 +39,35 @@ jobs:
     runs-on: ubuntu-20.04
     outputs:
       TNF_VERSION: ${{ steps.set_tnf_version.outputs.version_number }}
-      PARTNER_VERSION: ${{ steps.set_tnf_version.outputs.partner_version_number }}
+      PARTNER_VERSION: ${{ steps.set_partner_version.outputs.partner_version_number }}
 
     steps:
       - name: Checkout generic working branch of the current version
         uses: actions/checkout@v2
         with:
           ref: ${{ env.CURRENT_VERSION_GENERIC_BRANCH }}
+          fetch-depth: '0'
+
+      - name: Get the latest TNF version from GIT
+        run: |
+          script/create-version-files.sh  > /dev/null 2>&1
+          echo "::set-output name=version_number::$(script/get-git-latest-release.sh)"
+        id: set_tnf_version
+
+      - name: Print the latest TNF version from GIT
+        run: |
+          echo Version tag: ${{ steps.set_tnf_version.outputs.version_number }}
 
       - name: Get contents of the version.json file
         run: echo "::set-output name=json::$(cat version.json | tr -d '[:space:]')"
         id: get_version_json_file
 
-      - name: Save the version number to $TNF_VERSION
+      - name: Get the partner version number from file
         run: |
-          echo Version tag: $VERSION_FROM_FILE
-          echo "::set-output name=version_number::$VERSION_FROM_FILE"
           echo Partner version tag: $VERSION_FROM_FILE_PARTNER
           echo "::set-output name=partner_version_number::$VERSION_FROM_FILE_PARTNER"
-        id: set_tnf_version
+        id: set_partner_version
         env:
-          VERSION_FROM_FILE: ${{ fromJSON(steps.get_version_json_file.outputs.json).tag }}
           VERSION_FROM_FILE_PARTNER: ${{ fromJSON(steps.get_version_json_file.outputs.json).partner_tag }}
 
   test-and-push-tnf-image:
