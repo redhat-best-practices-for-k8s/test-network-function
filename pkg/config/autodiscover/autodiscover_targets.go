@@ -84,15 +84,15 @@ func GetNodesList() (nodes map[string]configsections.Node) {
 	if err != nil {
 		log.Error("Unable to get node list ", ". Error: ", err)
 		return
-	} else {
-		nodeNames = tester.GetNodeNames()
-		for i := range nodeNames {
-			nodes[nodeNames[i]] = configsections.Node{
-				Name: nodeNames[i],
-				Type: []string{"master"},
-			}
+	}
+	nodeNames = tester.GetNodeNames()
+	for i := range nodeNames {
+		nodes[nodeNames[i]] = configsections.Node{
+			Name: nodeNames[i],
+			Type: []string{"master"},
 		}
 	}
+
 	context = common.GetContext()
 	tester = nodenames.NewNodeNames(common.DefaultTimeout, map[string]*string{"node-role.kubernetes.io/worker": nil})
 	test, _ = tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
