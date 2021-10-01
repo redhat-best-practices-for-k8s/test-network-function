@@ -111,7 +111,7 @@ func GetNodesList() (nodes map[string]configsections.Node) {
 			} else {
 				nodes[nodeNames[i]] = configsections.Node{
 					Name: nodeNames[i],
-					Type: append(types, "worker"),
+					Type: []string{"worker"},
 				}
 			}
 		}
