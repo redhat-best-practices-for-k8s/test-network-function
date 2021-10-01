@@ -19,7 +19,7 @@ package interactive
 import (
 	"bytes"
 	"html/template"
-	"io/ioutil"
+	"os"
 	"time"
 
 	"github.com/test-network-function/test-network-function/pkg/jsonschema"
@@ -37,7 +37,7 @@ const (
 // entry-point, which will vary for unit tests, executables, and test suites.  If the supplied file does not conform to
 // the generic-pty.schema.json schema, creation fails and the result is returned to the caller for further inspection.
 func SpawnGenericPTYFromYAMLFile(ptyPath, schemaPath string, spawner *Spawner) (*Context, *gojsonschema.Result, error) {
-	ptyBytes, err := ioutil.ReadFile(ptyPath)
+	ptyBytes, err := os.ReadFile(ptyPath)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -66,7 +66,7 @@ func SpawnGenericPTYFromYAML(inputBytes []byte, schemaPath string, spawner *Spaw
 // suites.  If the supplied template/values do not conform to the generic-pty.schema.json schema, creation fails and the
 // result is returned to the caller for further inspection.
 func SpawnGenericPTYFromYAMLTemplate(templateFile, valuesFile, schemaPath string, spawner *Spawner) (*Context, *gojsonschema.Result, error) {
-	tplBytes, err := ioutil.ReadFile(valuesFile)
+	tplBytes, err := os.ReadFile(valuesFile)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -78,7 +78,7 @@ func SpawnGenericPTYFromYAMLTemplate(templateFile, valuesFile, schemaPath string
 		return nil, nil, err
 	}
 
-	templateBytes, err := ioutil.ReadFile(templateFile)
+	templateBytes, err := os.ReadFile(templateFile)
 	if err != nil {
 		return nil, nil, err
 	}
