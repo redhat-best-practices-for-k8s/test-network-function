@@ -68,7 +68,7 @@ func buildLabelQuery(label configsections.Label) string {
 
 func makeGetCommand(resourceType, labelQuery, namespace string) (string, error) {
 	ocCommandtoExecute := fmt.Sprintf(ocCommand, resourceType, namespace, labelQuery)
-	handler := command.NewGetCommand(time.Duration(makeGetCommandTimeout)*time.Second, ocCommandtoExecute)
+	handler := command.NewCommand(time.Duration(makeGetCommandTimeout)*time.Second, ocCommandtoExecute)
 	test, err := tnf.NewTest(common.GetContext().GetExpecter(), handler, []reel.Handler{handler}, common.GetContext().GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
 	testResult, err := test.Run()

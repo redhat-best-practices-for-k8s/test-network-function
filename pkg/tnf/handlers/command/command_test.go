@@ -35,7 +35,7 @@ var (
 
 // Command_ReelFirst
 func TestCommand_ReelFirst(t *testing.T) {
-	handler := NewGetCommand(testTimeoutDuration, testcommandTargetLabels)
+	handler := NewCommand(testTimeoutDuration, testcommandTargetLabels)
 	assert.NotNil(t, handler)
 	firstStep := handler.ReelFirst()
 	assert.NotNil(t, firstStep.Expect[0])
@@ -44,21 +44,21 @@ func TestCommand_ReelFirst(t *testing.T) {
 
 // Command_ReelEof
 func TestCommand_ReelEof(t *testing.T) {
-	handler := NewGetCommand(testTimeoutDuration, testcommandTargetLabels)
+	handler := NewCommand(testTimeoutDuration, testcommandTargetLabels)
 	assert.NotNil(t, handler)
 	handler.ReelEOF()
 }
 
 // Command_ReelTimeout
 func TestCommand_ReelTimeout(t *testing.T) {
-	handler := NewGetCommand(testTimeoutDuration, testcommandTargetLabels)
+	handler := NewCommand(testTimeoutDuration, testcommandTargetLabels)
 	assert.NotNil(t, handler)
 	assert.Nil(t, handler.ReelTimeout())
 }
 
 // NewCommand
 func TestNewCommand(t *testing.T) {
-	handler := NewGetCommand(testTimeoutDuration, testcommandTargetLabels)
+	handler := NewCommand(testTimeoutDuration, testcommandTargetLabels)
 	assert.NotNil(t, handler)
 	assert.Equal(t, testTimeoutDuration, handler.Timeout())
 	assert.Equal(t, handler.Result(), tnf.ERROR)

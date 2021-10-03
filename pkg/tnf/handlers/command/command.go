@@ -34,8 +34,8 @@ type Command struct {
 	// adding special parameters
 }
 
-// NewGetCommand creates a new command handler.
-func NewGetCommand(timeout time.Duration, command string) *Command {
+// NewCommand creates a new command handler.
+func NewCommand(timeout time.Duration, command string) *Command {
 	return &Command{
 		timeout: timeout,
 		result:  tnf.ERROR,
@@ -63,7 +63,7 @@ func (h *Command) Result() int {
 	return h.result
 }
 
-// ReelFirst returns a step which expects an Command summary for the given device.
+// ReelFirst returns a step which expects.
 func (h *Command) ReelFirst() *reel.Step {
 	return &reel.Step{
 		Expect:  []string{".*"},
