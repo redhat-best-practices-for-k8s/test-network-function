@@ -103,9 +103,9 @@ func GetNodesList() (nodes map[string]configsections.Node) {
 		nodeNames = tester.GetNodeNames()
 		for i := range nodeNames {
 			if _, ok := nodes[nodeNames[i]]; ok {
-				var nod = nodes[nodeNames[i]]
-				nod.Type = append(nod.Type, "worker")
-				nodes[nodeNames[i]] = nod
+				var node = nodes[nodeNames[i]]
+				node.Type = append(node.Type, "worker")
+				nodes[nodeNames[i]] = node
 			} else {
 				nodes[nodeNames[i]] = configsections.Node{
 					Name: nodeNames[i],
