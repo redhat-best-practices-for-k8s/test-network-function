@@ -19,12 +19,13 @@ package configsections
 const worker = "worker"
 const master = "master"
 
-// Nodes defines in the cluster. with name of the node and the type of this node master/worker,,,,,
+// Nodes defines in the cluster. with name of the node and the type of this node master/worker,,,,.
 type Node struct {
 	Name string
 	Type []string
 }
 
+// Function that return if the node is master
 func (node Node) IsMaster() bool {
 	for _, t := range node.Type {
 		if t == master {
@@ -33,6 +34,8 @@ func (node Node) IsMaster() bool {
 	}
 	return false
 }
+
+// Function that return if the node is worker
 func (node Node) IsWorker() bool {
 	for _, t := range node.Type {
 		if t == worker {
