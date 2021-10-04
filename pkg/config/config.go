@@ -18,7 +18,6 @@ package config
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"time"
 
@@ -147,7 +146,7 @@ func (env *TestEnvironment) loadConfigFromFile(filePath string) error {
 	}
 	log.Info("Loading config from file: ", filePath)
 
-	contents, err := ioutil.ReadFile(filePath)
+	contents, err := os.ReadFile(filePath)
 	if err != nil {
 		return err
 	}
@@ -188,8 +187,6 @@ func (env *TestEnvironment) doAutodiscover() {
 	}
 	autodiscover.FindTestPartner(&env.Config.Partner, env.NameSpaceUnderTest)
 
-	log.Infof("Test Configuration: %+v", *env)
-
 	env.ContainersToExcludeFromConnectivityTests = make(map[configsections.ContainerIdentifier]interface{})
 
 	for _, cid := range env.Config.ExcludeContainersFromConnectivityTests {
@@ -202,8 +199,8 @@ func (env *TestEnvironment) doAutodiscover() {
 	env.DeploymentsUnderTest = env.Config.DeploymentsUnderTest
 	env.OperatorsUnderTest = env.Config.Operators
 	env.Nodes = env.Config.Nodes
-	log.Info(env.TestOrchestrator)
-	log.Info(env.ContainersUnderTest)
+	log.Infof("Test Configuration: %+v", *env)
+
 	env.needsRefresh = false
 }
 
