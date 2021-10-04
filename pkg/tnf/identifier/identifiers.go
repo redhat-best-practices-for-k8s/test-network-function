@@ -101,6 +101,18 @@ type IntrusionSettings struct {
 
 // Catalog is the test catalog.
 var Catalog = map[string]TestCatalogEntry{
+	commandIdentifierURL: {
+		Identifier:  CommandIdentifier,
+		Description: "A generic test used with any command and would match any output. The caller is responsible for interpreting the output and extracting data from it.",
+		Type:        Normative,
+		IntrusionSettings: IntrusionSettings{
+			ModifiesSystem:           false,
+			ModificationIsPersistent: false,
+		},
+		BinaryDependencies: []string{
+			dependencies.CommandBinaryName,
+		},
+	},
 	hostnameIdentifierURL: {
 		Identifier:  HostnameIdentifier,
 		Description: "A generic test used to check the hostname of a target machine/container.",
