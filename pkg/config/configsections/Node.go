@@ -16,8 +16,11 @@
 
 package configsections
 
-const worker = "node-role.kubernetes.io/worker"
-const master = "node-role.kubernetes.io/master"
+// WorkerLabel const for k8s worker
+const WorkerLabel = "node-role.kubernetes.io/worker"
+
+// MasterLabel const for k8s for master
+const MasterLabel = "node-role.kubernetes.io/master"
 
 // Node defines in the cluster. with name of the node and the type of this node master/worker,,,,.
 type Node struct {
@@ -28,7 +31,7 @@ type Node struct {
 // IsMaster Function that return if the node is master
 func (node Node) IsMaster() bool {
 	for _, t := range node.Type {
-		if t == master {
+		if t == MasterLabel {
 			return true
 		}
 	}
@@ -38,7 +41,7 @@ func (node Node) IsMaster() bool {
 // IsWorker Function that return if the node is worker
 func (node Node) IsWorker() bool {
 	for _, t := range node.Type {
-		if t == worker {
+		if t == WorkerLabel {
 			return true
 		}
 	}

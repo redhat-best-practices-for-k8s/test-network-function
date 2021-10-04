@@ -78,7 +78,7 @@ func GetNodesList() (nodes map[string]configsections.Node) {
 	nodes = make(map[string]configsections.Node)
 	var nodeNames []string
 	context := common.GetContext()
-	tester := nodenames.NewNodeNames(common.DefaultTimeout, map[string]*string{"node-role.kubernetes.io/master": nil})
+	tester := nodenames.NewNodeNames(common.DefaultTimeout, map[string]*string{configsections.MasterLabel: nil})
 	test, _ := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 	_, err := test.Run()
 	if err != nil {
@@ -89,12 +89,12 @@ func GetNodesList() (nodes map[string]configsections.Node) {
 	for i := range nodeNames {
 		nodes[nodeNames[i]] = configsections.Node{
 			Name: nodeNames[i],
-			Type: []string{"node-role.kubernetes.io/master"},
+			Type: []string{configsections.MasterLabel},
 		}
 	}
 
 	context = common.GetContext()
-	tester = nodenames.NewNodeNames(common.DefaultTimeout, map[string]*string{"node-role.kubernetes.io/worker": nil})
+	tester = nodenames.NewNodeNames(common.DefaultTimeout, map[string]*string{configsections.WorkerLabel: nil})
 	test, _ = tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 	_, err = test.Run()
 	if err != nil {
@@ -104,12 +104,12 @@ func GetNodesList() (nodes map[string]configsections.Node) {
 		for i := range nodeNames {
 			if _, ok := nodes[nodeNames[i]]; ok {
 				var node = nodes[nodeNames[i]]
-				node.Type = append(node.Type, "node-role.kubernetes.io/worker")
+				node.Type = append(node.Type, configsections.WorkerLabel)
 				nodes[nodeNames[i]] = node
 			} else {
 				nodes[nodeNames[i]] = configsections.Node{
 					Name: nodeNames[i],
-					Type: []string{"node-role.kubernetes.io/worker"},
+					Type: []string{configsections.WorkerLabel},
 				}
 			}
 		}
