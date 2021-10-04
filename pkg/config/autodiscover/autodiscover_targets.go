@@ -89,7 +89,7 @@ func GetNodesList() (nodes map[string]configsections.Node) {
 	for i := range nodeNames {
 		nodes[nodeNames[i]] = configsections.Node{
 			Name: nodeNames[i],
-			Type: []string{"master"},
+			Type: []string{"node-role.kubernetes.io/master"},
 		}
 	}
 
@@ -104,12 +104,12 @@ func GetNodesList() (nodes map[string]configsections.Node) {
 		for i := range nodeNames {
 			if _, ok := nodes[nodeNames[i]]; ok {
 				var node = nodes[nodeNames[i]]
-				node.Type = append(node.Type, "worker")
+				node.Type = append(node.Type, "node-role.kubernetes.io/worker")
 				nodes[nodeNames[i]] = node
 			} else {
 				nodes[nodeNames[i]] = configsections.Node{
 					Name: nodeNames[i],
-					Type: []string{"worker"},
+					Type: []string{"node-role.kubernetes.io/worker"},
 				}
 			}
 		}

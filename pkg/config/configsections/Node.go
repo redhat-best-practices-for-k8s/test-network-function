@@ -16,8 +16,8 @@
 
 package configsections
 
-const worker = "worker"
-const master = "master"
+const worker = "node-role.kubernetes.io/worker"
+const master = "node-role.kubernetes.io/master"
 
 // Node defines in the cluster. with name of the node and the type of this node master/worker,,,,.
 type Node struct {
