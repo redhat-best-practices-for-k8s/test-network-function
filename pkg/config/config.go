@@ -126,6 +126,8 @@ type TestEnvironment struct {
 	DeploymentsUnderTest []configsections.Deployment
 	OperatorsUnderTest   []configsections.Operator
 	NameSpaceUnderTest   string
+	Nodes                map[string]configsections.Node
+
 	// ContainersToExcludeFromConnectivityTests is a set used for storing the containers that should be excluded from
 	// connectivity testing.
 	ContainersToExcludeFromConnectivityTests map[configsections.ContainerIdentifier]interface{}
@@ -196,7 +198,9 @@ func (env *TestEnvironment) doAutodiscover() {
 	env.TestOrchestrator = env.PartnerContainers[env.Config.Partner.TestOrchestratorID]
 	env.DeploymentsUnderTest = env.Config.DeploymentsUnderTest
 	env.OperatorsUnderTest = env.Config.Operators
+	env.Nodes = env.Config.Nodes
 	log.Infof("Test Configuration: %+v", *env)
+
 	env.needsRefresh = false
 }
 
