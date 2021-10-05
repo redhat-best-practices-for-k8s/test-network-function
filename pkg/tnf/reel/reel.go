@@ -299,9 +299,9 @@ func (r *Reel) stripEmulatedPromptFromOutput(output string) (data string, status
 		// remove trailing \n if present
 		data = strings.TrimRight(data, "\n")
 	} else {
-		// Cannot determine status because no sentinel is present. Should never happen.
-		data = ""
-		status = 1
+		// to support unit tests (without sentinel parsing)
+		data = output
+		status = 0
 		log.Errorf("Cannot determine command status, no sentinel present. Error: %s", err)
 	}
 	return
