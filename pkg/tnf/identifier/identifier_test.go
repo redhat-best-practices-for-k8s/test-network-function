@@ -18,7 +18,7 @@ package identifier_test
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"os"
 	"path"
 	"testing"
 
@@ -69,7 +69,7 @@ func getTestFile(testName string) string {
 func TestIdentifier_UnmarshalJSON(t *testing.T) {
 	for testName, testCase := range testIdentifierUnmarshalJSONTestCases {
 		testFile := getTestFile(testName)
-		contents, err := ioutil.ReadFile(testFile)
+		contents, err := os.ReadFile(testFile)
 		assert.Nil(t, err)
 		assert.NotNil(t, contents)
 

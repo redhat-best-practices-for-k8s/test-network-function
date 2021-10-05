@@ -18,7 +18,7 @@ package generic_test
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"os"
 	"path"
 	"testing"
 
@@ -90,7 +90,7 @@ func TestResultContext_MarshalJSON(t *testing.T) {
 	actualContents, err := json.MarshalIndent(resultContext, "", "  ")
 	assert.Nil(t, err)
 	// Compare against an expected rendering which has been pre-verified.
-	expectedContents, err := ioutil.ReadFile(testFileName)
+	expectedContents, err := os.ReadFile(testFileName)
 	assert.Nil(t, err)
 	assert.Equal(t, string(expectedContents), string(actualContents))
 }
