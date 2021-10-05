@@ -24,13 +24,13 @@ const MasterLabel = "node-role.kubernetes.io/master"
 
 // Node defines in the cluster. with name of the node and the type of this node master/worker,,,,.
 type Node struct {
-	Name string
-	Type []string
+	Name   string
+	Labels []string
 }
 
 // IsMaster Function that return if the node is master
 func (node Node) IsMaster() bool {
-	for _, t := range node.Type {
+	for _, t := range node.Labels {
 		if t == MasterLabel {
 			return true
 		}
@@ -40,7 +40,7 @@ func (node Node) IsMaster() bool {
 
 // IsWorker Function that return if the node is worker
 func (node Node) IsWorker() bool {
-	for _, t := range node.Type {
+	for _, t := range node.Labels {
 		if t == WorkerLabel {
 			return true
 		}

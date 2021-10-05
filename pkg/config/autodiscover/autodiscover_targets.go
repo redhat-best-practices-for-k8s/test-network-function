@@ -88,8 +88,8 @@ func GetNodesList() (nodes map[string]configsections.Node) {
 	nodeNames = tester.GetNodeNames()
 	for i := range nodeNames {
 		nodes[nodeNames[i]] = configsections.Node{
-			Name: nodeNames[i],
-			Type: []string{configsections.MasterLabel},
+			Name:   nodeNames[i],
+			Labels: []string{configsections.MasterLabel},
 		}
 	}
 
@@ -104,12 +104,12 @@ func GetNodesList() (nodes map[string]configsections.Node) {
 		for i := range nodeNames {
 			if _, ok := nodes[nodeNames[i]]; ok {
 				var node = nodes[nodeNames[i]]
-				node.Type = append(node.Type, configsections.WorkerLabel)
+				node.Labels = append(node.Labels, configsections.WorkerLabel)
 				nodes[nodeNames[i]] = node
 			} else {
 				nodes[nodeNames[i]] = configsections.Node{
-					Name: nodeNames[i],
-					Type: []string{configsections.WorkerLabel},
+					Name:   nodeNames[i],
+					Labels: []string{configsections.WorkerLabel},
 				}
 			}
 		}
