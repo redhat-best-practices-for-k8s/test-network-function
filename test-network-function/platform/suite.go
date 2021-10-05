@@ -136,7 +136,7 @@ func testContainersFsDiff(env *config.TestEnvironment) {
 				nodeName := cut.ContainerConfiguration.NodeName
 				ginkgo.By(fmt.Sprintf("%s(%s) should not install new packages after starting", podName, containerName))
 				test := newContainerFsDiffTest(nodeName, context)
-				test.RunWithFailureCallback(func() {
+				test.RunAndValidateWithFailureCallback(func() {
 					badContainers = append(badContainers, containerName)
 					ginkgo.By(fmt.Sprintf("pod %s container %s did update/install/modify additional packages", podName, containerName))
 				})
@@ -161,7 +161,6 @@ func newContainerFsDiffTest(nodeName string, targetContainerOC *interactive.Oc) 
 	gomega.Expect(err).To(gomega.BeNil())
 	return test
 }
-
 func getMcKernelArguments(context *interactive.Context, mcName string) map[string]string {
 	mcKernelArgumentsTester := mckernelarguments.NewMcKernelArguments(common.DefaultTimeout, mcName)
 	test, err := tnf.NewTest(context.GetExpecter(), mcKernelArgumentsTester, []reel.Handler{mcKernelArgumentsTester}, context.GetErrorChannel())
@@ -201,8 +200,8 @@ func getCurrentKernelCmdlineArgs(targetContainerOc *interactive.Oc) map[string]s
 	return utils.ArgListToMap(currentSplitKernelCmdlineArgs)
 }
 
-func getGrubKernelArgs(context *interactive.Context, nodeName string) map[string]string {
-	readBootConfigTester := readbootconfig.NewReadBootConfig(common.DefaultTimeout, nodeName)
+func getGrubKernelArgs(context *interactive.Oc) map[string]string {
+	readBootConfigTester := readbootconfig.NewReadBootConfig(common.DefaultTimeout)
 	test, err := tnf.NewTest(context.GetExpecter(), readBootConfigTester, []reel.Handler{readBootConfigTester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
 	test.RunAndValidate()
@@ -244,8 +243,8 @@ func parseSysctlSystemOutput(sysctlSystemOutput string) map[string]string {
 	return retval
 }
 
-func getSysctlConfigArgs(context *interactive.Context, nodeName string) map[string]string {
-	sysctlAllConfigsArgsTester := sysctlallconfigsargs.NewSysctlAllConfigsArgs(common.DefaultTimeout, nodeName)
+func getSysctlConfigArgs(context *interactive.Oc) map[string]string {
+	sysctlAllConfigsArgsTester := sysctlallconfigsargs.NewSysctlAllConfigsArgs(common.DefaultTimeout)
 	test, err := tnf.NewTest(context.GetExpecter(), sysctlAllConfigsArgsTester, []reel.Handler{sysctlAllConfigsArgsTester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
 	test.RunAndValidate()
@@ -273,7 +272,9 @@ func testBootParamsHelper(context *interactive.Context, podName, podNamespace st
 	mcName := getMcName(context, nodeName)
 	mcKernelArgumentsMap := getMcKernelArguments(context, mcName)
 	currentKernelArgsMap := getCurrentKernelCmdlineArgs(targetContainerOc)
-	grubKernelConfigMap := getGrubKernelArgs(context, nodeName)
+	env := config.GetTestEnvironment()
+	nodeOC := env.NodesUnderTest[nodeName].Oc
+	grubKernelConfigMap := getGrubKernelArgs(nodeOC)
 
 	for key, mcVal := range mcKernelArgumentsMap {
 		if currentVal, ok := currentKernelArgsMap[key]; ok {
@@ -298,7 +299,9 @@ func testSysctlConfigsHelper(podName, podNamespace string) {
 	ginkgo.By(fmt.Sprintf("Testing sysctl config files for the pod's node %s/%s", podNamespace, podName))
 	context := common.GetContext()
 	nodeName := getPodNodeName(context, podName, podNamespace)
-	combinedSysctlSettings := getSysctlConfigArgs(context, nodeName)
+	env := config.GetTestEnvironment()
+	nodeOc := env.NodesUnderTest[nodeName].Oc
+	combinedSysctlSettings := getSysctlConfigArgs(nodeOc)
 	mcName := getMcName(context, nodeName)
 	mcKernelArgumentsMap := getMcKernelArguments(context, mcName)
 	for key, sysctlConfigVal := range combinedSysctlSettings {
@@ -326,9 +329,9 @@ func testTainted(env *config.TestEnvironment) {
 		ginkgo.By("Testing tainted nodes in cluster")
 
 		var taintedNodes []string
-		for _, node := range env.Nodes {
-			context := common.GetContext()
-			tester := nodetainted.NewNodeTainted(common.DefaultTimeout, node.Name)
+		for _, node := range env.NodesUnderTest {
+			context := node.Oc
+			tester := nodetainted.NewNodeTainted(common.DefaultTimeout)
 			test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 			gomega.Expect(err).To(gomega.BeNil())
 			test.RunWithFailureCallback(func() {
@@ -370,18 +373,18 @@ func testHugepages(env *config.TestEnvironment) {
 		defer results.RecordResult(identifiers.TestHugepagesNotManuallyManipulated)
 
 		var badNodes []string
-		context := common.GetContext()
-		for _, node := range env.Nodes {
+		for _, node := range env.NodesUnderTest {
 			if !node.IsWorker() {
 				continue
 			}
+			nodeOc := node.Oc
 			ginkgo.By("Should return machineconfig hugepages configuration of node " + node.Name)
 			nodeHugePagesCount, nodeHugePagesSize := getNodeMcHugepages(node.Name)
 
 			ginkgo.By(fmt.Sprintf("Node's machine config hugepages=%d/hugepagesz=%d values should match the actual ones in the node.",
 				nodeHugePagesCount, nodeHugePagesSize))
-			tester := nodehugepages.NewNodeHugepages(common.DefaultTimeout, node.Name, nodeHugePagesSize, nodeHugePagesCount)
-			test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
+			tester := nodehugepages.NewNodeHugepages(common.DefaultTimeout, nodeHugePagesSize, nodeHugePagesCount)
+			test, err := tnf.NewTest(nodeOc.GetExpecter(), tester, []reel.Handler{tester}, nodeOc.GetErrorChannel())
 			gomega.Expect(err).To(gomega.BeNil())
 			test.RunWithFailureCallback(func() {
 				badNodes = append(badNodes, node.Name)

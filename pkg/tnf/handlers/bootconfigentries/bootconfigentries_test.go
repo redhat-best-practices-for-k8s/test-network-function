@@ -27,13 +27,13 @@ import (
 )
 
 func TestNewBootConfigEntries(t *testing.T) {
-	newBootConfig := bootconfigentries.NewBootConfigEntries(testTimeoutDuration, testNodeName)
+	newBootConfig := bootconfigentries.NewBootConfigEntries(testTimeoutDuration)
 	assert.NotNil(t, newBootConfig)
 	assert.Equal(t, tnf.ERROR, newBootConfig.Result())
 }
 
 func Test_ReelFirst(t *testing.T) {
-	newBootConfig := bootconfigentries.NewBootConfigEntries(testTimeoutDuration, testNodeName)
+	newBootConfig := bootconfigentries.NewBootConfigEntries(testTimeoutDuration)
 	assert.NotNil(t, newBootConfig)
 	firstStep := newBootConfig.ReelFirst()
 	re := regexp.MustCompile(firstStep.Expect[0])
@@ -43,7 +43,7 @@ func Test_ReelFirst(t *testing.T) {
 }
 
 func Test_ReelMatch(t *testing.T) {
-	newBootConfig := bootconfigentries.NewBootConfigEntries(testTimeoutDuration, testNodeName)
+	newBootConfig := bootconfigentries.NewBootConfigEntries(testTimeoutDuration)
 	assert.NotNil(t, newBootConfig)
 	step := newBootConfig.ReelMatch("", "", testInput)
 	assert.Nil(t, step)
@@ -52,7 +52,7 @@ func Test_ReelMatch(t *testing.T) {
 
 // Just ensure there are no panics.
 func Test_ReelEof(t *testing.T) {
-	newBootConfig := bootconfigentries.NewBootConfigEntries(testTimeoutDuration, testNodeName)
+	newBootConfig := bootconfigentries.NewBootConfigEntries(testTimeoutDuration)
 	assert.NotNil(t, newBootConfig)
 	newBootConfig.ReelEOF()
 }
@@ -62,5 +62,4 @@ const (
 	testInput           = `ostree-1-rhcos.conf
 	ostree-2-rhcos.conf
 	`
-	testNodeName = "crc-l6qvn-master-0"
 )

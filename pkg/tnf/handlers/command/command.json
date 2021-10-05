@@ -6,11 +6,11 @@
     },
     "description": "Handler to execute user custom commands.",
     "testResult": 0,
-    "testTimeout": {{ .TIMEOUT}},
+    "testTimeout": {{ .TIMEOUT }},
     "reelFirstStep": {
-      "execute": "{{ .COMMAND}}",
+      "execute": "{{ .COMMAND }}",
       "expect":[ "(?m).*"],
-      "timeout": {{ .TIMEOUT}}
+      "timeout": {{ .TIMEOUT }}
     },
     "resultContexts":[
       {

@@ -27,14 +27,14 @@ import (
 )
 
 func Test_NewNodeHugepages(t *testing.T) {
-	newNh := nh.NewNodeHugepages(testTimeoutDuration, testNode, testExpectedHugepagesz, testExpectedHugepages)
+	newNh := nh.NewNodeHugepages(testTimeoutDuration, testExpectedHugepagesz, testExpectedHugepages)
 	assert.NotNil(t, newNh)
 	assert.Equal(t, testTimeoutDuration, newNh.Timeout())
 	assert.Equal(t, newNh.Result(), tnf.ERROR)
 }
 
 func Test_ReelFirstPositive(t *testing.T) {
-	newNh := nh.NewNodeHugepages(testTimeoutDuration, testNode, testExpectedHugepagesz, testExpectedHugepages)
+	newNh := nh.NewNodeHugepages(testTimeoutDuration, testExpectedHugepagesz, testExpectedHugepages)
 	assert.NotNil(t, newNh)
 	firstStep := newNh.ReelFirst()
 	re := regexp.MustCompile(firstStep.Expect[0])
@@ -44,7 +44,7 @@ func Test_ReelFirstPositive(t *testing.T) {
 }
 
 func Test_ReelFirstNegative(t *testing.T) {
-	newNh := nh.NewNodeHugepages(testTimeoutDuration, testNode, testExpectedHugepagesz, testExpectedHugepages)
+	newNh := nh.NewNodeHugepages(testTimeoutDuration, testExpectedHugepagesz, testExpectedHugepages)
 	assert.NotNil(t, newNh)
 	firstStep := newNh.ReelFirst()
 	re := regexp.MustCompile(firstStep.Expect[0])
@@ -53,7 +53,7 @@ func Test_ReelFirstNegative(t *testing.T) {
 }
 
 func Test_ReelMatchSuccess(t *testing.T) {
-	newNh := nh.NewNodeHugepages(testTimeoutDuration, testNode, testExpectedHugepagesz, testExpectedHugepages)
+	newNh := nh.NewNodeHugepages(testTimeoutDuration, testExpectedHugepagesz, testExpectedHugepages)
 	assert.NotNil(t, newNh)
 	step := newNh.ReelMatch("", "", testInputSuccess)
 	assert.Nil(t, step)
@@ -61,7 +61,7 @@ func Test_ReelMatchSuccess(t *testing.T) {
 }
 
 func Test_ReelMatchFailure(t *testing.T) {
-	newNh := nh.NewNodeHugepages(testTimeoutDuration, testNode, testExpectedHugepagesz, testExpectedHugepages)
+	newNh := nh.NewNodeHugepages(testTimeoutDuration, testExpectedHugepagesz, testExpectedHugepages)
 	assert.NotNil(t, newNh)
 	step := newNh.ReelMatch("", "", testInputFailure)
 	assert.Nil(t, step)
@@ -70,14 +70,13 @@ func Test_ReelMatchFailure(t *testing.T) {
 
 // Just ensure there are no panics.
 func Test_ReelEof(t *testing.T) {
-	newNh := nh.NewNodeHugepages(testTimeoutDuration, testNode, testExpectedHugepagesz, testExpectedHugepages)
+	newNh := nh.NewNodeHugepages(testTimeoutDuration, testExpectedHugepagesz, testExpectedHugepages)
 	assert.NotNil(t, newNh)
 	newNh.ReelEOF()
 }
 
 const (
 	testTimeoutDuration    = time.Second * 2
-	testNode               = "testNode"
 	testInputError         = ""
 	testInputSuccess       = "HugePages_Total:       64\nHugepagesize:       1048576 kB\n"
 	testInputFailure       = "HugePages_Total:       32\nHugepagesize:       1000000 kB\n"

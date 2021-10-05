@@ -20,7 +20,6 @@ import (
 	"time"
 
 	"github.com/test-network-function/test-network-function/pkg/tnf"
-	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/common"
 	"github.com/test-network-function/test-network-function/pkg/tnf/identifier"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
 )
@@ -96,8 +95,8 @@ func (p *CnfFsDiff) ReelEOF() {
 }
 
 // Command returns command line args for checking the fs difference between a container and it's image
-func Command(containerID, nodeName string) []string {
-	return []string{"echo", "-e", "\"chroot /host\n\"", "podman", "diff", "--format", "json", containerID, "|", common.GetOcDebugCommand(), "node/" + nodeName}
+func Command(containerID string) []string {
+	return []string{"podman", "diff", "--format", "json", containerID}
 }
 
 // NewFsDiff creates a new `FsDiff` test which checks the fs difference between a container and it's image
@@ -105,7 +104,7 @@ func NewFsDiff(timeout time.Duration, containerID, nodeName string) *CnfFsDiff {
 	return &CnfFsDiff{
 		result:  tnf.SUCCESS,
 		timeout: timeout,
-		args:    Command(containerID, nodeName),
+		args:    Command(containerID),
 	}
 }
 

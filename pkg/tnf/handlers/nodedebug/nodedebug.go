@@ -21,7 +21,6 @@ import (
 	"time"
 
 	"github.com/test-network-function/test-network-function/pkg/tnf"
-	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/common"
 	"github.com/test-network-function/test-network-function/pkg/tnf/identifier"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
 )
@@ -47,11 +46,12 @@ type NodeDebug struct {
 // trim: trim leading and trailing new lines
 // split: split lines of text into slice
 func NewNodeDebug(timeout time.Duration, nodeName, command string, trim, split bool) *NodeDebug {
+	command = reel.WrapTestCommand(command)
 	return &NodeDebug{
 		timeout: timeout,
 		result:  tnf.ERROR,
 		args: []string{
-			"echo", "-e", "\"chroot /host\n\"", command, "|", common.GetOcDebugCommand(), "node/" + nodeName,
+			command,
 		},
 		Trim:  trim,
 		Split: split,

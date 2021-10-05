@@ -19,6 +19,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/onsi/gomega"
@@ -63,6 +64,28 @@ type Container struct {
 	ContainerIdentifier     configsections.ContainerIdentifier
 }
 
+type NodeConfig struct {
+	// same Name as the one inside Node structure
+	Name string
+	Node configsections.Node
+	// Oc holds shell for debug pod running on the node
+	Oc *interactive.Oc
+	// deployment indicates if the node has a deployment
+	deployment bool
+}
+
+func (n NodeConfig) IsMaster() bool {
+	return n.Node.IsMaster()
+}
+
+func (n NodeConfig) IsWorker() bool {
+	return n.Node.IsWorker()
+}
+
+func (n NodeConfig) HasDeployment() bool {
+	return n.deployment
+}
+
 // DefaultTimeout for creating new interactive sessions (oc, ssh, tty)
 var DefaultTimeout = time.Duration(defaultTimeoutSeconds) * time.Second
 
@@ -87,9 +110,9 @@ func getOcSession(pod, container, namespace string, timeout time.Duration, optio
 				select {
 				case err := <-outCh:
 					log.Fatalf("OC session to container %s/%s is broken due to: %v, aborting the test run", oc.GetPodName(), oc.GetPodContainerName(), err)
-					os.Exit(1)
 				case <-oc.GetDoneChannel():
-					break
+					log.Infof("stop watching the session with container %s/%s", oc.GetPodName(), oc.GetPodContainerName())
+					return
 				}
 			}
 		}()
@@ -126,8 +149,9 @@ type TestEnvironment struct {
 	DeploymentsUnderTest []configsections.Deployment
 	OperatorsUnderTest   []configsections.Operator
 	NameSpaceUnderTest   string
-	Nodes                map[string]configsections.Node
 	CrdNames             []string
+	NodesUnderTest       map[string]*NodeConfig
+
 	// ContainersToExcludeFromConnectivityTests is a set used for storing the containers that should be excluded from
 	// connectivity testing.
 	ContainersToExcludeFromConnectivityTests map[configsections.ContainerIdentifier]interface{}
@@ -173,6 +197,8 @@ func (env *TestEnvironment) LoadAndRefresh() {
 		env.Config.Partner = configsections.TestPartner{}
 		env.Config.TestTarget = configsections.TestTarget{}
 		env.TestOrchestrator = nil
+		env.NodesUnderTest = nil
+		env.Config.Nodes = nil
 		env.doAutodiscover()
 	}
 }
@@ -198,12 +224,12 @@ func (env *TestEnvironment) doAutodiscover() {
 	env.TestOrchestrator = env.PartnerContainers[env.Config.Partner.TestOrchestratorID]
 	env.DeploymentsUnderTest = env.Config.DeploymentsUnderTest
 	env.OperatorsUnderTest = env.Config.Operators
-	env.Nodes = env.Config.Nodes
-	env.CrdNames = autodiscover.FindTestCrdNames(env.Config.CrdFilters)
+	env.NodesUnderTest = env.createNodes()
 	log.Infof("Test Configuration: %+v", *env)
 
 	env.needsRefresh = false
 }
+
 
 // createContainers contains the general steps involved in creating "oc" sessions and other configuration. A map of the
 // aggregate information is returned.

@@ -17,9 +17,14 @@
 package interactive
 
 import (
+	"fmt"
+	"regexp"
+	"strings"
 	"time"
 
 	expect "github.com/google/goexpect"
+	log "github.com/sirupsen/logrus"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/common"
 )
 
 const (
@@ -29,13 +34,15 @@ const (
 	ocDefaultShell           = "sh"
 	ocExecCommand            = "exec"
 	ocNamespaceArg           = "-n"
-	ocInteractiveArg         = "-it"
+	ocInteractiveArg         = "-i"
+	ocNodeArg                = "node"
 )
 
 // Oc provides an OpenShift Client designed to wrap the "oc" CLI.
 type Oc struct {
-	// name of the pod
+	// id of the pod or the node
 	pod string
+	// node set to true means the sessions is node session
 	// name of the container
 	container string
 	// namespace of the pod
@@ -44,7 +51,7 @@ type Oc struct {
 	serviceAccountName string
 	// timeout for commands run in expecter
 	timeout time.Duration
-	// options for experter, such as expect.Verbose(true)
+	// options for expecter, such as expect.Verbose(true)
 	opts []Option
 	// the underlying subprocess implementation, tailored to OpenShift Client
 	expecter *expect.Expecter
@@ -65,6 +72,18 @@ func SpawnOc(spawner *Spawner, pod, container, namespace string, timeout time.Du
 	}
 	errorChannel := context.GetErrorChannel()
 	return &Oc{pod: pod, container: container, namespace: namespace, timeout: timeout, opts: opts, expecter: context.GetExpecter(), spawnErr: err, errorChannel: errorChannel, doneChannel: make(chan bool)}, errorChannel, nil
+}
+
+func SpawnNodeOc(spawner *Spawner, node, namespace string, timeout time.Duration, opts ...Option) (*Oc, <-chan error, error) {
+	ocArgs := []string{common.GetDebugCommand(), ocNamespaceArg, namespace, fmt.Sprintf("%s/%s", ocNodeArg, node)}
+	log.Info("spawn shell for node ", node, "using ", strings.Join(ocArgs, " "))
+	context, err := (*spawner).Spawn(ocCommand, ocArgs, timeout, opts...)
+	if err != nil {
+		return nil, context.GetErrorChannel(), err
+	}
+	errorChannel := context.GetErrorChannel()
+	podName := makeSimpleName(node) + "-debug"
+	return &Oc{pod: podName, container: "container-00", namespace: namespace, timeout: timeout, opts: opts, expecter: context.GetExpecter(), spawnErr: err, errorChannel: errorChannel, doneChannel: make(chan bool)}, errorChannel, nil
 }
 
 // GetExpecter returns a reference to the expect.Expecter reference used to control the OpenShift client.
@@ -114,10 +133,26 @@ func (o *Oc) GetErrorChannel() <-chan error {
 
 // GetDoneChannel returns the receive only done channel
 func (o *Oc) GetDoneChannel() <-chan bool {
+	log.Debugf("read done channel pod %s/%s", o.pod, o.container)
 	return o.doneChannel
 }
 
 // Close sends the signal to the done channel
 func (o *Oc) Close() {
+	log.Debugf("send close to channel pod %s/%s ", o.pod, o.container)
 	o.doneChannel <- true
+}
+
+// makeSimpleName is near-verbatime copy of the function used to generate debug pod
+// link https://github.com/openshift/oc/blob/ecccc93cf5f51aa851d15aeffef1bda486169600/pkg/helpers/newapp/app/pipeline.go#L329
+func makeSimpleName(name string) string {
+	var invalidServiceChars = regexp.MustCompile("[^-a-z0-9]")
+	const DNS1035LabelMaxLength int = 63
+	name = strings.ToLower(name)
+	name = invalidServiceChars.ReplaceAllString(name, "")
+	name = strings.TrimFunc(name, func(r rune) bool { return r == '-' })
+	if len(name) > DNS1035LabelMaxLength {
+		name = name[:DNS1035LabelMaxLength]
+	}
+	return name
 }

@@ -177,7 +177,7 @@ func GetCsiDriverInfo() map[string]interface{} {
 }
 
 func getMasterNodeName(env *config.TestEnvironment) string {
-	for _, node := range env.Nodes {
+	for _, node := range env.NodesUnderTest {
 		if node.IsMaster() {
 			return node.Name
 		}
@@ -186,7 +186,7 @@ func getMasterNodeName(env *config.TestEnvironment) string {
 }
 
 func getWorkerNodeName(env *config.TestEnvironment) string {
-	for _, node := range env.Nodes {
+	for _, node := range env.NodesUnderTest {
 		if node.IsWorker() {
 			return node.Name
 		}
@@ -195,9 +195,10 @@ func getWorkerNodeName(env *config.TestEnvironment) string {
 }
 
 func listNodeCniPlugins(nodeName string) []CniPlugin {
-	const command = "jq -r .name,.cniVersion '/etc/cni/net.d/*'"
+	const command = "jq -r .name,.cniVersion /etc/cni/net.d/*"
 	result := []CniPlugin{}
-	context := common.GetContext()
+	nodes := config.GetTestEnvironment().NodesUnderTest
+	context := nodes[nodeName].Oc
 	tester := nodedebug.NewNodeDebug(defaultTestTimeout, nodeName, command, true, true)
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
@@ -259,7 +260,8 @@ func getNodeLscpu(nodeName string) map[string]string {
 	const command = "lscpu"
 	const numSplitSubstrings = 2
 	result := map[string]string{}
-	context := common.GetContext()
+	env := config.GetTestEnvironment().NodesUnderTest
+	context := env[nodeName].Oc
 	tester := nodedebug.NewNodeDebug(defaultTestTimeout, nodeName, command, true, true)
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
@@ -275,7 +277,8 @@ func getNodeIfconfig(nodeName string) map[string][]string {
 	const command = "ifconfig"
 	const numSplitSubstrings = 2
 	result := map[string][]string{}
-	context := common.GetContext()
+	env := config.GetTestEnvironment().NodesUnderTest
+	context := env[nodeName].Oc
 	tester := nodedebug.NewNodeDebug(defaultTestTimeout, nodeName, command, true, true)
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
@@ -297,7 +300,8 @@ func getNodeIfconfig(nodeName string) map[string][]string {
 
 func getNodeLsblk(nodeName string) interface{} {
 	const command = "lsblk -J"
-	context := common.GetContext()
+	env := config.GetTestEnvironment().NodesUnderTest
+	context := env[nodeName].Oc
 	tester := nodedebug.NewNodeDebug(defaultTestTimeout, nodeName, command, false, false)
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
@@ -310,7 +314,8 @@ func getNodeLsblk(nodeName string) interface{} {
 
 func getNodeLspci(nodeName string) []string {
 	const command = "lspci"
-	context := common.GetContext()
+	env := config.GetTestEnvironment().NodesUnderTest
+	context := env[nodeName].Oc
 	tester := nodedebug.NewNodeDebug(defaultTestTimeout, nodeName, command, true, true)
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
