@@ -210,8 +210,6 @@ func (r *Reel) Step(step *Step, handler Handler) error {
 				output, outputStatus := r.stripEmulatedPromptFromOutput(result.Output)
 				if outputStatus != 0 {
 					r.Err = fmt.Errorf("error executing command %d: ", outputStatus)
-				} else if outputStatus == 0 && output == "" {
-					r.Err = fmt.Errorf("command executed without error (exit=0) but gave no output")
 				}
 				match, matchStatus := r.stripEmulatedPromptFromOutput(result.Match[0])
 				log.Infof("command status: output=%s, match=%s, outputStatus=%d, matchStatus=%d", output, match, outputStatus, matchStatus)
@@ -287,21 +285,24 @@ func WrapTestCommand(cmd string) string {
 // stripEmulatedPromptFromOutput will elide the emulated terminal prompt from the test output.
 func (r *Reel) stripEmulatedPromptFromOutput(output string) (data string, status int) {
 	parsed := strings.Split(output, EndOfTestSentinel)
-	if !r.disableTerminalPromptEmulation && len(parsed) > 1 {
+	var err error
+	if !r.disableTerminalPromptEmulation && len(parsed) == 2 {
+		// if a sentinel was present, then we have at least 2 parsed results
+		// if command retuned nothing parsed[0]==""
 		data = parsed[0]
-		var err error
 		status, err = strconv.Atoi(strings.Split(strings.Split(parsed[1], ExitKeyword)[1], "\n")[0])
 		if err != nil {
-			// Cannot parse status, something is wrong, fail command
+			// Cannot parse status from output, something is wrong, fail command
 			status = 1
 			log.Errorf("Cannot determine command status. Error: %s", err)
 		}
-		// remove trailing \n
+		// remove trailing \n if present
 		data = strings.TrimRight(data, "\n")
 	} else {
-		// Cannot determine status because no sentinel is present
-		data = output
-		status = 0
+		// Cannot determine status because no sentinel is present. Should never happen.
+		data = ""
+		status = 1
+		log.Errorf("Cannot determine command status, no sentinel present. Error: %s", err)
 	}
 	return
 }

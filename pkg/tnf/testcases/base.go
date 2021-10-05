@@ -176,18 +176,16 @@ const (
 
 // outRegExp types of available regular expression to parse matched result
 var outRegExp = map[RegExType]string{
-	// Removing all empty cases as they are not used and will break the parsing
-	// AllowEmpty:     `(.*?)`,
-	AllowAll: `.+`,
-	// Removing all empty cases as they are not used and will break the parsing
-	// EmptyNullFalse: `^\b(null|false)\b$|^$`,
-	NullFalse:     `\b(null|false)\b`,
-	True:          `\b(true)\b`,
-	Null:          `\b(null)\b`,
-	Zero:          `0`,
-	NonZeroNumber: `(0*([1-9]\d*)|null)`,
-	Error:         "error",
-	Digit:         `\d`,
+	AllowEmpty:     `(.*?)`,
+	AllowAll:       `.+`,
+	EmptyNullFalse: `^\b(null|false)\b$|^$`,
+	NullFalse:      `^\b(null|false)\b$`,
+	True:           `^\b(true)\b$`,
+	Null:           `^\b(null)\b$`,
+	Zero:           `0`,
+	NonZeroNumber:  `^(0*([1-9]\d*)|null)$`,
+	Error:          "error",
+	Digit:          `\d`,
 }
 
 // BaseTestCaseConfigSpec slcie of test configurations template
