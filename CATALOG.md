@@ -265,6 +265,16 @@ Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`jq`, `oc`
 
+### http://test-network-function.com/tests/crdStatusExistence
+Property|Description
+---|---
+Version|v1.0.0
+Description|Checks whether a give CRD has status subresource specification.
+Result Type|normative
+Intrusive|false
+Modifications Persist After Test|false
+Runtime Binaries Required|`oc`, `jq`
+
 ### http://test-network-function.com/tests/csiDriver
 Property|Description
 ---|---

@@ -1,0 +1,28 @@
+{
+    "identifier": {
+      "url": "http://test-network-function.com/tests/crdStatusExistence",
+      "version": "v1.0.0"
+    },
+    "description": "This test checks whether a given CRD has defined status subresource spec for all its versions.",
+    "testResult": 0,
+    "testTimeout": 10000000000,
+    "reelFirstStep": {
+      "execute":
+        "oc get crd {{.CRD_NAME}} -o json | jq -r '[.spec.versions[]] | if all(.schema.openAPIV3Schema.properties.status) then \"OK\" else \"FAIL\" end'",
+      "expect": [
+        "(?m)OK",
+        "(?m)FAIL"
+      ],
+      "timeout": 10000000000
+    },
+    "resultContexts": [
+      {
+        "pattern": "(?m)OK",
+        "defaultResult": 1
+      },
+      {
+        "pattern": "(?m)FAIL",
+        "defaultResult": 2
+      }
+    ]
+  }

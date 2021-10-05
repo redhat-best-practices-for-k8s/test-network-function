@@ -59,6 +59,7 @@ const (
 	scalingIdentifierURL                  = "http://test-network-function.com/tests/scaling"
 	csiDriverIdentifierURL                = "http://test-network-function.com/tests/csiDriver"
 	clusterVersionIdentifierURL           = "http://test-network-function.com/tests/clusterVersion"
+	crdStatusExistenceIdentifierURL       = "http://test-network-function.com/tests/crdStatusExistence"
 	versionOne                            = "v1.0.0"
 )
 
@@ -609,6 +610,19 @@ var Catalog = map[string]TestCatalogEntry{
 			dependencies.OcBinaryName,
 		},
 	},
+	crdStatusExistenceIdentifierURL: {
+		Identifier:  CrdStatusExistenceIdentifier,
+		Description: "Checks whether a give CRD has status subresource specification.",
+		Type:        Normative,
+		IntrusionSettings: IntrusionSettings{
+			ModifiesSystem:           false,
+			ModificationIsPersistent: false,
+		},
+		BinaryDependencies: []string{
+			dependencies.OcBinaryName,
+			dependencies.JqBinaryName,
+		},
+	},
 }
 
 // HostnameIdentifier is the Identifier used to represent the generic hostname test case.
@@ -849,5 +863,11 @@ var CSIDriverIdentifier = Identifier{
 // ClusterVersionIdentifier is the Identifier used to represent the OCP versions test case.
 var ClusterVersionIdentifier = Identifier{
 	URL:             clusterVersionIdentifierURL,
+	SemanticVersion: versionOne,
+}
+
+// CrdStatusExistenceIdentifier is the Identifier used to represent the generic test for CRD status spec existence.
+var CrdStatusExistenceIdentifier = Identifier{
+	URL:             crdStatusExistenceIdentifierURL,
 	SemanticVersion: versionOne,
 }
