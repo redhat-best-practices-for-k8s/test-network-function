@@ -26,10 +26,13 @@ import (
 )
 
 const (
-	owRegex     = "(?s)OWNERKIND\n.+"
+	owRegex = "(?s)OWNERKIND\n.+"
+	// StatefulSet variable
 	StatefulSet = "StatefulSet"
-	ReplicaSet  = "ReplicaSet"
-	DaemonSet   = "DaemonSet"
+	// ReplicaSet variable
+	ReplicaSet = "ReplicaSet"
+	// DaemonSet variable
+	DaemonSet = "DaemonSet"
 )
 
 // Owners tests pod owners
