@@ -60,6 +60,8 @@ type TestConfiguration struct {
 	CertifiedContainerInfo []CertifiedContainerRequestInfo `yaml:"certifiedcontainerinfo,omitempty" json:"certifiedcontainerinfo,omitempty"`
 	// CertifiedOperatorInfo is list of operator bundle names that are queried for certification status.
 	CertifiedOperatorInfo []CertifiedOperatorRequestInfo `yaml:"certifiedoperatorinfo,omitempty" json:"certifiedoperatorinfo,omitempty"`
+	// CRDs section.
+	Crds []Crd `yaml:"targetCrds" json:"targetCrds"`
 }
 
 // TestPartner contains the helper containers that can be used to facilitate tests

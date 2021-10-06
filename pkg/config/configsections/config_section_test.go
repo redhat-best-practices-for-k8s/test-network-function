@@ -41,19 +41,15 @@ const (
 	// cnfName name of the cnf
 	cnfName = "cnf-test-one"
 	// crdNameOne name of the crd
-	crdNameOne = "crd-test-one"
+	crdGroup1 = "group1.test.com"
 	// crdNameTwo name of the crd
-	crdNameTwo = "crd-test-two"
+	crdGroup2 = "group2.test.com"
 	// deploymentName is the name of the deployment
 	deploymentName = "deployment-one"
 	// deploymentReplicas no of replicas
 	deploymentReplicas = 1
 	// fullConfig represents full configuration, including Operator and CNF
 	fullConfig = "full_config"
-	// instanceNameOne name of the instance
-	instanceNameOne = "instance-one"
-	// instanceNameTwo name of the instance
-	instanceNameTwo = "instance-two"
 	// operatorConfig represents operators configuration only
 	operatorConfig = "operator_only_config"
 	// operatorName name of the operator
@@ -129,31 +125,23 @@ func loadOperatorConfig() {
 	operator := Operator{}
 	operator.Name = operatorName
 	operator.Namespace = operatorNameSpace
-	setCrdsAndInstances()
 	operator.Tests = []string{testcases.OperatorStatus}
 	test.Operators = append(test.Operators, operator)
 	loadPodConfig()
 }
 
-func setCrdsAndInstances() {
-	crd := Crd{}
-	crd.Name = crdNameOne
-	crd.Namespace = testNameSpace
-	instance := Instance{}
-	instance.Name = instanceNameOne
-	crd.Instances = append(crd.Instances, instance)
-	crd2 := Crd{}
-	crd2.Name = crdNameTwo
-	crd2.Namespace = testNameSpace
-	instance2 := Instance{}
-	instance2.Name = instanceNameTwo
-	crd2.Instances = append(crd2.Instances, instance2)
+func loadCrds() {
+	test.Crds = []Crd{
+		{Group: crdGroup1},
+		{Group: crdGroup2},
+	}
 }
 
 func loadFullConfig() {
 	loadOperatorConfig()
 	loadPodConfig()
 	loadDeploymentsConfig()
+	loadCrds()
 }
 
 func setup(configType string) {
@@ -213,6 +201,10 @@ func TestFullConfigLoad(t *testing.T) {
 	assert.NotNil(t, cfg)
 	assert.Equal(t, len(cfg.Operators), 1)
 	assert.Equal(t, cfg.PodsUnderTest[0].Name, cnfName)
+
+	assert.Equal(t, cfg.Crds[0].Group, crdGroup1)
+	assert.Equal(t, cfg.Crds[1].Group, crdGroup2)
+
 	assert.Nil(t, err)
 }
 
@@ -248,6 +240,8 @@ func TestFullJsonConfig(t *testing.T) {
 	assert.NotNil(t, yamlCfg)
 	assert.Equal(t, yamlCfg.Operators, jsonCfg.Operators)
 	assert.Equal(t, yamlCfg.PodsUnderTest, jsonCfg.PodsUnderTest)
+	assert.Equal(t, yamlCfg.Crds[0].Group, crdGroup1)
+	assert.Equal(t, yamlCfg.Crds[1].Group, crdGroup2)
 }
 
 func TestCnfJsonConfig(t *testing.T) {

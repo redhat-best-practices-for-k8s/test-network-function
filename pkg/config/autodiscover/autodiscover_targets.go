@@ -17,6 +17,10 @@
 package autodiscover
 
 import (
+	"encoding/json"
+	"fmt"
+	"os/exec"
+
 	log "github.com/sirupsen/logrus"
 	"github.com/test-network-function/test-network-function/pkg/config/configsections"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
@@ -195,4 +199,37 @@ func getConfiguredOperatorTests() (opTests []string) {
 	}
 	log.WithField("opTests", opTests).Infof("got all tests from %s.", testcases.ConfiguredTestFile)
 	return opTests
+}
+
+// GetTargeCrdNamesByGroup returns a list of crd names found in the cluster that belong to a given group.
+func GetTargeCrdNamesByGroup(group string) ([]string, error) {
+	ocCmd := fmt.Sprintf("oc get crds -o json | jq '[.items[] | select(.spec.group==\"%s\") | .metadata.name]'", group)
+	cmd := exec.Command("bash", "-c", ocCmd)
+
+	out, err := cmd.Output()
+	if err != nil {
+		return nil, err
+	}
+
+	var crdNamesList []string
+	err = json.Unmarshal(out, &crdNamesList)
+	if err != nil {
+		return nil, err
+	}
+
+	return crdNamesList, nil
+}
+
+// FindTestCrdNames gets a list of CRD names based on configured groups.
+func FindTestCrdNames(targetCrds []configsections.Crd) []string {
+	var crdNames []string
+	for _, crd := range targetCrds {
+		groupCrds, err := GetTargeCrdNamesByGroup(crd.Group)
+		if err != nil {
+			log.Error("Unable to get CRDs list from group ", crd.Group, ". Error: ", err)
+		} else {
+			crdNames = append(crdNames, groupCrds...)
+		}
+	}
+	return crdNames
 }

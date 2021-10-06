@@ -4,6 +4,9 @@ targetPodLabels:
   - prefix: test-network-function.com
     name: generic
     value: target
+targetCrds:
+  - group: "group1.test.com"
+  - group: "tutorialworks.com"
 # The following section does not require manual configuration as autodiscovery is on by default
 # Containers and pods will be found through matching targetPodLabels. Operators will be found if
 # labelled with "test-network-function.com/operator". Their subscription name will be read from
