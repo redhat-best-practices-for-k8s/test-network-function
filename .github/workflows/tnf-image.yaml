@@ -20,7 +20,6 @@ env:
   REGISTRY_LOCAL: localhost
   IMAGE_NAME: testnetworkfunction/test-network-function
   IMAGE_TAG: latest
-  CURRENT_VERSION_GENERIC_BRANCH: 3.0.x
   TNF_CONTAINER_CLIENT: docker
   TNF_MINIKUBE_ONLY: true
   TNF_NON_INTRUSIVE_ONLY: true
@@ -33,20 +32,30 @@ env:
   TESTING_CMD_PARAMS: '-n host -i ${REGISTRY_LOCAL}/${IMAGE_NAME}:${IMAGE_TAG} -t ${TNF_CONFIG_DIR} -o ${TNF_OUTPUT_DIR}'
 
 jobs:
-  get-latest-release-version-numbers:
-    name: 'Get the version numbers of the latest release components'
-    if: ${{ github.repository_owner == 'test-network-function' }}
+  test-and-push-tnf-image:
+    name: 'Test and push the `test-network-function` image'
     runs-on: ubuntu-20.04
-    outputs:
-      TNF_VERSION: ${{ steps.set_tnf_version.outputs.version_number }}
-      PARTNER_VERSION: ${{ steps.set_partner_version.outputs.partner_version_number }}
-
+    strategy:
+      matrix:
+        branch: [3.0.x]
+    env:
+      SHELL: /bin/bash
+      KUBECONFIG: '/home/runner/.kube/config'
+      CURRENT_VERSION_GENERIC_BRANCH: ${{ matrix.branch }}
+      TNF_VERSION: ""
+      PARTNER_VERSION: ""
     steps:
+
       - name: Checkout generic working branch of the current version
         uses: actions/checkout@v2
         with:
           ref: ${{ env.CURRENT_VERSION_GENERIC_BRANCH }}
           fetch-depth: '0'
+
+      - name: checkout the latest for the script directory in the main branch
+        run: |
+          git checkout origin/main -- script/create-version-files.sh
+          git checkout origin/main -- script/get-git-latest-release.sh
 
       - name: Get the latest TNF version from GIT
         run: |
@@ -69,18 +78,13 @@ jobs:
         id: set_partner_version
         env:
           VERSION_FROM_FILE_PARTNER: ${{ fromJSON(steps.get_version_json_file.outputs.json).partner_tag }}
-
-  test-and-push-tnf-image:
-    name: 'Test and push the `test-network-function` image'
-    needs: [get-latest-release-version-numbers]
-    runs-on: ubuntu-20.04
-    env:
-      SHELL: /bin/bash
-      KUBECONFIG: '/home/runner/.kube/config'
-      TNF_VERSION: ${{ needs['get-latest-release-version-numbers'].outputs.TNF_VERSION }}
-      PARTNER_VERSION: ${{ needs['get-latest-release-version-numbers'].outputs.PARTNER_VERSION }}
-
-    steps:
+          
+      - name: Update env variables
+        run: |
+          echo "TNF_VERSION=${{ steps.set_tnf_version.outputs.version_number }}" >> $GITHUB_ENV
+          echo "IMAGE_TAG=${{ steps.set_tnf_version.outputs.version_number }}" >> $GITHUB_ENV
+          echo "PARTNER_VERSION=${{ steps.set_partner_version.outputs.partner_version_number }}" >> $GITHUB_ENV
+ 
       - name: Ensure $TNF_VERSION and $IMAGE_TAG are set
         run: '[[ -n "$TNF_VERSION" ]] && [[ -n "$IMAGE_TAG" ]] && [[ -n "$PARTNER_VERSION" ]]'
 
