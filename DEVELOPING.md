@@ -606,11 +606,22 @@ oc get pod %s -n %s -o go-template='{{len .spec.containers}}{{"\n"}}'
 
 ## Adding new handler
 
-To facilitate adding new handlers, the developers can leverage existing infrastructure to generate repetitive code.
-As an example, to generate handler with name Xyz, the command generate handler Xyz can be used(we need to run this command 
-in the folder "cmd/tnf/" and we run the command directly here).
+To facilitate adding new handlers, the "tnf" utility has been created to help developers to avoid writing repetitive code. The tnf tool [source code is here](cmd/tnf) and can be built with the following command:
+```shell-script
+make build-tnf-tool
+```
+
+To generate a new handler named MyHandler, use the options "generate handler" as in the next example:
+```shell-script
+./tnf generate handler MyHandler
+```
+
 The generated code has a template and creates the necessary headers.
-The result is folder "new handler" located in /pkg/tnf/handlers/"new handler" that includes 3 files by handler template.
+The result is folder "myhandler" located in /pkg/tnf/handlers/myhandler that includes 3 files by handler template.
+The command relays on golang templates located in [pkg/tnf/handlers/handler_template](pkg/tnf/handlers/handler_template), so in case the "tnf" utility is executed outside the test-network-function root folder, the user can export the environment variable TNF_HANDLERS_SRC pointing to an existing "handlers" relative/absolute folder path.
+```shell-script
+ export TNF_HANDLERS_SRC=other/path/pkg/tnf/handlers
+```
 
 ## Adding information to claim file
 
