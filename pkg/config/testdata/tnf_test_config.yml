@@ -47,6 +47,6 @@ certifiedcontainerinfo:
 certifiedoperatorinfo:
   - name: etcd-operator
     organization: redhat-marketplace
-targetCrds:
+targetCrdFilters:
   - group: "group1.test1.com"
   - group: "group2.test2.com"

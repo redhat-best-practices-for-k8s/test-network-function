@@ -19,6 +19,5 @@ package configsections
 // Crd defines a CustomResourceDefinition config filter.
 type Crd struct {
 	Group string
-	// Name  string
-	// labels []string
+	// labels []Label
 }
