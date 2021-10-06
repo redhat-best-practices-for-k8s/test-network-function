@@ -27,12 +27,12 @@ import (
 
 const (
 	owRegex = "(?s)OWNERKIND\n.+"
-	// StatefulSet variable
-	StatefulSet = "StatefulSet"
-	// ReplicaSet variable
-	ReplicaSet = "ReplicaSet"
-	// DaemonSet variable
-	DaemonSet = "DaemonSet"
+	// statefulSet variable
+	statefulSet = "StatefulSet"
+	// replicaSet variable
+	replicaSet = "ReplicaSet"
+	// daemonSet variable
+	daemonSet = "DaemonSet"
 )
 
 // Owners tests pod owners
@@ -82,8 +82,8 @@ func (ow *Owners) ReelFirst() *reel.Step {
 
 // ReelMatch ensures that list of nodes is not empty and stores the names as []string
 func (ow *Owners) ReelMatch(_, _, match string) *reel.Step {
-	if (strings.Contains(match, StatefulSet) || strings.Contains(match, ReplicaSet)) &&
-		!strings.Contains(match, DaemonSet) {
+	if (strings.Contains(match, statefulSet) || strings.Contains(match, replicaSet)) &&
+		!strings.Contains(match, daemonSet) {
 		ow.result = tnf.SUCCESS
 	} else {
 		ow.result = tnf.FAILURE
