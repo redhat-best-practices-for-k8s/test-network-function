@@ -38,13 +38,17 @@ var (
 	}
 )
 
+const (
+	newHandlersDirectoryPermissions = 0755
+)
+
 func generateHandlerFiles(cmd *cobra.Command, args []string) error {
 	handlername = args[0]
 	pathrelativetoroot = path.Join("..", "..")
 	handlerDirectory = path.Join(pathrelativetoroot, "pkg", "tnf", "handlers")
 	newHandlerDirectory := path.Join(handlerDirectory, handlername)
 
-	err := os.Mkdir(newHandlerDirectory, 0755)
+	err := os.Mkdir(newHandlerDirectory, newHandlersDirectoryPermissions)
 	if err != nil {
 		return err
 	}
