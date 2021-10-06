@@ -189,8 +189,9 @@ func (r *Reel) Step(step *Step, handler Handler) error {
 		exec, exp, timeout := step.unpack()
 		var batcher []expect.Batcher
 		batcher = r.generateBatcher(exec)
-		var firstMatch string
-		batcher = r.batchExpectations(exp, batcher, &firstMatch)
+		// firstMatchRe is the first regular expression (expectation) that has matched results
+		var firstMatchRe string
+		batcher = r.batchExpectations(exp, batcher, &firstMatchRe)
 		results, err := (*r.expecter).ExpectBatch(batcher, timeout)
 
 		if !step.hasExpectations() {
@@ -221,8 +222,8 @@ func (r *Reel) Step(step *Step, handler Handler) error {
 				} else {
 					before = ""
 				}
-				amatch := r.stripEmulatedRegularExpression(firstMatch)
-				step = handler.ReelMatch(amatch, before, match)
+				strippedFirstMatchRe := r.stripEmulatedRegularExpression(firstMatchRe)
+				step = handler.ReelMatch(strippedFirstMatchRe, before, match)
 			}
 		}
 	}
