@@ -37,7 +37,7 @@ const (
 
 // TestsExtraInfo a collection of messages per test that is added to the claim file
 // use WriteTestExtraInfo for writing to it
-var TestsExtraInfo []map[string][]string = []map[string][]string{}
+var TestsExtraInfo = []map[string][]string{}
 
 // CreateTestExtraInfoWriter creates a function that writes info messages for a specific test
 // info messages that were already added by calling the function will exist in the claim file
