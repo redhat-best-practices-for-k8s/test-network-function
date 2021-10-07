@@ -599,7 +599,7 @@ var Catalog = map[string]TestCatalogEntry{
 	},
 	clusterVersionIdentifierURL: {
 		Identifier:  ClusterVersionIdentifier,
-		Description: "extracts OCP versions from the cluster",
+		Description: "Extracts OCP versions from the cluster",
 		Type:        Normative,
 		IntrusionSettings: IntrusionSettings{
 			ModifiesSystem:           false,
