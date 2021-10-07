@@ -17,12 +17,17 @@
 package command
 
 import (
-	"regexp"
+	"path"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/generic"
+
+	"github.com/test-network-function/test-network-function/pkg/tnf/identifier"
+	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
+	"github.com/xeipuuv/gojsonschema"
 )
 
 const (
@@ -31,35 +36,78 @@ const (
 
 var (
 	testcommandTargetLabels = "oc get %s -n %s -o json -l %s"
+	genericTestSchemaFile   = path.Join("schemas", "generic-test.schema.json")
+	checkSubFilename        = "command.json"
+	expectedPassPattern     = "(?m).*"
+	pathRelativeToRoot      = path.Join("..", "..", "..", "..")
+	pathToTestSchemaFile    = path.Join(pathRelativeToRoot, genericTestSchemaFile)
+	testCommand             = "oc get %s -n %s -o json -l %s"
 )
 
-// Command_ReelFirst
-func TestCommand_ReelFirst(t *testing.T) {
-	handler := NewCommand(testTimeoutDuration, testcommandTargetLabels)
-	assert.NotNil(t, handler)
-	firstStep := handler.ReelFirst()
-	assert.NotNil(t, firstStep.Expect[0])
-	_ = regexp.MustCompile(firstStep.Expect[0])
+func createTest() (*tnf.Tester, []reel.Handler, *gojsonschema.Result, error) {
+	values := make(map[string]interface{})
+	values["COMMAND"] = testCommand
+	return generic.NewGenericFromMap(checkSubFilename, pathToTestSchemaFile, values)
+}
+func TestCommand_Args(t *testing.T) {
+	test, handlers, jsonParseResult, err := createTest()
+	assert.Nil(t, err)
+	assert.True(t, jsonParseResult.Valid())
+	assert.NotNil(t, handlers)
+	assert.Nil(t, (*test).Args())
 }
 
-// Command_ReelEof
-func TestCommand_ReelEof(t *testing.T) {
-	handler := NewCommand(testTimeoutDuration, testcommandTargetLabels)
-	assert.NotNil(t, handler)
+func TestCommand_GetIdentifier(t *testing.T) {
+	test, handlers, jsonParseResult, err := createTest()
+	assert.Nil(t, err)
+	assert.True(t, jsonParseResult.Valid())
+	assert.NotNil(t, handlers)
+	assert.Equal(t, identifier.CommandIdentifier, (*test).GetIdentifier())
+}
+
+func TestCommand_ReelFirst(t *testing.T) {
+	_, handlers, jsonParseResult, err := createTest()
+	assert.Nil(t, err)
+	assert.True(t, jsonParseResult.Valid())
+	assert.NotNil(t, handlers)
+	assert.Equal(t, 1, len(handlers))
+	handler := handlers[0]
+	step := handler.ReelFirst()
+	assert.Equal(t, testcommandTargetLabels, step.Execute)
+	assert.Contains(t, step.Expect, expectedPassPattern)
+	assert.Equal(t, testTimeoutDuration, step.Timeout)
+}
+
+func TestCommand_ReelEOF(t *testing.T) {
+	_, handlers, jsonParseResult, err := createTest()
+	assert.Nil(t, err)
+	assert.True(t, jsonParseResult.Valid())
+	assert.NotNil(t, handlers)
+	assert.Equal(t, 1, len(handlers))
+	handler := handlers[0]
+	// just ensure there isn't a panic
 	handler.ReelEOF()
 }
 
-// Command_ReelTimeout
 func TestCommand_ReelTimeout(t *testing.T) {
-	handler := NewCommand(testTimeoutDuration, testcommandTargetLabels)
-	assert.NotNil(t, handler)
+	_, handlers, jsonParseResult, err := createTest()
+	assert.Nil(t, err)
+	assert.True(t, jsonParseResult.Valid())
+	assert.NotNil(t, handlers)
+	assert.Equal(t, 1, len(handlers))
+	handler := handlers[0]
 	assert.Nil(t, handler.ReelTimeout())
 }
 
-// NewCommand
-func TestNewCommand(t *testing.T) {
-	handler := NewCommand(testTimeoutDuration, testcommandTargetLabels)
-	assert.NotNil(t, handler)
-	assert.Equal(t, testTimeoutDuration, handler.Timeout())
-	assert.Equal(t, handler.Result(), tnf.ERROR)
+func TestCommand_ReelMatch(t *testing.T) {
+	tester, handlers, jsonParseResult, err := createTest()
+	assert.Nil(t, err)
+	assert.True(t, jsonParseResult.Valid())
+	assert.NotNil(t, handlers)
+	assert.Equal(t, 1, len(handlers))
+	handler := handlers[0]
+	// Positive Test
+	step := handler.ReelMatch(expectedPassPattern, "", "OK")
+	assert.Nil(t, step)
+	assert.Equal(t, tnf.SUCCESS, (*tester).Result())
 }

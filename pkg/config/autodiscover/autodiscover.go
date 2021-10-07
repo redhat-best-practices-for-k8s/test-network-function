@@ -17,17 +17,17 @@
 package autodiscover
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
+	"path"
 	"strconv"
-	"time"
 
 	"github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
 	"github.com/test-network-function/test-network-function/pkg/config/configsections"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
-	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/command"
-	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/generic"
 	"github.com/test-network-function/test-network-function/test-network-function/common"
 )
 
@@ -35,10 +35,21 @@ const (
 	disableAutodiscoverEnvVar = "TNF_DISABLE_CONFIG_AUTODISCOVER"
 	tnfLabelPrefix            = "test-network-function.com"
 	labelTemplate             = "%s/%s"
-	makeGetCommandTimeout     = 2
 	// anyLabelValue is the value that will allow any value for a label when building the label query.
 	anyLabelValue = ""
 	ocCommand     = "oc get %s -n %s -o json -l %s"
+)
+
+var (
+	//checkSubFilename      = "command.json"
+	//genericTestSchemaFile = path.Join("schemas", "generic-test.schema.json")
+	//pathRelativeToRoot    = path.Join("..", "..", "..", "..")
+	//pathToTestSchemaFile  = path.Join(pathRelativeToRoot, genericTestSchemaFile)
+	TestFile = path.Join("pkg", "tnf", "handlers", "command", "command.json")
+	// relativeShutdownTestPath is the relative path to the shutdown.json test case.
+	//relativeShutdownTestPath = path.Join(common.PathRelativeToRoot, shutdownTestPath)
+	pathToTestFile = path.Join(common.PathRelativeToRoot, TestFile)
+	commandDriver  = make(map[string]interface{})
 )
 
 // PerformAutoDiscovery checks the environment variable to see if autodiscovery should be performed
@@ -66,18 +77,39 @@ func buildLabelQuery(label configsections.Label) string {
 	return fullLabelName
 }
 
-func makeGetCommand(resourceType, labelQuery, namespace string) (string, error) {
+func executeOcGetCommand(resourceType, labelQuery, namespace string) (string, error) {
 	ocCommandtoExecute := fmt.Sprintf(ocCommand, resourceType, namespace, labelQuery)
-	handler := command.NewCommand(time.Duration(makeGetCommandTimeout)*time.Second, ocCommandtoExecute)
-	test, err := tnf.NewTest(common.GetContext().GetExpecter(), handler, []reel.Handler{handler}, common.GetContext().GetErrorChannel())
+	values := make(map[string]interface{})
+	values["COMMAND"] = ocCommandtoExecute
+	context := common.GetContext()
+	test, handler, result, err := generic.NewGenericFromMap(pathToTestFile, common.RelativeSchemaPath, values)
+
 	gomega.Expect(err).To(gomega.BeNil())
-	testResult, err := test.Run()
+	gomega.Expect(result).ToNot(gomega.BeNil())
+	gomega.Expect(result.Valid()).To(gomega.BeTrue())
+	gomega.Expect(handler).ToNot(gomega.BeNil())
+	gomega.Expect(handler).ToNot(gomega.BeNil())
+	gomega.Expect(test).ToNot(gomega.BeNil())
 
-	if testResult != tnf.SUCCESS {
-		log.Error("Oc get command failed -> ", handler.Args())
-	}
+	tester, err := tnf.NewTest(context.GetExpecter(), *test, handler, context.GetErrorChannel())
+	gomega.Expect(err).To(gomega.BeNil())
+	gomega.Expect(tester).ToNot(gomega.BeNil())
 
-	return handler.Output, err
+	testResult, err := tester.Run()
+	gomega.Expect(err).To(gomega.BeNil())
+	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
+
+	genericTest := (*test).(*generic.Generic)
+	gomega.Expect(genericTest).ToNot(gomega.BeNil())
+
+	matches := genericTest.Matches
+	gomega.Expect(len(matches)).To(gomega.Equal(1))
+
+	match := genericTest.GetMatches()[0]
+	err = json.Unmarshal([]byte(match.Match), &commandDriver)
+	gomega.Expect(err).To(gomega.BeNil())
+
+	return match.Match, err
 }
 
 // getContainersByLabel builds `config.Container`s from containers in pods matching a label.
