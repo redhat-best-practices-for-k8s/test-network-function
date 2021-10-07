@@ -115,9 +115,9 @@ Suggested Remediation|In high availability cases, Pod podAntiAffinity rule shoul
 Property|Description
 ---|---
 Version|v1.0.0
-Description|http://test-network-function.com/testcases/lifecycle/pod-owner-type tests that CNF Pod(s) are deployed as part of a ReplicaSet(s).
+Description|http://test-network-function.com/testcases/lifecycle/pod-owner-type tests that CNF Pod(s) are deployed as part of a ReplicaSet(s)/StatefulSet(s).
 Result Type|normative
-Suggested Remediation|Deploy the CNF using ReplicaSet.
+Suggested Remediation|Deploy the CNF using ReplicaSet/StatefulSet.
 ### http://test-network-function.com/testcases/lifecycle/pod-recreation
 
 Property|Description
@@ -529,7 +529,7 @@ Runtime Binaries Required|`oc`
 Property|Description
 ---|---
 Version|v1.0.0
-Description|A generic test used to verify pod is managed by a ReplicaSet
+Description|A generic test used to verify pod is managed by a ReplicaSet/StatefulSet
 Result Type|normative
 Intrusive|false
 Modifications Persist After Test|false
