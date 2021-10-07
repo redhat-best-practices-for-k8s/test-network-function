@@ -18,8 +18,8 @@ package autodiscover
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"log"
+	"os"
 	"path"
 	"testing"
 
@@ -35,7 +35,7 @@ var (
 )
 
 func loadDeployment(filePath string) (deployment DeploymentResource) {
-	contents, err := ioutil.ReadFile(filePath)
+	contents, err := os.ReadFile(filePath)
 	if err != nil {
 		log.Fatalf("error (%s) loading DeploymentResource %s for testing", err, filePath)
 	}

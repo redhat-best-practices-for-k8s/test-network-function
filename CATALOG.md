@@ -67,7 +67,7 @@ Suggested Remediation|Ensure that your Operator has passed Red Hat's Operator Ce
 Property|Description
 ---|---
 Version|v1.0.0
-Description|http://test-network-function.com/testcases/diagnostic/clusterversion extracts OCP versions from the cluster.
+Description|http://test-network-function.com/testcases/diagnostic/clusterversion Extracts OCP versions from the cluster.
 Result Type|informative
 Suggested Remediation|
 ### http://test-network-function.com/testcases/diagnostic/extract-node-information
@@ -239,7 +239,7 @@ A number of Test Case Building Blocks, or `tnf.Test`s, are included out of the b
 Property|Description
 ---|---
 Version|v1.0.0
-Description|extracts OCP versions from the cluster
+Description|Extracts OCP versions from the cluster
 Result Type|normative
 Intrusive|false
 Modifications Persist After Test|false

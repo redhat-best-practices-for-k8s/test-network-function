@@ -18,7 +18,7 @@ package ipaddr_test
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path"
 	"testing"
 	"time"
@@ -63,7 +63,7 @@ func getMockOutputFilename(testName string) string {
 
 func getMockOutput(t *testing.T, testName string) string {
 	fileName := getMockOutputFilename(testName)
-	b, err := ioutil.ReadFile(fileName)
+	b, err := os.ReadFile(fileName)
 	assert.Nil(t, err)
 	return string(b)
 }
