@@ -26,7 +26,6 @@ import (
 
 	"github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
-	"github.com/test-network-function/test-network-function/pkg/tnf"
 	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
 )
 
@@ -51,13 +50,6 @@ func GetContext() *interactive.Context {
 	gomega.Expect(context).ToNot(gomega.BeNil())
 	gomega.Expect(context.GetExpecter()).ToNot(gomega.BeNil())
 	return context
-}
-
-// RunAndValidateTest runs the test and checks the result
-func RunAndValidateTest(test *tnf.Test) {
-	testResult, err := test.Run()
-	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
-	gomega.Expect(err).To(gomega.BeNil())
 }
 
 // IsMinikube returns true when the env var is set, OCP only test would be skipped based on this flag

@@ -135,11 +135,31 @@ func (t *Test) ReelEOF() {
 	}
 }
 
-// RunAndValidateTest runs the test and checks the result
-func (t *Test) RunAndValidateTest() {
+// RunAndValidate runs the test and checks the result
+func (t *Test) RunAndValidate() {
+	t.RunAndValidateWithFailureCallback(nil)
+}
+
+// RunAndValidateWithFailureCallback runs the test, checks the result/error and invokes the cb on failure
+func (t *Test) RunAndValidateWithFailureCallback(cb func()) {
 	testResult, err := t.Run()
+	if testResult == FAILURE && cb != nil {
+		cb()
+	}
 	gomega.Expect(testResult).To(gomega.Equal(SUCCESS))
 	gomega.Expect(err).To(gomega.BeNil())
+}
+
+// RunWithFailureCallback runs the test, invokes the cb on failure
+// This is useful when the testcase needs to continue whether this test result is success or not
+func (t *Test) RunWithFailureCallback(cb func()) {
+	testResult, err := t.Run()
+	if testResult == FAILURE && cb != nil {
+		cb()
+	}
+	if err != nil {
+		log.Warnf("Test %s error: %v", t.tester.GetIdentifier().URL, err)
+	}
 }
 
 // NewTest creates a new Test given a chain of Handlers.
