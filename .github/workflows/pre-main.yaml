@@ -29,10 +29,10 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
-      - name: Set up Go 1.15
+      - name: Set up Go 1.16
         uses: actions/setup-go@v2
         with:
-          go-version: ^1.15
+          go-version: ^1.16
 
       - name: Check out code into the Go module directory
         uses: actions/checkout@v2
@@ -42,13 +42,10 @@ jobs:
       - name: Rebuild mocks
         run: go get github.com/golang/mock/mockgen && make mocks
 
-      - name: Install golint
-        run: go get golang.org/x/lint/golint
-
       # TODO: golangci-lint team recommends using a GitHub Action to perform golangci-lint responsibilities.  However
       # there does not appear to be a way to honor our existing .golangci.yml.  For now, mimic developer behavior.
       - name: Install golangci-lint
-        run: curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.39.0
+        run: curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.42.1
 
       - name: make lint
         run: make lint
@@ -58,10 +55,10 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
-      - name: Set up Go 1.15
+      - name: Set up Go 1.16
         uses: actions/setup-go@v2
         with:
-          go-version: ^1.15
+          go-version: ^1.16
 
       - name: Check out code into the Go module directory
         uses: actions/checkout@v2
@@ -82,10 +79,10 @@ jobs:
       KUBECONFIG: '/home/runner/.kube/config'
 
     steps:
-      - name: Set up Go 1.15
+      - name: Set up Go 1.16
         uses: actions/setup-go@v2
         with:
-          go-version: ^1.15
+          go-version: ^1.16
 
       - name: Check out code into the Go module directory
         uses: actions/checkout@v2

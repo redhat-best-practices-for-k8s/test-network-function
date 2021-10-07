@@ -67,7 +67,7 @@ Suggested Remediation|Ensure that your Operator has passed Red Hat's Operator Ce
 Property|Description
 ---|---
 Version|v1.0.0
-Description|http://test-network-function.com/testcases/diagnostic/clusterversion extracts OCP versions from the cluster.
+Description|http://test-network-function.com/testcases/diagnostic/clusterversion Extracts OCP versions from the cluster.
 Result Type|informative
 Suggested Remediation|
 ### http://test-network-function.com/testcases/diagnostic/extract-node-information
@@ -115,9 +115,9 @@ Suggested Remediation|In high availability cases, Pod podAntiAffinity rule shoul
 Property|Description
 ---|---
 Version|v1.0.0
-Description|http://test-network-function.com/testcases/lifecycle/pod-owner-type tests that CNF Pod(s) are deployed as part of a ReplicaSet(s).
+Description|http://test-network-function.com/testcases/lifecycle/pod-owner-type tests that CNF Pod(s) are deployed as part of a ReplicaSet(s)/StatefulSet(s).
 Result Type|normative
-Suggested Remediation|Deploy the CNF using ReplicaSet.
+Suggested Remediation|Deploy the CNF using ReplicaSet/StatefulSet.
 ### http://test-network-function.com/testcases/lifecycle/pod-recreation
 
 Property|Description
@@ -239,7 +239,7 @@ A number of Test Case Building Blocks, or `tnf.Test`s, are included out of the b
 Property|Description
 ---|---
 Version|v1.0.0
-Description|extracts OCP versions from the cluster
+Description|Extracts OCP versions from the cluster
 Result Type|normative
 Intrusive|false
 Modifications Persist After Test|false
@@ -529,7 +529,7 @@ Runtime Binaries Required|`oc`
 Property|Description
 ---|---
 Version|v1.0.0
-Description|A generic test used to verify pod is managed by a ReplicaSet
+Description|A generic test used to verify pod is managed by a ReplicaSet/StatefulSet
 Result Type|normative
 Intrusive|false
 Modifications Persist After Test|false

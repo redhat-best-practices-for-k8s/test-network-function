@@ -19,7 +19,7 @@ package generic
 import (
 	"bytes"
 	"encoding/json"
-	"io/ioutil"
+	"os"
 	"regexp"
 	"text/template"
 	"time"
@@ -195,7 +195,7 @@ func (g *Generic) ReelEOF() {
 
 // NewGenericFromJSONFile instantiates and initializes a Generic from a JSON-serialized file.
 func NewGenericFromJSONFile(filename, schemaPath string) (*tnf.Tester, []reel.Handler, *gojsonschema.Result, error) {
-	inputBytes, err := ioutil.ReadFile(filename)
+	inputBytes, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -220,7 +220,7 @@ func newGenericFromJSON(inputBytes []byte, schemaPath string) (*tnf.Tester, []re
 // suites.  If the supplied template/values do not conform to the generic-test.schema.json schema, creation fails and
 // the result is returned to the caller for further inspection.
 func NewGenericFromTemplate(templateFile, schemaPath, valuesFile string) (*tnf.Tester, []reel.Handler, *gojsonschema.Result, error) {
-	tplBytes, err := ioutil.ReadFile(valuesFile)
+	tplBytes, err := os.ReadFile(valuesFile)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -238,7 +238,7 @@ func NewGenericFromTemplate(templateFile, schemaPath, valuesFile string) (*tnf.T
 // suites.  If the supplied values do not conform to the generic-test.schema.json schema, creation fails and the result
 // is returned to the caller for further inspection.
 func NewGenericFromMap(templateFile, schemaPath string, values map[string]interface{}) (*tnf.Tester, []reel.Handler, *gojsonschema.Result, error) {
-	templateBytes, err := ioutil.ReadFile(templateFile)
+	templateBytes, err := os.ReadFile(templateFile)
 	if err != nil {
 		return nil, nil, nil, err
 	}

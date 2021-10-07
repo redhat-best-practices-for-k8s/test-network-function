@@ -70,7 +70,6 @@ clean:
 
 # Run configured linters
 lint:
-	golint -set_exit_status `go list ./... | grep -v vendor`
 	golangci-lint run
 
 # Build and run unit tests
@@ -146,5 +145,4 @@ update-deps:
 install-tools:
 	go get github.com/onsi/ginkgo/ginkgo
 	go get github.com/onsi/gomega/...
-	go get golang.org/x/lint/golint
 	go get github.com/golang/mock/mockgen

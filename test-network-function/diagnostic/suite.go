@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/test-network-function/test-network-function/pkg/config"
 	"github.com/test-network-function/test-network-function/test-network-function/common"
 	"github.com/test-network-function/test-network-function/test-network-function/identifiers"
 	"github.com/test-network-function/test-network-function/test-network-function/results"
@@ -17,7 +18,6 @@ import (
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/clusterversion"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/generic"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodedebug"
-	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodenames"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
 	"github.com/test-network-function/test-network-function/pkg/tnf/testcases"
 )
@@ -172,27 +172,22 @@ func GetCsiDriverInfo() map[string]interface{} {
 	return csiDriver
 }
 
-func getFirstNode(labelFilter map[string]*string) string {
-	context := common.GetContext()
-	tester := nodenames.NewNodeNames(defaultTestTimeout, labelFilter)
-	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
-	gomega.Expect(err).To(gomega.BeNil())
-	testResult, err := test.Run()
-	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
-	gomega.Expect(err).To(gomega.BeNil())
-	nodeNames := tester.GetNodeNames()
-	gomega.Expect(nodeNames).NotTo(gomega.BeEmpty())
-	return nodeNames[0]
+func getMasterNodeName(env *config.TestEnvironment) string {
+	for _, node := range env.Nodes {
+		if node.IsMaster() {
+			return node.Name
+		}
+	}
+	return ""
 }
 
-func getMasterNodeName() string {
-	const masterNodeLabel = "node-role.kubernetes.io/master"
-	return getFirstNode(map[string]*string{masterNodeLabel: nil})
-}
-
-func getWorkerNodeName() string {
-	const workerNodeLabel = "node-role.kubernetes.io/worker"
-	return getFirstNode(map[string]*string{workerNodeLabel: nil})
+func getWorkerNodeName(env *config.TestEnvironment) string {
+	for _, node := range env.Nodes {
+		if node.IsWorker() {
+			return node.Name
+		}
+	}
+	return ""
 }
 
 func listNodeCniPlugins(nodeName string) []CniPlugin {
@@ -221,8 +216,8 @@ func testOcpVersion() {
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
 	testResult, err := test.Run()
-	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
 	gomega.Expect(err).To(gomega.BeNil())
+	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
 	versionsOcp = tester.GetVersions()
 }
 
@@ -231,7 +226,8 @@ func testCniPlugins() {
 		ginkgo.Skip("can't use 'oc debug' in minikube")
 	}
 	// get name of a master node
-	nodeName := getMasterNodeName()
+	env := config.GetTestEnvironment()
+	nodeName := getMasterNodeName(env)
 	gomega.Expect(nodeName).ToNot(gomega.BeEmpty())
 	// get CNI plugins from node
 	cniPlugins = listNodeCniPlugins(nodeName)
@@ -242,10 +238,10 @@ func testNodesHwInfo() {
 	if common.IsMinikube() {
 		ginkgo.Skip("can't use 'oc debug' in minikube")
 	}
-
-	masterNodeName := getMasterNodeName()
+	env := config.GetTestEnvironment()
+	masterNodeName := getMasterNodeName(env)
 	gomega.Expect(masterNodeName).ToNot(gomega.BeEmpty())
-	workerNodeName := getWorkerNodeName()
+	workerNodeName := getWorkerNodeName(env)
 	gomega.Expect(workerNodeName).ToNot(gomega.BeEmpty())
 	nodesHwInfo.Master.NodeName = masterNodeName
 	nodesHwInfo.Master.Lscpu = getNodeLscpu(masterNodeName)
@@ -261,6 +257,7 @@ func testNodesHwInfo() {
 
 func getNodeLscpu(nodeName string) map[string]string {
 	const command = "lscpu"
+	const numSplitSubstrings = 2
 	result := map[string]string{}
 	context := common.GetContext()
 	tester := nodedebug.NewNodeDebug(defaultTestTimeout, nodeName, command, true, true)
@@ -270,7 +267,7 @@ func getNodeLscpu(nodeName string) map[string]string {
 	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
 	gomega.Expect(err).To(gomega.BeNil())
 	for _, line := range tester.Processed {
-		fields := strings.SplitN(line, ":", 2)
+		fields := strings.SplitN(line, ":", numSplitSubstrings)
 		result[fields[0]] = strings.TrimSpace(fields[1])
 	}
 	return result
@@ -278,6 +275,7 @@ func getNodeLscpu(nodeName string) map[string]string {
 
 func getNodeIfconfig(nodeName string) map[string][]string {
 	const command = "ifconfig"
+	const numSplitSubstrings = 2
 	result := map[string][]string{}
 	context := common.GetContext()
 	tester := nodedebug.NewNodeDebug(defaultTestTimeout, nodeName, command, true, true)
@@ -292,7 +290,7 @@ func getNodeIfconfig(nodeName string) map[string][]string {
 			continue
 		}
 		if line[0] != ' ' {
-			fields := strings.SplitN(line, ":", 2)
+			fields := strings.SplitN(line, ":", numSplitSubstrings)
 			deviceName = fields[0]
 			line = fields[1]
 		}
