@@ -73,18 +73,16 @@ func loggingTest(c configsections.ContainerIdentifier) {
 	values["POD_NAMESPACE"] = c.Namespace
 	values["POD_NAME"] = c.PodName
 	values["CONTAINER_NAME"] = c.ContainerName
-	test, handlers, result, err := generic.NewGenericFromMap(relativeLoggingTestPath, common.RelativeSchemaPath, values)
+	tester, handlers, result, err := generic.NewGenericFromMap(relativeLoggingTestPath, common.RelativeSchemaPath, values)
 	gomega.Expect(err).To(gomega.BeNil())
 	gomega.Expect(result).ToNot(gomega.BeNil())
 	gomega.Expect(result.Valid()).To(gomega.BeTrue())
 	gomega.Expect(handlers).ToNot(gomega.BeNil())
 	gomega.Expect(handlers).ToNot(gomega.BeNil())
-	gomega.Expect(test).ToNot(gomega.BeNil())
-	tester, err := tnf.NewTest(context.GetExpecter(), *test, handlers, context.GetErrorChannel())
-	gomega.Expect(err).To(gomega.BeNil())
 	gomega.Expect(tester).ToNot(gomega.BeNil())
-
-	testResult, err := tester.Run()
+	test, err := tnf.NewTest(context.GetExpecter(), *tester, handlers, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
-	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
+	gomega.Expect(test).ToNot(gomega.BeNil())
+
+	test.RunAndValidate()
 }

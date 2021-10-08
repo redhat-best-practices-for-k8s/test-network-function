@@ -81,22 +81,20 @@ var _ = ginkgo.Describe(common.DiagnosticTestKey, func() {
 				defer results.RecordResult(identifiers.TestExtractNodeInformationIdentifier)
 				context := common.GetContext()
 
-				test, handlers, jsonParseResult, err := generic.NewGenericFromJSONFile(relativeNodesTestPath, relativeSchemaPath)
+				tester, handlers, jsonParseResult, err := generic.NewGenericFromJSONFile(relativeNodesTestPath, relativeSchemaPath)
 				gomega.Expect(err).To(gomega.BeNil())
 				gomega.Expect(jsonParseResult).ToNot(gomega.BeNil())
 				gomega.Expect(jsonParseResult.Valid()).To(gomega.BeTrue())
 				gomega.Expect(handlers).ToNot(gomega.BeNil())
-				gomega.Expect(test).ToNot(gomega.BeNil())
-
-				tester, err := tnf.NewTest(context.GetExpecter(), *test, handlers, context.GetErrorChannel())
-				gomega.Expect(err).To(gomega.BeNil())
 				gomega.Expect(tester).ToNot(gomega.BeNil())
 
-				result, err := tester.Run()
+				test, err := tnf.NewTest(context.GetExpecter(), *tester, handlers, context.GetErrorChannel())
 				gomega.Expect(err).To(gomega.BeNil())
-				gomega.Expect(result).To(gomega.Equal(tnf.SUCCESS))
+				gomega.Expect(test).ToNot(gomega.BeNil())
 
-				genericTest := (*test).(*generic.Generic)
+				test.RunAndValidate()
+
+				genericTest := (*tester).(*generic.Generic)
 				gomega.Expect(genericTest).ToNot(gomega.BeNil())
 				matches := genericTest.Matches
 				gomega.Expect(len(matches)).To(gomega.Equal(1))
@@ -197,9 +195,7 @@ func listNodeCniPlugins(nodeName string) []CniPlugin {
 	tester := nodedebug.NewNodeDebug(defaultTestTimeout, nodeName, command, true, true)
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
-	testResult, err := test.Run()
-	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
-	gomega.Expect(err).To(gomega.BeNil())
+	test.RunAndValidate()
 	gomega.Expect(len(tester.Processed)%2 == 0).To(gomega.BeTrue())
 	for i := 0; i < len(tester.Processed); i += 2 {
 		result = append(result, CniPlugin{
@@ -215,9 +211,7 @@ func testOcpVersion() {
 	tester := clusterversion.NewClusterVersion(defaultTestTimeout)
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
-	testResult, err := test.Run()
-	gomega.Expect(err).To(gomega.BeNil())
-	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
+	test.RunAndValidate()
 	versionsOcp = tester.GetVersions()
 }
 
@@ -263,9 +257,7 @@ func getNodeLscpu(nodeName string) map[string]string {
 	tester := nodedebug.NewNodeDebug(defaultTestTimeout, nodeName, command, true, true)
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
-	testResult, err := test.Run()
-	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
-	gomega.Expect(err).To(gomega.BeNil())
+	test.RunAndValidate()
 	for _, line := range tester.Processed {
 		fields := strings.SplitN(line, ":", numSplitSubstrings)
 		result[fields[0]] = strings.TrimSpace(fields[1])
@@ -281,9 +273,7 @@ func getNodeIfconfig(nodeName string) map[string][]string {
 	tester := nodedebug.NewNodeDebug(defaultTestTimeout, nodeName, command, true, true)
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
-	testResult, err := test.Run()
-	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
-	gomega.Expect(err).To(gomega.BeNil())
+	test.RunAndValidate()
 	deviceName := ""
 	for _, line := range tester.Processed {
 		if line == "" {
@@ -305,9 +295,7 @@ func getNodeLsblk(nodeName string) interface{} {
 	tester := nodedebug.NewNodeDebug(defaultTestTimeout, nodeName, command, false, false)
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
-	testResult, err := test.Run()
-	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
-	gomega.Expect(err).To(gomega.BeNil())
+	test.RunAndValidate()
 	result := map[string]interface{}{}
 	err = json.Unmarshal([]byte(tester.Raw), &result)
 	gomega.Expect(err).To(gomega.BeNil())
@@ -320,9 +308,7 @@ func getNodeLspci(nodeName string) []string {
 	tester := nodedebug.NewNodeDebug(defaultTestTimeout, nodeName, command, true, true)
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
-	testResult, err := test.Run()
-	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
-	gomega.Expect(err).To(gomega.BeNil())
+	test.RunAndValidate()
 	return tester.Processed
 }
 
@@ -332,20 +318,18 @@ func listClusterCSIInfo() {
 		ginkgo.Skip("CSI is not checked in minikube")
 	}
 	context := common.GetContext()
-	test, handlers, result, err := generic.NewGenericFromJSONFile(relativeCsiDriverTestPath, common.RelativeSchemaPath)
+	tester, handlers, result, err := generic.NewGenericFromJSONFile(relativeCsiDriverTestPath, common.RelativeSchemaPath)
 	gomega.Expect(err).To(gomega.BeNil())
 	gomega.Expect(result).ToNot(gomega.BeNil())
 	gomega.Expect(result.Valid()).To(gomega.BeTrue())
 	gomega.Expect(handlers).ToNot(gomega.BeNil())
 	gomega.Expect(len(handlers)).To(gomega.Equal(1))
-	gomega.Expect(test).ToNot(gomega.BeNil())
-	tester, err := tnf.NewTest(context.GetExpecter(), *test, handlers, context.GetErrorChannel())
-	gomega.Expect(err).To(gomega.BeNil())
 	gomega.Expect(tester).ToNot(gomega.BeNil())
-	testResult, err := tester.Run()
+	test, err := tnf.NewTest(context.GetExpecter(), *tester, handlers, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
-	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
-	genericTest := (*test).(*generic.Generic)
+	gomega.Expect(test).ToNot(gomega.BeNil())
+	test.RunAndValidate()
+	genericTest := (*tester).(*generic.Generic)
 	gomega.Expect(genericTest).ToNot(gomega.BeNil())
 	matches := genericTest.Matches
 	gomega.Expect(len(matches)).To(gomega.Equal(1))
