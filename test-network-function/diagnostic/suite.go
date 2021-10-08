@@ -216,8 +216,8 @@ func testOcpVersion() {
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
 	testResult, err := test.Run()
-	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
 	gomega.Expect(err).To(gomega.BeNil())
+	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
 	versionsOcp = tester.GetVersions()
 }
 
@@ -257,6 +257,7 @@ func testNodesHwInfo() {
 
 func getNodeLscpu(nodeName string) map[string]string {
 	const command = "lscpu"
+	const numSplitSubstrings = 2
 	result := map[string]string{}
 	context := common.GetContext()
 	tester := nodedebug.NewNodeDebug(defaultTestTimeout, nodeName, command, true, true)
@@ -266,7 +267,7 @@ func getNodeLscpu(nodeName string) map[string]string {
 	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
 	gomega.Expect(err).To(gomega.BeNil())
 	for _, line := range tester.Processed {
-		fields := strings.SplitN(line, ":", 2)
+		fields := strings.SplitN(line, ":", numSplitSubstrings)
 		result[fields[0]] = strings.TrimSpace(fields[1])
 	}
 	return result
@@ -274,6 +275,7 @@ func getNodeLscpu(nodeName string) map[string]string {
 
 func getNodeIfconfig(nodeName string) map[string][]string {
 	const command = "ifconfig"
+	const numSplitSubstrings = 2
 	result := map[string][]string{}
 	context := common.GetContext()
 	tester := nodedebug.NewNodeDebug(defaultTestTimeout, nodeName, command, true, true)
@@ -288,7 +290,7 @@ func getNodeIfconfig(nodeName string) map[string][]string {
 			continue
 		}
 		if line[0] != ' ' {
-			fields := strings.SplitN(line, ":", 2)
+			fields := strings.SplitN(line, ":", numSplitSubstrings)
 			deviceName = fields[0]
 			line = fields[1]
 		}

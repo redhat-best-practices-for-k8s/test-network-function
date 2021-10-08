@@ -34,11 +34,17 @@ const (
 
 	// mandatoryNumArgs is the number of positional arguments required.
 	mandatoryNumArgs = 1
+
+	// testTimeoutSecs timeout.
+	testTimeoutSecs = 2
+
+	// testNumRequests number of requests to send.
+	testNumRequests = 1
 )
 
 func parseArgs() (*ping.Ping, time.Duration) {
-	timeout := flag.Int("t", 2, "Timeout in seconds")
-	count := flag.Int("c", 1, "Number of requests to send")
+	timeout := flag.Int("t", testTimeoutSecs, "Timeout in seconds")
+	count := flag.Int("c", testNumRequests, "Number of requests to send")
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "usage: %s [-t timeout] [-c count] host\n", os.Args[0])
 		flag.PrintDefaults()

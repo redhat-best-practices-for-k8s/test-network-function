@@ -423,7 +423,7 @@ var Catalog = map[string]TestCatalogEntry{
 	},
 	ownersIdentifierURL: {
 		Identifier:  OwnersIdentifier,
-		Description: "A generic test used to verify pod is managed by a ReplicaSet",
+		Description: "A generic test used to verify pod is managed by a ReplicaSet/StatefulSet",
 		Type:        Normative,
 		IntrusionSettings: IntrusionSettings{
 			ModifiesSystem:           false,
@@ -599,7 +599,7 @@ var Catalog = map[string]TestCatalogEntry{
 	},
 	clusterVersionIdentifierURL: {
 		Identifier:  ClusterVersionIdentifier,
-		Description: "extracts OCP versions from the cluster",
+		Description: "Extracts OCP versions from the cluster",
 		Type:        Normative,
 		IntrusionSettings: IntrusionSettings{
 			ModifiesSystem:           false,
