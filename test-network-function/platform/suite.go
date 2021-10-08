@@ -308,38 +308,41 @@ func testTainted(env *config.TestEnvironment) {
 	})
 }
 
+func getNodeMcHugepages(nodeName string) (hugePagesCount, hugePagesSize int) {
+	context := common.GetContext()
+	mcName := getMcName(context, nodeName)
+	hugepageTester := hugepages.NewHugepages(common.DefaultTimeout, mcName)
+	test, err := tnf.NewTest(context.GetExpecter(), hugepageTester, []reel.Handler{hugepageTester}, context.GetErrorChannel())
+	gomega.Expect(err).To(gomega.BeNil())
+	testResult, err := test.Run()
+	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
+	gomega.Expect(err).To(gomega.BeNil())
+	return hugepageTester.GetHugepages(), hugepageTester.GetHugepagesz()
+}
+
 func testHugepages(env *config.TestEnvironment) {
-	var clusterHugepages, clusterHugepagesz int
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestHugepagesNotManuallyManipulated)
 	ginkgo.It(testID, func() {
 		defer results.RecordResult(identifiers.TestHugepagesNotManuallyManipulated)
-		ginkgo.By("Should return cluster's hugepages configuration")
-		context := common.GetContext()
-		hugepageTester := hugepages.NewHugepages(common.DefaultTimeout)
-		test, err := tnf.NewTest(context.GetExpecter(), hugepageTester, []reel.Handler{hugepageTester}, context.GetErrorChannel())
-		gomega.Expect(err).To(gomega.BeNil())
-		testResult, err := test.Run()
-		gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
-		gomega.Expect(err).To(gomega.BeNil())
-		clusterHugepages = hugepageTester.GetHugepages()
-		clusterHugepagesz = hugepageTester.GetHugepagesz()
-
-		ginkgo.By("Should have same configuration as cluster")
-		ginkgo.By(fmt.Sprintf("cluster is configured with clusterHugepages=%d ; clusterHugepagesz=%d", clusterHugepages, clusterHugepagesz))
 		var badNodes []string
+		context := common.GetContext()
 		for _, node := range env.Nodes {
 			if !node.IsWorker() {
 				continue
 			}
-			context := common.GetContext()
-			tester := nodehugepages.NewNodeHugepages(common.DefaultTimeout, node.Name, clusterHugepagesz, clusterHugepages)
+			ginkgo.By("Should return machineconfig hugepages configuration of node " + node.Name)
+			nodeHugePagesCount, nodeHugePagesSize := getNodeMcHugepages(node.Name)
+
+			ginkgo.By(fmt.Sprintf("Node's machine config hugepages=%d/hugepagesz=%d values should match the actual ones in the node.",
+				nodeHugePagesCount, nodeHugePagesSize))
+			tester := nodehugepages.NewNodeHugepages(common.DefaultTimeout, node.Name, nodeHugePagesSize, nodeHugePagesCount)
 			test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 			gomega.Expect(err).To(gomega.BeNil())
 			testResult, err := test.Run()
 			gomega.Expect(err).To(gomega.BeNil())
 			if testResult != tnf.SUCCESS {
 				badNodes = append(badNodes, node.Name)
-				ginkgo.By(fmt.Sprintf("node=%s hugepage config does not match machineconfig", node.Name))
+				ginkgo.By(fmt.Sprintf("Node=%s hugepage config does not match machineconfig", node.Name))
 			}
 		}
 		gomega.Expect(badNodes).To(gomega.BeNil())
