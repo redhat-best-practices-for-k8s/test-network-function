@@ -143,6 +143,6 @@ update-deps:
 
 # Install build tools and other required software.
 install-tools:
-	go get github.com/onsi/ginkgo/ginkgo
-	go get github.com/onsi/gomega/...
-	go get github.com/golang/mock/mockgen
+	go install github.com/onsi/ginkgo/ginkgo
+	go install github.com/onsi/gomega/...
+	go install github.com/golang/mock/mockgen
