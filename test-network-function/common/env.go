@@ -112,5 +112,5 @@ func SetLogFormat() {
 		return strconv.Itoa(f.Line) + "]", fmt.Sprintf("[%s:", filename)
 	}
 	log.SetFormatter(customFormatter)
-	log.Error("debug format initialization: done")
+	log.Info("debug format initialization: done")
 }
