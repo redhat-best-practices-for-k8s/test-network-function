@@ -95,6 +95,7 @@ var (
 	}
 	testInputSuccessSlice = []string{
 		"OWNERKIND\nReplicaSet\n",
+		"OWNERKIND\nStatefulSet\n",
 		"OWNERKIND\nOwner\nOWNERKIND\nReplicaSet\n",
 	}
 )

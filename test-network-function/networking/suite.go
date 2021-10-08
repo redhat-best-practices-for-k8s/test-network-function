@@ -126,7 +126,7 @@ func testPing(initiatingPodOc *interactive.Oc, targetPodIPAddress string, count 
 	pingTester := ping.NewPing(common.DefaultTimeout, targetPodIPAddress, count)
 	test, err := tnf.NewTest(initiatingPodOc.GetExpecter(), pingTester, []reel.Handler{pingTester}, initiatingPodOc.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
-	common.RunAndValidateTest(test)
+	test.RunAndValidate()
 	transmitted, received, errors := pingTester.GetStats()
 	gomega.Expect(received).To(gomega.Equal(transmitted))
 	gomega.Expect(errors).To(gomega.BeZero())
@@ -143,9 +143,7 @@ func testNodePort(env *config.TestEnvironment) {
 			tester := nodeport.NewNodePort(common.DefaultTimeout, podNamespace)
 			test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 			gomega.Expect(err).To(gomega.BeNil())
-			testResult, err := test.Run()
-			gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
-			gomega.Expect(err).To(gomega.BeNil())
+			test.RunAndValidate()
 		}
 	})
 }

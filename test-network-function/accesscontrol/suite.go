@@ -113,9 +113,7 @@ func runTestOnPods(env *config.TestEnvironment, testCmd testcases.BaseTestCase, 
 					test, err := tnf.NewTest(context.GetExpecter(), cnfInTest, []reel.Handler{cnfInTest}, context.GetErrorChannel())
 					gomega.Expect(err).To(gomega.BeNil())
 					gomega.Expect(test).ToNot(gomega.BeNil())
-					testResult, err := test.Run()
-					gomega.Expect(err).To(gomega.BeNil())
-					gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
+					test.RunAndValidate()
 					count++
 				}
 			} else {
@@ -125,9 +123,7 @@ func runTestOnPods(env *config.TestEnvironment, testCmd testcases.BaseTestCase, 
 				test, err := tnf.NewTest(context.GetExpecter(), podTest, []reel.Handler{podTest}, context.GetErrorChannel())
 				gomega.Expect(err).To(gomega.BeNil())
 				gomega.Expect(test).ToNot(gomega.BeNil())
-				testResult, err := test.Run()
-				gomega.Expect(err).To(gomega.BeNil())
-				gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
+				test.RunAndValidate()
 			}
 		}
 	})
@@ -168,15 +164,14 @@ func testServiceAccount(env *config.TestEnvironment) {
 			tester := serviceaccount.NewServiceAccount(common.DefaultTimeout, podName, podNamespace)
 			test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 			gomega.Expect(err).To(gomega.BeNil())
-			testResult, err := test.Run()
-			gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
-			gomega.Expect(err).To(gomega.BeNil())
+			test.RunAndValidate()
 			serviceAccountName := tester.GetServiceAccountName()
 			gomega.Expect(serviceAccountName).ToNot(gomega.BeEmpty())
 		}
 	})
 }
 
+//nolint:dupl
 func testRoleBindings(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestPodRoleBindingsBestPracticesIdentifier)
 	ginkgo.It(testID, func() {
@@ -194,18 +189,14 @@ func testRoleBindings(env *config.TestEnvironment) {
 			rbTester := rolebinding.NewRoleBinding(common.DefaultTimeout, serviceAccountName, podNamespace)
 			test, err := tnf.NewTest(context.GetExpecter(), rbTester, []reel.Handler{rbTester}, context.GetErrorChannel())
 			gomega.Expect(err).To(gomega.BeNil())
-			testResult, err := test.Run()
-			if rbTester.Result() == tnf.FAILURE {
-				log.Info("RoleBindings: ", rbTester.GetRoleBindings())
-			}
-			gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
-			gomega.Expect(err).To(gomega.BeNil())
+			test.RunAndValidateWithFailureCallback(func() { log.Info("RoleBindings: ", rbTester.GetRoleBindings()) })
 		}
 	})
 }
 
+//nolint:dupl
 func testClusterRoleBindings(env *config.TestEnvironment) {
-	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestPodRoleBindingsBestPracticesIdentifier)
+	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestPodClusterRoleBindingsBestPracticesIdentifier)
 	ginkgo.It(testID, func() {
 		ginkgo.By("Should not have ClusterRoleBindings")
 		for _, podUnderTest := range env.PodsUnderTest {
@@ -221,12 +212,7 @@ func testClusterRoleBindings(env *config.TestEnvironment) {
 			crbTester := clusterrolebinding.NewClusterRoleBinding(common.DefaultTimeout, serviceAccountName, podNamespace)
 			test, err := tnf.NewTest(context.GetExpecter(), crbTester, []reel.Handler{crbTester}, context.GetErrorChannel())
 			gomega.Expect(err).To(gomega.BeNil())
-			testResult, err := test.Run()
-			if crbTester.Result() == tnf.FAILURE {
-				log.Info("ClusterRoleBindings: ", crbTester.GetClusterRoleBindings())
-			}
-			gomega.Expect(err).To(gomega.BeNil())
-			gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
+			test.RunAndValidateWithFailureCallback(func() { log.Info("ClusterRoleBindings: ", crbTester.GetClusterRoleBindings()) })
 		}
 	})
 }

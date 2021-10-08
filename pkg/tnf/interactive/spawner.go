@@ -299,7 +299,7 @@ func logCmdMirrorPipe(cmdLine string, pipeToMirror io.Reader, name string, trace
 			}
 			if err != nil {
 				// Some Error has happened, goroutine about to exit
-				log.Warnf("Exiting cmd log mirroring goroutine. Error: %s", err)
+				log.Warnf("Exiting %s log mirroring goroutine for cmd %s. Error: %s", name, cmdLine, err)
 				return
 			}
 		}
@@ -327,6 +327,8 @@ func (g *GoExpectSpawner) Spawn(command string, args []string, timeout time.Dura
 	}
 
 	cmdLine := fmt.Sprintf("%s %s", command, strings.Join(args, " "))
+	log.Debugf("Spawning interactive shell. Cmd: %s", cmdLine)
+
 	logCmdMirrorPipe(cmdLine, stderrPipe, "STDERR", false)
 	stdoutPipe = logCmdMirrorPipe(cmdLine, stdoutPipe, "STDOUT", true)
 
@@ -355,7 +357,7 @@ func (g *GoExpectSpawner) spawnGeneric(spawnFunc *SpawnFunc, stdinPipe io.WriteC
 		},
 		Check: func() bool {
 			if !(*spawnFunc).IsRunning() {
-				log.Error("Unable to spawn shell. Cmd: " + strings.Join((*spawnFunc).Args(), " "))
+				log.Error("Unable to send commands to spawned shell. Shell cmd: " + strings.Join((*spawnFunc).Args(), " "))
 				return false
 			}
 			return true
