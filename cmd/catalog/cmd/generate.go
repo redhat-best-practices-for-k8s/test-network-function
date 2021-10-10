@@ -19,7 +19,6 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 	"sort"
@@ -115,7 +114,7 @@ func cmdJoin(elems []string, sep string) string {
 // emitTextFromFile is a utility method to stream file contents to stdout.  This allows more natural specification of
 // the non-dynamic aspects of CATALOG.md.
 func emitTextFromFile(filename string) error {
-	text, err := ioutil.ReadFile(filename)
+	text, err := os.ReadFile(filename)
 	if err != nil {
 		return err
 	}

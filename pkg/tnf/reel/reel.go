@@ -19,8 +19,11 @@ package reel
 import (
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 
 	expect "github.com/google/goexpect"
 	"google.golang.org/grpc/codes"
@@ -29,14 +32,21 @@ import (
 const (
 	// EndOfTestSentinel is the emulated terminal prompt that will follow command output.
 	EndOfTestSentinel = `END_OF_TEST_SENTINEL`
+	// ExitKeyword keyword delimiting the command exit status
+	ExitKeyword = "exit="
 )
 
 var (
-	// endOfTestSentinelCutset is used to trim a match of the EndOfTestSentinel.
-	endOfTestSentinelCutset = fmt.Sprintf("%s\n", EndOfTestSentinel)
-	// EndOfTestRegexPostfix is the postfix added to regular expressions to match the emulated terminal prompt
-	// (EndOfTestSentinel)
-	EndOfTestRegexPostfix = fmt.Sprintf("((.|\n)*%s\n)", EndOfTestSentinel)
+
+	// matchSentinel This regular expression is matching stricly the sentinel and exit code.
+	// This match regular expression matches commands that return no output
+	matchSentinel = fmt.Sprintf("((.|\n)*%s %s[0-9]+\n)", EndOfTestSentinel, ExitKeyword)
+
+	// EndOfTestRegexPostfix This regular expression is a postfix added to the goexpect regular expressions. This regular expression matches a
+	// sentinel or marker string that is marking the end of the command output. This is because after the command
+	// output, the shell might also return a prompt which is not desired. Note: this is currently the same as the string above
+	// but was splitted for clarity
+	EndOfTestRegexPostfix = matchSentinel
 )
 
 // Step is an instruction for a single REEL pass.
@@ -98,6 +108,8 @@ type Reel struct {
 }
 
 // DisableTerminalPromptEmulation disables terminal prompt emulation for the reel.Reel.
+// This disables terminal shell management and is used only for unit testing where the terminal is not available
+// In this mode, go expect operates only on strings not command/shell outputs
 func DisableTerminalPromptEmulation() Option {
 	return func(r *Reel) Option {
 		r.disableTerminalPromptEmulation = true
@@ -109,6 +121,8 @@ func DisableTerminalPromptEmulation() Option {
 // array of strings is turned into a corresponding array of expect.Batcher.  This method side-effects the input
 // expectations array, following the Builder design pattern.  Finally, the first match is stored in the firstMatch
 // output parameter.
+// This command translates individual expectations in the test cases (e.g. success, failure, etc) into expect.Case in go expect
+// The expect.Case are later matched in order inside goexpect ExpectBatch function.
 func (r *Reel) batchExpectations(expectations []string, batcher []expect.Batcher, firstMatch *string) []expect.Batcher {
 	if len(expectations) > 0 {
 		expectCases := r.generateCases(expectations, firstMatch)
@@ -123,10 +137,15 @@ func (r *Reel) batchExpectations(expectations []string, batcher []expect.Batcher
 // parameter to store the first match found in the expectations array.  Thus, the order of expectations is important.
 func (r *Reel) generateCases(expectations []string, firstMatch *string) []expect.Caser {
 	var cases []expect.Caser
+	// expectations created from test case matches
 	for _, expectation := range expectations {
 		thisCase := r.generateCase(expectation, firstMatch)
 		cases = append(cases, thisCase)
 	}
+	// extra test case to match when commands do not return anything but exit without error. This expectation makes
+	// sure that any command exiting successfully will be processed without timeout.
+	thisCase := r.generateCase("", firstMatch)
+	cases = append(cases, thisCase)
 	return cases
 }
 
@@ -142,7 +161,7 @@ func (r *Reel) generateCase(expectation string, firstMatch *string) *expect.Case
 	}}
 }
 
-// Each Step can have exactly one execution string (Step.Execute).  This method follows the Adapter design pattern;  a
+// Each Step can have exactly one execution string (Step.Execute). This method follows the Adapter design pattern;  a
 // single raw execution string is converted into a corresponding expect.Batcher.  The function returns an array of
 // expect.Batcher, as it is expected that there are likely expectations to follow.
 func (r *Reel) generateBatcher(execute string) []expect.Batcher {
@@ -170,8 +189,9 @@ func (r *Reel) Step(step *Step, handler Handler) error {
 		exec, exp, timeout := step.unpack()
 		var batcher []expect.Batcher
 		batcher = r.generateBatcher(exec)
-		var firstMatch string
-		batcher = r.batchExpectations(exp, batcher, &firstMatch)
+		// firstMatchRe is the first regular expression (expectation) that has matched results
+		var firstMatchRe string
+		batcher = r.batchExpectations(exp, batcher, &firstMatchRe)
 		results, err := (*r.expecter).ExpectBatch(batcher, timeout)
 
 		if !step.hasExpectations() {
@@ -188,9 +208,12 @@ func (r *Reel) Step(step *Step, handler Handler) error {
 			if len(results) > 0 {
 				result := results[0]
 
-				output := r.stripEmulatedPromptFromOutput(result.Output)
-				match := r.stripEmulatedPromptFromOutput(result.Match[0])
-
+				output, outputStatus := r.stripEmulatedPromptFromOutput(result.Output)
+				if outputStatus != 0 {
+					r.Err = fmt.Errorf("error executing command %d: ", outputStatus)
+				}
+				match, matchStatus := r.stripEmulatedPromptFromOutput(result.Match[0])
+				log.Infof("command status: output=%s, match=%s, outputStatus=%d, matchStatus=%d", output, match, outputStatus, matchStatus)
 				matchIndex := strings.Index(output, match)
 				var before string
 				// special case:  the match regex may be nothing at all.
@@ -199,7 +222,8 @@ func (r *Reel) Step(step *Step, handler Handler) error {
 				} else {
 					before = ""
 				}
-				step = handler.ReelMatch(r.stripEmulatedRegularExpression(firstMatch), before, match)
+				strippedFirstMatchRe := r.stripEmulatedRegularExpression(firstMatchRe)
+				step = handler.ReelMatch(strippedFirstMatchRe, before, match)
 			}
 		}
 	}
@@ -254,15 +278,34 @@ func (r *Reel) wrapTestCommand(cmd string) string {
 // WrapTestCommand wraps cmd so that the output will end in an emulated terminal prompt.
 func WrapTestCommand(cmd string) string {
 	cmd = strings.TrimRight(cmd, "\n")
-	return fmt.Sprintf("%s && echo %s\n", cmd, EndOfTestSentinel)
+	wrappedCommand := fmt.Sprintf("%s ; echo %s %s$?\n", cmd, EndOfTestSentinel, ExitKeyword)
+	log.Tracef("Command sent: %s", wrappedCommand)
+	return wrappedCommand
 }
 
 // stripEmulatedPromptFromOutput will elide the emulated terminal prompt from the test output.
-func (r *Reel) stripEmulatedPromptFromOutput(output string) string {
-	if !r.disableTerminalPromptEmulation {
-		return strings.TrimRight(strings.TrimRight(output, endOfTestSentinelCutset), "\n")
+func (r *Reel) stripEmulatedPromptFromOutput(output string) (data string, status int) {
+	parsed := strings.Split(output, EndOfTestSentinel)
+	var err error
+	if !r.disableTerminalPromptEmulation && len(parsed) == 2 {
+		// if a sentinel was present, then we have at least 2 parsed results
+		// if command retuned nothing parsed[0]==""
+		data = parsed[0]
+		status, err = strconv.Atoi(strings.Split(strings.Split(parsed[1], ExitKeyword)[1], "\n")[0])
+		if err != nil {
+			// Cannot parse status from output, something is wrong, fail command
+			status = 1
+			log.Errorf("Cannot determine command status. Error: %s", err)
+		}
+		// remove trailing \n if present
+		data = strings.TrimRight(data, "\n")
+	} else {
+		// to support unit tests (without sentinel parsing)
+		data = output
+		status = 0
+		log.Errorf("Cannot determine command status, no sentinel present. Error: %s", err)
 	}
-	return output
+	return
 }
 
 // stripEmulatedRegularExpression will elide the modified part of the terminal prompt regular expression.
@@ -276,7 +319,8 @@ func (r *Reel) stripEmulatedRegularExpression(match string) string {
 // addEmulatedRegularExpression will append the additional regular expression to capture the emulated terminal prompt.
 func (r *Reel) addEmulatedRegularExpression(regularExpressionString string) string {
 	if !r.disableTerminalPromptEmulation {
-		return fmt.Sprintf("%s%s", regularExpressionString, EndOfTestRegexPostfix)
+		regularExpressionStringWithMetadata := fmt.Sprintf("%s%s", regularExpressionString, EndOfTestRegexPostfix)
+		return regularExpressionStringWithMetadata
 	}
 	return regularExpressionString
 }

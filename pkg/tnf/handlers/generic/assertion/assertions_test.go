@@ -18,7 +18,7 @@ package assertion_test
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"os"
 	"path"
 	"regexp"
 	"testing"
@@ -131,7 +131,7 @@ func getTestFile(testName string) string {
 // TestAssertions_UnmarshalJSON also tests Assertion.UnmarshalJSON.
 func TestAssertions_UnmarshalJSON(t *testing.T) {
 	for testName, testCase := range assertionsTestCases {
-		contents, err := ioutil.ReadFile(path.Join(getTestFile(testName)))
+		contents, err := os.ReadFile(path.Join(getTestFile(testName)))
 		assert.Nil(t, err)
 		assert.NotNil(t, contents)
 

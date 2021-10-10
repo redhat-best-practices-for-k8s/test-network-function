@@ -19,6 +19,8 @@ package tnf
 import (
 	"time"
 
+	log "github.com/sirupsen/logrus"
+
 	expect "github.com/google/goexpect"
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
@@ -37,7 +39,7 @@ const (
 
 // TestsExtraInfo a collection of messages per test that is added to the claim file
 // use WriteTestExtraInfo for writing to it
-var TestsExtraInfo []map[string][]string = []map[string][]string{}
+var TestsExtraInfo = []map[string][]string{}
 
 // CreateTestExtraInfoWriter creates a function that writes info messages for a specific test
 // info messages that were already added by calling the function will exist in the claim file
@@ -85,6 +87,10 @@ type Test struct {
 // Run performs a test, returning the result and any encountered errors.
 func (t *Test) Run() (int, error) {
 	err := t.runner.Run(t)
+	// if the runner fails, print the error
+	if t.runner.Err != nil {
+		log.Errorf("%s", t.runner.Err)
+	}
 	return t.tester.Result(), err
 }
 

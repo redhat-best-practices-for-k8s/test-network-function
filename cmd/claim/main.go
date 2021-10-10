@@ -24,7 +24,6 @@ import (
 	"github.com/test-network-function/test-network-function-claim/pkg/claim"
 	"github.com/test-network-function/test-network-function/pkg/junit"
 
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -89,7 +88,7 @@ func main() {
 
 func claimUpdate() {
 	fileUpdated := false
-	dat, err := ioutil.ReadFile(*claimFileTextPtr)
+	dat, err := os.ReadFile(*claimFileTextPtr)
 	if err != nil {
 		log.Fatalf("Error reading claim file :%v", err)
 	}
@@ -97,7 +96,7 @@ func claimUpdate() {
 	claimRoot := readClaim(&dat)
 	junitMap := claimRoot.Claim.RawResults
 
-	items, _ := ioutil.ReadDir(*reportFilesTextPtr)
+	items, _ := os.ReadDir(*reportFilesTextPtr)
 
 	for _, item := range items {
 		fileName := item.Name()
@@ -119,7 +118,7 @@ func claimUpdate() {
 	if err != nil {
 		log.Fatalf("Failed to generate the claim: %v", err)
 	}
-	err = ioutil.WriteFile(*claimFileTextPtr, payload, claimFilePermissions)
+	err = os.WriteFile(*claimFileTextPtr, payload, claimFilePermissions)
 	if err != nil {
 		log.Fatalf("Error writing claim data:\n%s", string(payload))
 	}

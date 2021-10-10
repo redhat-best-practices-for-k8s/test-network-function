@@ -78,7 +78,7 @@ func setupRequestTest(marshalFun marshalFunc) (tempfileName string) {
 
 // loadRequestConfig reads `tmpPath`, unmarshals it using `unmarshalFun`, and returns the resulting `TestConfiguration`.
 func loadRequestConfig(tmpPath string, unmarshalFun unmarshalFunc) (conf *TestConfiguration) {
-	contents, err := ioutil.ReadFile(tmpPath)
+	contents, err := os.ReadFile(tmpPath)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -98,7 +98,7 @@ func saveRequestConfig(marshalFun marshalFunc, c *TestConfiguration, configPath 
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = ioutil.WriteFile(configPath, bytes, filePerm)
+	err = os.WriteFile(configPath, bytes, filePerm)
 	if err != nil {
 		log.Fatal(err)
 	}

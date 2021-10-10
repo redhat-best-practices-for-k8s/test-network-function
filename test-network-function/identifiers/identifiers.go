@@ -380,9 +380,9 @@ ClusterRoleBindings, if possible.`,
 	TestPodDeploymentBestPracticesIdentifier: {
 		Identifier:  TestPodDeploymentBestPracticesIdentifier,
 		Type:        normativeResult,
-		Remediation: `Deploy the CNF using ReplicaSet.`,
+		Remediation: `Deploy the CNF using ReplicaSet/StatefulSet.`,
 		Description: formDescription(TestPodDeploymentBestPracticesIdentifier,
-			`tests that CNF Pod(s) are deployed as part of a ReplicaSet(s).`),
+			`tests that CNF Pod(s) are deployed as part of a ReplicaSet(s)/StatefulSet(s).`),
 	},
 
 	TestPodRoleBindingsBestPracticesIdentifier: {
@@ -528,6 +528,6 @@ the changes for you.`,
 		Identifier: TestclusterVersionIdentifier,
 		Type:       informativeResult,
 		Description: formDescription(TestclusterVersionIdentifier,
-			`extracts OCP versions from the cluster.`),
+			`Extracts OCP versions from the cluster.`),
 	},
 }

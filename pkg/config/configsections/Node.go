@@ -14,31 +14,36 @@
 // with this program; if not, write to the Free Software Foundation, Inc.,
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-package version
+package configsections
 
-import (
-	"encoding/json"
-	"os"
-	"path"
-)
+// WorkerLabel const for k8s worker
+const WorkerLabel = "node-role.kubernetes.io/worker"
 
-var (
-	defaultVersionFile = path.Join("..", "version.json")
-)
+// MasterLabel const for k8s for master
+const MasterLabel = "node-role.kubernetes.io/master"
 
-// Version refers to the `test-network-function` version tag.
-type Version struct {
-	// Tag is the Git tag for the version.
-	Tag string `json:"tag" yaml:"tag"`
+// Node defines in the cluster. with name of the node and the type of this node master/worker,,,,.
+type Node struct {
+	Name   string
+	Labels []string
 }
 
-// GetVersion extracts the test-network-function version.
-func GetVersion() (*Version, error) {
-	contents, err := os.ReadFile(defaultVersionFile)
-	if err != nil {
-		return nil, err
+// IsMaster Function that return if the node is master
+func (node Node) IsMaster() bool {
+	for _, t := range node.Labels {
+		if t == MasterLabel {
+			return true
+		}
 	}
-	version := &Version{}
-	err = json.Unmarshal(contents, version)
-	return version, err
+	return false
+}
+
+// IsWorker Function that return if the node is worker
+func (node Node) IsWorker() bool {
+	for _, t := range node.Labels {
+		if t == WorkerLabel {
+			return true
+		}
+	}
+	return false
 }

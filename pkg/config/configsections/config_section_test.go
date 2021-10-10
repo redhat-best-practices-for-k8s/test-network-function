@@ -74,7 +74,7 @@ func saveConfig(c *TestConfiguration, configPath string) (err error) {
 	if err != nil {
 		return
 	}
-	err = ioutil.WriteFile(configPath, bytes, filePerm)
+	err = os.WriteFile(configPath, bytes, filePerm)
 	return
 }
 
@@ -83,7 +83,7 @@ func saveConfigAsJSON(c *TestConfiguration, configPath string) (err error) {
 	if err != nil {
 		return
 	}
-	err = ioutil.WriteFile(configPath, bytes, filePerm)
+	err = os.WriteFile(configPath, bytes, filePerm)
 	return
 }
 

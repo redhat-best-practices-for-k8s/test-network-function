@@ -58,7 +58,7 @@ func setup() {
 		log.Fatal(err)
 	}
 	bytes, _ := yaml.Marshal(testConfigure)
-	err = ioutil.WriteFile(file.Name(), bytes, filePerm)
+	err = os.WriteFile(file.Name(), bytes, filePerm)
 	if err != nil {
 		log.Fatal(err)
 	}
