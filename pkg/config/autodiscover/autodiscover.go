@@ -41,15 +41,14 @@ const (
 )
 
 var (
-	//checkSubFilename      = "command.json"
-	//genericTestSchemaFile = path.Join("schemas", "generic-test.schema.json")
-	//pathRelativeToRoot    = path.Join("..", "..", "..", "..")
-	//pathToTestSchemaFile  = path.Join(pathRelativeToRoot, genericTestSchemaFile)
+	// TestFile is the file location of the command.json test case relative to the project root.
 	TestFile = path.Join("pkg", "tnf", "handlers", "command", "command.json")
-	// relativeShutdownTestPath is the relative path to the shutdown.json test case.
-	//relativeShutdownTestPath = path.Join(common.PathRelativeToRoot, shutdownTestPath)
+
+	// pathToTestFile is the relative path to the command.json test case.
 	pathToTestFile = path.Join(common.PathRelativeToRoot, TestFile)
-	commandDriver  = make(map[string]interface{})
+
+	// commandDriver stores the csi driver JSON output.
+	commandDriver = make(map[string]interface{})
 )
 
 // PerformAutoDiscovery checks the environment variable to see if autodiscovery should be performed
@@ -88,7 +87,6 @@ func executeOcGetCommand(resourceType, labelQuery, namespace string) (string, er
 	gomega.Expect(result).ToNot(gomega.BeNil())
 	gomega.Expect(result.Valid()).To(gomega.BeTrue())
 	gomega.Expect(handler).ToNot(gomega.BeNil())
-	gomega.Expect(handler).ToNot(gomega.BeNil())
 	gomega.Expect(test).ToNot(gomega.BeNil())
 
 	tester, err := tnf.NewTest(context.GetExpecter(), *test, handler, context.GetErrorChannel())
@@ -104,11 +102,9 @@ func executeOcGetCommand(resourceType, labelQuery, namespace string) (string, er
 
 	matches := genericTest.Matches
 	gomega.Expect(len(matches)).To(gomega.Equal(1))
-
 	match := genericTest.GetMatches()[0]
 	err = json.Unmarshal([]byte(match.Match), &commandDriver)
 	gomega.Expect(err).To(gomega.BeNil())
-
 	return match.Match, err
 }
 
