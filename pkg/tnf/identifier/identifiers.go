@@ -109,9 +109,7 @@ var Catalog = map[string]TestCatalogEntry{
 			ModifiesSystem:           false,
 			ModificationIsPersistent: false,
 		},
-		BinaryDependencies: []string{
-			dependencies.CommandBinaryName,
-		},
+		BinaryDependencies: []string{},
 	},
 	hostnameIdentifierURL: {
 		Identifier:  HostnameIdentifier,

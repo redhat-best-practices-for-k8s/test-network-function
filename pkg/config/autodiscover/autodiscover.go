@@ -22,6 +22,7 @@ import (
 	"os"
 	"path"
 	"strconv"
+	"time"
 
 	"github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
@@ -36,8 +37,9 @@ const (
 	tnfLabelPrefix            = "test-network-function.com"
 	labelTemplate             = "%s/%s"
 	// anyLabelValue is the value that will allow any value for a label when building the label query.
-	anyLabelValue = ""
-	ocCommand     = "oc get %s -n %s -o json -l %s"
+	anyLabelValue    = ""
+	ocCommand        = "oc get %s -n %s -o json -l %s"
+	ocCommandTimeOut = time.Second * 10
 )
 
 var (
@@ -80,6 +82,7 @@ func executeOcGetCommand(resourceType, labelQuery, namespace string) (string, er
 	ocCommandtoExecute := fmt.Sprintf(ocCommand, resourceType, namespace, labelQuery)
 	values := make(map[string]interface{})
 	values["COMMAND"] = ocCommandtoExecute
+	values["TIMEOUT"] = ocCommandTimeOut.Nanoseconds()
 	context := common.GetContext()
 	test, handler, result, err := generic.NewGenericFromMap(pathToTestFile, common.RelativeSchemaPath, values)
 

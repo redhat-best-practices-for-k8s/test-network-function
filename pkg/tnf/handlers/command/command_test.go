@@ -35,18 +35,18 @@ const (
 )
 
 var (
-	testcommandTargetLabels = "oc get %s -n %s -o json -l %s"
-	genericTestSchemaFile   = path.Join("schemas", "generic-test.schema.json")
-	checkSubFilename        = "command.json"
-	expectedPassPattern     = "(?m).*"
-	pathRelativeToRoot      = path.Join("..", "..", "..", "..")
-	pathToTestSchemaFile    = path.Join(pathRelativeToRoot, genericTestSchemaFile)
-	testCommand             = "oc get %s -n %s -o json -l %s"
+	genericTestSchemaFile = path.Join("schemas", "generic-test.schema.json")
+	checkSubFilename      = "command.json"
+	expectedPassPattern   = "(?m).*"
+	pathRelativeToRoot    = path.Join("..", "..", "..", "..")
+	pathToTestSchemaFile  = path.Join(pathRelativeToRoot, genericTestSchemaFile)
+	testCommand           = "oc get pods -n tnf"
 )
 
 func createTest() (*tnf.Tester, []reel.Handler, *gojsonschema.Result, error) {
 	values := make(map[string]interface{})
 	values["COMMAND"] = testCommand
+	values["TIMEOUT"] = testTimeoutDuration.Nanoseconds()
 	return generic.NewGenericFromMap(checkSubFilename, pathToTestSchemaFile, values)
 }
 func TestCommand_Args(t *testing.T) {
@@ -73,7 +73,7 @@ func TestCommand_ReelFirst(t *testing.T) {
 	assert.Equal(t, 1, len(handlers))
 	handler := handlers[0]
 	step := handler.ReelFirst()
-	assert.Equal(t, testcommandTargetLabels, step.Execute)
+	assert.Equal(t, testCommand, step.Execute)
 	assert.Contains(t, step.Expect, expectedPassPattern)
 	assert.Equal(t, testTimeoutDuration, step.Timeout)
 }

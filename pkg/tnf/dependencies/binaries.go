@@ -32,9 +32,6 @@ const (
 	// HostnameBinaryName is the name of the Unix `hostname` command.
 	HostnameBinaryName = "hostname"
 
-	// CommandBinaryName is the name of the Unix `command` command.
-	CommandBinaryName = "command"
-
 	// IPBinaryName is the name of the Unix `ip` command.
 	IPBinaryName = "ip"
 
