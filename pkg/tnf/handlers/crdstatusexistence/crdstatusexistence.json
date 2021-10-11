@@ -5,15 +5,15 @@
     },
     "description": "This test checks whether a given CRD has defined status subresource spec for all its versions.",
     "testResult": 0,
-    "testTimeout": 10000000000,
+    "testTimeout": {{ .TIMEOUT }},
     "reelFirstStep": {
       "execute":
-        "oc get crd {{.CRD_NAME}} -o json | jq -r '[.spec.versions[]] | if all(.schema.openAPIV3Schema.properties.status) then \"OK\" else \"FAIL\" end'",
+        "oc get crd {{ .CRD_NAME }} -o json | jq -r '[.spec.versions[]] | if all(.schema.openAPIV3Schema.properties.status) then \"OK\" else \"FAIL\" end'",
       "expect": [
         "(?m)OK",
         "(?m)FAIL"
       ],
-      "timeout": 10000000000
+      "timeout": {{ .TIMEOUT }}
     },
     "resultContexts": [
       {

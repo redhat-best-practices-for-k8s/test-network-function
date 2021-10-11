@@ -31,7 +31,7 @@ import (
 )
 
 const (
-	testTimeoutDuration = time.Second * 10
+	testTimeoutDuration = 10 * time.Second
 )
 
 var (
@@ -47,6 +47,7 @@ var (
 func createTest() (*tnf.Tester, []reel.Handler, *gojsonschema.Result, error) {
 	values := make(map[string]interface{})
 	values["CRD_NAME"] = testCrdName
+	values["TIMEOUT"] = testTimeoutDuration.Nanoseconds()
 	return generic.NewGenericFromMap(jsonTestFileName, pathToTestSchemaFile, values)
 }
 
