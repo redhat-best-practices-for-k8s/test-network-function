@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-
+set -x 
 # defaults
 export OUTPUT_LOC="$PWD/test-network-function"
 
@@ -72,4 +72,8 @@ echo "Running with focus '$FOCUS'"
 echo "Running with skip  '$SKIP'"
 echo "Report will be output to '$OUTPUT_LOC'"
 echo "ginkgo arguments '${GINKGO_ARGS}'"
-cd ./test-network-function && ./test-network-function.test -ginkgo.focus="$FOCUS" -ginkgo.skip="$SKIP" ${GINKGO_ARGS}
+SKIPTRING=""
+if [ -z $SKIP ]; then
+	$SKIP_STRING=-ginkgo.skip="$SKIP"
+fi
+cd ./test-network-function && ./test-network-function.test -ginkgo.focus="$FOCUS" $SKIP_STRING ${GINKGO_ARGS}

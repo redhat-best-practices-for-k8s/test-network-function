@@ -17,11 +17,10 @@
 package generic
 
 import (
+	"github.com/onsi/ginkgo"
 	"github.com/test-network-function/test-network-function/pkg/config"
 	"github.com/test-network-function/test-network-function/pkg/tnf/testcases"
-
-	"github.com/onsi/ginkgo"
-	ginkgoconfig "github.com/onsi/ginkgo/config"
+	"github.com/test-network-function/test-network-function/test-network-function/results"
 )
 
 const (
@@ -30,10 +29,12 @@ const (
 
 // Runs the "generic" CNF test cases.
 var _ = ginkgo.Describe(testsKey, func() {
-	if testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusStrings, testsKey) {
+	conf, _ := ginkgo.GinkgoConfiguration()
+	if testcases.IsInFocus(conf.FocusStrings, testsKey) {
 		env := config.GetTestEnvironment()
 		ginkgo.BeforeEach(func() {
 			env.LoadAndRefresh()
 		})
+		ginkgo.ReportAfterEach(results.RecordResult)
 	}
 })

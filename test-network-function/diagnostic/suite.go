@@ -9,10 +9,8 @@ import (
 	"github.com/test-network-function/test-network-function/pkg/config"
 	"github.com/test-network-function/test-network-function/test-network-function/common"
 	"github.com/test-network-function/test-network-function/test-network-function/identifiers"
-	"github.com/test-network-function/test-network-function/test-network-function/results"
 
 	"github.com/onsi/ginkgo"
-	ginkgoconfig "github.com/onsi/ginkgo/config"
 	"github.com/onsi/gomega"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/clusterversion"
@@ -20,6 +18,7 @@ import (
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodedebug"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
 	"github.com/test-network-function/test-network-function/pkg/tnf/testcases"
+	"github.com/test-network-function/test-network-function/test-network-function/results"
 )
 
 const (
@@ -66,60 +65,50 @@ var (
 )
 
 var _ = ginkgo.Describe(common.DiagnosticTestKey, func() {
-	if testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusStrings, common.DiagnosticTestKey) {
-		ginkgo.When("a cluster is set up and installed with OpenShift", func() {
+	conf, _ := ginkgo.GinkgoConfiguration()
+	if testcases.IsInFocus(conf.FocusStrings, common.DiagnosticTestKey) {
+		ginkgo.ReportAfterEach(results.RecordResult)
+		testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestclusterVersionIdentifier)
+		ginkgo.It(testID, func() {
+			testOcpVersion()
+		})
 
-			ginkgo.By("should report OCP version")
-			testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestclusterVersionIdentifier)
-			ginkgo.It(testID, func() {
-				defer results.RecordResult(identifiers.TestclusterVersionIdentifier)
-				testOcpVersion()
-			})
+		testID = identifiers.XformToGinkgoItIdentifier(identifiers.TestExtractNodeInformationIdentifier)
+		ginkgo.It(testID, func() {
+			context := common.GetContext()
 
-			testID = identifiers.XformToGinkgoItIdentifier(identifiers.TestExtractNodeInformationIdentifier)
-			ginkgo.It(testID, func() {
-				defer results.RecordResult(identifiers.TestExtractNodeInformationIdentifier)
-				context := common.GetContext()
+			tester, handlers, jsonParseResult, err := generic.NewGenericFromJSONFile(relativeNodesTestPath, relativeSchemaPath)
+			gomega.Expect(err).To(gomega.BeNil())
+			gomega.Expect(jsonParseResult).ToNot(gomega.BeNil())
+			gomega.Expect(jsonParseResult.Valid()).To(gomega.BeTrue())
+			gomega.Expect(handlers).ToNot(gomega.BeNil())
+			gomega.Expect(tester).ToNot(gomega.BeNil())
 
-				tester, handlers, jsonParseResult, err := generic.NewGenericFromJSONFile(relativeNodesTestPath, relativeSchemaPath)
-				gomega.Expect(err).To(gomega.BeNil())
-				gomega.Expect(jsonParseResult).ToNot(gomega.BeNil())
-				gomega.Expect(jsonParseResult.Valid()).To(gomega.BeTrue())
-				gomega.Expect(handlers).ToNot(gomega.BeNil())
-				gomega.Expect(tester).ToNot(gomega.BeNil())
+			test, err := tnf.NewTest(context.GetExpecter(), *tester, handlers, context.GetErrorChannel())
+			gomega.Expect(err).To(gomega.BeNil())
+			gomega.Expect(test).ToNot(gomega.BeNil())
 
-				test, err := tnf.NewTest(context.GetExpecter(), *tester, handlers, context.GetErrorChannel())
-				gomega.Expect(err).To(gomega.BeNil())
-				gomega.Expect(test).ToNot(gomega.BeNil())
+			test.RunAndValidate()
 
-				test.RunAndValidate()
-
-				genericTest := (*tester).(*generic.Generic)
-				gomega.Expect(genericTest).ToNot(gomega.BeNil())
-				matches := genericTest.Matches
-				gomega.Expect(len(matches)).To(gomega.Equal(1))
-				match := genericTest.GetMatches()[0]
-				err = json.Unmarshal([]byte(match.Match), &nodeSummary)
-				gomega.Expect(err).To(gomega.BeNil())
-			})
-			ginkgo.By("should report all CNI plugins")
-			testID = identifiers.XformToGinkgoItIdentifier(identifiers.TestListCniPluginsIdentifier)
-			ginkgo.It(testID, func() {
-				defer results.RecordResult(identifiers.TestListCniPluginsIdentifier)
-				testCniPlugins()
-			})
-			ginkgo.By("should report nodes HW info")
-			testID = identifiers.XformToGinkgoItIdentifier(identifiers.TestNodesHwInfoIdentifier)
-			ginkgo.It(testID, func() {
-				defer results.RecordResult(identifiers.TestNodesHwInfoIdentifier)
-				testNodesHwInfo()
-			})
-			ginkgo.By("should report cluster CSI driver info")
-			testID = identifiers.XformToGinkgoItIdentifier(identifiers.TestClusterCsiInfoIdentifier)
-			ginkgo.It(testID, func() {
-				defer results.RecordResult(identifiers.TestClusterCsiInfoIdentifier)
-				listClusterCSIInfo()
-			})
+			genericTest := (*tester).(*generic.Generic)
+			gomega.Expect(genericTest).ToNot(gomega.BeNil())
+			matches := genericTest.Matches
+			gomega.Expect(len(matches)).To(gomega.Equal(1))
+			match := genericTest.GetMatches()[0]
+			err = json.Unmarshal([]byte(match.Match), &nodeSummary)
+			gomega.Expect(err).To(gomega.BeNil())
+		})
+		testID = identifiers.XformToGinkgoItIdentifier(identifiers.TestListCniPluginsIdentifier)
+		ginkgo.It(testID, func() {
+			testCniPlugins()
+		})
+		testID = identifiers.XformToGinkgoItIdentifier(identifiers.TestNodesHwInfoIdentifier)
+		ginkgo.It(testID, func() {
+			testNodesHwInfo()
+		})
+		testID = identifiers.XformToGinkgoItIdentifier(identifiers.TestClusterCsiInfoIdentifier)
+		ginkgo.It(testID, func() {
+			listClusterCSIInfo()
 		})
 	}
 })

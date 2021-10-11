@@ -115,6 +115,7 @@ func TestTest(t *testing.T) {
 	gomega.RegisterFailHandler(ginkgo.Fail)
 	common.SetLogFormat()
 	common.SetLogLevel()
+	log.Info("Ginkgo Version: ", ginkgo.GINKGO_VERSION)
 	log.Info("Version: ", programVersion, " ( ", GitCommit, " )")
 	tnfcommon.OcDebugImageID = common.GetOcDebugImageID()
 
@@ -139,8 +140,7 @@ func TestTest(t *testing.T) {
 
 	// fill out the remaining claim information.
 	claimData.RawResults = junitMap
-	resultMap := generateResultMap(junitMap)
-	claimData.Results = results.GetReconciledResults(resultMap)
+	claimData.Results = results.GetReconciledResults()
 	configurations := marshalConfigurations()
 	claimData.Nodes = generateNodes()
 	unmarshalConfigurations(configurations, claimData.Configurations)
@@ -171,16 +171,6 @@ func incorporateVersions(claimData *claim.Claim) {
 		Ocp:          diagnostic.GetVersionsOcp().Ocp,
 		K8s:          diagnostic.GetVersionsOcp().K8s,
 	}
-}
-
-// generateResultMap is a conversion utility to generate results.  If an error is encountered, than this method fails
-// fatally.
-func generateResultMap(junitMap map[string]interface{}) map[string]junit.TestResult {
-	resultMap, err := junit.ExtractTestSuiteResults(junitMap, TNFReportKey)
-	if err != nil {
-		log.Fatalf("Could not extract the test suite results: %s", err)
-	}
-	return resultMap
 }
 
 // appendCNFFeatureValidationReportResults is a helper method to add the results of running the cnf-features-deploy

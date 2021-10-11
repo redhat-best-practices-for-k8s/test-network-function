@@ -29,6 +29,9 @@ const (
 	// junitContentKey is the "#content" key in the JSON serialized JUnit file.
 	junitContentKey = "#content"
 
+	// junitContentKey is the "#content" key in the JSON serialized JUnit file.
+	junitMessageKey = "-message"
+
 	// junitFailureKey is the "failure" key in the JSON serialized Junit file.
 	junitFailureKey = "failure"
 
@@ -40,6 +43,9 @@ const (
 
 	// junitTestSuiteKey =s the "testsuite" ke in the JSON serialized JSON file.
 	junitTestSuiteKey = "testsuite"
+
+	// junitTestSuiteKey =s the "testsuite" ke in the JSON serialized JSON file.
+	junitTestSuitesKey = "testsuites"
 
 	// CouldNotDeriveFailureReason is the sentinel message emitted when JUnit failure reason cannot be determined.
 	CouldNotDeriveFailureReason = "could not derive a reason for the failure from the output JSON"
@@ -88,12 +94,15 @@ func determineFailureReason(failure interface{}) string {
 	var failureReason string
 	if failureReasonObject, ok := failure.(map[string]interface{}); ok {
 		if derivedFailureReason, ok := failureReasonObject[junitContentKey]; ok {
-			failureReason = derivedFailureReason.(string)
+			failureReason = "Failed due to line: " + derivedFailureReason.(string)
 		} else {
-			failureReason = CouldNotDeriveFailureReason
+			failureReason = "Failed due to line: No error line found in JUnit" //nolint:goconst // only instance
 		}
-	} else {
-		failureReason = CouldNotDeriveFailureReason
+		if derivedFailureReason, ok := failureReasonObject[junitMessageKey]; ok {
+			failureReason = failureReason + "\n" + "Error message: " + derivedFailureReason.(string)
+		} else {
+			failureReason = failureReason + "\n" + "Error message: No JUinit message found"
+		}
 	}
 	return failureReason
 }
@@ -141,21 +150,25 @@ func toInterfaceArray(object interface{}) []interface{} {
 func ExtractTestSuiteResults(junitMap map[string]interface{}, reportKeyName string) (map[string]TestResult, error) {
 	// Note:  All of the follow checks are paranoia;  assuming a well formed JUnit output file, most of these checks
 	// will never fail.  As such, individual error reporting per case is ignored in favor of a blanket error statement.
-	if suite, ok := junitMap[reportKeyName].(map[string]interface{}); ok {
-		if testSuiteResults, ok := suite[junitTestSuiteKey]; ok {
-			if testCaseResultsMap, ok := testSuiteResults.(map[string]interface{}); ok {
-				if testCaseResults, ok := testCaseResultsMap[junitTestCaseKey]; ok {
-					// Note:  order is important since an []interface{} can still cast as interface{}, but an
-					// interface{} cannot be cast as []interface{}
-					if resultsObjects, ok := testCaseResults.([]interface{}); ok {
-						resultsMap := parseResults(resultsObjects)
-						parseResults(resultsObjects)
-						return resultsMap, nil
+	if suites, ok := junitMap[reportKeyName].(map[string]interface{}); ok {
+		if testSuitesResults, ok := suites[junitTestSuitesKey]; ok {
+			if testSuitesResultsMap, ok := testSuitesResults.(map[string]interface{}); ok {
+				if testSuiteResults, ok := testSuitesResultsMap[junitTestSuiteKey]; ok {
+					if testCaseResultsMap, ok := testSuiteResults.(map[string]interface{}); ok {
+						if testCaseResults, ok := testCaseResultsMap[junitTestCaseKey]; ok {
+							// Note:  order is important since an []interface{} can still cast as interface{}, but an
+							// interface{} cannot be cast as []interface{}
+							if resultsObjects, ok := testCaseResults.([]interface{}); ok {
+								resultsMap := parseResults(resultsObjects)
+								parseResults(resultsObjects)
+								return resultsMap, nil
+							}
+							resultsObjects := toInterfaceArray(testCaseResults)
+							resultsMap := parseResults(resultsObjects)
+							parseResults(resultsObjects)
+							return resultsMap, nil
+						}
 					}
-					resultsObjects := toInterfaceArray(testCaseResults)
-					resultsMap := parseResults(resultsObjects)
-					parseResults(resultsObjects)
-					return resultsMap, nil
 				}
 			}
 		}

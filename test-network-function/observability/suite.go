@@ -21,7 +21,6 @@ import (
 	"path"
 
 	"github.com/onsi/ginkgo"
-	ginkgoconfig "github.com/onsi/ginkgo/config"
 	"github.com/onsi/gomega"
 	"github.com/test-network-function/test-network-function/pkg/config"
 	"github.com/test-network-function/test-network-function/pkg/config/configsections"
@@ -45,13 +44,15 @@ var (
 )
 
 var _ = ginkgo.Describe(common.ObservabilityTestKey, func() {
-	if testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusStrings, common.ObservabilityTestKey) {
+	conf, _ := ginkgo.GinkgoConfiguration()
+	if testcases.IsInFocus(conf.FocusStrings, common.ObservabilityTestKey) {
 		env := config.GetTestEnvironment()
 		ginkgo.BeforeEach(func() {
 			env.LoadAndRefresh()
 			gomega.Expect(len(env.PodsUnderTest)).ToNot(gomega.Equal(0))
 			gomega.Expect(len(env.ContainersUnderTest)).ToNot(gomega.Equal(0))
 		})
+		ginkgo.ReportAfterEach(results.RecordResult)
 		testLogging(env)
 	}
 })
@@ -61,7 +62,6 @@ func testLogging(env *config.TestEnvironment) {
 	ginkgo.It(testID, func() {
 		for _, cut := range env.ContainersUnderTest {
 			ginkgo.By(fmt.Sprintf("Test container: %+v. should emit at least one line of log to stderr/stdout", cut.ContainerIdentifier))
-			defer results.RecordResult(identifiers.TestLoggingIdentifier)
 			loggingTest(cut.ContainerIdentifier)
 		}
 	})

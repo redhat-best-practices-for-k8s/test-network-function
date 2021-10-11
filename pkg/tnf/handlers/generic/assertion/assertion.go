@@ -150,13 +150,10 @@ func (a *Assertion) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	if err := a.unmarshalGroupIdxJSON(objMap); err != nil {
+	if err = a.unmarshalGroupIdxJSON(objMap); err != nil {
 		return err
 	}
 
-	if err := a.unmarshalConditionJSON(objMap); err != nil {
-		return err
-	}
-
-	return nil
+	err = a.unmarshalConditionJSON(objMap)
+	return err
 }

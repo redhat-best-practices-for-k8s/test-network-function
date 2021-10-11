@@ -2,6 +2,8 @@ module github.com/test-network-function/test-network-function
 
 go 1.16
 
+replace github.com/test-network-function/test-network-function-claim => github.com/edcdavid/test-network-function-claim v1.0.6
+
 require (
 	github.com/Masterminds/semver/v3 v3.1.1
 	github.com/basgys/goxml2json v1.1.0
@@ -10,8 +12,9 @@ require (
 	github.com/golang/mock v1.6.0
 	github.com/google/goexpect v0.0.0-20210330220015-096e5d1cbd97
 	github.com/google/goterm v0.0.0-20190703233501-fc88cf888a3f
+	github.com/google/pprof v0.0.0-20211008130755-947d60d73cc0 // indirect
 	github.com/kr/pretty v0.2.1 // indirect
-	github.com/onsi/ginkgo v1.16.5
+	github.com/onsi/ginkgo v1.16.6-0.20211014152641-f228134fe057
 	github.com/onsi/gomega v1.16.0
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.2.1
