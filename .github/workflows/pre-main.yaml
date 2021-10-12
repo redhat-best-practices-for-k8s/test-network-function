@@ -50,6 +50,25 @@ jobs:
       - name: make lint
         run: make lint
 
+  yamllint:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: yaml-lint
+        uses: ibiqlik/action-yamllint@v3
+        with:
+          config_data: |
+            extends: default
+            rules:
+              line-length:
+                level: warning
+              trailing-spaces:
+                level: warning
+              brackets:
+                level: warning
+              empty-lines:
+                level: warning
+
   unit-tests:
     name: Run Unit Tests
     runs-on: ubuntu-20.04
