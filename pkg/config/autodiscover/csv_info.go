@@ -17,7 +17,6 @@
 package autodiscover
 
 import (
-	"encoding/json"
 	"fmt"
 
 	log "github.com/sirupsen/logrus"
@@ -56,7 +55,7 @@ func (csv *CSVResource) GetAnnotationValue(annotationKey string, v interface{}) 
 		return fmt.Errorf("failed to find annotation '%s' on CSV '%s/%s'", annotationKey, csv.Metadata.Namespace, csv.Metadata.Name)
 	}
 	val := csv.Metadata.Annotations[annotationKey]
-	err = json.Unmarshal([]byte(val), v)
+	err = jsonUnmarshal([]byte(val), v)
 	if err != nil {
 		return csv.annotationUnmarshalError(annotationKey, err)
 	}

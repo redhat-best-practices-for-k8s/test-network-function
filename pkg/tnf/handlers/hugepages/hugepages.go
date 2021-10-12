@@ -21,6 +21,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/sirupsen/logrus"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
 	"github.com/test-network-function/test-network-function/pkg/tnf/identifier"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
@@ -37,23 +38,25 @@ const (
 
 // Hugepages holds information derived from running "oc get MachineConfig" on the command line.
 type Hugepages struct {
-	hugepagesz int
-	hugepages  int
-	result     int
-	timeout    time.Duration
-	args       []string
+	hugepagesz    int
+	hugepages     int
+	result        int
+	timeout       time.Duration
+	args          []string
+	machineConfig string
 }
 
 // NewHugepages creates a new Hugepages tnf.Test.
-func NewHugepages(timeout time.Duration) *Hugepages {
+func NewHugepages(timeout time.Duration, machineConfig string) *Hugepages {
 	return &Hugepages{
 		timeout: timeout,
 		result:  tnf.ERROR,
 		args: []string{
-			"oc", "get", "machineconfigs", "-l", "machineconfiguration.openshift.io/role=worker",
+			"oc", "get", "machineconfig", machineConfig,
 			"-o", "custom-columns=KARGS:.spec.kernelArguments",
-			"|", "grep", "-v", "nil", "|", "grep", "-E", "'hugepage|KARGS'",
+			"|", "grep", "-E", "'hugepage|KARGS'",
 		},
+		machineConfig: machineConfig,
 	}
 }
 
@@ -115,6 +118,8 @@ func (hp *Hugepages) ReelMatch(_, _, match string) *reel.Step {
 	if ok {
 		hp.hugepages, _ = strconv.Atoi(hugepages)
 	} else {
+		logrus.Warnf("Hugepages param not found in machineconfig %s. Defaulting to %d.",
+			hp.machineConfig, RhelDefaultHugepages)
 		hp.hugepages = RhelDefaultHugepages
 	}
 
@@ -126,6 +131,8 @@ func (hp *Hugepages) ReelMatch(_, _, match string) *reel.Step {
 		if ok {
 			hp.hugepagesz = atoi(hugepagesz)
 		} else {
+			logrus.Warnf("Hugepagesz param not found in machineconfig %s. Defaulting to %d.",
+				hp.machineConfig, RhelDefaultHugepagesz)
 			hp.hugepagesz = RhelDefaultHugepagesz
 		}
 	}

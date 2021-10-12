@@ -167,8 +167,7 @@ func runScalingTest(deployment configsections.Deployment) {
 	handler := scaling.NewScaling(common.DefaultTimeout, deployment.Namespace, deployment.Name, deployment.Replicas)
 	test, err := tnf.NewTest(common.GetContext().GetExpecter(), handler, []reel.Handler{handler}, common.GetContext().GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
-	common.RunAndValidateTest(test)
-
+	test.RunAndValidate()
 	// Wait until the deployment is ready
 	waitForAllDeploymentsReady(deployment.Namespace, scalingTimeout, scalingPollingPeriod)
 }
@@ -220,13 +219,11 @@ func testNodeSelector(env *config.TestEnvironment) {
 			tester := nodeselector.NewNodeSelector(common.DefaultTimeout, podName, podNamespace)
 			test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 			gomega.Expect(err).To(gomega.BeNil())
-			testResult, err := test.Run()
-			gomega.Expect(err).To(gomega.BeNil())
-			if testResult != tnf.SUCCESS {
+			test.RunAndValidateWithFailureCallback(func() {
 				msg := fmt.Sprintf("The pod specifies nodeSelector/nodeAffinity field, you might want to change it, %s %s", podNamespace, podName)
 				log.Warn(msg)
 				infoWriter(msg)
-			}
+			})
 		}
 	})
 }
@@ -245,9 +242,7 @@ func testGracePeriod(env *config.TestEnvironment) {
 			tester := graceperiod.NewGracePeriod(common.DefaultTimeout, podName, podNamespace)
 			test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 			gomega.Expect(err).To(gomega.BeNil())
-			testResult, err := test.Run()
-			gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
-			gomega.Expect(err).To(gomega.BeNil())
+			test.RunAndValidate()
 			gracePeriod := tester.GetGracePeriod()
 			if gracePeriod == defaultTerminationGracePeriod {
 				msg := fmt.Sprintf("%s %s has terminationGracePeriod set to %d, you might want to change it", podNamespace, podName, defaultTerminationGracePeriod)
@@ -278,21 +273,18 @@ func shutdownTest(podNamespace, podName string) {
 	values["POD_NAMESPACE"] = podNamespace
 	values["POD_NAME"] = podName
 	values["GO_TEMPLATE_PATH"] = relativeShutdownTestDirectoryPath
-	test, handlers, result, err := generic.NewGenericFromMap(relativeShutdownTestPath, common.RelativeSchemaPath, values)
+	tester, handlers, result, err := generic.NewGenericFromMap(relativeShutdownTestPath, common.RelativeSchemaPath, values)
 	gomega.Expect(err).To(gomega.BeNil())
 	gomega.Expect(result).ToNot(gomega.BeNil())
 	gomega.Expect(result.Valid()).To(gomega.BeTrue())
 	gomega.Expect(handlers).ToNot(gomega.BeNil())
 	gomega.Expect(handlers).ToNot(gomega.BeNil())
-	gomega.Expect(test).ToNot(gomega.BeNil())
-	tester, err := tnf.NewTest(context.GetExpecter(), *test, handlers, context.GetErrorChannel())
-	gomega.Expect(err).To(gomega.BeNil())
 	gomega.Expect(tester).ToNot(gomega.BeNil())
-
-	testResult, err := tester.Run()
+	test, err := tnf.NewTest(context.GetExpecter(), *tester, handlers, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
-	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
-	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
+	gomega.Expect(test).ToNot(gomega.BeNil())
+
+	test.RunAndValidate()
 }
 
 func testPodsRecreation(env *config.TestEnvironment) {
@@ -355,7 +347,7 @@ func getDeploymentsNodes(namespace string) []node {
 	tester := dn.NewDeploymentsNodes(common.DefaultTimeout, namespace)
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
-	common.RunAndValidateTest(test)
+	test.RunAndValidate()
 	nodes := tester.GetNodes()
 	gomega.Expect(nodes).NotTo(gomega.BeEmpty())
 	return sortNodesMap(nodes)
@@ -367,7 +359,7 @@ func getDeployments(namespace string) (deployments dp.DeploymentMap, notReadyDep
 	tester := dp.NewDeployments(common.DefaultTimeout, namespace)
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
-	common.RunAndValidateTest(test)
+	test.RunAndValidate()
 
 	deployments = tester.GetDeployments()
 
@@ -385,28 +377,25 @@ func drainNode(node string) {
 	tester := dd.NewDeploymentsDrain(drainTimeout, node)
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
-	common.RunAndValidateTest(test)
+	test.RunAndValidate()
 }
 
 func uncordonNode(node string) {
 	context := common.GetContext()
 	values := make(map[string]interface{})
 	values["NODE"] = node
-	test, handlers, result, err := generic.NewGenericFromMap(relativeNodesTestPath, common.RelativeSchemaPath, values)
+	tester, handlers, result, err := generic.NewGenericFromMap(relativeNodesTestPath, common.RelativeSchemaPath, values)
 	gomega.Expect(err).To(gomega.BeNil())
 	gomega.Expect(result).ToNot(gomega.BeNil())
 	gomega.Expect(result.Valid()).To(gomega.BeTrue())
 	gomega.Expect(handlers).ToNot(gomega.BeNil())
 	gomega.Expect(len(handlers)).To(gomega.Equal(1))
-	gomega.Expect(test).ToNot(gomega.BeNil())
-
-	tester, err := tnf.NewTest(context.GetExpecter(), *test, handlers, context.GetErrorChannel())
-	gomega.Expect(err).To(gomega.BeNil())
 	gomega.Expect(tester).ToNot(gomega.BeNil())
 
-	testResult, err := tester.Run()
+	test, err := tnf.NewTest(context.GetExpecter(), *tester, handlers, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
-	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
+	gomega.Expect(test).ToNot(gomega.BeNil())
+	test.RunAndValidate()
 }
 
 // Pod antiaffinity test for all deployments
@@ -436,19 +425,18 @@ func podAntiAffinity(deployment, podNamespace string, replica int) {
 	values["DEPLOYMENT_NAME"] = deployment
 	values["DEPLOYMENT_NAMESPACE"] = podNamespace
 	infoWriter := tnf.CreateTestExtraInfoWriter()
-	test, handlers, result, err := generic.NewGenericFromMap(relativePodTestPath, common.RelativeSchemaPath, values)
+	tester, handlers, result, err := generic.NewGenericFromMap(relativePodTestPath, common.RelativeSchemaPath, values)
 	gomega.Expect(err).To(gomega.BeNil())
 	gomega.Expect(result).ToNot(gomega.BeNil())
 	gomega.Expect(result.Valid()).To(gomega.BeTrue())
 	gomega.Expect(handlers).ToNot(gomega.BeNil())
 	gomega.Expect(len(handlers)).To(gomega.Equal(1))
-	gomega.Expect(test).ToNot(gomega.BeNil())
-	tester, err := tnf.NewTest(context.GetExpecter(), *test, handlers, context.GetErrorChannel())
-	gomega.Expect(err).To(gomega.BeNil())
 	gomega.Expect(tester).ToNot(gomega.BeNil())
+	test, err := tnf.NewTest(context.GetExpecter(), *tester, handlers, context.GetErrorChannel())
+	gomega.Expect(err).To(gomega.BeNil())
+	gomega.Expect(test).ToNot(gomega.BeNil())
 
-	testResult, err := tester.Run()
-	if testResult != tnf.SUCCESS {
+	test.RunAndValidateWithFailureCallback(func() {
 		if replica > 1 {
 			msg := fmt.Sprintf("The deployment replica count is %d, but a podAntiAffinity rule is not defined, "+
 				"you might want to change it in deployment %s in namespace %s", replica, deployment, podNamespace)
@@ -461,9 +449,7 @@ func podAntiAffinity(deployment, podNamespace string, replica int) {
 			log.Warn(msg)
 			infoWriter(msg)
 		}
-	}
-	gomega.Expect(err).To(gomega.BeNil())
-	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
+	})
 }
 
 func testOwner(env *config.TestEnvironment) {
@@ -479,9 +465,7 @@ func testOwner(env *config.TestEnvironment) {
 			tester := owners.NewOwners(common.DefaultTimeout, podNamespace, podName)
 			test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 			gomega.Expect(err).To(gomega.BeNil())
-			testResult, err := test.Run()
-			gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
-			gomega.Expect(err).To(gomega.BeNil())
+			test.RunAndValidate()
 		}
 	})
 }

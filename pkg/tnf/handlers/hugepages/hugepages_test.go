@@ -27,14 +27,14 @@ import (
 )
 
 func Test_NewHugepages(t *testing.T) {
-	newHp := hp.NewHugepages(testTimeoutDuration)
+	newHp := hp.NewHugepages(testTimeoutDuration, testMachineConfig)
 	assert.NotNil(t, newHp)
 	assert.Equal(t, testTimeoutDuration, newHp.Timeout())
 	assert.Equal(t, newHp.Result(), tnf.ERROR)
 }
 
 func Test_ReelFirstPositive(t *testing.T) {
-	newHp := hp.NewHugepages(testTimeoutDuration)
+	newHp := hp.NewHugepages(testTimeoutDuration, testMachineConfig)
 	assert.NotNil(t, newHp)
 	firstStep := newHp.ReelFirst()
 	re := regexp.MustCompile(firstStep.Expect[0])
@@ -44,7 +44,7 @@ func Test_ReelFirstPositive(t *testing.T) {
 }
 
 func Test_ReelFirstPositiveEmpty(t *testing.T) {
-	newHp := hp.NewHugepages(testTimeoutDuration)
+	newHp := hp.NewHugepages(testTimeoutDuration, testMachineConfig)
 	assert.NotNil(t, newHp)
 	firstStep := newHp.ReelFirst()
 	re := regexp.MustCompile(firstStep.Expect[0])
@@ -54,7 +54,7 @@ func Test_ReelFirstPositiveEmpty(t *testing.T) {
 }
 
 func Test_ReelFirstNegative(t *testing.T) {
-	newHp := hp.NewHugepages(testTimeoutDuration)
+	newHp := hp.NewHugepages(testTimeoutDuration, testMachineConfig)
 	assert.NotNil(t, newHp)
 	firstStep := newHp.ReelFirst()
 	re := regexp.MustCompile(firstStep.Expect[0])
@@ -63,7 +63,7 @@ func Test_ReelFirstNegative(t *testing.T) {
 }
 
 func Test_ReelMatchSuccessEmpty(t *testing.T) {
-	newHp := hp.NewHugepages(testTimeoutDuration)
+	newHp := hp.NewHugepages(testTimeoutDuration, testMachineConfig)
 	assert.NotNil(t, newHp)
 	step := newHp.ReelMatch("", "", testInputEmpty)
 	assert.Nil(t, step)
@@ -73,7 +73,7 @@ func Test_ReelMatchSuccessEmpty(t *testing.T) {
 }
 
 func Test_ReelMatchSuccess(t *testing.T) {
-	newHp := hp.NewHugepages(testTimeoutDuration)
+	newHp := hp.NewHugepages(testTimeoutDuration, testMachineConfig)
 	assert.NotNil(t, newHp)
 	step := newHp.ReelMatch("", "", testInputSuccess)
 	assert.Nil(t, step)
@@ -84,13 +84,14 @@ func Test_ReelMatchSuccess(t *testing.T) {
 
 // Just ensure there are no panics.
 func Test_ReelEof(t *testing.T) {
-	newHp := hp.NewHugepages(testTimeoutDuration)
+	newHp := hp.NewHugepages(testTimeoutDuration, testMachineConfig)
 	assert.NotNil(t, newHp)
 	newHp.ReelEOF()
 }
 
 const (
 	testTimeoutDuration    = time.Second * 2
+	testMachineConfig      = "worker-rendered-1"
 	testInputError         = ""
 	testInputEmpty         = "KARGS\n"
 	testInputSuccess       = "KARGS\n[skew_tick=1 nohz=on rcu_nocbs=2-19,22-39,42-59,62-79 tuned.non_isolcpus=30000300,00300003 intel_pstate=disable nosoftlockup tsc=nowatchdog intel_iommu=on iommu=pt isolcpus=managed_irq,2-19,22-39,42-59,62-79 systemd.cpu_affinity=0,1,40,41,20,21,60,61 hugepages=32 default_hugepagesz=32M hugepages=64 hugepagesz=1G nmi_watchdog=0 audit=0 mce=off processor.max_cstate=1 idle=poll intel_idle.max_cstate=0]\n"
