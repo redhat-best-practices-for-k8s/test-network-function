@@ -17,7 +17,6 @@
 package autodiscover
 
 import (
-	"encoding/json"
 	"log"
 	"os"
 	"path"
@@ -42,7 +41,7 @@ func loadPodResource(filePath string) (pod PodResource) {
 	if err != nil {
 		log.Fatalf("error (%s) loading PodResource %s for testing", err, filePath)
 	}
-	err = json.Unmarshal(contents, &pod)
+	err = jsonUnmarshal(contents, &pod)
 	if err != nil {
 		log.Fatalf("error (%s) loading PodResource %s for testing", err, filePath)
 	}

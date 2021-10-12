@@ -1,0 +1,21 @@
+
+{
+    "identifier" : {
+      "url" :  "http://test-network-function.com/tests/command",
+      "version": "v1.0.0"
+    },
+    "description": "Handler to execute user custom commands.",
+    "testResult": 0,
+    "testTimeout": {{ .TIMEOUT}},
+    "reelFirstStep": {
+      "execute": "{{ .COMMAND}}",
+      "expect":[ "(?m).*"],
+      "timeout": {{ .TIMEOUT}}
+    },
+    "resultContexts":[
+      {
+        "pattern": "(?m).*",
+        "defaultResult": 1
+      }
+    ]
+  }
