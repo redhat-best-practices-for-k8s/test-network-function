@@ -17,7 +17,6 @@
 package autodiscover
 
 import (
-	"encoding/json"
 	"fmt"
 
 	log "github.com/sirupsen/logrus"
@@ -80,7 +79,7 @@ func GetCSVsByLabel(labelName, labelValue, namespace string) (*CSVList, error) {
 	log.Debug("Command: ", out)
 
 	var csvList CSVList
-	err = json.Unmarshal([]byte(out), &csvList)
+	err = jsonUnmarshal([]byte(out), &csvList)
 	if err != nil {
 		return nil, err
 	}

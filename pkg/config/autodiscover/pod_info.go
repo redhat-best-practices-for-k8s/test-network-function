@@ -17,7 +17,6 @@
 package autodiscover
 
 import (
-	"encoding/json"
 	"fmt"
 
 	log "github.com/sirupsen/logrus"
@@ -163,7 +162,7 @@ func GetPodsByLabel(label configsections.Label, namespace string) (*PodList, err
 	log.Debug("Command: ", out)
 
 	var podList PodList
-	err = json.Unmarshal([]byte(out), &podList)
+	err = jsonUnmarshal([]byte(out), &podList)
 	if err != nil {
 		return nil, err
 	}
