@@ -25,7 +25,7 @@ env:
 
 jobs:
   lint:
-    name: Run Linter
+    name: Run Linter and Vet
     runs-on: ubuntu-20.04
 
     steps:
@@ -49,6 +49,9 @@ jobs:
 
       - name: make lint
         run: make lint
+        
+      - name: make vet
+        run: make vet
 
   yamllint:
     runs-on: ubuntu-20.04
