@@ -17,7 +17,6 @@
 package autodiscover
 
 import (
-	"encoding/json"
 	"fmt"
 
 	log "github.com/sirupsen/logrus"
@@ -82,7 +81,7 @@ func (pr *PodResource) GetAnnotationValue(annotationKey string, v interface{}) (
 		return fmt.Errorf("failed to find annotation '%s' on pod '%s/%s'", annotationKey, pr.Metadata.Namespace, pr.Metadata.Name)
 	}
 	val := pr.Metadata.Annotations[annotationKey]
-	err = json.Unmarshal([]byte(val), v)
+	err = jsonUnmarshal([]byte(val), v)
 	if err != nil {
 		return pr.annotationUnmarshalError(annotationKey, err)
 	}
@@ -97,12 +96,12 @@ func (pr *PodResource) GetAnnotationValue(annotationKey string, v interface{}) (
 func (pr *PodResource) getDefaultNetworkDeviceFromAnnotations() (iface string, err error) {
 	// Note: The `GetAnnotationValue` method does not distinguish between bad encoding and a missing annotation, which is needed here.
 	if val, present := pr.Metadata.Annotations[namespacedDefaultNetworkInterfaceKey]; present {
-		err = json.Unmarshal([]byte(val), &iface)
+		err = jsonUnmarshal([]byte(val), &iface)
 		return
 	}
 	if val, present := pr.Metadata.Annotations[cniNetworksStatusKey]; present {
 		var cniInfo []cniNetworkInterface
-		err = json.Unmarshal([]byte(val), &cniInfo)
+		err = jsonUnmarshal([]byte(val), &cniInfo)
 		if err != nil {
 			return "", pr.annotationUnmarshalError(cniNetworksStatusKey, err)
 		}
@@ -124,12 +123,12 @@ func (pr *PodResource) getDefaultNetworkDeviceFromAnnotations() (iface string, e
 func (pr *PodResource) getPodIPs() (ips []string, err error) {
 	// Note: The `GetAnnotationValue` method does not distinguish between bad encoding and a missing annotation, which is needed here.
 	if val, present := pr.Metadata.Annotations[namespacedIPsKey]; present {
-		err = json.Unmarshal([]byte(val), &ips)
+		err = jsonUnmarshal([]byte(val), &ips)
 		return
 	}
 	if val, present := pr.Metadata.Annotations[cniNetworksStatusKey]; present {
 		var cniInfo []cniNetworkInterface
-		err = json.Unmarshal([]byte(val), &cniInfo)
+		err = jsonUnmarshal([]byte(val), &cniInfo)
 		if err != nil {
 			return nil, pr.annotationUnmarshalError(cniNetworksStatusKey, err)
 		}
@@ -153,17 +152,17 @@ func (pr *PodResource) annotationUnmarshalError(annotationKey string, err error)
 // GetPodsByLabel will return all pods with a given label value. If `labelValue` is an empty string, all pods with that
 // label will be returned, regardless of the labels value.
 func GetPodsByLabel(label configsections.Label, namespace string) (*PodList, error) {
-	cmd := makeGetCommand(resourceTypePods, buildLabelQuery(label), namespace)
+	out, err := executeOcGetCommand(resourceTypePods, buildLabelQuery(label), namespace)
 
-	out, err := cmd.Output()
 	if err != nil {
 		return nil, err
 	}
+
 	log.Debug("JSON output for all pods labeled with: ", label)
-	log.Debug("Command: ", cmd)
-	log.Debug(string(out))
+	log.Debug("Command: ", out)
+
 	var podList PodList
-	err = json.Unmarshal(out, &podList)
+	err = jsonUnmarshal([]byte(out), &podList)
 	if err != nil {
 		return nil, err
 	}

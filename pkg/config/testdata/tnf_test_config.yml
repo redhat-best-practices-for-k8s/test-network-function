@@ -38,9 +38,9 @@ testPartner:
       multusIpAddresses:
         - 10.217.0.29
   testOrchestrator:
-      namespace: default
-      podName: partner
-      containerName: partner
+    namespace: default
+    podName: partner
+    containerName: partner
 certifiedcontainerinfo:
   - name: nginx-116  # working example
     repository: rhel8

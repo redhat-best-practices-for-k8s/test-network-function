@@ -19,6 +19,7 @@ package identifier
 import "github.com/test-network-function/test-network-function/pkg/tnf/dependencies"
 
 const (
+	commandIdentifierURL                  = "http://test-network-function.com/tests/command"
 	nodeselectorIdentifierURL             = "http://test-network-function.com/tests/nodeselector"
 	hostnameIdentifierURL                 = "http://test-network-function.com/tests/hostname"
 	ipAddrIdentifierURL                   = "http://test-network-function.com/tests/ipaddr"
@@ -101,6 +102,16 @@ type IntrusionSettings struct {
 
 // Catalog is the test catalog.
 var Catalog = map[string]TestCatalogEntry{
+	commandIdentifierURL: {
+		Identifier:  CommandIdentifier,
+		Description: "A generic test used with any command and would match any output. The caller is responsible for interpreting the output and extracting data from it.",
+		Type:        Normative,
+		IntrusionSettings: IntrusionSettings{
+			ModifiesSystem:           false,
+			ModificationIsPersistent: false,
+		},
+		BinaryDependencies: []string{},
+	},
 	hostnameIdentifierURL: {
 		Identifier:  HostnameIdentifier,
 		Description: "A generic test used to check the hostname of a target machine/container.",
@@ -623,6 +634,12 @@ var Catalog = map[string]TestCatalogEntry{
 			dependencies.JqBinaryName,
 		},
 	},
+}
+
+// CommandIdentifier is  the Identifier used to represent the generic command test case.
+var CommandIdentifier = Identifier{
+	URL:             commandIdentifierURL,
+	SemanticVersion: versionOne,
 }
 
 // HostnameIdentifier is the Identifier used to represent the generic hostname test case.

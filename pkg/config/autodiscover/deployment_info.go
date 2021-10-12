@@ -28,6 +28,13 @@ const (
 	resourceTypeDeployment = "deployment"
 )
 
+var (
+	jsonUnmarshal     = json.Unmarshal
+	execCommandOutput = func(cmd *exec.Cmd) ([]byte, error) {
+		return cmd.Output()
+	}
+)
+
 // DeploymentList holds the data from an `oc get deployments -o json` command
 type DeploymentList struct {
 	Items []DeploymentResource `json:"items"`
@@ -75,13 +82,13 @@ func GetTargetDeploymentsByNamespace(namespace string, targetLabel configsection
 
 	cmd := exec.Command("bash", "-c", ocCmd)
 
-	out, err := cmd.Output()
+	out, err := execCommandOutput(cmd)
 	if err != nil {
 		return nil, err
 	}
 
 	var deploymentList DeploymentList
-	err = json.Unmarshal(out, &deploymentList.Items)
+	err = jsonUnmarshal(out, &deploymentList.Items)
 	if err != nil {
 		return nil, err
 	}
