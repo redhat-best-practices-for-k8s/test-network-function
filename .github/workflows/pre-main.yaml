@@ -25,7 +25,7 @@ env:
 
 jobs:
   lint:
-    name: Run Linter/Vet
+    name: Run Linter and Vet
     runs-on: ubuntu-20.04
 
     steps:
