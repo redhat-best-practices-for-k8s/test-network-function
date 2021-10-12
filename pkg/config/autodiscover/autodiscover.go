@@ -17,7 +17,6 @@
 package autodiscover
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 	"path"
@@ -106,7 +105,7 @@ func executeOcGetCommand(resourceType, labelQuery, namespace string) (string, er
 	matches := genericTest.Matches
 	gomega.Expect(len(matches)).To(gomega.Equal(1))
 	match := genericTest.GetMatches()[0]
-	err = json.Unmarshal([]byte(match.Match), &commandDriver)
+	err = jsonUnmarshal([]byte(match.Match), &commandDriver)
 	gomega.Expect(err).To(gomega.BeNil())
 	return match.Match, err
 }
