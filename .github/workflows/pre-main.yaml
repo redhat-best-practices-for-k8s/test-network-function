@@ -25,7 +25,7 @@ env:
 
 jobs:
   lint:
-    name: Run Linter
+    name: Run Linter and Vet
     runs-on: ubuntu-20.04
 
     steps:
@@ -40,7 +40,7 @@ jobs:
           ref: ${{ github.sha }}
 
       - name: Rebuild mocks
-        run: go get github.com/golang/mock/mockgen && make mocks
+        run: go install github.com/golang/mock/mockgen && make mocks
 
       # TODO: golangci-lint team recommends using a GitHub Action to perform golangci-lint responsibilities.  However
       # there does not appear to be a way to honor our existing .golangci.yml.  For now, mimic developer behavior.
@@ -49,6 +49,28 @@ jobs:
 
       - name: make lint
         run: make lint
+        
+      - name: make vet
+        run: make vet
+
+  yamllint:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: yaml-lint
+        uses: ibiqlik/action-yamllint@v3
+        with:
+          config_data: |
+            extends: default
+            rules:
+              line-length:
+                level: warning
+              trailing-spaces:
+                level: warning
+              brackets:
+                level: warning
+              empty-lines:
+                level: warning
 
   unit-tests:
     name: Run Unit Tests
@@ -66,7 +88,7 @@ jobs:
           ref: ${{ github.sha }}
 
       - name: Rebuild mocks
-        run: go get github.com/golang/mock/mockgen && make mocks
+        run: go install github.com/golang/mock/mockgen && make mocks
 
       - name: Run Tests
         run: make test
@@ -90,10 +112,10 @@ jobs:
           ref: ${{ github.sha }}
 
       - name: Execute `make mocks`
-        run: go get github.com/golang/mock/mockgen && make mocks
+        run: go install github.com/golang/mock/mockgen && make mocks
 
       - name: Install ginkgo
-        run: go get -u github.com/onsi/ginkgo/ginkgo
+        run: go install github.com/onsi/ginkgo/ginkgo
 
       - name: Execute `make build`
         run: make build

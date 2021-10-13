@@ -14,6 +14,8 @@
 # Tasks provide shortcuts to common operations that occur frequently during
 # development. This includes running configured linters and executing unit tests
 
+GO_PACKAGES=$(shell go list ./... | grep -v vendor)
+
 .PHONY:	build \
 	mocks \
 	clean \
@@ -33,7 +35,8 @@
 	run-container-tests \
 	clean-mocks \
 	update-deps \
-	install-tools
+	install-tools \
+	vet
 
 # Get default value of $GOBIN if not explicitly set
 ifeq (,$(shell go env GOBIN))
@@ -143,6 +146,9 @@ update-deps:
 
 # Install build tools and other required software.
 install-tools:
-	go get github.com/onsi/ginkgo/ginkgo
-	go get github.com/onsi/gomega/...
-	go get github.com/golang/mock/mockgen
+	go install github.com/onsi/ginkgo/ginkgo
+	go install github.com/onsi/gomega/...
+	go install github.com/golang/mock/mockgen
+
+vet:
+	go vet ${GO_PACKAGES}
