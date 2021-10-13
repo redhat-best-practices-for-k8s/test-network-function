@@ -24,6 +24,9 @@ import (
 const (
 	genericLabelName  = "generic"
 	orchestratorValue = "orchestrator"
+	defaultNamespace  = "default"
+	debugLabelName    = "app"
+	debugLabelValue   = "debug"
 )
 
 // FindTestPartner completes a `configsections.TestPartner` from the current state of the cluster,
@@ -37,5 +40,16 @@ func FindTestPartner(tp *configsections.TestPartner, namespace string) {
 		}
 		tp.ContainerConfigList = append(tp.ContainerConfigList, orchestrator)
 		tp.TestOrchestratorID = orchestrator.ContainerIdentifier
+	}
+	label := configsections.Label{Name: debugLabelName, Value: debugLabelValue}
+	pods, err := GetPodsByLabel(label, defaultNamespace)
+	if err != nil {
+		log.Panic("can't find debug pods")
+	}
+	if len(pods.Items) == 0 {
+		log.Panic("can't find debug pods, make sure daemonset debug is deployed properly")
+	}
+	for _, pod := range pods.Items {
+		tp.ContainersDebugList = append(tp.ContainersDebugList, buildContainersFromPodResource(pod)[0])
 	}
 }

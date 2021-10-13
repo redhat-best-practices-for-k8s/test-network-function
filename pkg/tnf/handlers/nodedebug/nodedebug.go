@@ -46,12 +46,11 @@ type NodeDebug struct {
 // trim: trim leading and trailing new lines
 // split: split lines of text into slice
 func NewNodeDebug(timeout time.Duration, nodeName, command string, trim, split bool) *NodeDebug {
-	command = reel.WrapTestCommand(command)
 	return &NodeDebug{
 		timeout: timeout,
 		result:  tnf.ERROR,
 		args: []string{
-			command,
+			"chroot", "/host", command,
 		},
 		Trim:  trim,
 		Split: split,

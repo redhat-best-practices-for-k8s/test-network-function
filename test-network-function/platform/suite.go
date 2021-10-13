@@ -132,10 +132,11 @@ func testContainersFsDiff(env *config.TestEnvironment) {
 			for _, cut := range env.ContainersUnderTest {
 				podName := cut.Oc.GetPodName()
 				containerName := cut.Oc.GetPodContainerName()
-				context := cut.Oc
+				containerOC := cut.Oc
 				nodeName := cut.ContainerConfiguration.NodeName
 				ginkgo.By(fmt.Sprintf("%s(%s) should not install new packages after starting", podName, containerName))
-				test := newContainerFsDiffTest(nodeName, context)
+				nodeOc := env.NodesUnderTest[nodeName].Oc
+				test := newContainerFsDiffTest(nodeName, nodeOc, containerOC)
 				test.RunAndValidateWithFailureCallback(func() {
 					badContainers = append(badContainers, containerName)
 					ginkgo.By(fmt.Sprintf("pod %s container %s did update/install/modify additional packages", podName, containerName))
@@ -147,7 +148,7 @@ func testContainersFsDiff(env *config.TestEnvironment) {
 }
 
 // newContainerFsDiffTest  test that the CUT didn't install new packages after starting, and report through Ginkgo.
-func newContainerFsDiffTest(nodeName string, targetContainerOC *interactive.Oc) *tnf.Test {
+func newContainerFsDiffTest(nodeName string, nodeOc, targetContainerOC *interactive.Oc) *tnf.Test {
 	defer results.RecordResult(identifiers.TestUnalteredBaseImageIdentifier)
 	targetContainerOC.GetExpecter()
 	containerIDTester := containerid.NewContainerID(common.DefaultTimeout)
@@ -155,9 +156,8 @@ func newContainerFsDiffTest(nodeName string, targetContainerOC *interactive.Oc) 
 	gomega.Expect(err).To(gomega.BeNil())
 	test.RunAndValidate()
 	containerID := containerIDTester.GetID()
-	context := common.GetContext()
 	fsDiffTester := cnffsdiff.NewFsDiff(common.DefaultTimeout, containerID, nodeName)
-	test, err = tnf.NewTest(context.GetExpecter(), fsDiffTester, []reel.Handler{fsDiffTester}, context.GetErrorChannel())
+	test, err = tnf.NewTest(nodeOc.GetExpecter(), fsDiffTester, []reel.Handler{fsDiffTester}, nodeOc.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
 	return test
 }

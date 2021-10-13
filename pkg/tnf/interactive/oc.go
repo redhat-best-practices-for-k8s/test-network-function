@@ -17,14 +17,12 @@
 package interactive
 
 import (
-	"fmt"
 	"regexp"
 	"strings"
 	"time"
 
 	expect "github.com/google/goexpect"
 	log "github.com/sirupsen/logrus"
-	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/common"
 )
 
 const (
@@ -32,7 +30,7 @@ const (
 	ocCommand                = "oc"
 	ocContainerArg           = "-c"
 	ocDefaultShell           = "sh"
-	ocExecCommand            = "exec"
+	ocRsh                    = "rsh"
 	ocNamespaceArg           = "-n"
 	ocInteractiveArg         = "-i"
 	ocNodeArg                = "node"
@@ -40,7 +38,7 @@ const (
 
 // Oc provides an OpenShift Client designed to wrap the "oc" CLI.
 type Oc struct {
-	// id of the pod or the node
+	// name of the pod or the node
 	pod string
 	// node set to true means the sessions is node session
 	// name of the container
@@ -65,25 +63,13 @@ type Oc struct {
 
 // SpawnOc creates an OpenShift Client subprocess, spawning the appropriate underlying PTY.
 func SpawnOc(spawner *Spawner, pod, container, namespace string, timeout time.Duration, opts ...Option) (*Oc, <-chan error, error) {
-	ocArgs := []string{ocExecCommand, ocNamespaceArg, namespace, ocInteractiveArg, pod, ocContainerArg, container, ocClientCommandSeparator, ocDefaultShell}
+	ocArgs := []string{ocRsh, ocNamespaceArg, namespace, ocContainerArg, container, pod}
 	context, err := (*spawner).Spawn(ocCommand, ocArgs, timeout, opts...)
 	if err != nil {
 		return nil, context.GetErrorChannel(), err
 	}
 	errorChannel := context.GetErrorChannel()
 	return &Oc{pod: pod, container: container, namespace: namespace, timeout: timeout, opts: opts, expecter: context.GetExpecter(), spawnErr: err, errorChannel: errorChannel, doneChannel: make(chan bool)}, errorChannel, nil
-}
-
-func SpawnNodeOc(spawner *Spawner, node, namespace string, timeout time.Duration, opts ...Option) (*Oc, <-chan error, error) {
-	ocArgs := []string{common.GetDebugCommand(), ocNamespaceArg, namespace, fmt.Sprintf("%s/%s", ocNodeArg, node)}
-	log.Info("spawn shell for node ", node, "using ", strings.Join(ocArgs, " "))
-	context, err := (*spawner).Spawn(ocCommand, ocArgs, timeout, opts...)
-	if err != nil {
-		return nil, context.GetErrorChannel(), err
-	}
-	errorChannel := context.GetErrorChannel()
-	podName := makeSimpleName(node) + "-debug"
-	return &Oc{pod: podName, container: "container-00", namespace: namespace, timeout: timeout, opts: opts, expecter: context.GetExpecter(), spawnErr: err, errorChannel: errorChannel, doneChannel: make(chan bool)}, errorChannel, nil
 }
 
 // GetExpecter returns a reference to the expect.Expecter reference used to control the OpenShift client.

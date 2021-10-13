@@ -145,6 +145,7 @@ func getContainerDefaultNetworkIPAddress(oc *interactive.Oc, dev string) (string
 type TestEnvironment struct {
 	ContainersUnderTest  map[configsections.ContainerIdentifier]*Container
 	PartnerContainers    map[configsections.ContainerIdentifier]*Container
+	DebugContainers      map[configsections.ContainerIdentifier]*Container
 	PodsUnderTest        []configsections.Pod
 	DeploymentsUnderTest []configsections.Deployment
 	OperatorsUnderTest   []configsections.Operator
@@ -199,6 +200,7 @@ func (env *TestEnvironment) LoadAndRefresh() {
 		env.TestOrchestrator = nil
 		env.NodesUnderTest = nil
 		env.Config.Nodes = nil
+		env.DebugContainers = nil
 		env.doAutodiscover()
 	}
 }
@@ -218,16 +220,54 @@ func (env *TestEnvironment) doAutodiscover() {
 	for _, cid := range env.Config.ExcludeContainersFromConnectivityTests {
 		env.ContainersToExcludeFromConnectivityTests[cid] = ""
 	}
+	for _, cid := range env.Config.Partner.ContainersDebugList {
+		env.ContainersToExcludeFromConnectivityTests[cid.ContainerIdentifier] = ""
+	}
+
 	env.ContainersUnderTest = env.createContainers(env.Config.ContainerConfigList)
 	env.PodsUnderTest = env.Config.PodsUnderTest
 	env.PartnerContainers = env.createContainers(env.Config.Partner.ContainerConfigList)
 	env.TestOrchestrator = env.PartnerContainers[env.Config.Partner.TestOrchestratorID]
 	env.DeploymentsUnderTest = env.Config.DeploymentsUnderTest
 	env.OperatorsUnderTest = env.Config.Operators
+	env.DebugContainers = env.createContainers(env.Config.Partner.ContainersDebugList)
 	env.NodesUnderTest = env.createNodes()
 	log.Infof("Test Configuration: %+v", *env)
 
 	env.needsRefresh = false
+}
+
+
+func (env *TestEnvironment) createNodes() map[string]*NodeConfig {
+	log.Debug("autodiscovery: create nodes  start")
+	defer log.Debug("autodiscovery: create nodes done")
+	nodes := make(map[string]*NodeConfig)
+	minikube, _ := strconv.ParseBool(os.Getenv("TNF_MINIKUBE_ONLY"))
+
+	for _, n := range env.Config.Nodes {
+		nodes[n.Name] = &NodeConfig{Node: n, Name: n.Name, Oc: nil, deployment: false}
+	}
+
+	for _, c := range env.ContainersUnderTest {
+		nodeName := c.ContainerConfiguration.NodeName
+		if _, ok := nodes[nodeName]; ok {
+			nodes[nodeName].deployment = true
+		} else {
+			log.Warn("node ", nodeName, " has deployment, but not the right labels")
+		}
+	}
+
+	if minikube {
+		return nodes
+	}
+	for _, c := range env.DebugContainers {
+		nodeName := c.ContainerConfiguration.NodeName
+		if _, ok := nodes[nodeName]; ok {
+			nodes[nodeName].Oc = c.Oc
+		}
+	}
+
+	return nodes
 }
 
 

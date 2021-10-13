@@ -42,7 +42,7 @@ func NewReadBootConfig(timeout time.Duration) *ReadBootConfig {
 		timeout: timeout,
 		result:  tnf.ERROR,
 		args: []string{
-			"ls /host/boot/loader/entries/ | sort | tail -n 1",
+			"cat /host/boot/loader/entries/$(ls /host/boot/loader/entries/ | sort | tail -n 1)",
 		},
 	}
 }

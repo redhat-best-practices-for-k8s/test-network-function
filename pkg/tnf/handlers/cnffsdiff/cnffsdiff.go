@@ -96,7 +96,7 @@ func (p *CnfFsDiff) ReelEOF() {
 
 // Command returns command line args for checking the fs difference between a container and it's image
 func Command(containerID string) []string {
-	return []string{"podman", "diff", "--format", "json", containerID}
+	return []string{"chroot", "/host", "podman", "diff", "--format", "json", containerID}
 }
 
 // NewFsDiff creates a new `FsDiff` test which checks the fs difference between a container and it's image

@@ -182,7 +182,6 @@ func testScaling(env *config.TestEnvironment) {
 		if len(env.DeploymentsUnderTest) == 0 {
 			ginkgo.Skip("No test deployments found.")
 		}
-		common.TeardownNodeDebugSession()
 		for _, deployment := range env.DeploymentsUnderTest {
 			ginkgo.By(fmt.Sprintf("Scaling Deployment=%s, Replicas=%d (ns=%s)",
 				deployment.Name, deployment.Replicas, deployment.Namespace))
@@ -303,7 +302,6 @@ func testPodsRecreation(env *config.TestEnvironment) {
 		}
 		defer env.SetNeedsRefresh()
 		ginkgo.By("should create new replicas when node is drained")
-		common.TeardownNodeDebugSession()
 		for _, n := range env.NodesUnderTest {
 			if !n.HasDeployment() {
 				log.Debug("node ", n.Name, " has no deployment, skip draining")
