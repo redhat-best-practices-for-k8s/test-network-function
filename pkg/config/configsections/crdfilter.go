@@ -16,8 +16,8 @@
 
 package configsections
 
-// Crd defines a CustomResourceDefinition config filter.
-type Crd struct {
-	Group string
+// CrdFilter defines a CustomResourceDefinition config filter.
+type CrdFilter struct {
+	NameSuffix string `yaml:"nameSuffix" json:"nameSuffix"`
 	// labels []Label
 }

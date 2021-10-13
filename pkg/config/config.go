@@ -199,7 +199,7 @@ func (env *TestEnvironment) doAutodiscover() {
 	env.DeploymentsUnderTest = env.Config.DeploymentsUnderTest
 	env.OperatorsUnderTest = env.Config.Operators
 	env.Nodes = env.Config.Nodes
-	env.CrdNames = autodiscover.FindTestCrdNames(env.Config.Crds)
+	env.CrdNames = autodiscover.FindTestCrdNames(env.Config.CrdFilters)
 	log.Infof("Test Configuration: %+v", *env)
 
 	env.needsRefresh = false

@@ -33,9 +33,9 @@ const (
 	testDeploymentNamespace = "default"
 	testDeploymentReplicas  = 2
 
-	testCrdsNumber = 2
-	testCrdGroup1  = "group1.test1.com"
-	testCrdGroup2  = "group2.test2.com"
+	testCrdsNumber     = 2
+	testCrdNameSuffix1 = "group1.test1.com"
+	testCrdNameSuffix2 = "test2.com"
 )
 
 func testLoadedDeployments(t *testing.T, deployments []configsections.Deployment) {
@@ -45,10 +45,10 @@ func testLoadedDeployments(t *testing.T, deployments []configsections.Deployment
 	assert.Equal(t, deployments[0].Replicas, testDeploymentReplicas)
 }
 
-func testLoadedCrds(t *testing.T, crds []configsections.Crd) {
+func testLoadedCrds(t *testing.T, crds []configsections.CrdFilter) {
 	assert.Equal(t, len(crds), testCrdsNumber)
-	assert.Equal(t, crds[0].Group, testCrdGroup1)
-	assert.Equal(t, crds[1].Group, testCrdGroup2)
+	assert.Equal(t, crds[0].NameSuffix, testCrdNameSuffix1)
+	assert.Equal(t, crds[1].NameSuffix, testCrdNameSuffix2)
 }
 
 func TestLoadConfigFromFile(t *testing.T) {
@@ -59,5 +59,5 @@ func TestLoadConfigFromFile(t *testing.T) {
 	assert.Equal(t, env.Config.Partner.TestOrchestratorID.ContainerName, "partner")
 	assert.Equal(t, env.Config.Partner.TestOrchestratorID.PodName, "partner")
 	testLoadedDeployments(t, env.Config.DeploymentsUnderTest)
-	testLoadedCrds(t, env.Config.Crds)
+	testLoadedCrds(t, env.Config.CrdFilters)
 }

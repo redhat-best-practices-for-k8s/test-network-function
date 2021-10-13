@@ -44,15 +44,15 @@ test-network-function.com/generic: target
 Once the pods are found, all of their containers are also added to the target container list. A target deployments list will also be created with all the deployments which the test pods belong to.
 
 ### targetCrds
-In order to autodiscover the CRDs to be tested, an array of search filters can be set under the "targetCrds" label. The autodiscovery mechanism will iterate through all the filters to look for all the CRDs that match it. Currently, filters only work for the ".spec.group", using the "group" key as in the example:
+In order to autodiscover the CRDs to be tested, an array of search filters can be set under the "targetCrdFilters" label. The autodiscovery mechanism will iterate through all the filters to look for all the CRDs that match it. Currently, filters only work by name suffix.
 
 ```shell-script
-targetCrds:
- - group: "group1.tnf.com"
- - group: "anydomain.com"
+targetCrdFilters:
+ - nameSuffix: "group1.tnf.com"
+ - nameSuffix: "anydomain.com"
 ```
 
-The autodiscovery mechanism will create a list of all CRD names in the cluster that belong to the group "group1.tnf.com" or "anydomain.com".
+The autodiscovery mechanism will create a list of all CRD names in the cluster whose names have the suffix "group1.tnf.com" or "anydomain.com", e.g. "crd1.group1.tnf.com" or "mycrd.mygroup.anydomain.com".
 
 ### testTarget
 #### podsUnderTest / containersUnderTest

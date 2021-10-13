@@ -41,9 +41,9 @@ const (
 	// cnfName name of the cnf
 	cnfName = "cnf-test-one"
 	// crdNameOne name of the crd
-	crdGroup1 = "group1.test.com"
+	crdNameSuffix1 = "group1.test.com"
 	// crdNameTwo name of the crd
-	crdGroup2 = "group2.test.com"
+	crdNameSuffix2 = "group2.test.com"
 	// deploymentName is the name of the deployment
 	deploymentName = "deployment-one"
 	// deploymentReplicas no of replicas
@@ -131,9 +131,9 @@ func loadOperatorConfig() {
 }
 
 func loadCrds() {
-	test.Crds = []Crd{
-		{Group: crdGroup1},
-		{Group: crdGroup2},
+	test.CrdFilters = []CrdFilter{
+		{NameSuffix: crdNameSuffix1},
+		{NameSuffix: crdNameSuffix2},
 	}
 }
 
@@ -202,8 +202,8 @@ func TestFullConfigLoad(t *testing.T) {
 	assert.Equal(t, len(cfg.Operators), 1)
 	assert.Equal(t, cfg.PodsUnderTest[0].Name, cnfName)
 
-	assert.Equal(t, cfg.Crds[0].Group, crdGroup1)
-	assert.Equal(t, cfg.Crds[1].Group, crdGroup2)
+	assert.Equal(t, cfg.CrdFilters[0].NameSuffix, crdNameSuffix1)
+	assert.Equal(t, cfg.CrdFilters[1].NameSuffix, crdNameSuffix2)
 
 	assert.Nil(t, err)
 }
@@ -240,8 +240,8 @@ func TestFullJsonConfig(t *testing.T) {
 	assert.NotNil(t, yamlCfg)
 	assert.Equal(t, yamlCfg.Operators, jsonCfg.Operators)
 	assert.Equal(t, yamlCfg.PodsUnderTest, jsonCfg.PodsUnderTest)
-	assert.Equal(t, yamlCfg.Crds[0].Group, crdGroup1)
-	assert.Equal(t, yamlCfg.Crds[1].Group, crdGroup2)
+	assert.Equal(t, yamlCfg.CrdFilters[0].NameSuffix, crdNameSuffix1)
+	assert.Equal(t, yamlCfg.CrdFilters[1].NameSuffix, crdNameSuffix2)
 }
 
 func TestCnfJsonConfig(t *testing.T) {

@@ -18,8 +18,8 @@ package autodiscover
 
 import (
 	"encoding/json"
-	"fmt"
 	"os/exec"
+	"strings"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/test-network-function/test-network-function/pkg/config/configsections"
@@ -31,8 +31,9 @@ import (
 )
 
 const (
-	operatorLabelName          = "operator"
-	skipConnectivityTestsLabel = "skip_connectivity_tests"
+	operatorLabelName           = "operator"
+	skipConnectivityTestsLabel  = "skip_connectivity_tests"
+	ocGetClusterCrdNamesCommand = "kubectl get crd -o json | jq '[.items[].metadata.name]'"
 )
 
 var (
@@ -201,10 +202,10 @@ func getConfiguredOperatorTests() (opTests []string) {
 	return opTests
 }
 
-// GetTargeCrdNamesByGroup returns a list of crd names found in the cluster that belong to a given group.
-func GetTargeCrdNamesByGroup(group string) ([]string, error) {
-	ocCmd := fmt.Sprintf("oc get crds -o json | jq '[.items[] | select(.spec.group==\"%s\") | .metadata.name]'", group)
-	cmd := exec.Command("bash", "-c", ocCmd)
+// getClusterCrdNames returns a list of crd names found in the cluster.
+func getClusterCrdNames() ([]string, error) {
+	// ToDo: Use command handler.
+	cmd := exec.Command("bash", "-c", ocGetClusterCrdNamesCommand)
 
 	out, err := cmd.Output()
 	if err != nil {
@@ -221,15 +222,21 @@ func GetTargeCrdNamesByGroup(group string) ([]string, error) {
 }
 
 // FindTestCrdNames gets a list of CRD names based on configured groups.
-func FindTestCrdNames(targetCrds []configsections.Crd) []string {
-	var crdNames []string
-	for _, crd := range targetCrds {
-		groupCrds, err := GetTargeCrdNamesByGroup(crd.Group)
-		if err != nil {
-			log.Error("Unable to get CRDs list from group ", crd.Group, ". Error: ", err)
-		} else {
-			crdNames = append(crdNames, groupCrds...)
+func FindTestCrdNames(crdFilters []configsections.CrdFilter) []string {
+	clusterCrdNames, err := getClusterCrdNames()
+	if err != nil {
+		log.Errorf("Unable to get cluster CRD.")
+		return []string{}
+	}
+
+	var targetCrdNames []string
+	for _, crdName := range clusterCrdNames {
+		for _, crdFilter := range crdFilters {
+			if strings.HasSuffix(crdName, crdFilter.NameSuffix) {
+				targetCrdNames = append(targetCrdNames, crdName)
+				break
+			}
 		}
 	}
-	return crdNames
+	return targetCrdNames
 }
