@@ -89,31 +89,6 @@ func TestPods_ReelFirst(t *testing.T) {
 	assert.Equal(t, testTimeoutDuration, step.Timeout)
 }
 
-func TestPods_ReelEOF(t *testing.T) {
-	_, handlers, jsonParseResult, err := createTest()
-
-	assert.Nil(t, err)
-	assert.True(t, jsonParseResult.Valid())
-	assert.NotNil(t, handlers)
-
-	assert.Equal(t, 1, len(handlers))
-	handler := handlers[0]
-	// just ensure there isn't a panic
-	handler.ReelEOF()
-}
-
-func TestPods_ReelTimeout(t *testing.T) {
-	_, handlers, jsonParseResult, err := createTest()
-
-	assert.Nil(t, err)
-	assert.True(t, jsonParseResult.Valid())
-	assert.NotNil(t, handlers)
-
-	assert.Equal(t, 1, len(handlers))
-	handler := handlers[0]
-	assert.Nil(t, handler.ReelTimeout())
-}
-
 func TestPods_ReelMatch(t *testing.T) {
 	tester, handlers, jsonParseResult, err := createTest()
 
