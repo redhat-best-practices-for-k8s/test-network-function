@@ -17,14 +17,23 @@
 package autodiscover
 
 import (
+	"encoding/json"
+	"os/exec"
+	"strings"
+
 	log "github.com/sirupsen/logrus"
 	"github.com/test-network-function/test-network-function/pkg/config/configsections"
+	"github.com/test-network-function/test-network-function/pkg/tnf"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodenames"
+	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
 	"github.com/test-network-function/test-network-function/pkg/tnf/testcases"
+	"github.com/test-network-function/test-network-function/test-network-function/common"
 )
 
 const (
-	operatorLabelName          = "operator"
-	skipConnectivityTestsLabel = "skip_connectivity_tests"
+	operatorLabelName           = "operator"
+	skipConnectivityTestsLabel  = "skip_connectivity_tests"
+	ocGetClusterCrdNamesCommand = "kubectl get crd -o json | jq '[.items[].metadata.name]'"
 )
 
 var (
@@ -66,6 +75,51 @@ func FindTestTarget(labels []configsections.Label, target *configsections.TestTa
 	}
 
 	target.DeploymentsUnderTest = append(target.DeploymentsUnderTest, FindTestDeployments(labels, target, namespace)...)
+	target.Nodes = GetNodesList()
+}
+
+// GetNodesList Function that return a list of node and what is the type of them.
+func GetNodesList() (nodes map[string]configsections.Node) {
+	nodes = make(map[string]configsections.Node)
+	var nodeNames []string
+	context := common.GetContext()
+	tester := nodenames.NewNodeNames(common.DefaultTimeout, map[string]*string{configsections.MasterLabel: nil})
+	test, _ := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
+	_, err := test.Run()
+	if err != nil {
+		log.Error("Unable to get node list ", ". Error: ", err)
+		return
+	}
+	nodeNames = tester.GetNodeNames()
+	for i := range nodeNames {
+		nodes[nodeNames[i]] = configsections.Node{
+			Name:   nodeNames[i],
+			Labels: []string{configsections.MasterLabel},
+		}
+	}
+
+	context = common.GetContext()
+	tester = nodenames.NewNodeNames(common.DefaultTimeout, map[string]*string{configsections.WorkerLabel: nil})
+	test, _ = tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
+	_, err = test.Run()
+	if err != nil {
+		log.Error("Unable to get node list ", ". Error: ", err)
+	} else {
+		nodeNames = tester.GetNodeNames()
+		for i := range nodeNames {
+			if _, ok := nodes[nodeNames[i]]; ok {
+				var node = nodes[nodeNames[i]]
+				node.Labels = append(node.Labels, configsections.WorkerLabel)
+				nodes[nodeNames[i]] = node
+			} else {
+				nodes[nodeNames[i]] = configsections.Node{
+					Name:   nodeNames[i],
+					Labels: []string{configsections.WorkerLabel},
+				}
+			}
+		}
+	}
+	return nodes
 }
 
 // FindTestDeployments uses the containers' namespace to get its parent deployment. Filters out non CNF test deployments,
@@ -146,4 +200,43 @@ func getConfiguredOperatorTests() (opTests []string) {
 	}
 	log.WithField("opTests", opTests).Infof("got all tests from %s.", testcases.ConfiguredTestFile)
 	return opTests
+}
+
+// getClusterCrdNames returns a list of crd names found in the cluster.
+func getClusterCrdNames() ([]string, error) {
+	// ToDo: Use command handler.
+	cmd := exec.Command("bash", "-c", ocGetClusterCrdNamesCommand)
+
+	out, err := cmd.Output()
+	if err != nil {
+		return nil, err
+	}
+
+	var crdNamesList []string
+	err = json.Unmarshal(out, &crdNamesList)
+	if err != nil {
+		return nil, err
+	}
+
+	return crdNamesList, nil
+}
+
+// FindTestCrdNames gets a list of CRD names based on configured groups.
+func FindTestCrdNames(crdFilters []configsections.CrdFilter) []string {
+	clusterCrdNames, err := getClusterCrdNames()
+	if err != nil {
+		log.Errorf("Unable to get cluster CRD.")
+		return []string{}
+	}
+
+	var targetCrdNames []string
+	for _, crdName := range clusterCrdNames {
+		for _, crdFilter := range crdFilters {
+			if strings.HasSuffix(crdName, crdFilter.NameSuffix) {
+				targetCrdNames = append(targetCrdNames, crdName)
+				break
+			}
+		}
+	}
+	return targetCrdNames
 }

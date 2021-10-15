@@ -107,21 +107,19 @@ func testOperatorIsInstalledViaOLM(subscriptionName, subscriptionNamespace strin
 	values := make(map[string]interface{})
 	values["SUBSCRIPTION_NAME"] = subscriptionName
 	values["SUBSCRIPTION_NAMESPACE"] = subscriptionNamespace
-	test, handlers, result, err := generic.NewGenericFromMap(relativeNodesTestPath, relativeSchemaPath, values)
+	tester, handlers, result, err := generic.NewGenericFromMap(relativeNodesTestPath, relativeSchemaPath, values)
 	gomega.Expect(err).To(gomega.BeNil())
 	gomega.Expect(result).ToNot(gomega.BeNil())
 	gomega.Expect(result.Valid()).To(gomega.BeTrue())
 	gomega.Expect(handlers).ToNot(gomega.BeNil())
 	gomega.Expect(len(handlers)).To(gomega.Equal(1))
-	gomega.Expect(test).ToNot(gomega.BeNil())
-
-	tester, err := tnf.NewTest(context.GetExpecter(), *test, handlers, context.GetErrorChannel())
-	gomega.Expect(err).To(gomega.BeNil())
 	gomega.Expect(tester).ToNot(gomega.BeNil())
 
-	testResult, err := tester.Run()
+	test, err := tnf.NewTest(context.GetExpecter(), *tester, handlers, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
-	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
+	gomega.Expect(test).ToNot(gomega.BeNil())
+
+	test.RunAndValidate()
 }
 
 func itRunsTestsOnOperator(env *config.TestEnvironment) {
@@ -161,9 +159,7 @@ func runTestsOnOperator(env *config.TestEnvironment, testCase testcases.BaseTest
 			test, err := tnf.NewTest(context.GetExpecter(), opInTest, []reel.Handler{opInTest}, context.GetErrorChannel())
 			gomega.Expect(err).To(gomega.BeNil())
 			gomega.Expect(test).ToNot(gomega.BeNil())
-			testResult, err := test.Run()
-			gomega.Expect(err).To(gomega.BeNil())
-			gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
+			test.RunAndValidate()
 		}
 	})
 }

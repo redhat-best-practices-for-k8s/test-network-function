@@ -19,7 +19,6 @@ package suite
 import (
 	j "encoding/json"
 	"flag"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -224,7 +223,7 @@ func marshalClaimOutput(claimRoot *claim.Root) []byte {
 
 // writeClaimOutput writes the output payload to the claim file.  In the event of an error, this method fatally fails.
 func writeClaimOutput(claimOutputFile string, payload []byte) {
-	err := ioutil.WriteFile(claimOutputFile, payload, claimFilePermissions)
+	err := os.WriteFile(claimOutputFile, payload, claimFilePermissions)
 	if err != nil {
 		log.Fatalf("Error writing claim data:\n%s", string(payload))
 	}

@@ -19,20 +19,37 @@ package autodiscover
 import (
 	"fmt"
 	"os"
-	"os/exec"
+	"path"
 	"strconv"
+	"time"
 
+	"github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
 	"github.com/test-network-function/test-network-function/pkg/config/configsections"
+	"github.com/test-network-function/test-network-function/pkg/tnf"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/generic"
+	"github.com/test-network-function/test-network-function/test-network-function/common"
 )
 
 const (
 	disableAutodiscoverEnvVar = "TNF_DISABLE_CONFIG_AUTODISCOVER"
 	tnfLabelPrefix            = "test-network-function.com"
 	labelTemplate             = "%s/%s"
-
 	// anyLabelValue is the value that will allow any value for a label when building the label query.
-	anyLabelValue = ""
+	anyLabelValue    = ""
+	ocCommand        = "oc get %s -n %s -o json -l %s"
+	ocCommandTimeOut = time.Second * 10
+)
+
+var (
+	// TestFile is the file location of the command.json test case relative to the project root.
+	TestFile = path.Join("pkg", "tnf", "handlers", "command", "command.json")
+
+	// pathToTestFile is the relative path to the command.json test case.
+	pathToTestFile = path.Join(common.PathRelativeToRoot, TestFile)
+
+	// commandDriver stores the csi driver JSON output.
+	commandDriver = make(map[string]interface{})
 )
 
 // PerformAutoDiscovery checks the environment variable to see if autodiscovery should be performed
@@ -62,12 +79,45 @@ func buildAnnotationName(annotationName string) string {
 	return buildLabelName(tnfLabelPrefix, annotationName)
 }
 
-func makeGetCommand(resourceType, labelQuery, namespace string) *exec.Cmd {
-	// TODO: shell expecter
-	cmd := exec.Command("oc", "get", resourceType, "-n", namespace, "-o", "json", "-l", labelQuery)
-	log.Debug("Issuing get command ", cmd.Args)
+func buildLabelQuery(label configsections.Label) string {
+	fullLabelName := buildLabelName(label.Prefix, label.Name)
+	if label.Value != anyLabelValue {
+		return fmt.Sprintf("%s=%s", fullLabelName, label.Value)
+	}
+	return fullLabelName
+}
 
-	return cmd
+func executeOcGetCommand(resourceType, labelQuery, namespace string) (string, error) {
+	ocCommandtoExecute := fmt.Sprintf(ocCommand, resourceType, namespace, labelQuery)
+	values := make(map[string]interface{})
+	values["COMMAND"] = ocCommandtoExecute
+	values["TIMEOUT"] = ocCommandTimeOut.Nanoseconds()
+	context := common.GetContext()
+	test, handler, result, err := generic.NewGenericFromMap(pathToTestFile, common.RelativeSchemaPath, values)
+
+	gomega.Expect(err).To(gomega.BeNil())
+	gomega.Expect(result).ToNot(gomega.BeNil())
+	gomega.Expect(result.Valid()).To(gomega.BeTrue())
+	gomega.Expect(handler).ToNot(gomega.BeNil())
+	gomega.Expect(test).ToNot(gomega.BeNil())
+
+	tester, err := tnf.NewTest(context.GetExpecter(), *test, handler, context.GetErrorChannel())
+	gomega.Expect(err).To(gomega.BeNil())
+	gomega.Expect(tester).ToNot(gomega.BeNil())
+
+	testResult, err := tester.Run()
+	gomega.Expect(err).To(gomega.BeNil())
+	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
+
+	genericTest := (*test).(*generic.Generic)
+	gomega.Expect(genericTest).ToNot(gomega.BeNil())
+
+	matches := genericTest.Matches
+	gomega.Expect(len(matches)).To(gomega.Equal(1))
+	match := genericTest.GetMatches()[0]
+	err = jsonUnmarshal([]byte(match.Match), &commandDriver)
+	gomega.Expect(err).To(gomega.BeNil())
+	return match.Match, err
 }
 
 // getContainersByLabel builds `config.Container`s from containers in pods matching a label.

@@ -3,7 +3,7 @@ ARG TNF_PARTNER_DIR=/usr/tnf-partner
 
 ENV TNF_PARTNER_SRC_DIR=$TNF_PARTNER_DIR/src
 
-ENV GOLANGCI_VERSION=v1.32.2
+ENV GOLANGCI_VERSION=v1.42.1
 ENV OPENSHIFT_VERSION=4.6.32
 
 ENV TNF_DIR=/usr/tnf
@@ -17,7 +17,7 @@ RUN yum install -y gcc git jq make wget
 
 # Install Go binary
 ENV GO_DL_URL="https://golang.org/dl"
-ENV GO_BIN_TAR="go1.14.12.linux-amd64.tar.gz"
+ENV GO_BIN_TAR="go1.16.8.linux-amd64.tar.gz"
 ENV GO_BIN_URL_x86_64=${GO_DL_URL}/${GO_BIN_TAR}
 ENV GOPATH="/root/go"
 RUN if [[ "$(uname -m)" -eq "x86_64" ]] ; then \

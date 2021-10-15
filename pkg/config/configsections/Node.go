@@ -16,17 +16,34 @@
 
 package configsections
 
-// Types defined in this file are not currently in use. Move them out when starting to use.
-// May remove this altogether in the future
+// WorkerLabel const for k8s worker
+const WorkerLabel = "node-role.kubernetes.io/worker"
 
-// CNFType defines a type to be either Operator or Container
-type CNFType string
+// MasterLabel const for k8s for master
+const MasterLabel = "node-role.kubernetes.io/master"
 
-// Permission defines roles and cluster roles resources
-type Permission struct {
-	// Name is the name of Roles and Cluster Roles that is specified in the CSV
-	Name string `yaml:"name" json:"name"`
+// Node defines in the cluster. with name of the node and the type of this node master/worker,,,,.
+type Node struct {
+	Name   string
+	Labels []string
+}
 
-	// Role is the role type either CLUSTER_ROLE or ROLE
-	Role string `yaml:"role" json:"role"`
+// IsMaster Function that return if the node is master
+func (node Node) IsMaster() bool {
+	for _, t := range node.Labels {
+		if t == MasterLabel {
+			return true
+		}
+	}
+	return false
+}
+
+// IsWorker Function that return if the node is worker
+func (node Node) IsWorker() bool {
+	for _, t := range node.Labels {
+		if t == WorkerLabel {
+			return true
+		}
+	}
+	return false
 }

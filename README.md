@@ -43,6 +43,17 @@ test-network-function.com/generic: target
 
 Once the pods are found, all of their containers are also added to the target container list. A target deployments list will also be created with all the deployments which the test pods belong to.
 
+### targetCrds
+In order to autodiscover the CRDs to be tested, an array of search filters can be set under the "targetCrdFilters" label. The autodiscovery mechanism will iterate through all the filters to look for all the CRDs that match it. Currently, filters only work by name suffix.
+
+```shell-script
+targetCrdFilters:
+ - nameSuffix: "group1.tnf.com"
+ - nameSuffix: "anydomain.com"
+```
+
+The autodiscovery mechanism will create a list of all CRD names in the cluster whose names have the suffix "group1.tnf.com" or "anydomain.com", e.g. "crd1.group1.tnf.com" or "mycrd.mygroup.anydomain.com".
+
 ### testTarget
 #### podsUnderTest / containersUnderTest
 This section is usually not required if labels defined in the section above cover all resources that should be tested. If label based discovery is not sufficient, this section can be manually populated as shown in the commented part of the [sample config](test-network-function/tnf_config.yml). However, instrusive tests need to be skipped ([see here](#disable-intrusive-tests)) for a reliable test result. The pods and containers explicitly configured here are added to the target pod/container lists populated through label matching.
@@ -123,7 +134,7 @@ export TNF_PARTNER_SRC_DIR=/home/userid/code/cnf-certification-test-partner
 When this variable is set, the run-cnf-suites.sh script will deploy/refresh the partner deployments/pods in the cluster before starting the test run.
 
 ### Specify the target namespace for partner pod deployment
-Set this variable to deploy partner pods in a custom namespace instead of the default `tnf` namesapce.
+Set this variable to deploy partner pods in a custom namespace instead of the default `tnf` namespace.
 
 ```shell-script
 export TNF_PARTNER_NAMESPACE="CNF-ns"
@@ -159,7 +170,8 @@ The image can be pulled using :
 docker pull quay.io/testnetworkfunction/test-network-function
 ```
 ### Cluster requirement
-To run all the tests, OCP cluster should provide enough resources to drain nodes and reschedule pods. If that's not the case, then ``lifecycle-pod-recreation`` test should be skipped.
+* OCP cluster should allow interactive shell sessions to pods/containers to stay alive when being idle for more than a few minutes. If it is not the case, consult the maintainer of the cluster infrastructure on how it can be enabled. Also, make sure the firewalls/load balancers on the path do not timeout idle connections too quickly.
+* OCP cluster should provide enough resources to drain nodes and reschedule pods. If that's not the case, then ``lifecycle-pod-recreation`` test should be skipped.
 ### Check cluster resources
 Some tests suites such as platform-alteration require node access to get node configuration like hugepage.
 In order to get the required information, the test suite does not ssh into nodes, but instead rely on [oc debug tools ](https://docs.openshift.com/container-platform/3.7/cli_reference/basic_cli_operations.html#debug). This tool makes it easier to fetch information from nodes and also to debug running pods.
@@ -243,8 +255,8 @@ At a minimum, the following dependencies must be installed *prior* to running `m
 
 Dependency|Minimum Version
 ---|---
-[GoLang](https://golang.org/dl/)|1.14
-[golangci-lint](https://golangci-lint.run/usage/install/)|1.32.2
+[GoLang](https://golang.org/dl/)|1.16
+[golangci-lint](https://golangci-lint.run/usage/install/)|1.42.1
 [jq](https://stedolan.github.io/jq/)|1.6
 [OpenShift Client](https://docs.openshift.com/container-platform/4.4/welcome/index.html)|4.4
 

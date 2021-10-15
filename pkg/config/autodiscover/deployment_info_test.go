@@ -18,28 +18,33 @@ package autodiscover
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"errors"
 	"log"
+	"os"
+	"os/exec"
 	"path"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/test-network-function/test-network-function/pkg/config/configsections"
 )
 
 const (
 	testDeploymentFile = "testdeployment.json"
+	testJQFile         = "testdeploy.json"
 )
 
 var (
 	testDeploymentFilePath = path.Join(filePath, testDeploymentFile)
+	testJQFilePath         = path.Join(filePath, testJQFile)
 )
 
 func loadDeployment(filePath string) (deployment DeploymentResource) {
-	contents, err := ioutil.ReadFile(filePath)
+	contents, err := os.ReadFile(filePath)
 	if err != nil {
 		log.Fatalf("error (%s) loading DeploymentResource %s for testing", err, filePath)
 	}
-	err = json.Unmarshal(contents, &deployment)
+	err = jsonUnmarshal(contents, &deployment)
 	if err != nil {
 		log.Fatalf("error (%s) unmarshalling DeploymentResource %s for testing", err, filePath)
 	}
@@ -56,4 +61,78 @@ func TestPodGetAnnotationValue1(t *testing.T) {
 	labels := deployment.GetLabels()
 	assert.Equal(t, 1, len(labels))
 	assert.Equal(t, "test", labels["app"])
+}
+
+//nolint:funlen
+func TestGetTargetDeploymentByNamespace(t *testing.T) {
+	testCases := []struct {
+		badExec          bool
+		execErr          error
+		badJSONUnmarshal bool
+		jsonErr          error
+	}{
+		{ // no failures
+			badExec:          false,
+			badJSONUnmarshal: false,
+		},
+		{ // failure to exec
+			badExec:          true,
+			execErr:          errors.New("this is an error"),
+			badJSONUnmarshal: false,
+			jsonErr:          nil,
+		},
+		{ // failure to jsonUnmarshal
+			badExec:          false,
+			execErr:          nil,
+			badJSONUnmarshal: true,
+			jsonErr:          errors.New("this is an error"),
+		},
+	}
+
+	origExecFunc := execCommandOutput
+
+	for _, tc := range testCases {
+		// Setup the mock functions
+		if tc.badExec {
+			execCommandOutput = func(cmd *exec.Cmd) ([]byte, error) {
+				return nil, tc.execErr
+			}
+		} else {
+			execCommandOutput = func(cmd *exec.Cmd) ([]byte, error) {
+				contents, err := os.ReadFile(testJQFilePath)
+				assert.Nil(t, err)
+				return contents, nil
+			}
+		}
+		if tc.badJSONUnmarshal {
+			jsonUnmarshal = func(data []byte, v interface{}) error {
+				return tc.jsonErr
+			}
+		} else {
+			// use the "real" function
+			jsonUnmarshal = json.Unmarshal
+		}
+
+		// Run the function and compare the list output
+		list, err := GetTargetDeploymentsByNamespace("test", configsections.Label{
+			Prefix: "prefix1",
+			Name:   "name1",
+			Value:  "value1",
+		})
+		if !tc.badExec && !tc.badJSONUnmarshal {
+			assert.NotNil(t, list)
+			assert.Equal(t, "my-test1", list.Items[0].Metadata.Name)
+		}
+
+		// Assert the errors and cleanup
+		if tc.badExec {
+			assert.NotNil(t, err)
+			execCommandOutput = origExecFunc
+		}
+
+		if tc.badJSONUnmarshal {
+			assert.NotNil(t, err)
+			jsonUnmarshal = json.Unmarshal
+		}
+	}
 }

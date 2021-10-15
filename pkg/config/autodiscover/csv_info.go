@@ -17,7 +17,6 @@
 package autodiscover
 
 import (
-	"encoding/json"
 	"fmt"
 
 	log "github.com/sirupsen/logrus"
@@ -56,7 +55,7 @@ func (csv *CSVResource) GetAnnotationValue(annotationKey string, v interface{}) 
 		return fmt.Errorf("failed to find annotation '%s' on CSV '%s/%s'", annotationKey, csv.Metadata.Namespace, csv.Metadata.Name)
 	}
 	val := csv.Metadata.Annotations[annotationKey]
-	err = json.Unmarshal([]byte(val), v)
+	err = jsonUnmarshal([]byte(val), v)
 	if err != nil {
 		return csv.annotationUnmarshalError(annotationKey, err)
 	}
@@ -71,17 +70,16 @@ func (csv *CSVResource) annotationUnmarshalError(annotationKey string, err error
 // GetCSVsByLabel will return all CSVs with a given label value. If `labelValue` is an empty string, all CSVs with that
 // label will be returned, regardless of the labels value.
 func GetCSVsByLabel(labelName, labelValue, namespace string) (*CSVList, error) {
-	cmd := makeGetCommand(resourceTypeCSV, BuildLabelQuery(configsections.Label{Prefix: tnfLabelPrefix, Name: labelName, Value: labelValue}), namespace)
+	out, err := executeOcGetCommand(resourceTypeCSV, buildLabelQuery(configsections.Label{Prefix: tnfLabelPrefix, Name: labelName, Value: labelValue}), namespace)
 
-	out, err := cmd.Output()
 	if err != nil {
 		return nil, err
 	}
 	log.Debug("JSON output for all pods labeled with: ", labelName)
-	log.Debug("Command: ", cmd)
-	log.Debug(string(out))
+	log.Debug("Command: ", out)
+
 	var csvList CSVList
-	err = json.Unmarshal(out, &csvList)
+	err = jsonUnmarshal([]byte(out), &csvList)
 	if err != nil {
 		return nil, err
 	}

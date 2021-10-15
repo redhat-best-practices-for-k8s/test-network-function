@@ -17,9 +17,8 @@
 package autodiscover
 
 import (
-	"encoding/json"
-	"io/ioutil"
 	"log"
+	"os"
 	"path"
 	"testing"
 
@@ -35,11 +34,11 @@ var (
 )
 
 func loadCSVResource(filePath string) (csv CSVResource) {
-	contents, err := ioutil.ReadFile(filePath)
+	contents, err := os.ReadFile(filePath)
 	if err != nil {
 		log.Fatalf("error (%s) loading CSVResource %s for testing", err, filePath)
 	}
-	err = json.Unmarshal(contents, &csv)
+	err = jsonUnmarshal(contents, &csv)
 	if err != nil {
 		log.Fatalf("error (%s) loading CSVResource %s for testing", err, filePath)
 	}

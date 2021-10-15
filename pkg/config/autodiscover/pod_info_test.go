@@ -17,9 +17,8 @@
 package autodiscover
 
 import (
-	"encoding/json"
-	"io/ioutil"
 	"log"
+	"os"
 	"path"
 	"testing"
 
@@ -38,11 +37,11 @@ var (
 )
 
 func loadPodResource(filePath string) (pod PodResource) {
-	contents, err := ioutil.ReadFile(filePath)
+	contents, err := os.ReadFile(filePath)
 	if err != nil {
 		log.Fatalf("error (%s) loading PodResource %s for testing", err, filePath)
 	}
-	err = json.Unmarshal(contents, &pod)
+	err = jsonUnmarshal(contents, &pod)
 	if err != nil {
 		log.Fatalf("error (%s) loading PodResource %s for testing", err, filePath)
 	}

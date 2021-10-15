@@ -38,12 +38,15 @@ testPartner:
       multusIpAddresses:
         - 10.217.0.29
   testOrchestrator:
-      namespace: default
-      podName: partner
-      containerName: partner
+    namespace: default
+    podName: partner
+    containerName: partner
 certifiedcontainerinfo:
   - name: nginx-116  # working example
     repository: rhel8
 certifiedoperatorinfo:
   - name: etcd-operator
     organization: redhat-marketplace
+targetCrdFilters:
+  - nameSuffix: "group1.test1.com"
+  - nameSuffix: "test2.com"

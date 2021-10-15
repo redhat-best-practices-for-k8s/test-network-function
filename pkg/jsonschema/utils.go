@@ -17,14 +17,14 @@
 package jsonschema
 
 import (
-	"io/ioutil"
+	"os"
 
 	"github.com/xeipuuv/gojsonschema"
 )
 
 // ValidateJSONFileAgainstSchema validates a given file against the supplied JSON schema.
 func ValidateJSONFileAgainstSchema(filename, schemaPath string) (*gojsonschema.Result, error) {
-	inputBytes, err := ioutil.ReadFile(filename)
+	inputBytes, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}
@@ -33,7 +33,7 @@ func ValidateJSONFileAgainstSchema(filename, schemaPath string) (*gojsonschema.R
 
 // ValidateJSONAgainstSchema validates a given byte array against the supplied JSON schema.
 func ValidateJSONAgainstSchema(inputBytes []byte, schemaPath string) (*gojsonschema.Result, error) {
-	schemaBytes, err := ioutil.ReadFile(schemaPath)
+	schemaBytes, err := os.ReadFile(schemaPath)
 	if err != nil {
 		return nil, err
 	}

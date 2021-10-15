@@ -18,7 +18,6 @@ package testcases
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"os"
 	"regexp"
 	"strings"
@@ -233,7 +232,7 @@ type ConfiguredTest struct {
 
 // LoadConfiguredTestFile loads configured test cases to struct
 func LoadConfiguredTestFile(filepath string) (c *ConfiguredTestCase, err error) {
-	yamlFile, err := ioutil.ReadFile(filepath)
+	yamlFile, err := os.ReadFile(filepath)
 	if err != nil {
 		return
 	}
