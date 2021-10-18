@@ -17,12 +17,10 @@
 package autodiscover
 
 import (
-
 	"encoding/json"
 	"os/exec"
 	"strings"
 	"time"
-
 
 	log "github.com/sirupsen/logrus"
 	"github.com/test-network-function/test-network-function/pkg/config/configsections"
@@ -34,10 +32,10 @@ import (
 )
 
 const (
-	operatorLabelName          = "operator"
-	skipConnectivityTestsLabel = "skip_connectivity_tests"
+	operatorLabelName           = "operator"
+	skipConnectivityTestsLabel  = "skip_connectivity_tests"
 	ocGetClusterCrdNamesCommand = "kubectl get crd -o json | jq '[.items[].metadata.name]'"
-	DefaultTimeout             = 10 * time.Second
+	DefaultTimeout              = 10 * time.Second
 )
 
 var (

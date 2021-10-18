@@ -237,7 +237,6 @@ func (env *TestEnvironment) doAutodiscover() {
 	env.needsRefresh = false
 }
 
-
 func (env *TestEnvironment) createNodes() map[string]*NodeConfig {
 	log.Debug("autodiscovery: create nodes  start")
 	defer log.Debug("autodiscovery: create nodes done")
@@ -269,7 +268,6 @@ func (env *TestEnvironment) createNodes() map[string]*NodeConfig {
 
 	return nodes
 }
-
 
 // createContainers contains the general steps involved in creating "oc" sessions and other configuration. A map of the
 // aggregate information is returned.
