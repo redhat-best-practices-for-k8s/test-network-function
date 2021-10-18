@@ -154,6 +154,5 @@ func (a *Assertion) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	err = a.unmarshalConditionJSON(objMap)
-	return err
+	return a.unmarshalConditionJSON(objMap)
 }
