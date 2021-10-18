@@ -83,6 +83,5 @@ func (i *Identifier) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	err = i.unmarshalSemanticVersion(objMap)
-	return err
+	return i.unmarshalSemanticVersion(objMap)
 }
