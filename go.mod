@@ -19,7 +19,6 @@ require (
 	github.com/test-network-function/test-network-function-claim v1.0.4
 	github.com/xeipuuv/gojsonschema v1.2.0
 	golang.org/x/sys v0.0.0-20211007075335-d3039528d8ac // indirect
-
 	google.golang.org/grpc v1.41.0
 	gopkg.in/yaml.v2 v2.4.0
 )
