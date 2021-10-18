@@ -28,5 +28,4 @@ const (
 	ObservabilityTestKey      = "observability"
 	OperatorTestKey           = "operator"
 	PlatformAlterationTestKey = "platform-alteration"
-	commonTestKey             = "common"
 )

@@ -17,8 +17,6 @@
 package interactive
 
 import (
-	"regexp"
-	"strings"
 	"time"
 
 	expect "github.com/google/goexpect"
@@ -26,14 +24,10 @@ import (
 )
 
 const (
-	ocClientCommandSeparator = "--"
-	ocCommand                = "oc"
-	ocContainerArg           = "-c"
-	ocDefaultShell           = "sh"
-	ocRsh                    = "rsh"
-	ocNamespaceArg           = "-n"
-	ocInteractiveArg         = "-i"
-	ocNodeArg                = "node"
+	ocCommand      = "oc"
+	ocContainerArg = "-c"
+	ocRsh          = "rsh"
+	ocNamespaceArg = "-n"
 )
 
 // Oc provides an OpenShift Client designed to wrap the "oc" CLI.
@@ -127,18 +121,4 @@ func (o *Oc) GetDoneChannel() <-chan bool {
 func (o *Oc) Close() {
 	log.Debugf("send close to channel pod %s/%s ", o.pod, o.container)
 	o.doneChannel <- true
-}
-
-// makeSimpleName is near-verbatime copy of the function used to generate debug pod
-// link https://github.com/openshift/oc/blob/ecccc93cf5f51aa851d15aeffef1bda486169600/pkg/helpers/newapp/app/pipeline.go#L329
-func makeSimpleName(name string) string {
-	var invalidServiceChars = regexp.MustCompile("[^-a-z0-9]")
-	const DNS1035LabelMaxLength int = 63
-	name = strings.ToLower(name)
-	name = invalidServiceChars.ReplaceAllString(name, "")
-	name = strings.TrimFunc(name, func(r rune) bool { return r == '-' })
-	if len(name) > DNS1035LabelMaxLength {
-		name = name[:DNS1035LabelMaxLength]
-	}
-	return name
 }
