@@ -137,7 +137,7 @@ func testContainersFsDiff(env *config.TestEnvironment) {
 				ginkgo.By(fmt.Sprintf("%s(%s) should not install new packages after starting", podName, containerName))
 				nodeOc := env.NodesUnderTest[nodeName].Oc
 				test := newContainerFsDiffTest(nodeName, nodeOc, containerOC)
-				test.RunAndValidateWithFailureCallback(func() {
+				test.RunWithFailureCallback(func() {
 					badContainers = append(badContainers, containerName)
 					ginkgo.By(fmt.Sprintf("pod %s container %s did update/install/modify additional packages", podName, containerName))
 				})

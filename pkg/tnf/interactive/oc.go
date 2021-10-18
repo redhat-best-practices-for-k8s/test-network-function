@@ -32,7 +32,7 @@ const (
 
 // Oc provides an OpenShift Client designed to wrap the "oc" CLI.
 type Oc struct {
-	// name of the pod or the node
+	// name of the pod
 	pod string
 	// node set to true means the sessions is node session
 	// name of the container
