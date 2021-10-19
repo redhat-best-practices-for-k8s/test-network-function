@@ -19,7 +19,6 @@ package config
 import (
 	"fmt"
 	"os"
-	"strconv"
 	"time"
 
 	"github.com/onsi/gomega"
@@ -84,11 +83,6 @@ func (n NodeConfig) IsWorker() bool {
 
 func (n NodeConfig) HasDeployment() bool {
 	return n.deployment
-}
-
-func isMinikube() bool {
-	minikube, _ := strconv.ParseBool(os.Getenv("TNF_MINIKUBE_ONLY"))
-	return minikube
 }
 
 // DefaultTimeout for creating new interactive sessions (oc, ssh, tty)
@@ -235,7 +229,7 @@ func (env *TestEnvironment) doAutodiscover() {
 	env.TestOrchestrator = env.PartnerContainers[env.Config.Partner.TestOrchestratorID]
 	env.DeploymentsUnderTest = env.Config.DeploymentsUnderTest
 	env.OperatorsUnderTest = env.Config.Operators
-	if !isMinikube() {
+	if !autodiscover.IsMinikube() {
 		env.DebugContainers = env.createContainers(env.Config.Partner.ContainersDebugList)
 	}
 	env.NodesUnderTest = env.createNodes()
@@ -262,7 +256,7 @@ func (env *TestEnvironment) createNodes() map[string]*NodeConfig {
 		}
 	}
 
-	if isMinikube() {
+	if autodiscover.IsMinikube() {
 		return nodes
 	}
 	for _, c := range env.DebugContainers {

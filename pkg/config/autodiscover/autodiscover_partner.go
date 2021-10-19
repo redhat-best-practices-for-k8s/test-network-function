@@ -17,6 +17,9 @@
 package autodiscover
 
 import (
+	"os"
+	"strconv"
+
 	log "github.com/sirupsen/logrus"
 	"github.com/test-network-function/test-network-function/pkg/config/configsections"
 )
@@ -29,6 +32,11 @@ const (
 	debugLabelValue   = "debug"
 )
 
+func IsMinikube() bool {
+	minikube, _ := strconv.ParseBool(os.Getenv("TNF_MINIKUBE_ONLY"))
+	return minikube
+}
+
 // FindTestPartner completes a `configsections.TestPartner` from the current state of the cluster,
 // using labels and annotations to populate the data, if it's not fully configured
 func FindTestPartner(tp *configsections.TestPartner, namespace string) {
@@ -40,6 +48,9 @@ func FindTestPartner(tp *configsections.TestPartner, namespace string) {
 		}
 		tp.ContainerConfigList = append(tp.ContainerConfigList, orchestrator)
 		tp.TestOrchestratorID = orchestrator.ContainerIdentifier
+	}
+	if IsMinikube() {
+		return
 	}
 	label := configsections.Label{Name: debugLabelName, Value: debugLabelValue}
 	pods, err := GetPodsByLabel(label, defaultNamespace)
