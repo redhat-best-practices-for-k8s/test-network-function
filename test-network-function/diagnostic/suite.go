@@ -67,6 +67,12 @@ var (
 var _ = ginkgo.Describe(common.DiagnosticTestKey, func() {
 	conf, _ := ginkgo.GinkgoConfiguration()
 	if testcases.IsInFocus(conf.FocusStrings, common.DiagnosticTestKey) {
+		env := config.GetTestEnvironment()
+		ginkgo.BeforeEach(func() {
+			env.LoadAndRefresh()
+			gomega.Expect(len(env.PodsUnderTest)).ToNot(gomega.Equal(0))
+			gomega.Expect(len(env.ContainersUnderTest)).ToNot(gomega.Equal(0))
+		})
 		ginkgo.ReportAfterEach(results.RecordResult)
 		testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestclusterVersionIdentifier)
 		ginkgo.It(testID, func() {
