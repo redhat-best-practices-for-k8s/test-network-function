@@ -86,8 +86,6 @@ type TestCatalogEntry struct {
 
 	// BinaryDependencies tracks the needed binaries to complete tests, such as `ping`.
 	BinaryDependencies []string `json:"binaryDependencies" yaml:"binaryDependencies"`
-
-	BestPracticeRequirment string `json:"BestPracticeForTest" yaml:"BestPracticeForTest"`
 }
 
 // IntrusionSettings is used to specify test intrusion behavior into a target system.
@@ -111,8 +109,7 @@ var Catalog = map[string]TestCatalogEntry{
 			ModifiesSystem:           false,
 			ModificationIsPersistent: false,
 		},
-		BinaryDependencies:     []string{},
-		BestPracticeRequirment: "Cnfs shall decouple application configuration from Pods, to allow dynamic configuration updates.",
+		BinaryDependencies: []string{},
 	},
 	hostnameIdentifierURL: {
 		Identifier:  HostnameIdentifier,
@@ -125,7 +122,6 @@ var Catalog = map[string]TestCatalogEntry{
 		BinaryDependencies: []string{
 			dependencies.HostnameBinaryName,
 		},
-		BestPracticeRequirment: "Cnfs shall decouple application configuration from Pods, to allow dynamic configuration updates.",
 	},
 	ipAddrIdentifierURL: {
 		Identifier:  IPAddrIdentifier,
@@ -138,7 +134,6 @@ var Catalog = map[string]TestCatalogEntry{
 		BinaryDependencies: []string{
 			dependencies.IPBinaryName,
 		},
-		BestPracticeRequirment: "Cnfs shall decouple application configuration from Pods, to allow dynamic configuration updates.",
 	},
 	nodesIdentifierURL: {
 		Identifier:  NodesIdentifier,
@@ -150,7 +145,6 @@ var Catalog = map[string]TestCatalogEntry{
 		BinaryDependencies: []string{
 			dependencies.OcBinaryName,
 		},
-		BestPracticeRequirment: "Cnfs shall decouple application configuration from Pods, to allow dynamic configuration updates.",
 	},
 	operatorIdentifierURL: {
 		Identifier: OperatorIdentifier,
@@ -167,7 +161,6 @@ var Catalog = map[string]TestCatalogEntry{
 			dependencies.JqBinaryName,
 			dependencies.OcBinaryName,
 		},
-		BestPracticeRequirment: "Cnfs shall decouple application configuration from Pods, to allow dynamic configuration updates.",
 	},
 	pingIdentifierURL: {
 		Identifier:  PingIdentifier,
@@ -180,7 +173,6 @@ var Catalog = map[string]TestCatalogEntry{
 		BinaryDependencies: []string{
 			dependencies.PingBinaryName,
 		},
-		BestPracticeRequirment: "Cnfs shall decouple application configuration from Pods, to allow dynamic configuration updates.",
 	},
 	podIdentifierURL: {
 		Identifier:  PodIdentifier,
@@ -194,7 +186,6 @@ var Catalog = map[string]TestCatalogEntry{
 			dependencies.JqBinaryName,
 			dependencies.OcBinaryName,
 		},
-		BestPracticeRequirment: "Cnfs shall decouple application configuration from Pods, to allow dynamic configuration updates.",
 	},
 	versionIdentifierURL: {
 		Identifier:  VersionIdentifier,
@@ -207,7 +198,6 @@ var Catalog = map[string]TestCatalogEntry{
 		BinaryDependencies: []string{
 			dependencies.CatBinaryName,
 		},
-		BestPracticeRequirment: "Cnfs shall decouple application configuration from Pods, to allow dynamic configuration updates.",
 	},
 	cnfFsDiffURL: {
 		Identifier:  CnfFsDiffIdentifier,
@@ -221,7 +211,6 @@ var Catalog = map[string]TestCatalogEntry{
 			dependencies.GrepBinaryName,
 			dependencies.CutBinaryName,
 		},
-		BestPracticeRequirment: "Cnfs shall decouple application configuration from Pods, to allow dynamic configuration updates.",
 	},
 	serviceAccountIdentifierURL: {
 		Identifier:  ServiceAccountIdentifier,
@@ -235,7 +224,6 @@ var Catalog = map[string]TestCatalogEntry{
 			dependencies.GrepBinaryName,
 			dependencies.CutBinaryName,
 		},
-		BestPracticeRequirment: "Cnfs shall decouple application configuration from Pods, to allow dynamic configuration updates.",
 	},
 	containerIDURL: {
 		Identifier:  ContainerIDIdentifier,
@@ -248,7 +236,6 @@ var Catalog = map[string]TestCatalogEntry{
 		BinaryDependencies: []string{
 			dependencies.CatBinaryName,
 		},
-		BestPracticeRequirment: "Cnfs shall decouple application configuration from Pods, to allow dynamic configuration updates.",
 	},
 	roleBindingIdentifierURL: {
 		Identifier:  RoleBindingIdentifier,
@@ -262,7 +249,6 @@ var Catalog = map[string]TestCatalogEntry{
 			dependencies.CatBinaryName,
 			dependencies.OcBinaryName,
 		},
-		BestPracticeRequirment: "Cnfs shall decouple application configuration from Pods, to allow dynamic configuration updates.",
 	},
 	clusterRoleBindingIdentifierURL: {
 		Identifier:  ClusterRoleBindingIdentifier,
@@ -275,7 +261,6 @@ var Catalog = map[string]TestCatalogEntry{
 		BinaryDependencies: []string{
 			dependencies.OcBinaryName,
 		},
-		BestPracticeRequirment: "Cnfs shall decouple application configuration from Pods, to allow dynamic configuration updates.",
 	},
 	nodePortIdentifierURL: {
 		Identifier:  NodePortIdentifier,
@@ -289,7 +274,6 @@ var Catalog = map[string]TestCatalogEntry{
 			dependencies.OcBinaryName,
 			dependencies.GrepBinaryName,
 		},
-		BestPracticeRequirment: "Cnfs shall decouple application configuration from Pods, to allow dynamic configuration updates.",
 	},
 	nodeNamesIdentifierURL: {
 		Identifier:  NodeNamesIdentifier,
@@ -302,7 +286,6 @@ var Catalog = map[string]TestCatalogEntry{
 		BinaryDependencies: []string{
 			dependencies.OcBinaryName,
 		},
-		BestPracticeRequirment: "Cnfs shall decouple application configuration from Pods, to allow dynamic configuration updates.",
 	},
 	nodeTaintedIdentifierURL: {
 		Identifier:  NodeTaintedIdentifier,
@@ -317,7 +300,6 @@ var Catalog = map[string]TestCatalogEntry{
 			dependencies.CatBinaryName,
 			dependencies.EchoBinaryName,
 		},
-		BestPracticeRequirment: "Cnfs shall decouple application configuration from Pods, to allow dynamic configuration updates.",
 	},
 	gracePeriodIdentifierURL: {
 		Identifier:  GracePeriodIdentifier,
@@ -331,7 +313,6 @@ var Catalog = map[string]TestCatalogEntry{
 			dependencies.GrepBinaryName,
 			dependencies.CutBinaryName,
 		},
-		BestPracticeRequirment: "Cnfs shall decouple application configuration from Pods, to allow dynamic configuration updates.",
 	},
 	hugepagesIdentifierURL: {
 		Identifier:  HugepagesIdentifier,
@@ -347,7 +328,6 @@ var Catalog = map[string]TestCatalogEntry{
 			dependencies.OcBinaryName,
 			dependencies.GrepBinaryName,
 		},
-		BestPracticeRequirment: "Cnfs shall decouple application configuration from Pods, to allow dynamic configuration updates.",
 	},
 	nodehugepagesIdentifierURL: {
 		Identifier:  NodeHugepagesIdentifier,
@@ -361,7 +341,6 @@ var Catalog = map[string]TestCatalogEntry{
 			dependencies.OcBinaryName,
 			dependencies.GrepBinaryName,
 		},
-		BestPracticeRequirment: "Cnfs shall decouple application configuration from Pods, to allow dynamic configuration updates.",
 	},
 	deploymentsIdentifierURL: {
 		Identifier:  DeploymentsIdentifier,
@@ -374,7 +353,6 @@ var Catalog = map[string]TestCatalogEntry{
 		BinaryDependencies: []string{
 			dependencies.OcBinaryName,
 		},
-		BestPracticeRequirment: "Cnfs shall decouple application configuration from Pods, to allow dynamic configuration updates.",
 	},
 	podnodenameIdentifierURL: {
 		Identifier:  PodNodeNameIdentifier,
@@ -387,7 +365,6 @@ var Catalog = map[string]TestCatalogEntry{
 		BinaryDependencies: []string{
 			dependencies.OcBinaryName,
 		},
-		BestPracticeRequirment: "Cnfs shall decouple application configuration from Pods, to allow dynamic configuration updates.",
 	},
 	deploymentsnodesIdentifierURL: {
 		Identifier:  DeploymentsNodesIdentifier,
@@ -401,7 +378,6 @@ var Catalog = map[string]TestCatalogEntry{
 			dependencies.OcBinaryName,
 			dependencies.GrepBinaryName,
 		},
-		BestPracticeRequirment: "Cnfs shall decouple application configuration from Pods, to allow dynamic configuration updates.",
 	},
 	nodeselectorIdentifierURL: {
 		Identifier:  NodeSelectorIdentifier,
@@ -415,7 +391,6 @@ var Catalog = map[string]TestCatalogEntry{
 			dependencies.OcBinaryName,
 			dependencies.GrepBinaryName,
 		},
-		BestPracticeRequirment: "Cnfs shall decouple application configuration from Pods, to allow dynamic configuration updates.",
 	},
 	nodemcnameIdentifierURL: {
 		Identifier:  NodeMcNameIdentifier,
@@ -429,7 +404,6 @@ var Catalog = map[string]TestCatalogEntry{
 			dependencies.OcBinaryName,
 			dependencies.GrepBinaryName,
 		},
-		BestPracticeRequirment: "Cnfs shall decouple application configuration from Pods, to allow dynamic configuration updates.",
 	},
 	deploymentsdrainIdentifierURL: {
 		Identifier:  DeploymentsNodesIdentifier,
@@ -443,7 +417,6 @@ var Catalog = map[string]TestCatalogEntry{
 			dependencies.JqBinaryName,
 			dependencies.EchoBinaryName,
 		},
-		BestPracticeRequirment: "Cnfs shall decouple application configuration from Pods, to allow dynamic configuration updates.",
 	},
 	mckernelargumentsIdentifierURL: {
 		Identifier:  McKernelArgumentsIdentifier,
@@ -458,7 +431,6 @@ var Catalog = map[string]TestCatalogEntry{
 			dependencies.JqBinaryName,
 			dependencies.EchoBinaryName,
 		},
-		BestPracticeRequirment: "Cnfs shall decouple application configuration from Pods, to allow dynamic configuration updates.",
 	},
 	ownersIdentifierURL: {
 		Identifier:  OwnersIdentifier,
@@ -471,7 +443,6 @@ var Catalog = map[string]TestCatalogEntry{
 		BinaryDependencies: []string{
 			dependencies.CatBinaryName,
 		},
-		BestPracticeRequirment: "Cnfs shall decouple application configuration from Pods, to allow dynamic configuration updates.",
 	},
 	currentKernelCmdlineArgsIdentifierURL: {
 		Identifier:  CurrentKernelCmdlineArgsURLIdentifier,
@@ -484,7 +455,6 @@ var Catalog = map[string]TestCatalogEntry{
 		BinaryDependencies: []string{
 			dependencies.CatBinaryName,
 		},
-		BestPracticeRequirment: "Cnfs shall decouple application configuration from Pods, to allow dynamic configuration updates.",
 	},
 	grubKernelCmdlineArgsIdentifierURL: {
 		Identifier:  GrubKernelCmdlineArgsURLIdentifier,
@@ -501,7 +471,6 @@ var Catalog = map[string]TestCatalogEntry{
 			dependencies.CutBinaryName,
 			dependencies.OcBinaryName,
 		},
-		BestPracticeRequirment: "Cnfs shall decouple application configuration from Pods, to allow dynamic configuration updates.",
 	},
 	sysctlConfigFilesListIdentifierURL: {
 		Identifier:  SysctlConfigFilesListURLIdentifier,
@@ -514,7 +483,6 @@ var Catalog = map[string]TestCatalogEntry{
 		BinaryDependencies: []string{
 			dependencies.CatBinaryName,
 		},
-		BestPracticeRequirment: "Cnfs shall decouple application configuration from Pods, to allow dynamic configuration updates.",
 	},
 	readRemoteFileIdentifierURL: {
 		Identifier:  ReadRemoteFileURLIdentifier,
@@ -527,7 +495,6 @@ var Catalog = map[string]TestCatalogEntry{
 		BinaryDependencies: []string{
 			dependencies.EchoBinaryName,
 		},
-		BestPracticeRequirment: "Cnfs shall decouple application configuration from Pods, to allow dynamic configuration updates.",
 	},
 	uncordonNodeIdentifierURL: {
 		Identifier:  UncordonNodeURLIdentifier,
@@ -540,7 +507,6 @@ var Catalog = map[string]TestCatalogEntry{
 		BinaryDependencies: []string{
 			dependencies.OcBinaryName,
 		},
-		BestPracticeRequirment: "Cnfs shall decouple application configuration from Pods, to allow dynamic configuration updates.",
 	},
 	checkSubscriptionIdentifierURL: {
 		Identifier:  CheckSubscriptionURLIdentifier,
@@ -553,7 +519,6 @@ var Catalog = map[string]TestCatalogEntry{
 		BinaryDependencies: []string{
 			dependencies.OcBinaryName,
 		},
-		BestPracticeRequirment: "Cnfs shall decouple application configuration from Pods, to allow dynamic configuration updates.",
 	},
 	nodeDebugIdentifierURL: {
 		Identifier:  NodeDebugIdentifier,
@@ -567,7 +532,6 @@ var Catalog = map[string]TestCatalogEntry{
 			dependencies.OcBinaryName,
 			dependencies.EchoBinaryName,
 		},
-		BestPracticeRequirment: "Cnfs shall decouple application configuration from Pods, to allow dynamic configuration updates.",
 	},
 	loggingIdentifierURL: {
 		Identifier:  LoggingURLIdentifier,
@@ -581,7 +545,6 @@ var Catalog = map[string]TestCatalogEntry{
 			dependencies.OcBinaryName,
 			dependencies.WcBinaryName,
 		},
-		BestPracticeRequirment: "Cnfs shall decouple application configuration from Pods, to allow dynamic configuration updates.",
 	},
 	podantiaffinityIdentifierURL: {
 		Identifier:  PodAntiAffinityIdentifier,
@@ -594,7 +557,6 @@ var Catalog = map[string]TestCatalogEntry{
 		BinaryDependencies: []string{
 			dependencies.OcBinaryName,
 		},
-		BestPracticeRequirment: "Cnfs shall decouple application configuration from Pods, to allow dynamic configuration updates.",
 	},
 	shutdownIdentifierURL: {
 		Identifier:  ShutdownURLIdentifier,
@@ -607,7 +569,6 @@ var Catalog = map[string]TestCatalogEntry{
 		BinaryDependencies: []string{
 			dependencies.OcBinaryName,
 		},
-		BestPracticeRequirment: "Cnfs shall decouple application configuration from Pods, to allow dynamic configuration updates.",
 	},
 	sysctlAllConfigsArgsURL: {
 		Identifier:  SysctlAllConfigsArgsIdentifier,
@@ -620,7 +581,6 @@ var Catalog = map[string]TestCatalogEntry{
 		BinaryDependencies: []string{
 			dependencies.SysctlBinaryName,
 		},
-		BestPracticeRequirment: "Cnfs shall decouple application configuration from Pods, to allow dynamic configuration updates.",
 	},
 	scalingIdentifierURL: {
 		Identifier: ScalingIdentifier,
@@ -635,7 +595,6 @@ var Catalog = map[string]TestCatalogEntry{
 		BinaryDependencies: []string{
 			dependencies.OcBinaryName,
 		},
-		BestPracticeRequirment: "Cnfs shall decouple application configuration from Pods, to allow dynamic configuration updates.",
 	},
 	csiDriverIdentifierURL: {
 		Identifier:  CSIDriverIdentifier,
@@ -648,7 +607,6 @@ var Catalog = map[string]TestCatalogEntry{
 		BinaryDependencies: []string{
 			dependencies.OcBinaryName,
 		},
-		BestPracticeRequirment: "Cnfs shall decouple application configuration from Pods, to allow dynamic configuration updates.",
 	},
 	clusterVersionIdentifierURL: {
 		Identifier:  ClusterVersionIdentifier,
@@ -661,7 +619,6 @@ var Catalog = map[string]TestCatalogEntry{
 		BinaryDependencies: []string{
 			dependencies.OcBinaryName,
 		},
-		BestPracticeRequirment: "Cnfs shall decouple application configuration from Pods, to allow dynamic configuration updates.",
 	},
 }
 

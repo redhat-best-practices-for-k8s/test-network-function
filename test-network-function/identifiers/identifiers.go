@@ -45,6 +45,9 @@ type TestCaseDescription struct {
 
 	// Type is the type of the test (i.e., normative).
 	Type string `json:"type" yaml:"type"`
+
+	// BestPracticeReference is a helpful best practice references of the test case.
+	BestPracticeReference string `json:"BestPracticeReference" yaml:"BestPracticeReference"`
 }
 
 func formTestURL(suite, name string) string {
@@ -238,6 +241,7 @@ cannot be followed.`,
 7. The Pod does not run as root.
 8. The Pod does not allow privileged escalation.
 `),
+		BestPracticeReference: "https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf (Section 6.2 )",
 	},
 
 	TestContainerIsCertifiedIdentifier: {
@@ -246,6 +250,7 @@ cannot be followed.`,
 		Remediation: `Ensure that your container has passed the Red Hat Container Certification Program (CCP).`,
 		Description: formDescription(TestContainerIsCertifiedIdentifier,
 			`tests whether container images have passed the Red Hat Container Certification Program (CCP).`),
+		BestPracticeReference: " Use the main CNI for all traffic(6.2.4). CNFs are not authorized to bring their own CNI.(6.3.7)",
 	},
 
 	TestExtractNodeInformationIdentifier: {
@@ -253,6 +258,7 @@ cannot be followed.`,
 		Type:       informativeResult,
 		Description: formDescription(TestExtractNodeInformationIdentifier,
 			`extracts informational information about the cluster.`),
+		BestPracticeReference: "CNFs may not have Cluster Roles(6.3.6)",
 	},
 
 	TestHugepagesNotManuallyManipulated: {
@@ -268,6 +274,7 @@ underlying Node.  This test case applies only to Nodes that are configured with 
 the "worker" MachineConfig is polled, and the Hugepage settings are extracted.  Next, the underlying Nodes are polled
 for configured HugePages through inspection of /proc/meminfo.  The results are compared, and the test passes only if
 they are the same.`),
+		BestPracticeReference: "https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf (Section 6.2 )",
 	},
 
 	TestICMPv4ConnectivityIdentifier: {
@@ -284,6 +291,7 @@ test case requires the Deployment of the
 [CNF Certification Test Partner](https://github.com/test-network-function/cnf-certification-test-partner/blob/main/test-partner/partner.yaml).
 The test ensures that all CNF containers respond to ICMPv4 requests from the Partner Pod, and vice-versa.
 `),
+		BestPracticeReference: "https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf (Section 6.2 )",
 	},
 
 	TestNamespaceBestPracticesIdentifier: {
@@ -295,6 +303,7 @@ should not start with "openshift-", except in rare cases.`,
 			`tests that CNFs utilize a CNF-specific namespace, and that the namespace does not start with "openshift-".
 OpenShift may host a variety of CNF and software applications, and multi-tenancy of such applications is supported
 through namespaces.  As such, each CNF should be a good neighbor, and utilize an appropriate, unique namespace.`),
+		BestPracticeReference: "https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf (Section 6.2 )",
 	},
 
 	TestNonDefaultGracePeriodIdentifier: {
@@ -308,6 +317,7 @@ a termination hook in the case that your application requires special shutdown i
 			`tests whether the terminationGracePeriod is CNF-specific, or if the default (30s) is utilized.  This test is
 informative, and will not affect CNF Certification.  In many cases, the default terminationGracePeriod is perfectly
 acceptable for a CNF.`),
+		BestPracticeReference: "https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf (Section 6.2 )",
 	},
 
 	TestNonTaintedNodeKernelsIdentifier: {
@@ -319,6 +329,7 @@ Node(s) kernels in order to run the CNF.`,
 			`ensures that the Node(s) hosting CNFs do not utilize tainted kernels. This test case is especially important
 to support Highly Available CNFs, since when a CNF is re-instantiated on a backup Node, that Node's kernel may not have
 the same hacks.'`),
+		BestPracticeReference: "CNFs shall decouple application configuration from Pods, to allow dynamic configuration updates(6.2.14).",
 	},
 
 	TestOperatorInstallStatusIdentifier: {
@@ -330,6 +341,11 @@ the same hacks.'`),
 1. The Operator CSV reports "Installed" status.
 2. The operator is not installed with privileged rights. Test passes if clusterPermissions is not present in the CSV manifest or is present 
 with no resourceNames under its rules.`),
+		BestPracticeReference: `Instantiation of CNF (via Helm chart or Operators or otherwise) shall result in a
+	fully-functional CNF ready to serve traffic, without requiring any post-instantiation
+	configuration of system parameters (6.2.12).
+	Namespace creation will be performed by the platform team and should not be created
+	by the CNFs deployment method (Helm / Operator) (6.3.3)`,
 	},
 
 	TestOperatorIsCertifiedIdentifier: {
