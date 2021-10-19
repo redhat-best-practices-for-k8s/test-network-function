@@ -67,6 +67,12 @@ var (
 
 var _ = ginkgo.Describe(common.DiagnosticTestKey, func() {
 	if testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusStrings, common.DiagnosticTestKey) {
+		env := config.GetTestEnvironment()
+		ginkgo.BeforeEach(func() {
+			env.LoadAndRefresh()
+			gomega.Expect(len(env.PodsUnderTest)).ToNot(gomega.Equal(0))
+			gomega.Expect(len(env.ContainersUnderTest)).ToNot(gomega.Equal(0))
+		})
 		ginkgo.When("a cluster is set up and installed with OpenShift", func() {
 
 			ginkgo.By("should report OCP version")
