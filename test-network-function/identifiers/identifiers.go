@@ -354,6 +354,11 @@ with no resourceNames under its rules.`),
 		Remediation: `Ensure that your Operator has passed Red Hat's Operator Certification Program (OCP).`,
 		Description: formDescription(TestOperatorIsCertifiedIdentifier,
 			`tests whether CNF Operators have passed the Red Hat Operator Certification Program (OCP).`),
+		BestPracticeReference: `Instantiation of CNF (via Helm chart or Operators or otherwise) shall result in a
+		fully-functional CNF ready to serve traffic, without requiring any post-instantiation
+		configuration of system parameters (6.2.12).
+		Namespace creation will be performed by the platform team and should not be created
+		by the CNFs deployment method (Helm / Operator) (6.3.3)`,
 	},
 
 	TestOperatorIsInstalledViaOLMIdentifier: {
@@ -362,6 +367,11 @@ with no resourceNames under its rules.`),
 		Remediation: `Ensure that your Operator is installed via OLM.`,
 		Description: formDescription(TestOperatorIsInstalledViaOLMIdentifier,
 			`tests whether a CNF Operator is installed via OLM.`),
+		BestPracticeReference: `Instantiation of CNF (via Helm chart or Operators or otherwise) shall result in a
+			fully-functional CNF ready to serve traffic, without requiring any post-instantiation
+			configuration of system parameters (6.2.12).
+			Namespace creation will be performed by the platform team and should not be created
+			by the CNFs deployment method (Helm / Operator) (6.3.3)`,
 	},
 
 	TestPodNodeSelectorAndAffinityBestPractices: {
@@ -374,6 +384,7 @@ to why nodeSelector and/or nodeAffinity is utilized by a CNF.`,
 		Description: formDescription(TestPodNodeSelectorAndAffinityBestPractices,
 			`ensures that CNF Pods do not specify nodeSelector or nodeAffinity.  In most cases, Pods should allow for
 instantiation on any underlying Node.`),
+		BestPracticeReference: "https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf (Section 6.2 )",
 	},
 
 	TestPodHighAvailabilityBestPractices: {
@@ -382,6 +393,7 @@ instantiation on any underlying Node.`),
 		Remediation: `In high availability cases, Pod podAntiAffinity rule should be specified for pod scheduling and pod replica value is set to more than 1 .`,
 		Description: formDescription(TestPodHighAvailabilityBestPractices,
 			`ensures that CNF Pods specify podAntiAffinity rules and replica value is set to more than 1.`),
+		BestPracticeReference: "https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf (Section 6.2 )",
 	},
 
 	TestPodClusterRoleBindingsBestPracticesIdentifier: {
@@ -391,6 +403,8 @@ instantiation on any underlying Node.`),
 ClusterRoleBindings, if possible.`,
 		Description: formDescription(TestPodClusterRoleBindingsBestPracticesIdentifier,
 			`tests that a Pod does not specify ClusterRoleBindings.`),
+		BestPracticeReference: `CNFs must define their pod affinity/anti-affinity rules (6.2.10).
+			CNFs may not have Cluster Roles(6.3.6).`,
 	},
 
 	TestPodDeploymentBestPracticesIdentifier: {
@@ -399,6 +413,9 @@ ClusterRoleBindings, if possible.`,
 		Remediation: `Deploy the CNF using ReplicaSet/StatefulSet.`,
 		Description: formDescription(TestPodDeploymentBestPracticesIdentifier,
 			`tests that CNF Pod(s) are deployed as part of a ReplicaSet(s)/StatefulSet(s).`),
+		BestPracticeReference: `Namespace creation will be performed by the platform team and should not be created
+by the CNFs deployment method (Helm / Operator) (6.3.3).
+CNFs may not deploy Daemonsets(6.3.8).`,
 	},
 
 	TestPodRoleBindingsBestPracticesIdentifier: {
@@ -407,6 +424,9 @@ ClusterRoleBindings, if possible.`,
 		Remediation: `Ensure the CNF is not configured to use RoleBinding(s) in a non-CNF Namespace.`,
 		Description: formDescription(TestPodRoleBindingsBestPracticesIdentifier,
 			`ensures that a CNF does not utilize RoleBinding(s) in a non-CNF Namespace.`),
+		BestPracticeReference: `Namespace creation will be performed by the platform team and should not be created
+by the CNFs deployment method (Helm / Operator) (6.3.3).
+CNFs may not perform Rolebinding creation (6.3.5).`,
 	},
 
 	TestPodServiceAccountBestPracticesIdentifier: {
@@ -415,6 +435,11 @@ ClusterRoleBindings, if possible.`,
 		Remediation: `Ensure that the each CNF Pod is configured to use a valid Service Account`,
 		Description: formDescription(TestPodServiceAccountBestPracticesIdentifier,
 			`tests that each CNF Pod utilizes a valid Service Account.`),
+		BestPracticeReference: `Privileged pods require a security review providing an analysis of the special permissions
+		required. Avoid Privileged Pods. If Privileged Pods are required, the CNF developer
+		should work with the planning department, and Redhat to determine acceptability of
+		privilege and/or modifications to pods such that elevated privilege is not required(6.2.3).
+		Pod Security Policy will be dictated by the security team - See Pod Permissions Section(6.2.7).`,
 	},
 
 	TestServicesDoNotUseNodeportsIdentifier: {
@@ -423,6 +448,7 @@ ClusterRoleBindings, if possible.`,
 		Remediation: `Ensure Services are not configured to use NodePort(s).`,
 		Description: formDescription(TestServicesDoNotUseNodeportsIdentifier,
 			`tests that each CNF Service does not utilize NodePort(s).`),
+		BestPracticeReference: `CNFs may not deploy Nodeports(6.3.1).`,
 	},
 
 	TestUnalteredBaseImageIdentifier: {
@@ -454,6 +480,8 @@ that there are no changes to the following directories:
 8) /usr/sbin
 9) /usr/lib
 10) /usr/lib64`),
+		BestPracticeReference: `Do not run containers as root by default - Applications that require elevated privileges
+		will require an exception with HQ Planning(6.2.2).`,
 	},
 
 	TestUnalteredStartupBootParamsIdentifier: {
@@ -463,6 +491,10 @@ that there are no changes to the following directories:
 the changes for you.`,
 		Description: formDescription(TestUnalteredStartupBootParamsIdentifier,
 			`tests that boot parameters are set through the MachineConfigOperator, and not set manually on the Node.`),
+		BestPracticeReference: `CNFs shall implement service resilience at the application layer and not rely on individual
+		compute availability/stability(6.2.13).
+		CNFs shall decouple application configuration from Pods, to allow dynamic configuration
+		updates(6.2.14).`,
 	},
 	TestListCniPluginsIdentifier: {
 		Identifier:  TestListCniPluginsIdentifier,
@@ -470,6 +502,8 @@ the changes for you.`,
 		Remediation: "",
 		Description: formDescription(TestListCniPluginsIdentifier,
 			`lists CNI plugins`),
+		BestPracticeReference: `Use the main CNI for all traffic(6.2.4).
+			CNFs are not authorized to bring their own CNI(6.3.7).`,
 	},
 	TestNodesHwInfoIdentifier: {
 		Identifier:  TestNodesHwInfoIdentifier,
@@ -477,6 +511,7 @@ the changes for you.`,
 		Remediation: "",
 		Description: formDescription(TestNodesHwInfoIdentifier,
 			`list nodes HW info`),
+		BestPracticeReference: "https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf (Section 6.2 )",
 	},
 
 	TestShudtownIdentifier: {
@@ -497,6 +532,7 @@ the changes for you.`,
 		2) K8s will wait for a grace perdiod.
 		3) K8s will clean the remaining processes using KILL signal.		
 			`,
+		BestPracticeReference: "https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf (Section 6.2 )",
 	},
 	TestPodRecreationIdentifier: {
 		Identifier: TestPodRecreationIdentifier,
@@ -508,6 +544,7 @@ the changes for you.`,
 			and that the actual replica count matches the desired replica count.`),
 		Remediation: `Ensure that CNF Pod(s) utilize a configuration that supports High Availability.  
 			Additionally, ensure that there are available Nodes in the OpenShift cluster that can be utilized in the event that a host Node fails.`,
+		BestPracticeReference: "https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf (Section 6.2 )",
 	},
 	TestSysctlConfigsIdentifier: {
 		Identifier: TestSysctlConfigsIdentifier,
@@ -516,7 +553,8 @@ the changes for you.`,
 			`tests that no one has changed the node's sysctl configs after the node
 			was created, the tests works by checking if the sysctl configs are consistent with the
 			MachineConfig CR which defines how the node should be configured`),
-		Remediation: `You should recreate the node or change the sysctls, recreating is recommended because there might be other unknown changes`,
+		Remediation:           `You should recreate the node or change the sysctls, recreating is recommended because there might be other unknown changes`,
+		BestPracticeReference: "https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf (Section 6.2 )",
 	},
 	TestScalingIdentifier: {
 		Identifier: TestScalingIdentifier,
@@ -525,25 +563,29 @@ the changes for you.`,
 			`tests that CNF deployments support scale in/out operations. 
 			First, The test starts getting the current replicaCount (N) of the deployment/s with the Pod Under Test. Then, it executes the 
 			scale-in oc command for (N-1) replicas. Lastly, it executes the scale-out oc command, restoring the original replicaCount of the deployment/s.`),
-		Remediation: `Make sure CNF deployments/replica sets can scale in/out successfully.`,
+		Remediation:           `Make sure CNF deployments/replica sets can scale in/out successfully.`,
+		BestPracticeReference: "https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf (Section 6.2 )",
 	},
 	TestIsRedHatReleaseIdentifier: {
 		Identifier: TestIsRedHatReleaseIdentifier,
 		Type:       normativeResult,
 		Description: formDescription(TestIsRedHatReleaseIdentifier,
 			`verifies if the container base image is redhat.`),
-		Remediation: `build a new docker image that's based on UBI (redhat universal base image).`,
+		Remediation:           `build a new docker image that's based on UBI (redhat universal base image).`,
+		BestPracticeReference: "https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf (Section 6.2 )",
 	},
 	TestClusterCsiInfoIdentifier: {
 		Identifier: TestClusterCsiInfoIdentifier,
 		Type:       informativeResult,
 		Description: formDescription(TestClusterCsiInfoIdentifier,
 			`extracts CSI driver information in the cluster.`),
+		BestPracticeReference: "CNFs may not have Cluster Roles(6.3.6)",
 	},
 	TestClusterCsiInfoIdentifier: {
 		Identifier: TestclusterVersionIdentifier,
 		Type:       informativeResult,
 		Description: formDescription(TestclusterVersionIdentifier,
 			`Extracts OCP versions from the cluster.`),
+		BestPracticeReference: "CNFs may not have Cluster Roles(6.3.6)",
 	},
 }
