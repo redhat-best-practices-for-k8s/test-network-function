@@ -19,9 +19,12 @@ package platform
 import (
 	"encoding/json"
 	"fmt"
+	"path"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 
@@ -40,9 +43,8 @@ import (
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/cnffsdiff"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/containerid"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/currentkernelcmdlineargs"
-	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/hugepages"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/generic"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/mckernelarguments"
-	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodehugepages"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodemcname"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodetainted"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/podnodename"
@@ -52,6 +54,59 @@ import (
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
 	utils "github.com/test-network-function/test-network-function/pkg/utils"
 )
+
+var (
+	commandHandlerFilePath = path.Join(common.PathRelativeToRoot, "pkg", "tnf", "handlers", "command", "command.json")
+	mcGetterCommandTimeout = time.Second * 30
+)
+
+type hugePagesConfig struct {
+	numa           int
+	hugepagesSize  int // size in kb
+	hugepagesCount int
+}
+
+// numaHugePagesPerSize maps a numa id to an array of hugePagesConfig structs.
+type numaHugePagesPerSize map[int][]hugePagesConfig
+
+// String is the stringer implementation for the numaHugePagesPerSize type so debug/info
+// lines look better.
+func (numaHugepages numaHugePagesPerSize) String() string {
+	// Order numa ids/indexes
+	numaIndexes := make([]int, 0)
+	for numaIdx := range numaHugepages {
+		numaIndexes = append(numaIndexes, numaIdx)
+	}
+	sort.Ints(numaIndexes)
+
+	str := ""
+	for _, numaIdx := range numaIndexes {
+		hugepagesPerSize := numaHugepages[numaIdx]
+		str += fmt.Sprintf("Numa=%d ", numaIdx)
+		for _, hugepages := range hugepagesPerSize {
+			str += fmt.Sprintf("[Size=%dkB Count=%d] ", hugepages.hugepagesSize, hugepages.hugepagesCount)
+		}
+	}
+	return str
+}
+
+// machineConfig maps a json machineconfig object to get the KernelArguments and systemd units info.
+type machineConfig struct {
+	Spec struct {
+		KernelArguments []string `json:"kernelArguments"`
+		Config          struct {
+			Systemd struct {
+				Units []systemdHugePagesUnit `json:"units"`
+			}
+		} `json:"config"`
+	} `json:"spec"`
+}
+
+// systemdHugePagesUnit maps a systemd unit in a machineconfig json object.
+type systemdHugePagesUnit struct {
+	Contents string `json:"contents"`
+	Name     string `json:"name"`
+}
 
 //
 // All actual test code belongs below here.  Utilities belong above.
@@ -352,16 +407,246 @@ func testTainted(env *config.TestEnvironment) {
 	})
 }
 
-func getNodeMcHugepages(nodeName string) (hugePagesCount, hugePagesSize int) {
+func runAndValidateCommand(command string, failureCallbackFun func()) (match string) {
+	log.Debugf("Launching generic command handler for cmd: %s", command)
 	context := common.GetContext()
-	mcName := getMcName(context, nodeName)
-	hugepageTester := hugepages.NewHugepages(common.DefaultTimeout, mcName)
-	test, err := tnf.NewTest(context.GetExpecter(), hugepageTester, []reel.Handler{hugepageTester}, context.GetErrorChannel())
+
+	values := make(map[string]interface{})
+	values["COMMAND"] = command
+	values["TIMEOUT"] = mcGetterCommandTimeout.Nanoseconds()
+
+	tester, handlers, result, err := generic.NewGenericFromMap(commandHandlerFilePath, common.RelativeSchemaPath, values)
 	gomega.Expect(err).To(gomega.BeNil())
-	testResult, err := test.Run()
-	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
+	gomega.Expect(result).ToNot(gomega.BeNil())
+	gomega.Expect(result.Valid()).To(gomega.BeTrue())
+	gomega.Expect(handlers).ToNot(gomega.BeNil())
+	gomega.Expect(tester).ToNot(gomega.BeNil())
+
+	test, err := tnf.NewTest(context.GetExpecter(), *tester, handlers, context.GetErrorChannel())
+	gomega.Expect(test).ToNot(gomega.BeNil())
 	gomega.Expect(err).To(gomega.BeNil())
-	return hugepageTester.GetHugepages(), hugepageTester.GetHugepagesz()
+	test.RunAndValidateWithFailureCallback(failureCallbackFun)
+
+	genericTest := (*tester).(*generic.Generic)
+	gomega.Expect(genericTest).ToNot(gomega.BeNil())
+
+	matches := genericTest.Matches
+	gomega.Expect(len(matches)).To(gomega.Equal(1))
+	return genericTest.GetMatches()[0].Match
+}
+
+func hugepageSizeToInt(s string) int {
+	num, _ := strconv.Atoi(s[:len(s)-1])
+	unit := s[len(s)-1]
+	switch unit {
+	case 'M':
+		num *= 1024
+	case 'G':
+		num *= 1024 * 1024
+	}
+
+	return num
+}
+
+// getMcHugepagesFromMcKernelArguments gets the hugepages params from machineconfig's kernelArguments
+func getMcHugepagesFromMcKernelArguments(mc *machineConfig) (hugepages, hugepagesz, defhugepagesz int) {
+	const RhelDefaultHugepagesz = 2048 // kB
+	const HugepagesParam = "hugepages"
+	const HugepageszParam = "hugepagesz"
+	const DefaultHugepagesz = "default_hugepagesz"
+	const KeyValueSplitLen = 2
+
+	hugepages = 0
+	defhugepagesz = RhelDefaultHugepagesz
+	for _, arg := range mc.Spec.KernelArguments {
+		keyValueSlice := strings.Split(arg, "=")
+		if len(keyValueSlice) != KeyValueSplitLen {
+			// Some kernel arguments don't come in name=value
+			continue
+		}
+
+		key, value := keyValueSlice[0], keyValueSlice[1]
+		if key == HugepagesParam {
+			hugepages, _ = strconv.Atoi(value)
+		}
+
+		if key == HugepageszParam {
+			hugepagesz = hugepageSizeToInt(value)
+		}
+
+		if key == DefaultHugepagesz {
+			defhugepagesz = hugepageSizeToInt(value)
+		}
+	}
+
+	if hugepagesz == 0 {
+		log.Warnf("No hugepages size found in node's machineconfig. Defaulting to size=%dkB (count=%d)", RhelDefaultHugepagesz, hugepages)
+		hugepagesz = RhelDefaultHugepagesz
+	}
+
+	return hugepages, hugepagesz, defhugepagesz
+}
+
+// getNodeNumaHugePages gets the actual node's hugepages config based on /sys/devices/system/node/nodeX files.
+func getNodeNumaHugePages(nodeName string) (hugepages numaHugePagesPerSize, err error) {
+	const outputRegex = `node(\d+).*hugepages-(\d+)kB.* count:(\d+)`
+	const numRegexFields = 4
+
+	cmd := fmt.Sprintf("echo 'for file in `find /sys/devices/system/node/ -name nr_hugepages`; do echo $file count:`cat $file` ; done' | oc debug node/%s", nodeName)
+
+	var commandErr error
+	hugepagesCmdOut := runAndValidateCommand(cmd, func() {
+		commandErr = fmt.Errorf("failed to get node %s hugepages per numa", nodeName)
+	})
+	if commandErr != nil {
+		return numaHugePagesPerSize{}, commandErr
+	}
+
+	hugepages = numaHugePagesPerSize{}
+	r := regexp.MustCompile(outputRegex)
+	for _, line := range strings.Split(hugepagesCmdOut, "\n") {
+		values := r.FindStringSubmatch(line)
+		if len(values) != numRegexFields {
+			return numaHugePagesPerSize{}, fmt.Errorf("failed to parse node's numa hugepages output line:%s", line)
+		}
+
+		numaNode, _ := strconv.Atoi(values[1])
+		hpSize, _ := strconv.Atoi(values[2])
+		hpCount, _ := strconv.Atoi(values[3])
+
+		hugepagesCfg := hugePagesConfig{
+			numa:           numaNode,
+			hugepagesCount: hpCount,
+			hugepagesSize:  hpSize,
+		}
+
+		if numaHugepagesCfg, exists := hugepages[numaNode]; exists {
+			numaHugepagesCfg = append(numaHugepagesCfg, hugepagesCfg)
+			hugepages[numaNode] = numaHugepagesCfg
+		}
+		hugepages[numaNode] = []hugePagesConfig{hugepagesCfg}
+	}
+
+	log.Infof("Node %s hugepages: %s", nodeName, hugepages)
+	return hugepages, nil
+}
+
+// getMachineConfig gets the machineconfig in json format does the unmarshalling.
+func getMachineConfig(mcName string) (machineConfig, error) {
+	var commandErr error
+	mcJSON := runAndValidateCommand(fmt.Sprintf("oc get mc %s -o json", mcName), func() {
+		commandErr = fmt.Errorf("failed to get json machineconfig %s", mcName)
+	})
+	if commandErr != nil {
+		return machineConfig{}, commandErr
+	}
+
+	var mc machineConfig
+	err := json.Unmarshal([]byte(mcJSON), &mc)
+	if err != nil {
+		return machineConfig{}, fmt.Errorf("failed to unmarshall (err: %v)", err)
+	}
+
+	return mc, nil
+}
+
+// getMcSystemdUnitsHugepagesConfig gets the hugepages information from machineconfig's systemd units.
+func getMcSystemdUnitsHugepagesConfig(mc *machineConfig) (hugepages numaHugePagesPerSize, err error) {
+	const UnitContentsRegexMatchLen = 4
+	hugepages = numaHugePagesPerSize{}
+
+	r := regexp.MustCompile(`(?ms)HUGEPAGES_COUNT=(\d+).*HUGEPAGES_SIZE=(\d+).*NUMA_NODE=(\d+)`)
+	for _, unit := range mc.Spec.Config.Systemd.Units {
+		unit.Name = strings.Trim(unit.Name, "\"")
+		if !strings.Contains(unit.Name, "hugepages-allocation") {
+			continue
+		}
+		unit.Contents = strings.Trim(unit.Contents, "\"")
+		values := r.FindStringSubmatch(unit.Contents)
+		if len(values) < UnitContentsRegexMatchLen {
+			return numaHugePagesPerSize{}, fmt.Errorf("unable to get hugepages values from mc (contents=%s)", unit.Contents)
+		}
+
+		numaNode, _ := strconv.Atoi(values[3])
+		hpSize, _ := strconv.Atoi(values[2])
+		hpCount, _ := strconv.Atoi(values[1])
+
+		hugepagesCfg := hugePagesConfig{
+			numa:           numaNode,
+			hugepagesCount: hpCount,
+			hugepagesSize:  hpSize,
+		}
+
+		if numaHugepagesCfg, exists := hugepages[numaNode]; exists {
+			numaHugepagesCfg = append(numaHugepagesCfg, hugepagesCfg)
+			hugepages[numaNode] = numaHugepagesCfg
+		}
+		hugepages[numaNode] = []hugePagesConfig{hugepagesCfg}
+	}
+
+	return hugepages, nil
+}
+
+// testNodeHugepagesWithMcSystemd compares the node's hugepages values against the mc's systemd units ones.
+func testNodeHugepagesWithMcSystemd(nodeName string, nodeNumaHugePages, mcSystemdHugepages numaHugePagesPerSize) (bool, error) {
+	// Iterate through mc's numas and make sure they exist and have the same sizes and values in the node.
+	for mcNumaIdx, mcNumaHugepageCfgs := range mcSystemdHugepages {
+		nodeNumaHugepageCfgs, exists := nodeNumaHugePages[mcNumaIdx]
+		if !exists {
+			return false, fmt.Errorf("node %s has no hugepages config for machine config's numa %d", nodeName, mcNumaIdx)
+		}
+
+		// For this numa, iterate through each of the mc's hugepages sizes and compare with node ones.
+		for _, mcHugepagesCfg := range mcNumaHugepageCfgs {
+			configMatching := false
+			for _, nodeHugepagesCfg := range nodeNumaHugepageCfgs {
+				if nodeHugepagesCfg.hugepagesSize == mcHugepagesCfg.hugepagesSize && nodeHugepagesCfg.hugepagesCount == mcHugepagesCfg.hugepagesCount {
+					log.Infof("MC numa=%d, hugepages count:%d, size:%d match node ones: %s",
+						mcNumaIdx, mcHugepagesCfg.hugepagesCount, mcHugepagesCfg.hugepagesSize, nodeNumaHugePages)
+					configMatching = true
+					break
+				}
+			}
+			if !configMatching {
+				return false, fmt.Errorf(fmt.Sprintf("MC numa=%d, hugepages (count:%d, size:%d) not matching node ones: %s",
+					mcNumaIdx, mcHugepagesCfg.hugepagesCount, mcHugepagesCfg.hugepagesSize, nodeNumaHugePages))
+			}
+		}
+	}
+
+	return true, nil
+}
+
+// getTotalHugepages returns the total count of hugepages with the same size across all the numas.
+func getTotalHugepages(nodeNumaHugePages numaHugePagesPerSize, size int) int {
+	total := 0
+	for _, numaHpConfig := range nodeNumaHugePages {
+		for _, hugepagesCfg := range numaHpConfig {
+			if hugepagesCfg.hugepagesSize == size {
+				total += hugepagesCfg.hugepagesCount
+			}
+		}
+	}
+
+	return total
+}
+
+func getNodeMachineConfig(nodeName string, machineconfigs map[string]machineConfig) machineConfig {
+	mcName := strings.Trim(getMcName(common.GetContext(), nodeName), "\"")
+	log.Infof("Node %s is using machineconfig %s", nodeName, mcName)
+
+	if mc, exists := machineconfigs[mcName]; exists {
+		log.Infof("MC %s: json already parsed.", mcName)
+		return mc
+	}
+
+	mc, err := getMachineConfig(mcName)
+	if err != nil {
+		ginkgo.Fail(fmt.Sprintf("Unable to unmarshall mc %s from node %s", mcName, nodeName))
+	}
+	machineconfigs[mcName] = mc
+
+	return mc
 }
 
 func testHugepages(env *config.TestEnvironment) {
@@ -369,24 +654,46 @@ func testHugepages(env *config.TestEnvironment) {
 	ginkgo.It(testID, func() {
 		defer results.RecordResult(identifiers.TestHugepagesNotManuallyManipulated)
 
+		// Map to save already retrieved and parsed machineconfigs.
+		machineconfigs := map[string]machineConfig{}
 		var badNodes []string
-		context := common.GetContext()
 		for _, node := range env.Nodes {
 			if !node.IsWorker() {
 				continue
 			}
-			ginkgo.By("Should return machineconfig hugepages configuration of node " + node.Name)
-			nodeHugePagesCount, nodeHugePagesSize := getNodeMcHugepages(node.Name)
 
-			ginkgo.By(fmt.Sprintf("Node's machine config hugepages=%d/hugepagesz=%d values should match the actual ones in the node.",
-				nodeHugePagesCount, nodeHugePagesSize))
-			tester := nodehugepages.NewNodeHugepages(common.DefaultTimeout, node.Name, nodeHugePagesSize, nodeHugePagesCount)
-			test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
-			gomega.Expect(err).To(gomega.BeNil())
-			test.RunWithFailureCallback(func() {
-				badNodes = append(badNodes, node.Name)
-				ginkgo.By(fmt.Sprintf("Node=%s hugepage config does not match machineconfig", node.Name))
-			})
+			ginkgo.By(fmt.Sprintf("Should get node %s numa's hugepages values.", node.Name))
+			nodeNumaHugePages, err := getNodeNumaHugePages(node.Name)
+			if err != nil {
+				ginkgo.Fail(fmt.Sprintf("Unable to get node hugepages values from node %s", node.Name))
+			}
+
+			// Get and parse node's machineconfig, in case it's not already parsed.
+			mc := getNodeMachineConfig(node.Name, machineconfigs)
+
+			ginkgo.By("Should parse machineconfig's kernelArguments and systemd's hugepages units.")
+			mcSystemdHugepages, err := getMcSystemdUnitsHugepagesConfig(&mc)
+			if err != nil {
+				ginkgo.Fail(fmt.Sprintf("Failed to get MC systemd hugepages config. Error: %v", err))
+			}
+
+			// KernelArguments params will only be used in case no systemd units were found.
+			if len(mcSystemdHugepages) == 0 {
+				ginkgo.By("Comparing MC KernelArguments hugepages info against node values.")
+				kernerlArgsHpCount, kernelArgsHpSize, _ := getMcHugepagesFromMcKernelArguments(&mc)
+				totalHugePagesFromNumas := getTotalHugepages(nodeNumaHugePages, kernelArgsHpSize)
+				if totalHugePagesFromNumas != kernerlArgsHpCount {
+					log.Errorf("KernelArguments hugepages size=%dkB count=%d config doesn't match node's hugepages count=%d",
+						kernerlArgsHpCount, kernelArgsHpSize, totalHugePagesFromNumas)
+					badNodes = append(badNodes, node.Name)
+				}
+			} else {
+				ginkgo.By("Comparing MC Systemd hugepages info against node values.")
+				if pass, err := testNodeHugepagesWithMcSystemd(node.Name, mcSystemdHugepages, nodeNumaHugePages); !pass {
+					log.Error(err)
+					badNodes = append(badNodes, node.Name)
+				}
+			}
 		}
 		gomega.Expect(badNodes).To(gomega.BeNil())
 	})
