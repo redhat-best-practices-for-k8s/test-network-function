@@ -255,6 +255,16 @@ Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`oc`
 
+### http://test-network-function.com/tests/command
+Property|Description
+---|---
+Version|v1.0.0
+Description|A generic test used with any command and would match any output. The caller is responsible for interpreting the output and extracting data from it.
+Result Type|normative
+Intrusive|false
+Modifications Persist After Test|false
+Runtime Binaries Required|
+
 ### http://test-network-function.com/tests/container/pod
 Property|Description
 ---|---
@@ -264,6 +274,16 @@ Result Type|normative
 Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`jq`, `oc`
+
+### http://test-network-function.com/tests/crdStatusExistence
+Property|Description
+---|---
+Version|v1.0.0
+Description|Checks whether a give CRD has status subresource specification.
+Result Type|normative
+Intrusive|false
+Modifications Persist After Test|false
+Runtime Binaries Required|`oc`, `jq`
 
 ### http://test-network-function.com/tests/csiDriver
 Property|Description
