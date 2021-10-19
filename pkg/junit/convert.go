@@ -29,7 +29,7 @@ const (
 	// junitContentKey is the "#content" key in the JSON serialized JUnit file.
 	junitContentKey = "#content"
 
-	// junitContentKey is the "#content" key in the JSON serialized JUnit file.
+	// junitMessageKey is the "-message" key in the JSON serialized JUnit file.
 	junitMessageKey = "-message"
 
 	// junitFailureKey is the "failure" key in the JSON serialized Junit file.
@@ -41,10 +41,10 @@ const (
 	// junitTestNameKey is the "-name" key in the JSON serialized JSON file.
 	junitTestNameKey = "-name"
 
-	// junitTestSuiteKey =s the "testsuite" ke in the JSON serialized JSON file.
+	// junitTestSuiteKey is the "testsuite" key in the JSON serialized JSON file.
 	junitTestSuiteKey = "testsuite"
 
-	// junitTestSuiteKey =s the "testsuite" ke in the JSON serialized JSON file.
+	// junitTestSuitesKey is the "testsuites" key in the JSON serialized JSON file.
 	junitTestSuitesKey = "testsuites"
 
 	// CouldNotDeriveFailureReason is the sentinel message emitted when JUnit failure reason cannot be determined.
