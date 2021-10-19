@@ -40,7 +40,7 @@ jobs:
           ref: ${{ github.sha }}
 
       - name: Rebuild mocks
-        run: go install github.com/golang/mock/mockgen@v1.6.0 && make mocks
+        run: go install github.com/golang/mock/mockgen && make mocks
 
       # TODO: golangci-lint team recommends using a GitHub Action to perform golangci-lint responsibilities.  However
       # there does not appear to be a way to honor our existing .golangci.yml.  For now, mimic developer behavior.
@@ -88,7 +88,7 @@ jobs:
           ref: ${{ github.sha }}
 
       - name: Rebuild mocks
-        run: go install github.com/golang/mock/mockgen@v1.6.0 && make mocks
+        run: go install github.com/golang/mock/mockgen && make mocks
 
       - name: Run Tests
         run: make test
@@ -112,10 +112,10 @@ jobs:
           ref: ${{ github.sha }}
 
       - name: Execute `make mocks`
-        run: go install github.com/golang/mock/mockgen@v1.6.0 && make mocks
+        run: go install github.com/golang/mock/mockgen && make mocks
 
       - name: Install ginkgo
-        run: go install github.com/onsi/ginkgo/ginkgo@v1.16.5
+        run: go install github.com/onsi/ginkgo/ginkgo
 
       - name: Execute `make build`
         run: make build
