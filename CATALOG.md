@@ -520,7 +520,7 @@ Property|Description
 ---|---
 Version|v1.0.0
 Description|A generic test used to test whether node is tainted
-Result Type|normative
+Result Type|informative
 Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`oc`, `cat`, `echo`
