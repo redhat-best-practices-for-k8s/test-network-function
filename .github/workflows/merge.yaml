@@ -21,7 +21,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Rebuild mocks
-        run: go install github.com/golang/mock/mockgen && make mocks
+        run: go install github.com/golang/mock/mockgen@v1.6.0 && make mocks
 
       - name: Run Tests
         run: make test
