@@ -334,16 +334,14 @@ func testTainted(env *config.TestEnvironment) {
 			test.RunWithFailureCallback(func() {
 				taintedNodes = append(taintedNodes, node.Name)
 			})
-			taintedBipmap, err := strconv.ParseUint(tester.Match, 10, 32) //nolint:gomnd // base 10 and uint32
+			taintedBitmap, err := strconv.ParseUint(tester.Match, 10, 32) //nolint:gomnd // base 10 and uint32
 			var message string
-			if err == nil {
-				if taintedBipmap != 0 {
-					message = fmt.Sprintf("Decoded tainted kernel causes (code=%d) for node %s : %s\n", taintedBipmap, node.Name, printTainted(taintedBipmap))
-				} else {
-					message = fmt.Sprintf("Decoded tainted kernel causes (code=%d) for node %s : None\n", taintedBipmap, node.Name)
-				}
+			if err != nil {
+				message = fmt.Sprintf("Could not decode tainted kernel causes (code=%d) for node %s\n", taintedBitmap, node.Name)
+			} else if taintedBitmap != 0 {
+				message = fmt.Sprintf("Decoded tainted kernel causes (code=%d) for node %s : %s\n", taintedBitmap, node.Name, printTainted(taintedBitmap))
 			} else {
-				message = fmt.Sprintf("Could not decode tainted kernel causes (code=%d) for node %s\n", taintedBipmap, node.Name)
+				message = fmt.Sprintf("Decoded tainted kernel causes (code=%d) for node %s : None\n", taintedBitmap, node.Name)
 			}
 			_, err = ginkgo.GinkgoWriter.Write([]byte(message))
 			if err != nil {
