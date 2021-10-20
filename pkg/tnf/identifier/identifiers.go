@@ -67,7 +67,8 @@ const (
 const (
 	// Normative is the test type used for a test that returns normative results.
 	Normative = "normative"
-	// TODO: Informative = "informative" once we have informative tests.
+	// Informative is the test type used for a test that returns informative results.
+	Informative = "informative"
 )
 
 // TestCatalogEntry is a container for required test facets.
@@ -291,7 +292,7 @@ var Catalog = map[string]TestCatalogEntry{
 	nodeTaintedIdentifierURL: {
 		Identifier:  NodeTaintedIdentifier,
 		Description: "A generic test used to test whether node is tainted",
-		Type:        Normative,
+		Type:        Informative,
 		IntrusionSettings: IntrusionSettings{
 			ModifiesSystem:           false,
 			ModificationIsPersistent: false,

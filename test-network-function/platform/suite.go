@@ -20,7 +20,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/test-network-function/test-network-function/pkg/config"
 	"github.com/test-network-function/test-network-function/pkg/tnf/testcases"
@@ -52,6 +55,29 @@ import (
 //
 // All actual test code belongs below here.  Utilities belong above.
 //
+
+func getTaintedBitValues() []string {
+	return []string{"proprietary module was loaded",
+		"module was force loaded",
+		"kernel running on an out of specification system",
+		"module was force unloaded",
+		"processor reported a Machine Check Exception (MCE)",
+		"bad page referenced or some unexpected page flags",
+		"taint requested by userspace application",
+		"kernel died recently, i.e. there was an OOPS or BUG",
+		"ACPI table overridden by user",
+		"kernel issued warning",
+		"staging driver was loaded",
+		"workaround for bug in platform firmware applied",
+		"externally-built (“out-of-tree”) module was loaded",
+		"unsigned module was loaded",
+		"soft lockup occurred",
+		"kernel has been live patched",
+		"auxiliary taint, defined for and used by distros",
+		"kernel was built with the struct randomization plugin",
+	}
+}
+
 var _ = ginkgo.Describe(common.PlatformAlterationTestKey, func() {
 	conf, _ := ginkgo.GinkgoConfiguration()
 	if testcases.IsInFocus(conf.FocusStrings, common.PlatformAlterationTestKey) {
@@ -281,6 +307,18 @@ func testSysctlConfigsHelper(podName, podNamespace string) {
 	}
 }
 
+func printTainted(bitmap uint64) string {
+	values := getTaintedBitValues()
+	var out string
+	for i := 0; i < 32; i++ {
+		bit := (bitmap >> i) & 1
+		if bit == 1 {
+			out += fmt.Sprintf("%s, ", values[i])
+		}
+	}
+	return out
+}
+
 func testTainted(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestNonTaintedNodeKernelsIdentifier)
 	ginkgo.It(testID, func() {
@@ -295,6 +333,19 @@ func testTainted(env *config.TestEnvironment) {
 			test.RunWithFailureCallback(func() {
 				taintedNodes = append(taintedNodes, node.Name)
 			})
+			taintedBitmap, err := strconv.ParseUint(tester.Match, 10, 32) //nolint:gomnd // base 10 and uint32
+			var message string
+			if err != nil {
+				message = fmt.Sprintf("Could not decode tainted kernel causes (code=%d) for node %s\n", taintedBitmap, node.Name)
+			} else if taintedBitmap != 0 {
+				message = fmt.Sprintf("Decoded tainted kernel causes (code=%d) for node %s : %s\n", taintedBitmap, node.Name, printTainted(taintedBitmap))
+			} else {
+				message = fmt.Sprintf("Decoded tainted kernel causes (code=%d) for node %s : None\n", taintedBitmap, node.Name)
+			}
+			_, err = ginkgo.GinkgoWriter.Write([]byte(message))
+			if err != nil {
+				log.Errorf("Ginkgo writer could not write because: %s", err)
+			}
 		}
 		gomega.Expect(taintedNodes).To(gomega.BeNil())
 	})
