@@ -45,11 +45,9 @@ import (
 	_ "github.com/test-network-function/test-network-function/test-network-function/observability"
 	_ "github.com/test-network-function/test-network-function/test-network-function/operator"
 	_ "github.com/test-network-function/test-network-function/test-network-function/platform"
-	"github.com/test-network-function/test-network-function/test-network-function/version"
 )
 
 const (
-	programVersion                       = "3.0"
 	claimFileName                        = "claim.json"
 	claimFilePermissions                 = 0644
 	claimPathFlagKey                     = "claimloc"
@@ -69,7 +67,17 @@ const (
 var (
 	claimPath *string
 	junitPath *string
+	// GitCommit is the latest commit in the current git branch
 	GitCommit string
+	// GitRelease is the list of tags (if any) applied to the latest commit
+	// in the current branch
+	GitRelease string
+	// GitPreviousRelease is the last release at the date of the latest commit
+	// in the current branch
+	GitPreviousRelease string
+	// gitDisplayRelease is a string used to hold the text to display
+	// the version on screen and in the claim file
+	gitDisplayRelease string
 )
 
 func init() {
@@ -115,8 +123,17 @@ func TestTest(t *testing.T) {
 	gomega.RegisterFailHandler(ginkgo.Fail)
 	common.SetLogFormat()
 	common.SetLogLevel()
-	log.Info("Ginkgo Version: ", ginkgo.GINKGO_VERSION)
-	log.Info("Version: ", programVersion, " ( ", GitCommit, " )")
+  // Display GinkGo Version
+  log.Info("Ginkgo Version: ", ginkgo.GINKGO_VERSION)
+	// Display the latest previously released build in case this build is not released
+	// Otherwise display the build version
+	if GitRelease == "" {
+		gitDisplayRelease = "Unreleased build post " + GitPreviousRelease
+	} else {
+		gitDisplayRelease = GitRelease
+	}
+	log.Info("Version: ", gitDisplayRelease, " ( ", GitCommit, " )")
+
 	tnfcommon.OcDebugImageID = common.GetOcDebugImageID()
 
 	// Initialize the claim with the start time, tnf version, etc.
@@ -152,20 +169,10 @@ func TestTest(t *testing.T) {
 	writeClaimOutput(claimOutputFile, payload)
 }
 
-// getTNFVersion gets the TNF version, or fatally fails.
-func getTNFVersion() *version.Version {
-	// Extract the version, which should be placed by the build system.
-	tnfVersion, err := version.GetVersion()
-	if err != nil {
-		log.Fatalf("Couldn't determine the version: %v", err)
-	}
-	return tnfVersion
-}
-
 // incorporateTNFVersion adds the TNF version to the claim.
 func incorporateVersions(claimData *claim.Claim) {
 	claimData.Versions = &claim.Versions{
-		Tnf:          getTNFVersion().Tag,
+		Tnf:          gitDisplayRelease,
 		TnfGitCommit: GitCommit,
 		OcClient:     diagnostic.GetVersionsOcp().Oc,
 		Ocp:          diagnostic.GetVersionsOcp().Ocp,

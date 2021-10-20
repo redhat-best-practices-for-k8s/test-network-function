@@ -46,7 +46,9 @@ else
 endif
 
 COMMON_GO_ARGS=-race
-GIT_COMMIT=$(shell git rev-list -1 HEAD)
+GIT_COMMIT=$(shell script/create-version-files.sh)
+GIT_RELEASE=$(shell script/get-git-release.sh)
+GIT_PREVIOUS_RELEASE=$(shell script/get-git-previous-release.sh)
 
 # Run the unit tests and build all binaries
 build:
@@ -98,11 +100,11 @@ build-catalog-md:
 
 # build the CNF test binary
 build-cnf-tests:
-	PATH=${PATH}:${GOBIN} ginkgo build -ldflags "-X github.com/test-network-function/test-network-function/test-network-function.GitCommit=${GIT_COMMIT}" ./test-network-function 
+	PATH=${PATH}:${GOBIN} ginkgo build -ldflags "-X github.com/test-network-function/test-network-function/test-network-function.GitCommit=${GIT_COMMIT} -X github.com/test-network-function/test-network-function/test-network-function.GitRelease=${GIT_RELEASE} -X github.com/test-network-function/test-network-function/test-network-function.GitPreviousRelease=${GIT_PREVIOUS_RELEASE}" ./test-network-function 
 	make build-catalog-md
 
 build-cnf-tests-debug:
-	PATH=${PATH}:${GOBIN} ginkgo build -gcflags "all=-N -l" -ldflags "-X github.com/test-network-function/test-network-function/test-network-function.GitCommit=${GIT_COMMIT} -extldflags '-z relro -z now'" ./test-network-function
+	PATH=${PATH}:${GOBIN} ginkgo build -gcflags "all=-N -l" -ldflags "-X github.com/test-network-function/test-network-function/test-network-function.GitCommit=${GIT_COMMIT} -X github.com/test-network-function/test-network-function/test-network-function.GitCommit=${GIT_RELEASE} -X github.com/test-network-function/test-network-function/test-network-function.GitPreviousRelease=${GIT_PREVIOUS_RELEASE} -extldflags '-z relro -z now'" ./test-network-function
 	make build-catalog-md
 
 # run all CNF tests
@@ -146,9 +148,9 @@ update-deps:
 
 # Install build tools and other required software.
 install-tools:
-	go install github.com/onsi/ginkgo/ginkgo
-	go install github.com/onsi/gomega/...
-	go install github.com/golang/mock/mockgen
+	go install github.com/onsi/ginkgo/ginkgo@v1.16.5
+	go install github.com/onsi/gomega
+	go install github.com/golang/mock/mockgen@v1.6.0
 
 vet:
 	go vet ${GO_PACKAGES}

@@ -19,6 +19,7 @@ package observability
 import (
 	"fmt"
 	"path"
+	"time"
 
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
@@ -38,9 +39,15 @@ import (
 var (
 	// loggingTestPath is the file location of the logging.json test case relative to the project root.
 	loggingTestPath = path.Join("pkg", "tnf", "handlers", "logging", "logging.json")
-
 	// relativeLoggingTestPath is the relative path to the logging.json test case.
 	relativeLoggingTestPath = path.Join(common.PathRelativeToRoot, loggingTestPath)
+
+	// crdTestPath is the file location of the CRD status existence test case relative to the project root.
+	crdTestPath = path.Join("pkg", "tnf", "handlers", "crdstatusexistence", "crdstatusexistence.json")
+	// relativeCrdTestPath is the relatieve path to the crdstatusexistence.json test case.
+	relativeCrdTestPath = path.Join(common.PathRelativeToRoot, crdTestPath)
+	// testCrdsTimeout is the timeout in seconds for the CRDs TC.
+	testCrdsTimeout = 10 * time.Second
 )
 
 var _ = ginkgo.Describe(common.ObservabilityTestKey, func() {
@@ -54,6 +61,7 @@ var _ = ginkgo.Describe(common.ObservabilityTestKey, func() {
 		})
 		ginkgo.ReportAfterEach(results.RecordResult)
 		testLogging(env)
+		testCrds(env)
 	}
 })
 
@@ -85,4 +93,32 @@ func loggingTest(c configsections.ContainerIdentifier) {
 	gomega.Expect(test).ToNot(gomega.BeNil())
 
 	test.RunAndValidate()
+}
+
+func testCrds(env *config.TestEnvironment) {
+	ginkgo.By("CRDs should have a status subresource")
+	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestCrdsStatusSubresourceIdentifier)
+	ginkgo.It(testID, func() {
+		context := common.GetContext()
+
+		for _, crdName := range env.CrdNames {
+			ginkgo.By("Testing CRD " + crdName)
+
+			values := make(map[string]interface{})
+			values["CRD_NAME"] = crdName
+			values["TIMEOUT"] = testCrdsTimeout.Nanoseconds()
+
+			tester, handlers, result, err := generic.NewGenericFromMap(relativeCrdTestPath, common.RelativeSchemaPath, values)
+			gomega.Expect(err).To(gomega.BeNil())
+			gomega.Expect(result).ToNot(gomega.BeNil())
+			gomega.Expect(result.Valid()).To(gomega.BeTrue())
+			gomega.Expect(handlers).ToNot(gomega.BeNil())
+			gomega.Expect(tester).ToNot(gomega.BeNil())
+
+			test, err := tnf.NewTest(context.GetExpecter(), *tester, handlers, context.GetErrorChannel())
+			gomega.Expect(test).ToNot(gomega.BeNil())
+			gomega.Expect(err).To(gomega.BeNil())
+			test.RunAndValidate()
+		}
+	})
 }
