@@ -39,8 +39,9 @@ GO_PACKAGES=$(shell go list ./... | grep -v vendor)
 	vet
 
 # Get default value of $GOBIN if not explicitly set
+GO_PATH=$(shell go env GOPATH)
 ifeq (,$(shell go env GOBIN))
-  GOBIN=$(shell go env GOPATH)/bin
+  GOBIN=${GO_PATH}/bin
 else
   GOBIN=$(shell go env GOBIN)
 endif
@@ -49,6 +50,7 @@ COMMON_GO_ARGS=-race
 GIT_COMMIT=$(shell script/create-version-files.sh)
 GIT_RELEASE=$(shell script/get-git-release.sh)
 GIT_PREVIOUS_RELEASE=$(shell script/get-git-previous-release.sh)
+GOLANGCI_VERSION=v1.42.1
 
 # Run the unit tests and build all binaries
 build:
@@ -151,6 +153,10 @@ install-tools:
 	go install github.com/onsi/ginkgo/ginkgo@v1.16.5
 	go install github.com/onsi/gomega
 	go install github.com/golang/mock/mockgen@v1.6.0
+
+# Install golangci-lint	
+install-lint:
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b ${GO_PATH}/bin ${GOLANGCI_VERSION}
 
 vet:
 	go vet ${GO_PACKAGES}

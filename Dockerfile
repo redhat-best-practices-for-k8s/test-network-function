@@ -3,7 +3,6 @@ ARG TNF_PARTNER_DIR=/usr/tnf-partner
 
 ENV TNF_PARTNER_SRC_DIR=$TNF_PARTNER_DIR/src
 
-ENV GOLANGCI_VERSION=v1.42.1
 ENV OPENSHIFT_VERSION=4.6.32
 
 ENV TNF_DIR=/usr/tnf
@@ -40,9 +39,6 @@ RUN wget --directory-prefix=${TEMP_DIR} ${OC_DL_URL} && \
 # Add go and oc binary directory to $PATH
 ENV PATH=${PATH}:"/usr/local/go/bin":${GOPATH}/"bin"
 
-# golangci-lint
-RUN curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b /usr/bin ${GOLANGCI_VERSION}
-
 # Git identifier to checkout
 ARG TNF_VERSION
 ARG TNF_SRC_URL=https://github.com/test-network-function/test-network-function
@@ -52,7 +48,6 @@ ARG GIT_CHECKOUT_TARGET=$TNF_VERSION
 ARG TNF_PARTNER_VERSION
 ARG TNF_PARTNER_SRC_URL=https://github.com/test-network-function/cnf-certification-test-partner
 ARG GIT_PARTNER_CHECKOUT_TARGET=$TNF_PARTNER_VERSION
-
 
 # Clone the TNF source repository and checkout the target branch/tag/commit
 RUN git clone --no-single-branch --depth=1 ${TNF_SRC_URL} ${TNF_SRC_DIR}
@@ -66,6 +61,10 @@ RUN git -C ${TNF_PARTNER_SRC_DIR} checkout ${GIT_PARTNER_CHECKOUT_TARGET}
 
 # Build TNF binary
 WORKDIR ${TNF_SRC_DIR}
+
+# golangci-lint
+RUN make install-lint 
+
 # TODO: RUN make install-tools
 RUN make install-tools && \
 	make mocks && \
