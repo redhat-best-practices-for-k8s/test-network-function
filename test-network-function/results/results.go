@@ -17,7 +17,6 @@
 package results
 
 import (
-	"fmt"
 	"strings"
 
 	ginkgoTypes "github.com/onsi/ginkgo/types"
@@ -40,7 +39,6 @@ func RecordResult(report ginkgoTypes.SpecReport) { //nolint:gocritic // From Gin
 			key = key + "-" + levelNoSpace
 		}
 		key = strings.TrimLeft(key, "-") + "-" + report.LeafNodeText
-		url := fmt.Sprintf("{\"url\":\"%s\",\"version\":\"%s\"}", claimID[0].Url, claimID[0].Version)
 		testText := identifiers.Catalog[claimID[0]].Description
 		results[key] = append(results[key], claim.Result{
 			Duration:           int(report.RunTime.Nanoseconds()),
@@ -52,7 +50,7 @@ func RecordResult(report ginkgoTypes.SpecReport) { //nolint:gocritic // From Gin
 			StartTime:          report.StartTime.String(),
 			EndTime:            report.EndTime.String(),
 			CapturedTestOutput: report.CapturedGinkgoWriterOutput,
-			Url:                url,
+			TestID:             &claimID[0],
 		})
 	} else {
 		log.Errorf("TestID %s has no corresponding Claim ID", report.LeafNodeText)

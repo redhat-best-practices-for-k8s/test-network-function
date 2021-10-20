@@ -2,7 +2,7 @@ module github.com/test-network-function/test-network-function
 
 go 1.16
 
-replace github.com/test-network-function/test-network-function-claim => github.com/edcdavid/test-network-function-claim v1.0.6
+replace github.com/test-network-function/test-network-function-claim => github.com/edcdavid/test-network-function-claim v1.0.8
 
 require (
 	github.com/Masterminds/semver/v3 v3.1.1
