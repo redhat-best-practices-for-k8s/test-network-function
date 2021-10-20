@@ -70,6 +70,14 @@ Version|v1.0.0
 Description|http://test-network-function.com/testcases/diagnostic/clusterversion Extracts OCP versions from the cluster.
 Result Type|informative
 Suggested Remediation|
+### http://test-network-function.com/testcases/diagnostic/crd-status
+
+Property|Description
+---|---
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/diagnostic/crd-status checks that all CRDs have a status subresource specification.
+Result Type|informative
+Suggested Remediation|make sure that all the CRDs have a meaningful status specification.
 ### http://test-network-function.com/testcases/diagnostic/extract-node-information
 
 Property|Description

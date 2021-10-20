@@ -255,7 +255,7 @@ At a minimum, the following dependencies must be installed *prior* to running `m
 
 Dependency|Minimum Version
 ---|---
-[GoLang](https://golang.org/dl/)|1.16
+[GoLang](https://golang.org/dl/)|1.17
 [golangci-lint](https://golangci-lint.run/usage/install/)|1.42.1
 [jq](https://stedolan.github.io/jq/)|1.6
 [OpenShift Client](https://docs.openshift.com/container-platform/4.4/welcome/index.html)|4.4
