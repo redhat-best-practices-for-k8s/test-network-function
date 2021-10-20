@@ -314,7 +314,7 @@ func printTainted(bitmap uint64) string {
 	for i := 0; i < 32; i++ {
 		bit := (bitmap >> i) & 1
 		if bit == 1 {
-			out += fmt.Sprintf("%s, ", []byte(values[i]))
+			out += fmt.Sprintf("%s, ", values[i])
 		}
 	}
 	return out
