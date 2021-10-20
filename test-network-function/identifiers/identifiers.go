@@ -282,7 +282,7 @@ they are the same.`),
 CNFs may require routing table changes in order to communicate over the Default network.  In other cases, if the
 Container base image does not provide the "ip" or "ping" binaries, this test may not be applicable.  For instructions on
 how to exclude a particular container from ICMPv4 connectivity tests, consult:
-[README.md](https://github.com/test-network-function/test-network-function#issue-161-some-containers-under-test-do-nto-contain-ping-or-ip-binary-utilities).`,
+[README.md](https://github.com/test-network-function/test-network-function#issue-161-some-containers-under-test-do-not-contain-ping-or-ip-binary-utilities).`,
 		Description: formDescription(TestICMPv4ConnectivityIdentifier,
 			`checks that each CNF Container is able to communicate via ICMPv4 on the Default OpenShift network.  This
 test case requires the Deployment of the
