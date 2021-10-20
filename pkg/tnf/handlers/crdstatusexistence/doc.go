@@ -1,4 +1,4 @@
-// Copyright (C) 2020-2021 Red Hat, Inc.
+// Copyright (C) 2021 Red Hat, Inc.
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,19 +14,5 @@
 // with this program; if not, write to the Free Software Foundation, Inc.,
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-package configsections
-
-// Types defined in this file are not currently in use. Move them out when starting to use.
-// May remove this altogether in the future
-
-// CNFType defines a type to be either Operator or Container
-type CNFType string
-
-// Permission defines roles and cluster roles resources
-type Permission struct {
-	// Name is the name of Roles and Cluster Roles that is specified in the CSV
-	Name string `yaml:"name" json:"name"`
-
-	// Role is the role type either CLUSTER_ROLE or ROLE
-	Role string `yaml:"role" json:"role"`
-}
+// Package crdstatusexistence provides a test for checking the existence of status subresource in a given CRD.
+package crdstatusexistence

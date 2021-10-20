@@ -17,6 +17,10 @@
 package autodiscover
 
 import (
+	"encoding/json"
+	"os/exec"
+	"strings"
+
 	log "github.com/sirupsen/logrus"
 	"github.com/test-network-function/test-network-function/pkg/config/configsections"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
@@ -27,8 +31,9 @@ import (
 )
 
 const (
-	operatorLabelName          = "operator"
-	skipConnectivityTestsLabel = "skip_connectivity_tests"
+	operatorLabelName           = "operator"
+	skipConnectivityTestsLabel  = "skip_connectivity_tests"
+	ocGetClusterCrdNamesCommand = "kubectl get crd -o json | jq '[.items[].metadata.name]'"
 )
 
 var (
@@ -195,4 +200,43 @@ func getConfiguredOperatorTests() (opTests []string) {
 	}
 	log.WithField("opTests", opTests).Infof("got all tests from %s.", testcases.ConfiguredTestFile)
 	return opTests
+}
+
+// getClusterCrdNames returns a list of crd names found in the cluster.
+func getClusterCrdNames() ([]string, error) {
+	// ToDo: Use command handler.
+	cmd := exec.Command("bash", "-c", ocGetClusterCrdNamesCommand)
+
+	out, err := cmd.Output()
+	if err != nil {
+		return nil, err
+	}
+
+	var crdNamesList []string
+	err = json.Unmarshal(out, &crdNamesList)
+	if err != nil {
+		return nil, err
+	}
+
+	return crdNamesList, nil
+}
+
+// FindTestCrdNames gets a list of CRD names based on configured groups.
+func FindTestCrdNames(crdFilters []configsections.CrdFilter) []string {
+	clusterCrdNames, err := getClusterCrdNames()
+	if err != nil {
+		log.Errorf("Unable to get cluster CRD.")
+		return []string{}
+	}
+
+	var targetCrdNames []string
+	for _, crdName := range clusterCrdNames {
+		for _, crdFilter := range crdFilters {
+			if strings.HasSuffix(crdName, crdFilter.NameSuffix) {
+				targetCrdNames = append(targetCrdNames, crdName)
+				break
+			}
+		}
+	}
+	return targetCrdNames
 }

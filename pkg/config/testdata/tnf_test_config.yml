@@ -47,3 +47,6 @@ certifiedcontainerinfo:
 certifiedoperatorinfo:
   - name: etcd-operator
     organization: redhat-marketplace
+targetCrdFilters:
+  - nameSuffix: "group1.test1.com"
+  - nameSuffix: "test2.com"
