@@ -50,7 +50,7 @@ import (
 const (
 	defaultTerminationGracePeriod = 30
 	drainTimeoutMinutes           = 5
-	scalingTimeout                = 60 * time.Second
+	scalingTimeout                = 120 * time.Second
 	scalingPollingPeriod          = 1 * time.Second
 )
 
@@ -293,7 +293,6 @@ func testPodsRecreation(env *config.TestEnvironment) {
 
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestPodRecreationIdentifier)
 	ginkgo.It(testID, func() {
-		env.SetNeedsRefresh()
 		ginkgo.By("Testing node draining effect of deployment")
 
 		ginkgo.By(fmt.Sprintf("test deployment in namespace %s", env.NameSpaceUnderTest))
@@ -309,6 +308,16 @@ func testPodsRecreation(env *config.TestEnvironment) {
 		ginkgo.By("Should return map of nodes to deployments")
 		nodesSorted := getDeploymentsNodes(env.NameSpaceUnderTest)
 
+		ginkgo.By("At least one node should be schedulable that is not in the deployement's nodes")
+		availableSchedulableNodes := availableSchedulableNode(env, nodesSorted)
+
+		log.Infof("The number of available schedulable nodes to scale this deployment is: %d", availableSchedulableNodes)
+		if availableSchedulableNodes <= 0 {
+			ginkgo.Skip("The number of available schedulable nodes to scale this deployment is Zero")
+		}
+
+		// Set refresh flag only after we are sure that we can attempt the test
+		env.SetNeedsRefresh()
 		ginkgo.By("should create new replicas when node is drained")
 		defer results.RecordResult(identifiers.TestPodRecreationIdentifier)
 		for _, n := range nodesSorted {
@@ -326,6 +335,24 @@ func testPodsRecreation(env *config.TestEnvironment) {
 			uncordonNode(n.name)
 		}
 	})
+}
+
+func availableSchedulableNode(env *config.TestEnvironment, nodes []node) int {
+	numberAvailableSchedulableNodes := 0
+	for _, aClusterNode := range env.Nodes {
+		if aClusterNode.IsSchedulable() {
+			isAvailable := true
+			for _, aDeploymentNode := range nodes {
+				if aDeploymentNode.name == aClusterNode.Name {
+					isAvailable = false
+				}
+			}
+			if isAvailable {
+				numberAvailableSchedulableNodes++
+			}
+		}
+	}
+	return numberAvailableSchedulableNodes
 }
 
 type node struct {

@@ -90,8 +90,8 @@ func Test_ReelEof(t *testing.T) {
 const (
 	testTimeoutDuration = time.Second * 2
 	testInputError      = ""
-	testInputFailure    = "NAME\n"
-	testInputSuccess    = "NAME\nnode1-fga23-vm\nnode2-xda3s-vm\n"
+	testInputFailure    = "\n"
+	testInputSuccess    = "node1-fga23-vm\nnode2-xda3s-vm\n"
 )
 
 var (

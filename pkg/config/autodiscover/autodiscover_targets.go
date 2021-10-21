@@ -78,7 +78,7 @@ func FindTestTarget(labels []configsections.Label, target *configsections.TestTa
 	target.Nodes = GetNodesList()
 }
 
-// GetNodesList Function that return a list of node and what is the type of them.
+//nolint:funlen // GetNodesList Function that return a list of node and what is the type of them.
 func GetNodesList() (nodes map[string]configsections.Node) {
 	nodes = make(map[string]configsections.Node)
 	var nodeNames []string
@@ -115,6 +115,28 @@ func GetNodesList() (nodes map[string]configsections.Node) {
 				nodes[nodeNames[i]] = configsections.Node{
 					Name:   nodeNames[i],
 					Labels: []string{configsections.WorkerLabel},
+				}
+			}
+		}
+	}
+
+	context = common.GetContext()
+	tester = nodenames.NewNodeNames(common.DefaultTimeout, map[string]*string{configsections.Schedulable: nil})
+	test, _ = tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
+	_, err = test.Run()
+	if err != nil {
+		log.Error("Unable to get node list ", ". Error: ", err)
+	} else {
+		nodeNames = tester.GetNodeNames()
+		for i := range nodeNames {
+			if _, ok := nodes[nodeNames[i]]; ok {
+				var node = nodes[nodeNames[i]]
+				node.Labels = append(node.Labels, configsections.Schedulable)
+				nodes[nodeNames[i]] = node
+			} else {
+				nodes[nodeNames[i]] = configsections.Node{
+					Name:   nodeNames[i],
+					Labels: []string{configsections.Schedulable},
 				}
 			}
 		}

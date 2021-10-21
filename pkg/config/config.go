@@ -83,13 +83,16 @@ func getOcSession(pod, container, namespace string, timeout time.Duration, optio
 		gomega.Expect(err).To(gomega.BeNil())
 		// Set up a go routine which reads from the error channel
 		go func() {
+			log.Infof("OC session to container %s/%s opening, entering goroutine", oc.GetPodName(), oc.GetPodContainerName())
+		Loop:
 			for {
 				select {
 				case err := <-outCh:
 					log.Fatalf("OC session to container %s/%s is broken due to: %v, aborting the test run", oc.GetPodName(), oc.GetPodContainerName(), err)
 					os.Exit(1)
 				case <-oc.GetDoneChannel():
-					break
+					log.Infof("OC session to container %s/%s Closing, exiting goroutine", oc.GetPodName(), oc.GetPodContainerName())
+					break Loop
 				}
 			}
 		}()

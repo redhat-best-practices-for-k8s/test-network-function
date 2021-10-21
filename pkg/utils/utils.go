@@ -27,3 +27,13 @@ func FilterArray(vs []string, f func(string) bool) []string {
 	}
 	return vsf
 }
+
+func DeleteEmpty(s []string) []string {
+	var r []string
+	for _, str := range s {
+		if str != "" {
+			r = append(r, str)
+		}
+	}
+	return r
+}

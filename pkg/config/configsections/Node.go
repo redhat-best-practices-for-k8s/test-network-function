@@ -22,6 +22,9 @@ const WorkerLabel = "node-role.kubernetes.io/worker"
 // MasterLabel const for k8s for master
 const MasterLabel = "node-role.kubernetes.io/master"
 
+// Schedulable const for schedulable nodes
+const Schedulable = "isSchedulable"
+
 // Node defines in the cluster. with name of the node and the type of this node master/worker,,,,.
 type Node struct {
 	Name   string
@@ -42,6 +45,16 @@ func (node Node) IsMaster() bool {
 func (node Node) IsWorker() bool {
 	for _, t := range node.Labels {
 		if t == WorkerLabel {
+			return true
+		}
+	}
+	return false
+}
+
+// IsSchedulable Function that return if the node is schedulable
+func (node Node) IsSchedulable() bool {
+	for _, t := range node.Labels {
+		if t == Schedulable {
 			return true
 		}
 	}

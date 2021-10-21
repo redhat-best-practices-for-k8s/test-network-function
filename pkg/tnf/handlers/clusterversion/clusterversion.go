@@ -23,6 +23,7 @@ import (
 	"github.com/test-network-function/test-network-function/pkg/tnf"
 	"github.com/test-network-function/test-network-function/pkg/tnf/identifier"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
+	utils "github.com/test-network-function/test-network-function/pkg/utils"
 )
 
 const (
@@ -88,21 +89,11 @@ func (ver *TestMetadata) ReelFirst() *reel.Step {
 	}
 }
 
-func deleteEmpty(s []string) []string {
-	var r []string
-	for _, str := range s {
-		if str != "" {
-			r = append(r, str)
-		}
-	}
-	return r
-}
-
 // ReelMatch ensures that list of nodes is not empty and stores the names as []string
 func (ver *TestMetadata) ReelMatch(_, _, match string) *reel.Step {
 	re := regexp.MustCompile("(Server Version: )|(Client Version: )|(Kubernetes Version: )|(\n)")
 	versions := re.Split(match, -1)
-	versions = deleteEmpty(versions)
+	versions = utils.DeleteEmpty(versions)
 	if len(versions) != numVersionsOcp && len(versions) != numVersionsMinikube {
 		ver.result = tnf.FAILURE
 		return nil

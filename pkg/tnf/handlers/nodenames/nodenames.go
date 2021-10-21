@@ -20,9 +20,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/test-network-function/test-network-function/pkg/config/configsections"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
 	"github.com/test-network-function/test-network-function/pkg/tnf/identifier"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
+	utils "github.com/test-network-function/test-network-function/pkg/utils"
 )
 
 const (
@@ -41,19 +43,27 @@ type NodeNames struct {
 // labels is a map of label names and values for filtering nodes
 // nil label value is like a wildcard - any value as long as the label exists
 func NewNodeNames(timeout time.Duration, labels map[string]*string) *NodeNames {
-	args := []string{"oc", "get", "nodes", "-o", "custom-columns=NAME:.metadata.name"}
+	args := []string{"oc", "get", "nodes"}
 	var labelsString string
+	var findSchedulable bool
 	for labelName, labelValue := range labels {
+		if labelName == configsections.Schedulable {
+			findSchedulable = true
+			break
+		}
 		labelsString += labelName
 		if labelValue != nil {
 			labelsString += "=" + *labelValue
 		}
 		labelsString += ","
 	}
-	if labelsString != "" {
+	if findSchedulable {
+		args = append(args, "-o", "'go-template={{range .items}}{{$taints:=\"\"}}{{range .spec.taints}}{{if eq .effect \"NoSchedule\"}}{{$taints = print $taints .key \",\"}}{{end}}{{end}}{{if not $taints}}{{.metadata.name}}{{ \"\\n\"}}{{end}}{{end}}'")
+	} else if labelsString != "" {
 		labelsString = labelsString[:len(labelsString)-1]
-		args = append(args, "-l", labelsString)
+		args = append(args, "-o", "custom-columns=NAME:.metadata.name", "-l", labelsString, "| tail -n +2")
 	}
+
 	return &NodeNames{
 		timeout: timeout,
 		result:  tnf.ERROR,
@@ -97,7 +107,9 @@ func (nn *NodeNames) ReelFirst() *reel.Step {
 // ReelMatch ensures that list of nodes is not empty and stores the names as []string
 func (nn *NodeNames) ReelMatch(_, _, match string) *reel.Step {
 	trimmedMatch := strings.Trim(match, "\n")
-	nn.nodeNames = strings.Split(trimmedMatch, "\n")[1:] // First line is the headers/titles line
+	nn.nodeNames = strings.Split(trimmedMatch, "\n") // First line is the headers/titles line
+
+	nn.nodeNames = utils.DeleteEmpty(nn.nodeNames)
 
 	if len(nn.nodeNames) == 0 {
 		nn.result = tnf.FAILURE
