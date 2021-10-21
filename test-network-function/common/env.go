@@ -43,9 +43,11 @@ var (
 // DefaultTimeout for creating new interactive sessions (oc, ssh, tty)
 var DefaultTimeout = time.Duration(defaultTimeoutSeconds) * time.Second
 
+var DefaultExpectersVerboseEnabled = false
+
 // GetContext spawns a new shell session and returns its context
 func GetContext() *interactive.Context {
-	context, err := interactive.SpawnShell(interactive.CreateGoExpectSpawner(), DefaultTimeout, interactive.Verbose(true), interactive.SendTimeout(DefaultTimeout))
+	context, err := interactive.SpawnShell(interactive.CreateGoExpectSpawner(), DefaultTimeout, interactive.Verbose(DefaultExpectersVerboseEnabled), interactive.SendTimeout(DefaultTimeout))
 	gomega.Expect(err).To(gomega.BeNil())
 	gomega.Expect(context).ToNot(gomega.BeNil())
 	gomega.Expect(context.GetExpecter()).ToNot(gomega.BeNil())
@@ -76,16 +78,23 @@ func logLevel() string {
 		log.Info("LOG_LEVEL environment is not set, defaulting to DEBUG")
 		logLevel = "debug" //nolint:goconst
 	}
+
 	return logLevel
 }
 
 // SetLogLevel sets the log level for logrus based on the "LOG_LEVEL" environment variable
 func SetLogLevel() {
 	var aLogLevel, err = log.ParseLevel(logLevel())
+
 	if err != nil {
 		log.Error("LOG_LEVEL environment set with an invalid value, defaulting to DEBUG \n Valid values are:  trace, debug, info, warn, error, fatal, panic")
 		aLogLevel = log.DebugLevel
 	}
+
+	if aLogLevel == log.TraceLevel {
+		DefaultExpectersVerboseEnabled = true
+	}
+
 	log.Info("Log level set to:", aLogLevel)
 	log.SetLevel(aLogLevel)
 }

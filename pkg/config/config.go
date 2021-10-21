@@ -29,6 +29,7 @@ import (
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/ipaddr"
 	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
+	"github.com/test-network-function/test-network-function/test-network-function/common"
 	"gopkg.in/yaml.v2"
 )
 
@@ -210,7 +211,7 @@ func (env *TestEnvironment) doAutodiscover() {
 func (env *TestEnvironment) createContainers(containerDefinitions []configsections.ContainerConfig) map[configsections.ContainerIdentifier]*Container {
 	createdContainers := make(map[configsections.ContainerIdentifier]*Container)
 	for _, c := range containerDefinitions {
-		oc := getOcSession(c.PodName, c.ContainerName, c.Namespace, DefaultTimeout, interactive.Verbose(true), interactive.SendTimeout(DefaultTimeout))
+		oc := getOcSession(c.PodName, c.ContainerName, c.Namespace, DefaultTimeout, interactive.Verbose(common.DefaultExpectersVerboseEnabled), interactive.SendTimeout(DefaultTimeout))
 		var defaultIPAddress = "UNKNOWN"
 		var err error
 		if _, ok := env.ContainersToExcludeFromConnectivityTests[c.ContainerIdentifier]; !ok {
