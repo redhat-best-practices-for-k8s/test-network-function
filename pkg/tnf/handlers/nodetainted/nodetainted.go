@@ -34,6 +34,7 @@ type NodeTainted struct {
 	result  int
 	timeout time.Duration
 	args    []string
+	Match   string
 }
 
 // NewNodeTainted creates a new NodeTainted tnf.Test.
@@ -77,6 +78,7 @@ func (nt *NodeTainted) ReelFirst() *reel.Step {
 
 // ReelMatch tests whether node is tainted or not
 func (nt *NodeTainted) ReelMatch(_, _, match string) *reel.Step {
+	nt.Match = match
 	if match == "0" {
 		nt.result = tnf.SUCCESS
 	} else {
