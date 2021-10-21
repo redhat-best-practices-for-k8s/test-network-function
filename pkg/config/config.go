@@ -71,6 +71,8 @@ type NodeConfig struct {
 	Oc *interactive.Oc
 	// deployment indicates if the node has a deployment
 	deployment bool
+	// debug indicates if the node should have a debug pod
+	debug bool
 }
 
 func (n NodeConfig) IsMaster() bool {
@@ -83,6 +85,9 @@ func (n NodeConfig) IsWorker() bool {
 
 func (n NodeConfig) HasDeployment() bool {
 	return n.deployment
+}
+func (n NodeConfig) HasDebugPod() bool {
+	return n.debug
 }
 
 // DefaultTimeout for creating new interactive sessions (oc, ssh, tty)
@@ -197,9 +202,15 @@ func (env *TestEnvironment) LoadAndRefresh() {
 		env.Config.Partner = configsections.TestPartner{}
 		env.Config.TestTarget = configsections.TestTarget{}
 		env.TestOrchestrator = nil
+		for name, node := range env.NodesUnderTest {
+			if node.HasDebugPod() {
+				autodiscover.DeleteDebugLabel(name)
+			}
+		}
 		env.NodesUnderTest = nil
 		env.Config.Nodes = nil
 		env.DebugContainers = nil
+
 		env.doAutodiscover()
 	}
 }
@@ -212,61 +223,97 @@ func (env *TestEnvironment) doAutodiscover() {
 	if autodiscover.PerformAutoDiscovery() {
 		autodiscover.FindTestTarget(env.Config.TargetPodLabels, &env.Config.TestTarget, env.NameSpaceUnderTest)
 	}
-	autodiscover.FindTestPartner(&env.Config.Partner, env.NameSpaceUnderTest)
 
 	env.ContainersToExcludeFromConnectivityTests = make(map[configsections.ContainerIdentifier]interface{})
 
 	for _, cid := range env.Config.ExcludeContainersFromConnectivityTests {
 		env.ContainersToExcludeFromConnectivityTests[cid] = ""
 	}
-	for _, cid := range env.Config.Partner.ContainersDebugList {
-		env.ContainersToExcludeFromConnectivityTests[cid.ContainerIdentifier] = ""
-	}
 
 	env.ContainersUnderTest = env.createContainers(env.Config.ContainerConfigList)
 	env.PodsUnderTest = env.Config.PodsUnderTest
+
+	for _, cid := range env.Config.Partner.ContainersDebugList {
+		env.ContainersToExcludeFromConnectivityTests[cid.ContainerIdentifier] = ""
+	}
+	autodiscover.FindTestPartner(&env.Config.Partner, env.NameSpaceUnderTest)
 	env.PartnerContainers = env.createContainers(env.Config.Partner.ContainerConfigList)
 	env.TestOrchestrator = env.PartnerContainers[env.Config.Partner.TestOrchestratorID]
 	env.DeploymentsUnderTest = env.Config.DeploymentsUnderTest
 	env.OperatorsUnderTest = env.Config.Operators
+
+	env.NodesUnderTest = env.createNodes(env.Config.Nodes)
 	if !autodiscover.IsMinikube() {
+		autodiscover.FindDebugPods(&env.Config.Partner)
 		env.DebugContainers = env.createContainers(env.Config.Partner.ContainersDebugList)
 	}
-	env.NodesUnderTest = env.createNodes()
+
+	env.AttachDebugPodsToNodes()
 	log.Infof("Test Configuration: %+v", *env)
 
 	env.needsRefresh = false
 }
 
-func (env *TestEnvironment) createNodes() map[string]*NodeConfig {
+func (env *TestEnvironment) createNodes(nodes map[string]configsections.Node) map[string]*NodeConfig {
 	log.Debug("autodiscovery: create nodes  start")
+	var masterNode, workerNode string
 	defer log.Debug("autodiscovery: create nodes done")
-	nodes := make(map[string]*NodeConfig)
+	nodesConfig := make(map[string]*NodeConfig)
 
-	for _, n := range env.Config.Nodes {
-		nodes[n.Name] = &NodeConfig{Node: n, Name: n.Name, Oc: nil, deployment: false}
+	for _, n := range nodes {
+		nodesConfig[n.Name] = &NodeConfig{Node: n, Name: n.Name, Oc: nil, deployment: false}
 	}
 
 	for _, c := range env.ContainersUnderTest {
 		nodeName := c.ContainerConfiguration.NodeName
-		if _, ok := nodes[nodeName]; ok {
-			nodes[nodeName].deployment = true
+		if _, ok := nodesConfig[nodeName]; ok {
+			nodesConfig[nodeName].deployment = true
+			nodesConfig[nodeName].debug = true
 		} else {
 			log.Warn("node ", nodeName, " has deployment, but not the right labels")
 		}
 	}
-
-	if autodiscover.IsMinikube() {
-		return nodes
-	}
-	for _, c := range env.DebugContainers {
-		nodeName := c.ContainerConfiguration.NodeName
-		if _, ok := nodes[nodeName]; ok {
-			nodes[nodeName].Oc = c.Oc
+	// make sure at least one worker and one master has debug set to true
+	for name, node := range nodesConfig {
+		if node.IsMaster() && masterNode == "" {
+			masterNode = name
+		}
+		if node.IsMaster() && node.HasDebugPod() {
+			masterNode = ""
+			break
 		}
 	}
+	for name, node := range nodesConfig {
+		if node.IsWorker() && workerNode == "" {
+			workerNode = name
+		}
+		if node.IsMaster() && node.HasDebugPod() {
+			workerNode = ""
+			break
+		}
+	}
+	if masterNode != "" {
+		nodesConfig[masterNode].debug = true
+	}
+	if workerNode != "" {
+		nodesConfig[workerNode].debug = true
+	}
+	// label all nodes
+	for nodeName, node := range env.NodesUnderTest {
+		if node.HasDebugPod() {
+			autodiscover.AddDebugLabel(nodeName)
+		}
+	}
+	return nodesConfig
+}
 
-	return nodes
+func (env *TestEnvironment) AttachDebugPodsToNodes() {
+	for _, c := range env.DebugContainers {
+		nodeName := c.ContainerConfiguration.NodeName
+		if _, ok := env.NodesUnderTest[nodeName]; ok {
+			env.NodesUnderTest[nodeName].Oc = c.Oc
+		}
+	}
 }
 
 // createContainers contains the general steps involved in creating "oc" sessions and other configuration. A map of the

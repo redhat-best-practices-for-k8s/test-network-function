@@ -27,9 +27,6 @@ import (
 const (
 	genericLabelName  = "generic"
 	orchestratorValue = "orchestrator"
-	defaultNamespace  = "default"
-	debugLabelName    = "test-network-function.com/app"
-	debugLabelValue   = "debug"
 )
 
 func IsMinikube() bool {
@@ -48,19 +45,5 @@ func FindTestPartner(tp *configsections.TestPartner, namespace string) {
 		}
 		tp.ContainerConfigList = append(tp.ContainerConfigList, orchestrator)
 		tp.TestOrchestratorID = orchestrator.ContainerIdentifier
-	}
-	if IsMinikube() {
-		return
-	}
-	label := configsections.Label{Name: debugLabelName, Value: debugLabelValue}
-	pods, err := GetPodsByLabel(label, defaultNamespace)
-	if err != nil {
-		log.Panic("can't find debug pods")
-	}
-	if len(pods.Items) == 0 {
-		log.Panic("can't find debug pods, make sure daemonset debug is deployed properly")
-	}
-	for _, pod := range pods.Items {
-		tp.ContainersDebugList = append(tp.ContainersDebugList, buildContainersFromPodResource(pod)[0])
 	}
 }

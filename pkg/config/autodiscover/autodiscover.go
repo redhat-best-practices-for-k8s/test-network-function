@@ -82,9 +82,13 @@ func buildLabelQuery(label configsections.Label) string {
 }
 
 func executeOcGetCommand(resourceType, labelQuery, namespace string) (string, error) {
-	ocCommandtoExecute := fmt.Sprintf(ocCommand, resourceType, namespace, labelQuery)
+	ocCommandToExecute := fmt.Sprintf(ocCommand, resourceType, namespace, labelQuery)
+	return executeOcCommand(ocCommandToExecute)
+}
+
+func executeOcCommand(command string) (string, error) {
 	values := make(map[string]interface{})
-	values["COMMAND"] = ocCommandtoExecute
+	values["COMMAND"] = command
 	values["TIMEOUT"] = ocCommandTimeOut.Nanoseconds()
 	context := interactive.GetContext()
 	tester, handler, result, err := generic.NewGenericFromMap(pathToTestFile, relativeSchemaPath, values)
@@ -110,6 +114,7 @@ func executeOcGetCommand(resourceType, labelQuery, namespace string) (string, er
 	err = jsonUnmarshal([]byte(match.Match), &commandDriver)
 	gomega.Expect(err).To(gomega.BeNil())
 	return match.Match, err
+
 }
 
 // getContainersByLabel builds `config.Container`s from containers in pods matching a label.
