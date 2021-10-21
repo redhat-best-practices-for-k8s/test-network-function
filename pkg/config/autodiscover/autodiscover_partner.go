@@ -28,7 +28,7 @@ const (
 	genericLabelName  = "generic"
 	orchestratorValue = "orchestrator"
 	defaultNamespace  = "default"
-	debugLabelName    = "app"
+	debugLabelName    = "test-network-function.com/app"
 	debugLabelValue   = "debug"
 )
 
