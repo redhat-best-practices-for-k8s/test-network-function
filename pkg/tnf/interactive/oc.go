@@ -119,6 +119,10 @@ func (o *Oc) GetDoneChannel() <-chan bool {
 
 // Close sends the signal to the done channel
 func (o *Oc) Close() {
+	if o == nil {
+		log.Debugf("Oc is null, nothing to close")
+		return
+	}
 	log.Debugf("send close to channel pod %s/%s ", o.pod, o.container)
 	o.doneChannel <- true
 }

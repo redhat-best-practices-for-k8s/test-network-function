@@ -199,18 +199,20 @@ func (env *TestEnvironment) LoadAndRefresh() {
 		}
 		env.doAutodiscover()
 	} else if env.needsRefresh {
+		log.Debug("clean up environment Test structure")
 		env.Config.Partner = configsections.TestPartner{}
 		env.Config.TestTarget = configsections.TestTarget{}
 		env.TestOrchestrator = nil
 		for name, node := range env.NodesUnderTest {
 			if node.HasDebugPod() {
+				node.Oc.Close()
 				autodiscover.DeleteDebugLabel(name)
 			}
 		}
 		env.NodesUnderTest = nil
 		env.Config.Nodes = nil
 		env.DebugContainers = nil
-
+		log.Debug("start auto discovery")
 		env.doAutodiscover()
 	}
 }
@@ -242,39 +244,18 @@ func (env *TestEnvironment) doAutodiscover() {
 	env.DeploymentsUnderTest = env.Config.DeploymentsUnderTest
 	env.OperatorsUnderTest = env.Config.Operators
 
-	env.NodesUnderTest = env.createNodes(env.Config.Nodes)
-	if !autodiscover.IsMinikube() {
-		autodiscover.FindDebugPods(&env.Config.Partner)
-		env.DebugContainers = env.createContainers(env.Config.Partner.ContainersDebugList)
-	}
-
-	env.AttachDebugPodsToNodes()
+	env.discoverNodes()
 	log.Infof("Test Configuration: %+v", *env)
 
 	env.needsRefresh = false
 }
 
-func (env *TestEnvironment) createNodes(nodes map[string]configsections.Node) map[string]*NodeConfig {
-	log.Debug("autodiscovery: create nodes  start")
+// labelNodes add label to specific nodes so that node selector in debug daemonset
+// can be scheduled
+func (env *TestEnvironment) labelNodes() {
 	var masterNode, workerNode string
-	defer log.Debug("autodiscovery: create nodes done")
-	nodesConfig := make(map[string]*NodeConfig)
-
-	for _, n := range nodes {
-		nodesConfig[n.Name] = &NodeConfig{Node: n, Name: n.Name, Oc: nil, deployment: false}
-	}
-
-	for _, c := range env.ContainersUnderTest {
-		nodeName := c.ContainerConfiguration.NodeName
-		if _, ok := nodesConfig[nodeName]; ok {
-			nodesConfig[nodeName].deployment = true
-			nodesConfig[nodeName].debug = true
-		} else {
-			log.Warn("node ", nodeName, " has deployment, but not the right labels")
-		}
-	}
 	// make sure at least one worker and one master has debug set to true
-	for name, node := range nodesConfig {
+	for name, node := range env.NodesUnderTest {
 		if node.IsMaster() && masterNode == "" {
 			masterNode = name
 		}
@@ -283,7 +264,7 @@ func (env *TestEnvironment) createNodes(nodes map[string]configsections.Node) ma
 			break
 		}
 	}
-	for name, node := range nodesConfig {
+	for name, node := range env.NodesUnderTest {
 		if node.IsWorker() && workerNode == "" {
 			workerNode = name
 		}
@@ -293,10 +274,10 @@ func (env *TestEnvironment) createNodes(nodes map[string]configsections.Node) ma
 		}
 	}
 	if masterNode != "" {
-		nodesConfig[masterNode].debug = true
+		env.NodesUnderTest[masterNode].debug = true
 	}
 	if workerNode != "" {
-		nodesConfig[workerNode].debug = true
+		env.NodesUnderTest[workerNode].debug = true
 	}
 	// label all nodes
 	for nodeName, node := range env.NodesUnderTest {
@@ -304,9 +285,29 @@ func (env *TestEnvironment) createNodes(nodes map[string]configsections.Node) ma
 			autodiscover.AddDebugLabel(nodeName)
 		}
 	}
+}
+
+// create Nodes data from deployment
+func (env *TestEnvironment) createNodes(nodes map[string]configsections.Node) map[string]*NodeConfig {
+	log.Debug("autodiscovery: create nodes  start")
+	defer log.Debug("autodiscovery: create nodes done")
+	nodesConfig := make(map[string]*NodeConfig)
+	for _, n := range nodes {
+		nodesConfig[n.Name] = &NodeConfig{Node: n, Name: n.Name, Oc: nil, deployment: false}
+	}
+	for _, c := range env.ContainersUnderTest {
+		nodeName := c.ContainerConfiguration.NodeName
+		if _, ok := nodesConfig[nodeName]; ok {
+			nodesConfig[nodeName].deployment = true
+			nodesConfig[nodeName].debug = true
+		} else {
+			log.Warn("node ", nodeName, " has deployment, but not the right labels")
+		}
+	}
 	return nodesConfig
 }
 
+// attach debug pod session to node session
 func (env *TestEnvironment) AttachDebugPodsToNodes() {
 	for _, c := range env.DebugContainers {
 		nodeName := c.ContainerConfiguration.NodeName
@@ -314,6 +315,24 @@ func (env *TestEnvironment) AttachDebugPodsToNodes() {
 			env.NodesUnderTest[nodeName].Oc = c.Oc
 		}
 	}
+}
+
+// discoverNodes find all the nodes in the cluster
+// label the ones with deployment
+// attach them to debug pods
+func (env *TestEnvironment) discoverNodes() {
+	env.NodesUnderTest = env.createNodes(env.Config.Nodes)
+	env.labelNodes()
+	if !autodiscover.IsMinikube() {
+		autodiscover.CheckDebugDaemonset()
+		autodiscover.FindDebugPods(&env.Config.Partner)
+		for _, debugPod := range env.Config.Partner.ContainersDebugList {
+			env.ContainersToExcludeFromConnectivityTests[debugPod.ContainerIdentifier] = ""
+		}
+		env.DebugContainers = env.createContainers(env.Config.Partner.ContainersDebugList)
+	}
+
+	env.AttachDebugPodsToNodes()
 }
 
 // createContainers contains the general steps involved in creating "oc" sessions and other configuration. A map of the

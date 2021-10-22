@@ -18,17 +18,24 @@ package autodiscover
 
 import (
 	"fmt"
+	"time"
 
+	"github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
 	"github.com/test-network-function/test-network-function/pkg/config/configsections"
+	"github.com/test-network-function/test-network-function/pkg/tnf"
+	ds "github.com/test-network-function/test-network-function/pkg/tnf/handlers/daemonset"
+	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
+	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
 )
 
 const (
 	defaultNamespace   = "default"
+	debugDaemonSet     = "debug"
 	debugLabelName     = "test-network-function.com/app"
 	debugLabelValue    = "debug"
-	addlabelCommand    = "oc label node %s %s=%s"
-	deletelabelCommand = "oc label node %s %s-"
+	addlabelCommand    = "oc label node %s %s=%s --overwrite=true"
+	deletelabelCommand = "oc label node %s %s- --overwrite=true"
 )
 
 // FindDebugPods completes a `configsections.TestPartner.ContainersDebugList` from the current state of the cluster,
@@ -52,12 +59,57 @@ func FindDebugPods(tp *configsections.TestPartner) {
 
 // AddDebugLabel add debug label to node
 func AddDebugLabel(nodeName string) {
+	log.Info("add label", debugLabelName, "=", debugLabelValue, "to node ", nodeName)
 	ocCommand := fmt.Sprintf(addlabelCommand, nodeName, debugLabelName, debugLabelValue)
-	executeOcCommand(ocCommand)
+	_, err := executeOcCommand(ocCommand)
+	if err != nil {
+		log.Error("error in adding label to node ", nodeName)
+		return
+	}
 }
 
 // AddDebugLabel remove debug label from node
 func DeleteDebugLabel(nodeName string) {
+	log.Info("delete label", debugLabelName, "=", debugLabelValue, "to node ", nodeName)
 	ocCommand := fmt.Sprintf(deletelabelCommand, nodeName, debugLabelName)
-	executeOcCommand(ocCommand)
+	_, err := executeOcCommand(ocCommand)
+	if err != nil {
+		log.Error("error in removing label from node ", nodeName)
+		return
+	}
+}
+
+// CheckDebugDaemonset checks if the debug pods are deployed properly
+// the function will try DefaultTimeout/time.Second times
+func CheckDebugDaemonset() {
+	gomega.Eventually(func() bool {
+		log.Debug("check debug daemonset status")
+		return checkDebugPodsReadiness()
+	}, DefaultTimeout, 2*time.Second).Should(gomega.Equal(true)) //nolint: gomnd
+}
+
+// checkDebugPodsReadiness helper function that returns true if the daemonset debug is deployed properly
+func checkDebugPodsReadiness() bool {
+	context := interactive.GetContext()
+	tester := ds.NewDaemonSet(DefaultTimeout, debugDaemonSet, defaultNamespace)
+	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
+	if err != nil {
+		log.Error("can't run test to detect daemonset status")
+		return false
+	}
+	_, err = test.Run()
+	if err != nil {
+		return false
+	}
+	dsStatus := tester.GetStatus()
+	if dsStatus.Desired == dsStatus.Current &&
+		dsStatus.Available == dsStatus.Ready &&
+		dsStatus.Ready == dsStatus.Desired &&
+		dsStatus.Ready != 0 &&
+		dsStatus.Misscheduled == 0 {
+		log.Info("daemonset is ready")
+		return true
+	}
+	log.Warn("daemonset is not ready")
+	return false
 }

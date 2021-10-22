@@ -83,7 +83,14 @@ func buildLabelQuery(label configsections.Label) string {
 
 func executeOcGetCommand(resourceType, labelQuery, namespace string) (string, error) {
 	ocCommandToExecute := fmt.Sprintf(ocCommand, resourceType, namespace, labelQuery)
-	return executeOcCommand(ocCommandToExecute)
+	match, err := executeOcCommand(ocCommandToExecute)
+	if err != nil {
+		log.Error("can't run command, ", ocCommandToExecute, "Error=", err)
+		return "", err
+	}
+	err = jsonUnmarshal([]byte(match), &commandDriver)
+	gomega.Expect(err).To(gomega.BeNil())
+	return match, err
 }
 
 func executeOcCommand(command string) (string, error) {
@@ -102,7 +109,9 @@ func executeOcCommand(command string) (string, error) {
 	test, err := tnf.NewTest(context.GetExpecter(), *tester, handler, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
 	gomega.Expect(tester).ToNot(gomega.BeNil())
-
+	if err != nil {
+		return "", err
+	}
 	test.RunAndValidate()
 
 	genericTest := (*tester).(*generic.Generic)
@@ -111,10 +120,7 @@ func executeOcCommand(command string) (string, error) {
 	matches := genericTest.Matches
 	gomega.Expect(len(matches)).To(gomega.Equal(1))
 	match := genericTest.GetMatches()[0]
-	err = jsonUnmarshal([]byte(match.Match), &commandDriver)
-	gomega.Expect(err).To(gomega.BeNil())
-	return match.Match, err
-
+	return match.Match, nil
 }
 
 // getContainersByLabel builds `config.Container`s from containers in pods matching a label.

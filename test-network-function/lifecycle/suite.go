@@ -141,6 +141,8 @@ func restoreDeployments(env *config.TestEnvironment) {
 }
 
 func closeOcSessionsByDeployment(containers map[configsections.ContainerIdentifier]*config.Container, deployment configsections.Deployment) {
+	log.Debug("close session for deployment=", deployment.Name, " start")
+	defer log.Debug("close session for deployment=", deployment.Name, " done")
 	for cid, c := range containers {
 		if cid.Namespace == deployment.Namespace && strings.HasPrefix(cid.PodName, deployment.Name+"-") {
 			log.Infof("Closing session to %s %s", cid.PodName, cid.ContainerName)
