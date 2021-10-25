@@ -53,7 +53,7 @@ func formTestURL(suite, name string) string {
 
 var (
 	// TestIdToClaimId converts the testcase short ID to the claim identifier
-	TestIDToClaimID = map[string][]claim.Identifier{}
+	TestIDToClaimID = map[string]claim.Identifier{}
 
 	// TestHostResourceIdentifier tests container best practices.
 	TestHostResourceIdentifier = claim.Identifier{
@@ -235,7 +235,7 @@ func XformToGinkgoItIdentifierExtended(identifier claim.Identifier, extra string
 	} else {
 		key = itID
 	}
-	TestIDToClaimID[key] = append(TestIDToClaimID[key], identifier)
+	TestIDToClaimID[key] = identifier
 	return key
 }
 

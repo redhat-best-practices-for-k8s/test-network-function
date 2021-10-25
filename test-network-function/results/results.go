@@ -31,15 +31,14 @@ var results = map[string][]claim.Result{}
 // RecordResult is a hook provided to save aspects of the ginkgo.GinkgoTestDescription for a given claim.Identifier.
 // Multiple results for a given identifier are aggregated as an array under the same key.
 func RecordResult(report ginkgoTypes.SpecReport) { //nolint:gocritic // From Ginkgo
-	claimID := identifiers.TestIDToClaimID[report.LeafNodeText]
-	if claimID != nil {
+	if claimID, ok := identifiers.TestIDToClaimID[report.LeafNodeText]; ok {
 		var key string
 		for _, level := range report.ContainerHierarchyTexts {
 			levelNoSpace := strings.ReplaceAll(level, " ", "_")
 			key = key + "-" + levelNoSpace
 		}
 		key = strings.TrimLeft(key, "-") + "-" + report.LeafNodeText
-		testText := identifiers.Catalog[claimID[0]].Description
+		testText := identifiers.Catalog[claimID].Description
 		results[key] = append(results[key], claim.Result{
 			Duration:           int(report.RunTime.Nanoseconds()),
 			FailureLocation:    report.FailureLocation().String(),
@@ -50,7 +49,7 @@ func RecordResult(report ginkgoTypes.SpecReport) { //nolint:gocritic // From Gin
 			StartTime:          report.StartTime.String(),
 			EndTime:            report.EndTime.String(),
 			CapturedTestOutput: report.CapturedGinkgoWriterOutput,
-			TestID:             &claimID[0],
+			TestID:             &claimID,
 		})
 	} else {
 		log.Errorf("TestID %s has no corresponding Claim ID", report.LeafNodeText)
