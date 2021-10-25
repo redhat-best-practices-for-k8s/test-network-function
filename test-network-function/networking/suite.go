@@ -135,15 +135,12 @@ func testPing(initiatingPodOc *interactive.Oc, targetPodIPAddress string, count 
 func testNodePort(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestServicesDoNotUseNodeportsIdentifier)
 	ginkgo.It(testID, func() {
-		for _, podUnderTest := range env.PodsUnderTest {
-			defer results.RecordResult(identifiers.TestServicesDoNotUseNodeportsIdentifier)
-			context := common.GetContext()
-			podNamespace := podUnderTest.Namespace
-			ginkgo.By(fmt.Sprintf("Testing services in namespace %s", podNamespace))
-			tester := nodeport.NewNodePort(common.DefaultTimeout, podNamespace)
-			test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
-			gomega.Expect(err).To(gomega.BeNil())
-			test.RunAndValidate()
-		}
+		defer results.RecordResult(identifiers.TestServicesDoNotUseNodeportsIdentifier)
+		context := common.GetContext()
+		ginkgo.By(fmt.Sprintf("Testing services in namespace %s", env.NameSpaceUnderTest))
+		tester := nodeport.NewNodePort(common.DefaultTimeout, env.NameSpaceUnderTest)
+		test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
+		gomega.Expect(err).To(gomega.BeNil())
+		test.RunAndValidate()
 	})
 }
