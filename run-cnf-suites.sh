@@ -72,7 +72,7 @@ echo "Running with focus '$FOCUS'"
 echo "Running with skip  '$SKIP'"
 echo "Report will be output to '$OUTPUT_LOC'"
 echo "ginkgo arguments '${GINKGO_ARGS}'"
-SKIPTRING=""
+SKIP_STRING=""
 if [ -z $SKIP ]; then
 	$SKIP_STRING=-ginkgo.skip="$SKIP"
 fi
