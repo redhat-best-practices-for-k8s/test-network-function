@@ -20,22 +20,21 @@ import (
 	"time"
 
 	expect "github.com/google/goexpect"
+	log "github.com/sirupsen/logrus"
 )
 
 const (
-	ocClientCommandSeparator = "--"
-	ocCommand                = "oc"
-	ocContainerArg           = "-c"
-	ocDefaultShell           = "sh"
-	ocExecCommand            = "exec"
-	ocNamespaceArg           = "-n"
-	ocInteractiveArg         = "-it"
+	ocCommand      = "oc"
+	ocContainerArg = "-c"
+	ocRsh          = "rsh"
+	ocNamespaceArg = "-n"
 )
 
 // Oc provides an OpenShift Client designed to wrap the "oc" CLI.
 type Oc struct {
 	// name of the pod
 	pod string
+	// node set to true means the sessions is node session
 	// name of the container
 	container string
 	// namespace of the pod
@@ -44,7 +43,7 @@ type Oc struct {
 	serviceAccountName string
 	// timeout for commands run in expecter
 	timeout time.Duration
-	// options for experter, such as expect.Verbose(true)
+	// options for expecter, such as expect.Verbose(true)
 	opts []Option
 	// the underlying subprocess implementation, tailored to OpenShift Client
 	expecter *expect.Expecter
@@ -58,7 +57,7 @@ type Oc struct {
 
 // SpawnOc creates an OpenShift Client subprocess, spawning the appropriate underlying PTY.
 func SpawnOc(spawner *Spawner, pod, container, namespace string, timeout time.Duration, opts ...Option) (*Oc, <-chan error, error) {
-	ocArgs := []string{ocExecCommand, ocNamespaceArg, namespace, ocInteractiveArg, pod, ocContainerArg, container, ocClientCommandSeparator, ocDefaultShell}
+	ocArgs := []string{ocRsh, ocNamespaceArg, namespace, ocContainerArg, container, pod}
 	context, err := (*spawner).Spawn(ocCommand, ocArgs, timeout, opts...)
 	if err != nil {
 		return nil, context.GetErrorChannel(), err
@@ -114,10 +113,16 @@ func (o *Oc) GetErrorChannel() <-chan error {
 
 // GetDoneChannel returns the receive only done channel
 func (o *Oc) GetDoneChannel() <-chan bool {
+	log.Debugf("read done channel pod %s/%s", o.pod, o.container)
 	return o.doneChannel
 }
 
 // Close sends the signal to the done channel
 func (o *Oc) Close() {
+	if o == nil {
+		log.Debugf("Oc is null, nothing to close")
+		return
+	}
+	log.Debugf("send close to channel pod %s/%s ", o.pod, o.container)
 	o.doneChannel <- true
 }
