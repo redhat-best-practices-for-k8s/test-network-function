@@ -17,10 +17,10 @@
 package results
 
 import (
+	"fmt"
 	"strings"
 
 	ginkgoTypes "github.com/onsi/ginkgo/types"
-	log "github.com/sirupsen/logrus"
 	"github.com/test-network-function/test-network-function-claim/pkg/claim"
 	"github.com/test-network-function/test-network-function/test-network-function/identifiers"
 )
@@ -52,7 +52,7 @@ func RecordResult(report ginkgoTypes.SpecReport) { //nolint:gocritic // From Gin
 			TestID:             &claimID,
 		})
 	} else {
-		log.Errorf("TestID %s has no corresponding Claim ID", report.LeafNodeText)
+		panic(fmt.Sprintf("TestID %s has no corresponding Claim ID", report.LeafNodeText))
 	}
 }
 
