@@ -84,7 +84,7 @@ func CheckDebugDaemonset() {
 	gomega.Eventually(func() bool {
 		log.Debug("check debug daemonset status")
 		return checkDebugPodsReadiness()
-	}, DefaultTimeout, 2*time.Second).Should(gomega.Equal(true)) //nolint: gomnd
+	}, 60*time.Second, 2*time.Second).Should(gomega.Equal(true)) //nolint: gomnd
 }
 
 // checkDebugPodsReadiness helper function that returns true if the daemonset debug is deployed properly
