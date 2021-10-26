@@ -32,8 +32,8 @@ import (
 const (
 	defaultNamespace   = "default"
 	debugDaemonSet     = "debug"
-	debugLabelName     = "test-network-function.com/app"
-	debugLabelValue    = "debug"
+	debugLabelName     = "test-network-function.com/node"
+	debugLabelValue    = "target"
 	addlabelCommand    = "oc label node %s %s=%s --overwrite=true"
 	deletelabelCommand = "oc label node %s %s- --overwrite=true"
 )
@@ -41,9 +41,6 @@ const (
 // FindDebugPods completes a `configsections.TestPartner.ContainersDebugList` from the current state of the cluster,
 // using labels and annotations to populate the data, if it's not fully configured
 func FindDebugPods(tp *configsections.TestPartner) {
-	if IsMinikube() {
-		return
-	}
 	label := configsections.Label{Name: debugLabelName, Value: debugLabelValue}
 	pods, err := GetPodsByLabel(label, defaultNamespace)
 	if err != nil {
