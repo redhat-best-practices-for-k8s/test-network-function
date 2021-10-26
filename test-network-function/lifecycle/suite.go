@@ -289,8 +289,6 @@ func testPodsRecreation(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestPodRecreationIdentifier)
 	ginkgo.It(testID, func() {
 		ginkgo.By("Testing node draining effect of deployment")
-		defer results.RecordResult(identifiers.TestPodRecreationIdentifier)
-
 		ginkgo.By(fmt.Sprintf("test deployment in namespace %s", env.NameSpaceUnderTest))
 		deployments, notReadyDeployments = getDeployments(env.NameSpaceUnderTest)
 		if len(deployments) == 0 {
