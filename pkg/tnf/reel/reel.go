@@ -213,7 +213,7 @@ func (r *Reel) Step(step *Step, handler Handler) error {
 					r.Err = fmt.Errorf("error executing command %d: ", outputStatus)
 				}
 				match, matchStatus := r.stripEmulatedPromptFromOutput(result.Match[0])
-				log.Infof("command status: output=%s, match=%s, outputStatus=%d, matchStatus=%d", output, match, outputStatus, matchStatus)
+				log.Debugf("command status: output=%s, match=%s, outputStatus=%d, matchStatus=%d", output, match, outputStatus, matchStatus)
 				matchIndex := strings.Index(output, match)
 				var before string
 				// special case:  the match regex may be nothing at all.
