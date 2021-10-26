@@ -17,12 +17,15 @@
 package interactive
 
 import (
+	"log"
 	"os"
 	"time"
 )
 
 const (
 	shellEnvironmentVariableKey = "SHELL"
+	defaultTimeoutSeconds       = 10
+	defaultTimeout              = defaultTimeoutSeconds * time.Second
 )
 
 // SpawnShell creates an interactive shell subprocess based on the value of $SHELL, spawning the appropriate underlying
@@ -31,4 +34,15 @@ func SpawnShell(spawner *Spawner, timeout time.Duration, opts ...Option) (*Conte
 	shellEnv := os.Getenv(shellEnvironmentVariableKey)
 	var args []string
 	return (*spawner).Spawn(shellEnv, args, timeout, opts...)
+}
+
+//
+//
+// GetContext spawns a new shell session and returns its context
+func GetContext() *Context {
+	context, err := SpawnShell(CreateGoExpectSpawner(), defaultTimeout, Verbose(true), SendTimeout(defaultTimeout))
+	if err != nil || context == nil || context.GetExpecter() == nil {
+		log.Panicf("can't get a proper context for test execution")
+	}
+	return context
 }

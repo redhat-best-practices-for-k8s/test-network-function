@@ -22,7 +22,6 @@ import (
 	"time"
 
 	"github.com/test-network-function/test-network-function/pkg/tnf"
-	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/common"
 	"github.com/test-network-function/test-network-function/pkg/tnf/identifier"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
 )
@@ -41,14 +40,14 @@ type NodeHugepages struct {
 }
 
 // NewNodeHugepages creates a new NodeHugepages tnf.Test.
-func NewNodeHugepages(timeout time.Duration, node string, hugepagesz, hugepages int) *NodeHugepages {
+func NewNodeHugepages(timeout time.Duration, hugepagesz, hugepages int) *NodeHugepages {
 	return &NodeHugepages{
 		hugepagesz: hugepagesz,
 		hugepages:  hugepages,
 		timeout:    timeout,
 		result:     tnf.ERROR,
 		args: []string{
-			"echo", "\"grep -E 'HugePages_Total:|Hugepagesize:' /proc/meminfo\"", "|", common.GetOcDebugCommand(), "node/" + node,
+			"grep -E 'HugePages_Total:|Hugepagesize:' /proc/meminfo",
 		},
 	}
 }
