@@ -34,7 +34,7 @@ const (
 	debugDaemonSet     = "debug"
 	debugLabelName     = "test-network-function.com/app"
 	debugLabelValue    = "debug"
-	nodeLabelName      = "test-network-function.com/app"
+	nodeLabelName      = "test-network-function.com/node"
 	nodeLabelValue     = "target"
 	addlabelCommand    = "oc label node %s %s=%s --overwrite=true"
 	deletelabelCommand = "oc label node %s %s- --overwrite=true"
@@ -58,8 +58,8 @@ func FindDebugPods(tp *configsections.TestPartner) {
 
 // AddDebugLabel add debug label to node
 func AddDebugLabel(nodeName string) {
-	log.Info("add label", nodeLabelName, "=", nodeLabelValue, "to node ", nodeName)
-	ocCommand := fmt.Sprintf(addlabelCommand, nodeName, debugLabelName, debugLabelValue)
+	log.Info("add label", nodeLabelName, "=", nodeLabelValue, " to node ", nodeName)
+	ocCommand := fmt.Sprintf(addlabelCommand, nodeName, nodeLabelName, nodeLabelValue)
 	_, err := executeOcCommand(ocCommand)
 	if err != nil {
 		log.Error("error in adding label to node ", nodeName)
