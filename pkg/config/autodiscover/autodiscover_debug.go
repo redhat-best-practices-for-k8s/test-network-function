@@ -32,8 +32,10 @@ import (
 const (
 	defaultNamespace   = "default"
 	debugDaemonSet     = "debug"
-	debugLabelName     = "test-network-function.com/node"
-	debugLabelValue    = "target"
+	debugLabelName     = "test-network-function.com/app"
+	debugLabelValue    = "debug"
+	nodeLabelName      = "test-network-function.com/app"
+	nodeLabelValue     = "target"
 	addlabelCommand    = "oc label node %s %s=%s --overwrite=true"
 	deletelabelCommand = "oc label node %s %s- --overwrite=true"
 )
@@ -56,7 +58,7 @@ func FindDebugPods(tp *configsections.TestPartner) {
 
 // AddDebugLabel add debug label to node
 func AddDebugLabel(nodeName string) {
-	log.Info("add label", debugLabelName, "=", debugLabelValue, "to node ", nodeName)
+	log.Info("add label", nodeLabelName, "=", nodeLabelValue, "to node ", nodeName)
 	ocCommand := fmt.Sprintf(addlabelCommand, nodeName, debugLabelName, debugLabelValue)
 	_, err := executeOcCommand(ocCommand)
 	if err != nil {
@@ -67,8 +69,8 @@ func AddDebugLabel(nodeName string) {
 
 // AddDebugLabel remove debug label from node
 func DeleteDebugLabel(nodeName string) {
-	log.Info("delete label", debugLabelName, "=", debugLabelValue, "to node ", nodeName)
-	ocCommand := fmt.Sprintf(deletelabelCommand, nodeName, debugLabelName)
+	log.Info("delete label", nodeLabelName, "=", nodeLabelValue, "to node ", nodeName)
+	ocCommand := fmt.Sprintf(deletelabelCommand, nodeName, nodeLabelName)
 	_, err := executeOcCommand(ocCommand)
 	if err != nil {
 		log.Error("error in removing label from node ", nodeName)
