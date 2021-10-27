@@ -617,18 +617,29 @@ func testNodeHugepagesWithMcSystemd(nodeName string, nodeNumaHugePages, mcSystem
 	return true, nil
 }
 
-// getTotalHugepages returns the total count of hugepages with the same size across all the numas.
-func getTotalHugepages(nodeNumaHugePages numaHugePagesPerSize, size int) int {
-	total := 0
-	for _, numaHpConfig := range nodeNumaHugePages {
-		for _, hugepagesCfg := range numaHpConfig {
-			if hugepagesCfg.hugepagesSize == size {
-				total += hugepagesCfg.hugepagesCount
+// testNodeHugepagesWithKernelArgs compares node hugepages against kernelArguments config.
+// The total count of hugepages of the size defined in the kernelArguments must match the kernArgs' hugepages value.
+// For other sizes, the sum should be 0.
+func testNodeHugepagesWithKernelArgs(nodeName string, nodeNumaHugePages numaHugePagesPerSize, kernelArgsHpSize, kernerlArgsHpCount int) (bool, error) {
+	totalHugePages := 0
+	// Iterate through all numas and increment only
+	for numaIdx, numaHpConfig := range nodeNumaHugePages {
+		for _, hugepagesConfig := range numaHpConfig {
+			if hugepagesConfig.hugepagesSize == kernelArgsHpSize {
+				totalHugePages += hugepagesConfig.hugepagesCount
+			} else if hugepagesConfig.hugepagesCount != 0 {
+				return false, fmt.Errorf("node %s: hugepages for numa %d is not zero (%d)",
+					nodeName, numaIdx, hugepagesConfig.hugepagesCount)
 			}
 		}
 	}
 
-	return total
+	if totalHugePages != kernerlArgsHpCount {
+		return false, fmt.Errorf("node %s: total hugepages of size %d won't match (node count=%d, expected=%d)",
+			nodeName, kernelArgsHpSize, totalHugePages, kernerlArgsHpCount)
+	}
+
+	return true, nil
 }
 
 func getNodeMachineConfig(nodeName string, machineconfigs map[string]machineConfig) machineConfig {
@@ -681,10 +692,8 @@ func testHugepages(env *config.TestEnvironment) {
 			if len(mcSystemdHugepages) == 0 {
 				ginkgo.By("Comparing MC KernelArguments hugepages info against node values.")
 				kernerlArgsHpCount, kernelArgsHpSize, _ := getMcHugepagesFromMcKernelArguments(&mc)
-				totalHugePagesFromNumas := getTotalHugepages(nodeNumaHugePages, kernelArgsHpSize)
-				if totalHugePagesFromNumas != kernerlArgsHpCount {
-					log.Errorf("KernelArguments hugepages size=%dkB count=%d config doesn't match node's hugepages count=%d",
-						kernerlArgsHpCount, kernelArgsHpSize, totalHugePagesFromNumas)
+				if pass, err := testNodeHugepagesWithKernelArgs(node.Name, nodeNumaHugePages, kernelArgsHpSize, kernerlArgsHpCount); !pass {
+					log.Error(err)
 					badNodes = append(badNodes, node.Name)
 				}
 			} else {
