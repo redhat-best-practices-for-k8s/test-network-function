@@ -71,11 +71,6 @@ var (
 		Url:     formTestURL(common.AccessControlTestKey, "host-resource"),
 		Version: versionOne,
 	}
-	// TestHostResourceIdentifier tests container best practices.
-	TestHostResourceIpc_lock = claim.Identifier{
-		Url:     formTestURL(common.AccessControlTestKey, "ipc_lock"),
-		Version: versionOne,
-	}
 	// TestContainerIsCertifiedIdentifier tests whether the container has passed Container Certification.
 	TestContainerIsCertifiedIdentifier = claim.Identifier{
 		Url:     formTestURL(common.AffiliatedCertTestKey, "container-is-certified"),
