@@ -56,9 +56,24 @@ func formTestURL(suite, name string) string {
 }
 
 var (
+	// TestNetRawIdentifier tests container best practices.
+	TestNetRawIdentifier = claim.Identifier{
+		Url:     formTestURL(common.AccessControlTestKey, "net-raw"),
+		Version: versionOne,
+	}
+	// TestIpcLockIdentifier tests container best practices.
+	TestIpcLockIdentifier = claim.Identifier{
+		Url:     formTestURL(common.AccessControlTestKey, "ipc-lock"),
+		Version: versionOne,
+	}
 	// TestHostResourceIdentifier tests container best practices.
 	TestHostResourceIdentifier = claim.Identifier{
 		Url:     formTestURL(common.AccessControlTestKey, "host-resource"),
+		Version: versionOne,
+	}
+	// TestHostResourceIdentifier tests container best practices.
+	TestHostResourceIpc_lock = claim.Identifier{
+		Url:     formTestURL(common.AccessControlTestKey, "ipc_lock"),
 		Version: versionOne,
 	}
 	// TestContainerIsCertifiedIdentifier tests whether the container has passed Container Certification.
@@ -574,6 +589,22 @@ the changes for you.`,
 		Description: formDescription(TestCrdsStatusSubresourceIdentifier,
 			`checks that all CRDs have a status subresource specification.`),
 		Remediation:           `make sure that all the CRDs have a meaningful status specification.`,
+		BestPracticeReference: bestPracticeDocV1dot2URL + " Section 6.2",
+	},
+	TestNetRawIdentifier: {
+		Identifier:  TestContainerIsCertifiedIdentifier,
+		Type:        normativeResult,
+		Remediation: ``,
+		Description: formDescription(TestContainerIsCertifiedIdentifier,
+			`This test checks whether any CNF container is using NET_RAW capability.`),
+		BestPracticeReference: bestPracticeDocV1dot2URL + " Section 6.2",
+	},
+	TestIpcLockIdentifier: {
+		Identifier:  TestContainerIsCertifiedIdentifier,
+		Type:        normativeResult,
+		Remediation: ``,
+		Description: formDescription(TestContainerIsCertifiedIdentifier,
+			`This test checks whether any CNF container is using IPC_LOCK capability.`),
 		BestPracticeReference: bestPracticeDocV1dot2URL + " Section 6.2",
 	},
 }

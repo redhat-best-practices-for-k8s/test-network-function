@@ -24,6 +24,15 @@ Description|http://test-network-function.com/testcases/access-control/host-resou
 Result Type|normative
 Suggested Remediation|Ensure that each Pod in the CNF abides by the suggested best practices listed in the test description.  In some rare cases, not all best practices can be followed.  For example, some CNFs may be required to run as root.  Such exceptions should be handled on a case-by-case basis, and should provide a proper justification as to why the best practice(s) cannot be followed.
 Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2
+### http://test-network-function.com/testcases/affiliated-certification/container-is-certified
+
+Property|Description
+---|---
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/affiliated-certification/container-is-certified This test checks whether any CNF container is using IPC_LOCK capability.
+Result Type|normative
+Suggested Remediation|
+Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2
 ### http://test-network-function.com/testcases/access-control/namespace
 
 Property|Description
@@ -32,6 +41,15 @@ Version|v1.0.0
 Description|http://test-network-function.com/testcases/access-control/namespace tests that CNFs utilize a CNF-specific namespace, and that the namespace does not start with "openshift-". OpenShift may host a variety of CNF and software applications, and multi-tenancy of such applications is supported through namespaces.  As such, each CNF should be a good neighbor, and utilize an appropriate, unique namespace.
 Result Type|normative
 Suggested Remediation|Ensure that your CNF utilizes a CNF-specific namespace.  Additionally, the CNF-specific namespace should not start with "openshift-", except in rare cases.
+Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2
+### http://test-network-function.com/testcases/affiliated-certification/container-is-certified
+
+Property|Description
+---|---
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/affiliated-certification/container-is-certified This test checks whether any CNF container is using NET_RAW capability.
+Result Type|normative
+Suggested Remediation|
 Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2
 ### http://test-network-function.com/testcases/access-control/pod-role-bindings
 
