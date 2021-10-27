@@ -27,14 +27,14 @@ import (
 )
 
 func Test_NewNodeNames(t *testing.T) {
-	newNn := nn.NewNodeNames(testTimeoutDuration, testLabelsMap)
+	newNn := nn.NewNodeNames(testTimeoutDuration, testLabelsMap, false)
 	assert.NotNil(t, newNn)
 	assert.Equal(t, testTimeoutDuration, newNn.Timeout())
 	assert.Equal(t, newNn.Result(), tnf.ERROR)
 }
 
 func Test_ReelFirstPositive(t *testing.T) {
-	newNn := nn.NewNodeNames(testTimeoutDuration, nil)
+	newNn := nn.NewNodeNames(testTimeoutDuration, nil, false)
 	assert.NotNil(t, newNn)
 	firstStep := newNn.ReelFirst()
 	re := regexp.MustCompile(firstStep.Expect[0])
@@ -44,7 +44,7 @@ func Test_ReelFirstPositive(t *testing.T) {
 }
 
 func Test_ReelFirstPositiveEmpty(t *testing.T) {
-	newNn := nn.NewNodeNames(testTimeoutDuration, nil)
+	newNn := nn.NewNodeNames(testTimeoutDuration, nil, false)
 	assert.NotNil(t, newNn)
 	firstStep := newNn.ReelFirst()
 	re := regexp.MustCompile(firstStep.Expect[0])
@@ -54,7 +54,7 @@ func Test_ReelFirstPositiveEmpty(t *testing.T) {
 }
 
 func Test_ReelFirstNegative(t *testing.T) {
-	newNn := nn.NewNodeNames(testTimeoutDuration, nil)
+	newNn := nn.NewNodeNames(testTimeoutDuration, nil, false)
 	assert.NotNil(t, newNn)
 	firstStep := newNn.ReelFirst()
 	re := regexp.MustCompile(firstStep.Expect[0])
@@ -63,7 +63,7 @@ func Test_ReelFirstNegative(t *testing.T) {
 }
 
 func Test_ReelMatchSuccess(t *testing.T) {
-	newNn := nn.NewNodeNames(testTimeoutDuration, nil)
+	newNn := nn.NewNodeNames(testTimeoutDuration, nil, false)
 	assert.NotNil(t, newNn)
 	step := newNn.ReelMatch("", "", testInputSuccess)
 	assert.Nil(t, step)
@@ -72,7 +72,7 @@ func Test_ReelMatchSuccess(t *testing.T) {
 }
 
 func Test_ReelMatchFail(t *testing.T) {
-	newNn := nn.NewNodeNames(testTimeoutDuration, nil)
+	newNn := nn.NewNodeNames(testTimeoutDuration, nil, false)
 	assert.NotNil(t, newNn)
 	step := newNn.ReelMatch("", "", testInputFailure)
 	assert.Nil(t, step)
@@ -82,7 +82,7 @@ func Test_ReelMatchFail(t *testing.T) {
 
 // Just ensure there are no panics.
 func Test_ReelEof(t *testing.T) {
-	newNn := nn.NewNodeNames(testTimeoutDuration, nil)
+	newNn := nn.NewNodeNames(testTimeoutDuration, nil, false)
 	assert.NotNil(t, newNn)
 	newNn.ReelEOF()
 }

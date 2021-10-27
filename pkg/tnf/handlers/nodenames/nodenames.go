@@ -20,7 +20,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/test-network-function/test-network-function/pkg/config/configsections"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
 	"github.com/test-network-function/test-network-function/pkg/tnf/identifier"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
@@ -42,25 +41,23 @@ type NodeNames struct {
 // NewNodeNames creates a new NodeNames tnf.Test.
 // labels is a map of label names and values for filtering nodes
 // nil label value is like a wildcard - any value as long as the label exists
-func NewNodeNames(timeout time.Duration, labels map[string]*string) *NodeNames {
+func NewNodeNames(timeout time.Duration, labels map[string]*string, isSchedulable bool) *NodeNames {
 	args := []string{"oc", "get", "nodes"}
-	var labelsString string
-	var findSchedulable bool
-	for labelName, labelValue := range labels {
-		if labelName == configsections.Schedulable {
-			findSchedulable = true
-			break
-		}
-		labelsString += labelName
-		if labelValue != nil {
-			labelsString += "=" + *labelValue
-		}
-		labelsString += ","
-	}
-	if findSchedulable {
+
+	if isSchedulable {
 		args = append(args, "-o", "'go-template={{range .items}}{{$taints:=\"\"}}{{range .spec.taints}}{{if eq .effect \"NoSchedule\"}}{{$taints = print $taints .key \",\"}}{{end}}{{end}}{{if not $taints}}{{.metadata.name}}{{ \"\\n\"}}{{end}}{{end}}'")
-	} else if labelsString != "" {
-		labelsString = labelsString[:len(labelsString)-1]
+	} else {
+		var labelsString string
+		for labelName, labelValue := range labels {
+			labelsString += labelName
+			if labelValue != nil {
+				labelsString += "=" + *labelValue
+			}
+			labelsString += ","
+		}
+		if labelsString != "" {
+			labelsString = labelsString[:len(labelsString)-1]
+		}
 		args = append(args, "-o", "custom-columns=NAME:.metadata.name", "-l", labelsString, "| tail -n +2")
 	}
 

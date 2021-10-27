@@ -83,7 +83,7 @@ func GetNodesList() (nodes map[string]configsections.Node) {
 	nodes = make(map[string]configsections.Node)
 	var nodeNames []string
 	context := common.GetContext()
-	tester := nodenames.NewNodeNames(common.DefaultTimeout, map[string]*string{configsections.MasterLabel: nil})
+	tester := nodenames.NewNodeNames(common.DefaultTimeout, map[string]*string{configsections.MasterLabel: nil}, false)
 	test, _ := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 	_, err := test.Run()
 	if err != nil {
@@ -99,7 +99,7 @@ func GetNodesList() (nodes map[string]configsections.Node) {
 	}
 
 	context = common.GetContext()
-	tester = nodenames.NewNodeNames(common.DefaultTimeout, map[string]*string{configsections.WorkerLabel: nil})
+	tester = nodenames.NewNodeNames(common.DefaultTimeout, map[string]*string{configsections.WorkerLabel: nil}, false)
 	test, _ = tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 	_, err = test.Run()
 	if err != nil {
@@ -121,26 +121,17 @@ func GetNodesList() (nodes map[string]configsections.Node) {
 	}
 
 	context = common.GetContext()
-	tester = nodenames.NewNodeNames(common.DefaultTimeout, map[string]*string{configsections.Schedulable: nil})
+	tester = nodenames.NewNodeNames(common.DefaultTimeout, nil, true)
 	test, _ = tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
-	_, err = test.Run()
-	if err != nil {
-		log.Error("Unable to get node list ", ". Error: ", err)
-	} else {
-		nodeNames = tester.GetNodeNames()
-		for i := range nodeNames {
-			if _, ok := nodes[nodeNames[i]]; ok {
-				var node = nodes[nodeNames[i]]
-				node.Labels = append(node.Labels, configsections.Schedulable)
-				nodes[nodeNames[i]] = node
-			} else {
-				nodes[nodeNames[i]] = configsections.Node{
-					Name:   nodeNames[i],
-					Labels: []string{configsections.Schedulable},
-				}
-			}
-		}
+	test.RunAndValidate()
+	nodeNames = tester.GetNodeNames()
+	for _, name := range nodeNames {
+		node := nodes[name]
+		node.Name = name
+		node.Labels = append(node.Labels, configsections.Schedulable)
+		nodes[name] = node
 	}
+
 	return nodes
 }
 

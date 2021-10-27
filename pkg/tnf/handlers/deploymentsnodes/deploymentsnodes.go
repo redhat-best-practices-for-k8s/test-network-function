@@ -43,17 +43,21 @@ type DeploymentsNodes struct {
 }
 
 // NewDeploymentsNodes creates a new DeploymentsNodes tnf.Test.
-func NewDeploymentsNodes(timeout time.Duration, namespace string) *DeploymentsNodes {
+func NewDeploymentsNodes(timeout time.Duration, namespace, deploymentName string) *DeploymentsNodes {
+	cmd := []string{"oc", "-n", namespace, "get", "pods",
+		"-l", "pod-template-hash",
+		"-o", "custom-columns=" +
+			"NAME:.metadata.name," +
+			"NODE:.spec.nodeName",
+	}
+	if deploymentName != "" {
+		cmd = append(cmd, "-l", "app="+deploymentName)
+	}
 	return &DeploymentsNodes{
 		timeout: timeout,
 		result:  tnf.ERROR,
-		args: []string{"oc", "-n", namespace, "get", "pods",
-			"-l", "pod-template-hash",
-			"-o", "custom-columns=" +
-				"NAME:.metadata.name," +
-				"NODE:.spec.nodeName",
-		},
-		nodes: NodesMap{},
+		args:    cmd,
+		nodes:   NodesMap{},
 	}
 }
 

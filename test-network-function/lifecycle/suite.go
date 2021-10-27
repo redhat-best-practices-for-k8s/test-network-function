@@ -306,14 +306,17 @@ func testPodsRecreation(env *config.TestEnvironment) {
 		}
 
 		ginkgo.By("Should return map of nodes to deployments")
-		nodesSorted := getDeploymentsNodes(env.NameSpaceUnderTest)
+		nodesSorted := getDeploymentsNodes(env.NameSpaceUnderTest, "")
 
-		ginkgo.By("At least one node should be schedulable that is not in the deployement's nodes")
-		availableSchedulableNodes := availableSchedulableNode(env, nodesSorted)
+		for deploymentName := range deployments {
+			nodesSortedPerDeployment := getDeploymentsNodes(env.NameSpaceUnderTest, deploymentName)
+			ginkgo.By("At least one node should be schedulable that is not in the deployement's nodes")
+			availableSchedulableNodes := availableSchedulableNode(env, nodesSortedPerDeployment)
 
-		log.Infof("The number of available schedulable nodes to scale this deployment is: %d", availableSchedulableNodes)
-		if availableSchedulableNodes <= 0 {
-			ginkgo.Skip("The number of available schedulable nodes to scale this deployment is Zero")
+			log.Infof("The number of available schedulable nodes to scale deployment %s is: %d", deploymentName, availableSchedulableNodes)
+			if availableSchedulableNodes <= 0 {
+				ginkgo.Skip(fmt.Sprintf("The number of available schedulable nodes to scale deployment %s is Zero", deploymentName))
+			}
 		}
 
 		// Set refresh flag only after we are sure that we can attempt the test
@@ -362,21 +365,22 @@ type node struct {
 
 func sortNodesMap(nodesMap dn.NodesMap) []node {
 	nodes := make([]node, 0, len(nodesMap))
-	for n, d := range nodesMap {
-		nodes = append(nodes, node{n, d})
+	if len(nodesMap) > 0 {
+		for n, d := range nodesMap {
+			nodes = append(nodes, node{n, d})
+		}
+		sort.Slice(nodes, func(i, j int) bool { return len(nodes[i].deployments) > len(nodes[j].deployments) })
 	}
-	sort.Slice(nodes, func(i, j int) bool { return len(nodes[i].deployments) > len(nodes[j].deployments) })
 	return nodes
 }
 
-func getDeploymentsNodes(namespace string) []node {
+func getDeploymentsNodes(namespace, deploymentName string) []node {
 	context := common.GetContext()
-	tester := dn.NewDeploymentsNodes(common.DefaultTimeout, namespace)
+	tester := dn.NewDeploymentsNodes(common.DefaultTimeout, namespace, deploymentName)
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
 	test.RunAndValidate()
 	nodes := tester.GetNodes()
-	gomega.Expect(nodes).NotTo(gomega.BeEmpty())
 	return sortNodesMap(nodes)
 }
 
