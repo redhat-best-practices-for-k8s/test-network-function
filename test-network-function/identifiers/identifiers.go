@@ -56,6 +56,9 @@ func formTestURL(suite, name string) string {
 }
 
 var (
+	// TestIdToClaimId converts the testcase short ID to the claim identifier
+	TestIDToClaimID = map[string]claim.Identifier{}
+
 	// TestHostResourceIdentifier tests container best practices.
 	TestHostResourceIdentifier = claim.Identifier{
 		Url:     formTestURL(common.AccessControlTestKey, "host-resource"),
@@ -223,7 +226,21 @@ func formDescription(identifier claim.Identifier, description string) string {
 // XformToGinkgoItIdentifier transform the claim.Identifier into a test Id that can be used to skip
 // specific tests
 func XformToGinkgoItIdentifier(identifier claim.Identifier) string {
-	return strings.ReplaceAll(strings.TrimPrefix(identifier.Url, url+"/"), "/", "-")
+	return XformToGinkgoItIdentifierExtended(identifier, "")
+}
+
+// XformToGinkgoItIdentifierExtended transform the claim.Identifier into a test Id that can be used to skip
+// specific tests
+func XformToGinkgoItIdentifierExtended(identifier claim.Identifier, extra string) string {
+	itID := strings.ReplaceAll(strings.TrimPrefix(identifier.Url, url+"/"), "/", "-")
+	var key string
+	if extra != "" {
+		key = itID + "-" + extra
+	} else {
+		key = itID
+	}
+	TestIDToClaimID[key] = identifier
+	return key
 }
 
 // Catalog is the JUnit testcase catalog of tests.

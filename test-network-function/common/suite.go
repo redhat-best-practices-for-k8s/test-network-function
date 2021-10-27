@@ -23,23 +23,21 @@ import (
 	"github.com/test-network-function/test-network-function/pkg/config/autodiscover"
 )
 
-var _ = ginkgo.Describe(CommonTestKey, func() {
-	var env *configpkg.TestEnvironment
+var env *configpkg.TestEnvironment
 
-	ginkgo.BeforeSuite(func() {
-		for name := range autodiscover.GetNodesList() {
-			autodiscover.DeleteDebugLabel(name)
-		}
-		env = configpkg.GetTestEnvironment()
-		env.LoadAndRefresh()
-	})
+var _ = ginkgo.BeforeSuite(func() {
+	for name := range autodiscover.GetNodesList() {
+		autodiscover.DeleteDebugLabel(name)
+	}
+	env = configpkg.GetTestEnvironment()
+	env.LoadAndRefresh()
+})
 
-	ginkgo.AfterSuite(func() {
-		// clean up added label to nodes
-		log.Info("clean up added labels to nodes")
-		for name, node := range env.NodesUnderTest {
-			node.Oc.Close()
-			autodiscover.DeleteDebugLabel(name)
-		}
-	})
+var _ = ginkgo.AfterSuite(func() {
+	// clean up added label to nodes
+	log.Info("clean up added labels to nodes")
+	for name, node := range env.NodesUnderTest {
+		node.Oc.Close()
+		autodiscover.DeleteDebugLabel(name)
+	}
 })
