@@ -492,7 +492,7 @@ func getMcHugepagesFromMcKernelArguments(mc *machineConfig) (hugepages, hugepage
 
 // getNodeNumaHugePages gets the actual node's hugepages config based on /sys/devices/system/node/nodeX files.
 func getNodeNumaHugePages(node *config.NodeConfig) (hugepages numaHugePagesPerSize, err error) {
-	const cmd = "echo 'for file in `find /sys/devices/system/node/ -name nr_hugepages`; do echo $file count:`cat $file` ; done'"
+	const cmd = "for file in `find /sys/devices/system/node/ -name nr_hugepages`; do echo $file count:`cat $file` ; done"
 	const outputRegex = `node(\d+).*hugepages-(\d+)kB.* count:(\d+)`
 	const numRegexFields = 4
 
@@ -673,7 +673,7 @@ func testHugepages(env *config.TestEnvironment) {
 		var badNodes []string
 
 		for _, node := range env.NodesUnderTest {
-			if !node.IsWorker() {
+			if !node.IsWorker() || !node.HasDebugPod() {
 				continue
 			}
 
