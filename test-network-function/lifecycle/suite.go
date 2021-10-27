@@ -286,7 +286,6 @@ func shutdownTest(podNamespace, podName string) {
 	test.RunAndValidate()
 }
 
-//nolint:funlen // testPodsRecreation
 func testPodsRecreation(env *config.TestEnvironment) {
 	var deployments dp.DeploymentMap
 	var notReadyDeployments []string
@@ -335,7 +334,6 @@ func testPodsRecreation(env *config.TestEnvironment) {
 				uncordonNode(n.Name)
 				ginkgo.Fail(fmt.Sprintf("did not create replicas when node %s is drained", n.Name))
 			}
-
 			uncordonNode(n.Name)
 		}
 	})
