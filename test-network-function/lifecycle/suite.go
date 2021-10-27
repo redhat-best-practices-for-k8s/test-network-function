@@ -343,17 +343,15 @@ func testPodsRecreation(env *config.TestEnvironment) {
 
 func availableSchedulableNode(env *config.TestEnvironment, nodes []node) int {
 	numberAvailableSchedulableNodes := 0
+Loop:
 	for _, n := range env.NodesUnderTest {
 		if n.IsSchedulable() {
-			isAvailable := true
 			for _, aDeploymentNode := range nodes {
 				if aDeploymentNode.name == n.Name {
-					isAvailable = false
+					continue Loop
 				}
 			}
-			if isAvailable {
-				numberAvailableSchedulableNodes++
-			}
+			numberAvailableSchedulableNodes++
 		}
 	}
 	return numberAvailableSchedulableNodes
