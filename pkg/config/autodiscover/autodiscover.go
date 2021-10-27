@@ -28,7 +28,7 @@ import (
 	"github.com/test-network-function/test-network-function/pkg/config/configsections"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/generic"
-	"github.com/test-network-function/test-network-function/test-network-function/common"
+	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
 )
 
 const (
@@ -42,12 +42,16 @@ const (
 )
 
 var (
+	// PathRelativeToRoot is used to calculate relative filepaths for the `test-network-function` executable entrypoint.
+	pathRelativeToRoot = path.Join("..")
 	// TestFile is the file location of the command.json test case relative to the project root.
 	TestFile = path.Join("pkg", "tnf", "handlers", "command", "command.json")
-
+	// RelativeSchemaPath is the relative path to the generic-test.schema.json JSON schema.
+	relativeSchemaPath = path.Join(pathRelativeToRoot, schemaPath)
 	// pathToTestFile is the relative path to the command.json test case.
-	pathToTestFile = path.Join(common.PathRelativeToRoot, TestFile)
-
+	pathToTestFile = path.Join(pathRelativeToRoot, TestFile)
+	// schemaPath is the path to the generic-test.schema.json JSON schema relative to the project root.
+	schemaPath = path.Join("schemas", "generic-test.schema.json")
 	// commandDriver stores the csi driver JSON output.
 	commandDriver = make(map[string]interface{})
 )
@@ -78,36 +82,45 @@ func buildLabelQuery(label configsections.Label) string {
 }
 
 func executeOcGetCommand(resourceType, labelQuery, namespace string) (string, error) {
-	ocCommandtoExecute := fmt.Sprintf(ocCommand, resourceType, namespace, labelQuery)
+	ocCommandToExecute := fmt.Sprintf(ocCommand, resourceType, namespace, labelQuery)
+	match, err := executeOcCommand(ocCommandToExecute)
+	if err != nil {
+		log.Error("can't run command, ", ocCommandToExecute, "Error=", err)
+		return "", err
+	}
+	err = jsonUnmarshal([]byte(match), &commandDriver)
+	gomega.Expect(err).To(gomega.BeNil())
+	return match, err
+}
+
+func executeOcCommand(command string) (string, error) {
 	values := make(map[string]interface{})
-	values["COMMAND"] = ocCommandtoExecute
+	values["COMMAND"] = command
 	values["TIMEOUT"] = ocCommandTimeOut.Nanoseconds()
-	context := common.GetContext()
-	test, handler, result, err := generic.NewGenericFromMap(pathToTestFile, common.RelativeSchemaPath, values)
+	context := interactive.GetContext()
+	tester, handler, result, err := generic.NewGenericFromMap(pathToTestFile, relativeSchemaPath, values)
 
 	gomega.Expect(err).To(gomega.BeNil())
 	gomega.Expect(result).ToNot(gomega.BeNil())
 	gomega.Expect(result.Valid()).To(gomega.BeTrue())
 	gomega.Expect(handler).ToNot(gomega.BeNil())
-	gomega.Expect(test).ToNot(gomega.BeNil())
-
-	tester, err := tnf.NewTest(context.GetExpecter(), *test, handler, context.GetErrorChannel())
-	gomega.Expect(err).To(gomega.BeNil())
 	gomega.Expect(tester).ToNot(gomega.BeNil())
 
-	testResult, err := tester.Run()
+	test, err := tnf.NewTest(context.GetExpecter(), *tester, handler, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
-	gomega.Expect(testResult).To(gomega.Equal(tnf.SUCCESS))
+	gomega.Expect(tester).ToNot(gomega.BeNil())
+	if err != nil {
+		return "", err
+	}
+	test.RunAndValidate()
 
-	genericTest := (*test).(*generic.Generic)
+	genericTest := (*tester).(*generic.Generic)
 	gomega.Expect(genericTest).ToNot(gomega.BeNil())
 
 	matches := genericTest.Matches
 	gomega.Expect(len(matches)).To(gomega.Equal(1))
 	match := genericTest.GetMatches()[0]
-	err = jsonUnmarshal([]byte(match.Match), &commandDriver)
-	gomega.Expect(err).To(gomega.BeNil())
-	return match.Match, err
+	return match.Match, nil
 }
 
 // getContainersByLabel builds `config.Container`s from containers in pods matching a label.

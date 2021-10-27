@@ -27,14 +27,14 @@ import (
 )
 
 func Test_NewNodeTainted(t *testing.T) {
-	newNt := nt.NewNodeTainted(testTimeoutDuration, testNodeName)
+	newNt := nt.NewNodeTainted(testTimeoutDuration)
 	assert.NotNil(t, newNt)
 	assert.Equal(t, testTimeoutDuration, newNt.Timeout())
 	assert.Equal(t, newNt.Result(), tnf.ERROR)
 }
 
 func Test_ReelFirstPositiveSuccess(t *testing.T) {
-	newNt := nt.NewNodeTainted(testTimeoutDuration, testNodeName)
+	newNt := nt.NewNodeTainted(testTimeoutDuration)
 	assert.NotNil(t, newNt)
 	firstStep := newNt.ReelFirst()
 	re := regexp.MustCompile(firstStep.Expect[0])
@@ -44,7 +44,7 @@ func Test_ReelFirstPositiveSuccess(t *testing.T) {
 }
 
 func Test_ReelFirstPositiveFailure(t *testing.T) {
-	newNt := nt.NewNodeTainted(testTimeoutDuration, testNodeName)
+	newNt := nt.NewNodeTainted(testTimeoutDuration)
 	assert.NotNil(t, newNt)
 	firstStep := newNt.ReelFirst()
 	re := regexp.MustCompile(firstStep.Expect[0])
@@ -54,7 +54,7 @@ func Test_ReelFirstPositiveFailure(t *testing.T) {
 }
 
 func Test_ReelFirstNegative(t *testing.T) {
-	newNt := nt.NewNodeTainted(testTimeoutDuration, testNodeName)
+	newNt := nt.NewNodeTainted(testTimeoutDuration)
 	assert.NotNil(t, newNt)
 	firstStep := newNt.ReelFirst()
 	re := regexp.MustCompile(firstStep.Expect[0])
@@ -63,7 +63,7 @@ func Test_ReelFirstNegative(t *testing.T) {
 }
 
 func Test_ReelMatchSuccess(t *testing.T) {
-	newNt := nt.NewNodeTainted(testTimeoutDuration, testNodeName)
+	newNt := nt.NewNodeTainted(testTimeoutDuration)
 	assert.NotNil(t, newNt)
 	step := newNt.ReelMatch("", "", testMatchSuccess)
 	assert.Nil(t, step)
@@ -71,7 +71,7 @@ func Test_ReelMatchSuccess(t *testing.T) {
 }
 
 func Test_ReelMatchFail(t *testing.T) {
-	newNt := nt.NewNodeTainted(testTimeoutDuration, testNodeName)
+	newNt := nt.NewNodeTainted(testTimeoutDuration)
 	assert.NotNil(t, newNt)
 	step := newNt.ReelMatch("", "", testMatchFailure)
 	assert.Nil(t, step)
@@ -80,13 +80,12 @@ func Test_ReelMatchFail(t *testing.T) {
 
 // Just ensure there are no panics.
 func Test_ReelEof(t *testing.T) {
-	newNt := nt.NewNodeTainted(testTimeoutDuration, testNodeName)
+	newNt := nt.NewNodeTainted(testTimeoutDuration)
 	assert.NotNil(t, newNt)
 	newNt.ReelEOF()
 }
 
 const (
-	testNodeName        = "testNode"
 	testTimeoutDuration = time.Second * 2
 	testInputError      = ""
 	testInputFailure    = "1\n"
