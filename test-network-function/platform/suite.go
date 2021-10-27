@@ -330,6 +330,9 @@ func testTainted(env *config.TestEnvironment) {
 
 		var taintedNodes []string
 		for _, node := range env.NodesUnderTest {
+			if !node.HasDebugPod() {
+				continue
+			}
 			context := node.Oc
 			tester := nodetainted.NewNodeTainted(common.DefaultTimeout)
 			test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
@@ -374,7 +377,7 @@ func testHugepages(env *config.TestEnvironment) {
 
 		var badNodes []string
 		for _, node := range env.NodesUnderTest {
-			if !node.IsWorker() {
+			if !node.IsWorker() || !node.HasDebugPod() {
 				continue
 			}
 			nodeOc := node.Oc
