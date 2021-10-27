@@ -16,6 +16,6 @@
 
 /*
 Package lifecycle contains k8s resource lifecycle related tests, such as pod
-scheduling, scaling, temination etc.
+scheduling, scaling, termination etc.
 */
 package lifecycle

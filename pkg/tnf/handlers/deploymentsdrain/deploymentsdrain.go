@@ -47,7 +47,7 @@ func NewDeploymentsDrain(timeout time.Duration, nodeName string) *DeploymentsDra
 		result:  tnf.ERROR,
 		args: []string{
 			"oc", "adm", "drain", nodeName, "--pod-selector=pod-template-hash", "--disable-eviction=true",
-			"--delete-local-data=true", "--ignore-daemonsets=true", "--timeout=" + drainTimeoutString,
+			"--delete-emptydir-data=true", "--ignore-daemonsets=true", "--timeout=" + drainTimeoutString,
 			"&&", "echo", "SUCCESS",
 		},
 		node: nodeName,

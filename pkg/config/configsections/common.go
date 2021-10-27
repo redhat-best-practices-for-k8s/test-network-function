@@ -70,6 +70,8 @@ type TestPartner struct {
 	ContainerConfigList []ContainerConfig `yaml:"partnerContainers" json:"partnerContainers"`
 	// TestOrchestratorID is the id of the partner container for conducting connectivity tests
 	TestOrchestratorID ContainerIdentifier `yaml:"testOrchestrator" json:"testOrchestrator"`
+	// DebugPods
+	ContainersDebugList []ContainerConfig `yaml:"debugContainers,omitempty" json:"debugContainers,omitempty"`
 }
 
 // TestTarget is a collection of resources under test
