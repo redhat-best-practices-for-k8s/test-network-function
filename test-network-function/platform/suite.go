@@ -54,13 +54,20 @@ import (
 	"github.com/test-network-function/test-network-function/test-network-function/results"
 )
 
+const (
+	RhelDefaultHugepagesz = 2048 // kB
+	RhelDefaultHugepages  = 0
+	HugepagesParam        = "hugepages"
+	HugepageszParam       = "hugepagesz"
+	DefaultHugepagesz     = "default_hugepagesz"
+)
+
 var (
 	commandHandlerFilePath = path.Join(common.PathRelativeToRoot, "pkg", "tnf", "handlers", "command", "command.json")
 	mcGetterCommandTimeout = time.Second * 30
 )
 
 type hugePagesConfig struct {
-	numa           int
 	hugepagesSize  int // size in kb
 	hugepagesCount int
 }
@@ -452,16 +459,22 @@ func hugepageSizeToInt(s string) int {
 	return num
 }
 
+func logMcKernelArgumentsHugepages(hugepagesPerSize map[int]int, defhugepagesz int) {
+	logStr := fmt.Sprintf("MC KernelArguments hugepages config: default_hugepagesz=%d-kB", defhugepagesz)
+	for size, count := range hugepagesPerSize {
+		logStr += fmt.Sprintf(", size=%dkB - count=%d", size, count)
+	}
+	log.Info(logStr)
+}
+
 // getMcHugepagesFromMcKernelArguments gets the hugepages params from machineconfig's kernelArguments
-func getMcHugepagesFromMcKernelArguments(mc *machineConfig) (hugepages, hugepagesz, defhugepagesz int) {
-	const RhelDefaultHugepagesz = 2048 // kB
-	const HugepagesParam = "hugepages"
-	const HugepageszParam = "hugepagesz"
-	const DefaultHugepagesz = "default_hugepagesz"
+func getMcHugepagesFromMcKernelArguments(mc *machineConfig) (hugepagesPerSize map[int]int, defhugepagesz int, err error) {
 	const KeyValueSplitLen = 2
 
-	hugepages = 0
 	defhugepagesz = RhelDefaultHugepagesz
+	hugepagesPerSize = map[int]int{}
+
+	hugepagesz := 0
 	for _, arg := range mc.Spec.KernelArguments {
 		keyValueSlice := strings.Split(arg, "=")
 		if len(keyValueSlice) != KeyValueSplitLen {
@@ -471,11 +484,17 @@ func getMcHugepagesFromMcKernelArguments(mc *machineConfig) (hugepages, hugepage
 
 		key, value := keyValueSlice[0], keyValueSlice[1]
 		if key == HugepagesParam {
-			hugepages, _ = strconv.Atoi(value)
+			if _, sizeFound := hugepagesPerSize[hugepagesz]; !sizeFound {
+				return map[int]int{}, RhelDefaultHugepagesz, fmt.Errorf("found hugepages count without size in kernelArguments: %v", mc.Spec.KernelArguments)
+			}
+			hugepages, _ := strconv.Atoi(value)
+			hugepagesPerSize[hugepagesz] = hugepages
 		}
 
 		if key == HugepageszParam {
 			hugepagesz = hugepageSizeToInt(value)
+			// Create new map entry for this size
+			hugepagesPerSize[hugepagesz] = 0
 		}
 
 		if key == DefaultHugepagesz {
@@ -483,12 +502,13 @@ func getMcHugepagesFromMcKernelArguments(mc *machineConfig) (hugepages, hugepage
 		}
 	}
 
-	if hugepagesz == 0 {
-		log.Warnf("No hugepages size found in node's machineconfig. Defaulting to size=%dkB (count=%d)", RhelDefaultHugepagesz, hugepages)
-		hugepagesz = RhelDefaultHugepagesz
+	if len(hugepagesPerSize) == 0 {
+		hugepagesPerSize[RhelDefaultHugepagesz] = RhelDefaultHugepages
+		log.Warnf("No hugepages size found in node's machineconfig. Defaulting to size=%dkB (count=%d)", RhelDefaultHugepagesz, RhelDefaultHugepages)
 	}
 
-	return hugepages, hugepagesz, defhugepagesz
+	logMcKernelArgumentsHugepages(hugepagesPerSize, defhugepagesz)
+	return hugepagesPerSize, defhugepagesz, nil
 }
 
 // getNodeNumaHugePages gets the actual node's hugepages config based on /sys/devices/system/node/nodeX files.
@@ -520,7 +540,6 @@ func getNodeNumaHugePages(node *config.NodeConfig) (hugepages numaHugePagesPerSi
 		hpCount, _ := strconv.Atoi(values[3])
 
 		hugepagesCfg := hugePagesConfig{
-			numa:           numaNode,
 			hugepagesCount: hpCount,
 			hugepagesSize:  hpSize,
 		}
@@ -528,8 +547,9 @@ func getNodeNumaHugePages(node *config.NodeConfig) (hugepages numaHugePagesPerSi
 		if numaHugepagesCfg, exists := hugepages[numaNode]; exists {
 			numaHugepagesCfg = append(numaHugepagesCfg, hugepagesCfg)
 			hugepages[numaNode] = numaHugepagesCfg
+		} else {
+			hugepages[numaNode] = []hugePagesConfig{hugepagesCfg}
 		}
-		hugepages[numaNode] = []hugePagesConfig{hugepagesCfg}
 	}
 
 	log.Infof("Node %s hugepages: %s", node.Name, hugepages)
@@ -580,7 +600,6 @@ func getMcSystemdUnitsHugepagesConfig(mc *machineConfig) (hugepages numaHugePage
 		hpCount, _ := strconv.Atoi(values[1])
 
 		hugepagesCfg := hugePagesConfig{
-			numa:           numaNode,
 			hugepagesCount: hpCount,
 			hugepagesSize:  hpSize,
 		}
@@ -628,23 +647,27 @@ func testNodeHugepagesWithMcSystemd(nodeName string, nodeNumaHugePages, mcSystem
 // testNodeHugepagesWithKernelArgs compares node hugepages against kernelArguments config.
 // The total count of hugepages of the size defined in the kernelArguments must match the kernArgs' hugepages value.
 // For other sizes, the sum should be 0.
-func testNodeHugepagesWithKernelArgs(nodeName string, nodeNumaHugePages numaHugePagesPerSize, kernelArgsHpSize, kernerlArgsHpCount int) (bool, error) {
-	totalHugePages := 0
-	// Iterate through all numas and increment only
-	for numaIdx, numaHpConfig := range nodeNumaHugePages {
-		for _, hugepagesConfig := range numaHpConfig {
-			if hugepagesConfig.hugepagesSize == kernelArgsHpSize {
-				totalHugePages += hugepagesConfig.hugepagesCount
-			} else if hugepagesConfig.hugepagesCount != 0 {
-				return false, fmt.Errorf("node %s: hugepages for numa %d is not zero (%d)",
-					nodeName, numaIdx, hugepagesConfig.hugepagesCount)
+func testNodeHugepagesWithKernelArgs(nodeName string, nodeNumaHugePages numaHugePagesPerSize, kernelArgsHugepagesPerSize map[int]int) (bool, error) {
+	for size, count := range kernelArgsHugepagesPerSize {
+		total := 0
+		for numaIdx, numaHugepages := range nodeNumaHugePages {
+			found := false
+			for _, hugepages := range numaHugepages {
+				if hugepages.hugepagesSize == size {
+					total += hugepages.hugepagesCount
+					found = true
+					break
+				}
+			}
+			if !found {
+				return false, fmt.Errorf("node %s: numa %d has no hugepages of size %d", nodeName, numaIdx, size)
 			}
 		}
-	}
 
-	if totalHugePages != kernerlArgsHpCount {
-		return false, fmt.Errorf("node %s: total hugepages of size %d won't match (node count=%d, expected=%d)",
-			nodeName, kernelArgsHpSize, totalHugePages, kernerlArgsHpCount)
+		if total != count {
+			return false, fmt.Errorf("node %s: total hugepages of size %d won't match (node count=%d, expected=%d)",
+				nodeName, size, total, count)
+		}
 	}
 
 	return true, nil
@@ -698,8 +721,11 @@ func testHugepages(env *config.TestEnvironment) {
 			// KernelArguments params will only be used in case no systemd units were found.
 			if len(mcSystemdHugepages) == 0 {
 				ginkgo.By("Comparing MC KernelArguments hugepages info against node values.")
-				kernerlArgsHpCount, kernelArgsHpSize, _ := getMcHugepagesFromMcKernelArguments(&mc)
-				if pass, err := testNodeHugepagesWithKernelArgs(node.Name, nodeNumaHugePages, kernelArgsHpSize, kernerlArgsHpCount); !pass {
+				hugepagesPerSize, _, err := getMcHugepagesFromMcKernelArguments(&mc)
+				if err != nil {
+					ginkgo.Fail(fmt.Sprintf("Unable to get mc kernelArguments hugepages from node %s. Error: %v", node.Name, err))
+				}
+				if pass, err := testNodeHugepagesWithKernelArgs(node.Name, nodeNumaHugePages, hugepagesPerSize); !pass {
 					log.Error(err)
 					badNodes = append(badNodes, node.Name)
 				}
