@@ -59,16 +59,6 @@ var (
 	// TestIdToClaimId converts the testcase short ID to the claim identifier
 	TestIDToClaimID = map[string]claim.Identifier{}
 
-	// TestNetRawIdentifier tests container best practices.
-	TestNetRawIdentifier = claim.Identifier{
-		Url:     formTestURL(common.AccessControlTestKey, "net-raw"),
-		Version: versionOne,
-	}
-	// TestIpcLockIdentifier tests container best practices.
-	TestIpcLockIdentifier = claim.Identifier{
-		Url:     formTestURL(common.AccessControlTestKey, "ipc-lock"),
-		Version: versionOne,
-	}
 	// TestHostResourceIdentifier tests container best practices.
 	TestHostResourceIdentifier = claim.Identifier{
 		Url:     formTestURL(common.AccessControlTestKey, "host-resource"),
@@ -273,6 +263,8 @@ cannot be followed.`,
 6. The Pod is not granted SYS_ADMIN SCC.
 7. The Pod does not run as root.
 8. The Pod does not allow privileged escalation.
+9. The Pod is not granted NET_RAW SCC.
+10. The Pod is not granted IPC_LOCK SCC.
 `),
 		BestPracticeReference: bestPracticeDocV1dot2URL + " Section 6.2",
 	},
@@ -601,22 +593,6 @@ the changes for you.`,
 		Description: formDescription(TestCrdsStatusSubresourceIdentifier,
 			`checks that all CRDs have a status subresource specification.`),
 		Remediation:           `make sure that all the CRDs have a meaningful status specification.`,
-		BestPracticeReference: bestPracticeDocV1dot2URL + " Section 6.2",
-	},
-	TestNetRawIdentifier: {
-		Identifier:  TestContainerIsCertifiedIdentifier,
-		Type:        normativeResult,
-		Remediation: ``,
-		Description: formDescription(TestContainerIsCertifiedIdentifier,
-			`This test checks whether any CNF container is using NET_RAW capability.`),
-		BestPracticeReference: bestPracticeDocV1dot2URL + " Section 6.2",
-	},
-	TestIpcLockIdentifier: {
-		Identifier:  TestContainerIsCertifiedIdentifier,
-		Type:        normativeResult,
-		Remediation: ``,
-		Description: formDescription(TestContainerIsCertifiedIdentifier,
-			`This test checks whether any CNF container is using IPC_LOCK capability.`),
 		BestPracticeReference: bestPracticeDocV1dot2URL + " Section 6.2",
 	},
 }
