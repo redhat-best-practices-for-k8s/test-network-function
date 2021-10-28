@@ -31,18 +31,11 @@ var (
 )
 
 const (
-	argsLen              = 2
-	claimAdd             = "claim-add"
 	claimFilePermissions = 0644
 )
 
 func claimUpdate(cmd *cobra.Command, args []string) error {
-	fmt.Println("claimm|claim")
-	fmt.Println("---|---")
-	fmt.Println(Claim)
-	fmt.Println(Reportdir)
 
-	/////////////////////////////////////
 	claimFileTextPtr := &Claim
 	reportFilesTextPtr := &Reportdir
 	fileUpdated := false
@@ -86,8 +79,6 @@ func claimUpdate(cmd *cobra.Command, args []string) error {
 		log.Printf("No changes were applied to `%s`\n", *claimFileTextPtr)
 	}
 
-	////////////////////////////////////////
-
 	return nil
 }
 
@@ -105,13 +96,19 @@ func Execute() *cobra.Command {
 		"dir of JUnit XML reports. (Required)",
 	)
 
-	claimAddFile.MarkFlagRequired("reportdir")
+	err := claimAddFile.MarkFlagRequired("reportdir")
+	if err != nil {
+		return nil
+	}
 
 	claimAddFile.Flags().StringVarP(
 		&Claim, "claim", "c", "",
 		"existing claim file. (Required)",
 	)
-	claimAddFile.MarkFlagRequired("claim")
+	err = claimAddFile.MarkFlagRequired("claim")
+	if err != nil {
+		return nil
+	}
 	addcalim.AddCommand(claimAddFile)
 	return addcalim
 }

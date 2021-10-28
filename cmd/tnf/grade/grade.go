@@ -46,8 +46,17 @@ func Execute() *cobra.Command {
 		&OutputPath, "OutputPath", "o", "",
 		"Path to the output file",
 	)
-	grade.MarkFlagRequired("results")
-	grade.MarkFlagRequired("policy")
-	grade.MarkFlagRequired("OutputPath")
+	err := grade.MarkFlagRequired("results")
+	if err != nil {
+		return nil
+	}
+	err = grade.MarkFlagRequired("policy")
+	if err != nil {
+		return nil
+	}
+	err = grade.MarkFlagRequired("OutputPath")
+	if err != nil {
+		return nil
+	}
 	return grade
 }

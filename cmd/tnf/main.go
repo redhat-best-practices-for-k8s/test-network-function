@@ -24,20 +24,17 @@ var (
 )
 
 func main() {
-
 	claimAddFile := addclaim.Execute()
 	rootCmd.AddCommand(claimAddFile)
-
 	rootCmd.AddCommand(generate)
 	generateCatalog := catalog.Execute()
 	generate.AddCommand(generateCatalog)
-	handler := handler.Execute()
-	generate.AddCommand(handler)
+	handlercmd := handler.Execute()
+	generate.AddCommand(handlercmd)
 	jsontestCli := jsontest.Execute()
 	rootCmd.AddCommand(jsontestCli)
 	gradetool := grade.Execute()
 	rootCmd.AddCommand(gradetool)
-
 	if err := rootCmd.Execute(); err != nil {
 		log.Fatal(err)
 	}
