@@ -607,8 +607,9 @@ func getMcSystemdUnitsHugepagesConfig(mc *machineConfig) (hugepages numaHugePage
 		if numaHugepagesCfg, exists := hugepages[numaNode]; exists {
 			numaHugepagesCfg = append(numaHugepagesCfg, hugepagesCfg)
 			hugepages[numaNode] = numaHugepagesCfg
+		} else {
+			hugepages[numaNode] = []hugePagesConfig{hugepagesCfg}
 		}
-		hugepages[numaNode] = []hugePagesConfig{hugepagesCfg}
 	}
 
 	return hugepages, nil
