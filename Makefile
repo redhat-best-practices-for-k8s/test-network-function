@@ -97,8 +97,8 @@ build-catalog-json:
 	go run cmd/catalog/main.go generate json > catalog.json
 
 # generate the test catalog in Markdown
-build-catalog-md:
-	go run cmd/catalog/main.go generate markdown > CATALOG.md
+#build-catalog-md:
+#	//go run cmd/catalog/main.go generate markdown > CATALOG.md
 
 # build the CNF test binary
 build-cnf-tests:
