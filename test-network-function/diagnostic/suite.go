@@ -62,12 +62,14 @@ var (
 
 	// schemaPath is the path to the generic-test.schema.json JSON schema relative to the project root.
 	schemaPath = path.Join("schemas", "generic-test.schema.json")
+
+	// retrieve the singleton instance of test environment
+	env *config.TestEnvironment = config.GetTestEnvironment()
 )
 
 var _ = ginkgo.Describe(common.DiagnosticTestKey, func() {
 	conf, _ := ginkgo.GinkgoConfiguration()
 	if testcases.IsInFocus(conf.FocusStrings, common.DiagnosticTestKey) {
-		env := config.GetTestEnvironment()
 		ginkgo.BeforeEach(func() {
 			env.LoadAndRefresh()
 			gomega.Expect(len(env.PodsUnderTest)).ToNot(gomega.Equal(0))
@@ -184,7 +186,7 @@ func getWorkerNodeName(env *config.TestEnvironment) string {
 }
 
 func listNodeCniPlugins(nodeName string) []CniPlugin {
-	const command = "jq -r .name,.cniVersion /etc/cni/net.d/*"
+	const command = "cat /host/etc/cni/net.d/* | chroot /host jq -r .name,.cniVersion"
 	result := []CniPlugin{}
 	nodes := config.GetTestEnvironment().NodesUnderTest
 	context := nodes[nodeName].Oc
@@ -216,7 +218,7 @@ func testCniPlugins() {
 		ginkgo.Skip("can't use 'oc debug' in minikube")
 	}
 	// get name of a master node
-	env := config.GetTestEnvironment()
+	env = config.GetTestEnvironment()
 	nodeName := getMasterNodeName(env)
 	gomega.Expect(nodeName).ToNot(gomega.BeEmpty())
 	// get CNI plugins from node
@@ -228,7 +230,7 @@ func testNodesHwInfo() {
 	if common.IsMinikube() {
 		ginkgo.Skip("can't use 'oc debug' in minikube")
 	}
-	env := config.GetTestEnvironment()
+	env = config.GetTestEnvironment()
 	masterNodeName := getMasterNodeName(env)
 	gomega.Expect(masterNodeName).ToNot(gomega.BeEmpty())
 	workerNodeName := getWorkerNodeName(env)
@@ -249,8 +251,9 @@ func getNodeLscpu(nodeName string) map[string]string {
 	const command = "lscpu"
 	const numSplitSubstrings = 2
 	result := map[string]string{}
-	env := config.GetTestEnvironment().NodesUnderTest
-	context := env[nodeName].Oc
+	env = config.GetTestEnvironment()
+	nodes := env.NodesUnderTest
+	context := nodes[nodeName].Oc
 	tester := nodedebug.NewNodeDebug(defaultTestTimeout, nodeName, command, true, true)
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
@@ -266,8 +269,9 @@ func getNodeIfconfig(nodeName string) map[string][]string {
 	const command = "ifconfig"
 	const numSplitSubstrings = 2
 	result := map[string][]string{}
-	env := config.GetTestEnvironment().NodesUnderTest
-	context := env[nodeName].Oc
+	env = config.GetTestEnvironment()
+	nodes := env.NodesUnderTest
+	context := nodes[nodeName].Oc
 	tester := nodedebug.NewNodeDebug(defaultTestTimeout, nodeName, command, true, true)
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
@@ -289,8 +293,9 @@ func getNodeIfconfig(nodeName string) map[string][]string {
 
 func getNodeLsblk(nodeName string) interface{} {
 	const command = "lsblk -J"
-	env := config.GetTestEnvironment().NodesUnderTest
-	context := env[nodeName].Oc
+	env = config.GetTestEnvironment()
+	nodes := env.NodesUnderTest
+	context := nodes[nodeName].Oc
 	tester := nodedebug.NewNodeDebug(defaultTestTimeout, nodeName, command, false, false)
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
@@ -303,8 +308,9 @@ func getNodeLsblk(nodeName string) interface{} {
 
 func getNodeLspci(nodeName string) []string {
 	const command = "lspci"
-	env := config.GetTestEnvironment().NodesUnderTest
-	context := env[nodeName].Oc
+	env = config.GetTestEnvironment()
+	nodes := env.NodesUnderTest
+	context := nodes[nodeName].Oc
 	tester := nodedebug.NewNodeDebug(defaultTestTimeout, nodeName, command, true, true)
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
