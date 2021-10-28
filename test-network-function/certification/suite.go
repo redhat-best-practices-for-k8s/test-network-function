@@ -20,7 +20,6 @@ import (
 	"fmt"
 
 	"github.com/onsi/ginkgo"
-	ginkgoconfig "github.com/onsi/ginkgo/config"
 	"github.com/onsi/gomega"
 	"github.com/test-network-function/test-network-function/internal/api"
 	configpkg "github.com/test-network-function/test-network-function/pkg/config"
@@ -40,11 +39,14 @@ const (
 var certAPIClient api.CertAPIClient
 
 var _ = ginkgo.Describe(common.AffiliatedCertTestKey, func() {
-	if testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusStrings, common.AffiliatedCertTestKey) {
+	conf, _ := ginkgo.GinkgoConfiguration()
+	if testcases.IsInFocus(conf.FocusStrings, common.AffiliatedCertTestKey) {
 		env := configpkg.GetTestEnvironment()
 		ginkgo.BeforeEach(func() {
 			env.LoadAndRefresh()
 		})
+
+		ginkgo.ReportAfterEach(results.RecordResult)
 
 		testContainerCertificationStatus()
 		testOperatorCertificationStatus()
@@ -59,7 +61,6 @@ func testContainerCertificationStatus() {
 		cnfsToQuery := env.Config.CertifiedContainerInfo
 
 		ginkgo.By(fmt.Sprintf("Getting certification status. Number of containers to check: %d", len(cnfsToQuery)))
-		defer results.RecordResult(identifiers.TestContainerIsCertifiedIdentifier)
 
 		if len(cnfsToQuery) > 0 {
 			certAPIClient = api.NewHTTPClient()
@@ -81,7 +82,6 @@ func testOperatorCertificationStatus() {
 	ginkgo.It(testID, func() {
 		operatorsToQuery := configpkg.GetTestEnvironment().Config.CertifiedOperatorInfo
 		ginkgo.By(fmt.Sprintf("Verify operator as certified. Number of operators to check: %d", len(operatorsToQuery)))
-		defer results.RecordResult(identifiers.TestOperatorIsCertifiedIdentifier)
 		if len(operatorsToQuery) > 0 {
 			certAPIClient := api.NewHTTPClient()
 			for _, certified := range operatorsToQuery {

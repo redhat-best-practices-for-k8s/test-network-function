@@ -64,6 +64,33 @@ type Container struct {
 	ContainerIdentifier     configsections.ContainerIdentifier
 }
 
+type NodeConfig struct {
+	// same Name as the one inside Node structure
+	Name string
+	Node configsections.Node
+	// Oc holds shell for debug pod running on the node
+	Oc *interactive.Oc
+	// deployment indicates if the node has a deployment
+	deployment bool
+	// debug indicates if the node should have a debug pod
+	debug bool
+}
+
+func (n NodeConfig) IsMaster() bool {
+	return n.Node.IsMaster()
+}
+
+func (n NodeConfig) IsWorker() bool {
+	return n.Node.IsWorker()
+}
+
+func (n NodeConfig) HasDeployment() bool {
+	return n.deployment
+}
+func (n NodeConfig) HasDebugPod() bool {
+	return n.debug
+}
+
 // DefaultTimeout for creating new interactive sessions (oc, ssh, tty)
 var DefaultTimeout = time.Duration(defaultTimeoutSeconds) * time.Second
 
@@ -88,9 +115,9 @@ func getOcSession(pod, container, namespace string, timeout time.Duration, optio
 				select {
 				case err := <-outCh:
 					log.Fatalf("OC session to container %s/%s is broken due to: %v, aborting the test run", oc.GetPodName(), oc.GetPodContainerName(), err)
-					os.Exit(1)
 				case <-oc.GetDoneChannel():
-					break
+					log.Infof("stop watching the session with container %s/%s", oc.GetPodName(), oc.GetPodContainerName())
+					return
 				}
 			}
 		}()
@@ -123,12 +150,14 @@ func getContainerDefaultNetworkIPAddress(oc *interactive.Oc, dev string) (string
 type TestEnvironment struct {
 	ContainersUnderTest  map[configsections.ContainerIdentifier]*Container
 	PartnerContainers    map[configsections.ContainerIdentifier]*Container
+	DebugContainers      map[configsections.ContainerIdentifier]*Container
 	PodsUnderTest        []configsections.Pod
 	DeploymentsUnderTest []configsections.Deployment
 	OperatorsUnderTest   []configsections.Operator
 	NameSpaceUnderTest   string
-	Nodes                map[string]configsections.Node
 	CrdNames             []string
+	NodesUnderTest       map[string]*NodeConfig
+
 	// ContainersToExcludeFromConnectivityTests is a set used for storing the containers that should be excluded from
 	// connectivity testing.
 	ContainersToExcludeFromConnectivityTests map[configsections.ContainerIdentifier]interface{}
@@ -171,9 +200,20 @@ func (env *TestEnvironment) LoadAndRefresh() {
 		}
 		env.doAutodiscover()
 	} else if env.needsRefresh {
+		log.Debug("clean up environment Test structure")
 		env.Config.Partner = configsections.TestPartner{}
 		env.Config.TestTarget = configsections.TestTarget{}
 		env.TestOrchestrator = nil
+		for name, node := range env.NodesUnderTest {
+			if node.HasDebugPod() {
+				node.Oc.Close()
+				autodiscover.DeleteDebugLabel(name)
+			}
+		}
+		env.NodesUnderTest = nil
+		env.Config.Nodes = nil
+		env.DebugContainers = nil
+		log.Debug("start auto discovery")
 		env.doAutodiscover()
 	}
 }
@@ -186,24 +226,114 @@ func (env *TestEnvironment) doAutodiscover() {
 	if autodiscover.PerformAutoDiscovery() {
 		autodiscover.FindTestTarget(env.Config.TargetPodLabels, &env.Config.TestTarget, env.NameSpaceUnderTest)
 	}
-	autodiscover.FindTestPartner(&env.Config.Partner, env.NameSpaceUnderTest)
 
 	env.ContainersToExcludeFromConnectivityTests = make(map[configsections.ContainerIdentifier]interface{})
 
 	for _, cid := range env.Config.ExcludeContainersFromConnectivityTests {
 		env.ContainersToExcludeFromConnectivityTests[cid] = ""
 	}
+
 	env.ContainersUnderTest = env.createContainers(env.Config.ContainerConfigList)
 	env.PodsUnderTest = env.Config.PodsUnderTest
+
+	for _, cid := range env.Config.Partner.ContainersDebugList {
+		env.ContainersToExcludeFromConnectivityTests[cid.ContainerIdentifier] = ""
+	}
+	autodiscover.FindTestPartner(&env.Config.Partner, env.NameSpaceUnderTest)
 	env.PartnerContainers = env.createContainers(env.Config.Partner.ContainerConfigList)
 	env.TestOrchestrator = env.PartnerContainers[env.Config.Partner.TestOrchestratorID]
 	env.DeploymentsUnderTest = env.Config.DeploymentsUnderTest
 	env.OperatorsUnderTest = env.Config.Operators
-	env.Nodes = env.Config.Nodes
-	env.CrdNames = autodiscover.FindTestCrdNames(env.Config.CrdFilters)
+
+	env.discoverNodes()
 	log.Infof("Test Configuration: %+v", *env)
 
 	env.needsRefresh = false
+}
+
+// labelNodes add label to specific nodes so that node selector in debug daemonset
+// can be scheduled
+func (env *TestEnvironment) labelNodes() {
+	var masterNode, workerNode string
+	// make sure at least one worker and one master has debug set to true
+	for name, node := range env.NodesUnderTest {
+		if node.IsMaster() && masterNode == "" {
+			masterNode = name
+		}
+		if node.IsMaster() && node.HasDebugPod() {
+			masterNode = ""
+			break
+		}
+	}
+	for name, node := range env.NodesUnderTest {
+		if node.IsWorker() && workerNode == "" {
+			workerNode = name
+		}
+		if node.IsMaster() && node.HasDebugPod() {
+			workerNode = ""
+			break
+		}
+	}
+	if masterNode != "" {
+		env.NodesUnderTest[masterNode].debug = true
+	}
+	if workerNode != "" {
+		env.NodesUnderTest[workerNode].debug = true
+	}
+	// label all nodes
+	for nodeName, node := range env.NodesUnderTest {
+		if node.HasDebugPod() {
+			autodiscover.AddDebugLabel(nodeName)
+		}
+	}
+}
+
+// create Nodes data from deployment
+func (env *TestEnvironment) createNodes(nodes map[string]configsections.Node) map[string]*NodeConfig {
+	log.Debug("autodiscovery: create nodes  start")
+	defer log.Debug("autodiscovery: create nodes done")
+	nodesConfig := make(map[string]*NodeConfig)
+	for _, n := range nodes {
+		nodesConfig[n.Name] = &NodeConfig{Node: n, Name: n.Name, Oc: nil, deployment: false}
+	}
+	for _, c := range env.ContainersUnderTest {
+		nodeName := c.ContainerConfiguration.NodeName
+		if _, ok := nodesConfig[nodeName]; ok {
+			nodesConfig[nodeName].deployment = true
+			nodesConfig[nodeName].debug = true
+		} else {
+			log.Warn("node ", nodeName, " has deployment, but not the right labels")
+		}
+	}
+	return nodesConfig
+}
+
+// attach debug pod session to node session
+func (env *TestEnvironment) AttachDebugPodsToNodes() {
+	for _, c := range env.DebugContainers {
+		nodeName := c.ContainerConfiguration.NodeName
+		if _, ok := env.NodesUnderTest[nodeName]; ok {
+			env.NodesUnderTest[nodeName].Oc = c.Oc
+		}
+	}
+}
+
+// discoverNodes find all the nodes in the cluster
+// label the ones with deployment
+// attach them to debug pods
+func (env *TestEnvironment) discoverNodes() {
+	env.NodesUnderTest = env.createNodes(env.Config.Nodes)
+	env.labelNodes()
+	if !autodiscover.IsMinikube() {
+		autodiscover.CheckDebugDaemonset()
+		autodiscover.FindDebugPods(&env.Config.Partner)
+		for _, debugPod := range env.Config.Partner.ContainersDebugList {
+			env.ContainersToExcludeFromConnectivityTests[debugPod.ContainerIdentifier] = ""
+		}
+		env.DebugContainers = env.createContainers(env.Config.Partner.ContainersDebugList)
+	}
+
+	env.AttachDebugPodsToNodes()
 }
 
 // createContainers contains the general steps involved in creating "oc" sessions and other configuration. A map of the

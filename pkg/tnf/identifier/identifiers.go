@@ -61,6 +61,7 @@ const (
 	csiDriverIdentifierURL                = "http://test-network-function.com/tests/csiDriver"
 	clusterVersionIdentifierURL           = "http://test-network-function.com/tests/clusterVersion"
 	crdStatusExistenceIdentifierURL       = "http://test-network-function.com/tests/crdStatusExistence"
+	daemonSetIdentifierURL                = "http://test-network-function.com/tests/daemonset"
 	versionOne                            = "v1.0.0"
 )
 
@@ -635,6 +636,18 @@ var Catalog = map[string]TestCatalogEntry{
 			dependencies.JqBinaryName,
 		},
 	},
+	daemonSetIdentifierURL: {
+		Identifier:  DaemonSetIdentifier,
+		Description: "check whether a given daemonset was deployed successfully",
+		Type:        Normative,
+		IntrusionSettings: IntrusionSettings{
+			ModifiesSystem:           false,
+			ModificationIsPersistent: false,
+		},
+		BinaryDependencies: []string{
+			dependencies.OcBinaryName,
+		},
+	},
 }
 
 // CommandIdentifier is  the Identifier used to represent the generic command test case.
@@ -887,5 +900,10 @@ var ClusterVersionIdentifier = Identifier{
 // CrdStatusExistenceIdentifier is the Identifier used to represent the generic test for CRD status spec existence.
 var CrdStatusExistenceIdentifier = Identifier{
 	URL:             crdStatusExistenceIdentifierURL,
+	SemanticVersion: versionOne,
+}
+
+var DaemonSetIdentifier = Identifier{
+	URL:             daemonSetIdentifierURL,
 	SemanticVersion: versionOne,
 }

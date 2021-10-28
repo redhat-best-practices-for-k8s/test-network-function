@@ -24,10 +24,8 @@ import (
 
 	"github.com/test-network-function/test-network-function/test-network-function/common"
 	"github.com/test-network-function/test-network-function/test-network-function/identifiers"
-	"github.com/test-network-function/test-network-function/test-network-function/results"
 
 	"github.com/onsi/ginkgo"
-	ginkgoconfig "github.com/onsi/ginkgo/config"
 	"github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
@@ -35,6 +33,7 @@ import (
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/ping"
 	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
+	"github.com/test-network-function/test-network-function/test-network-function/results"
 )
 
 const (
@@ -47,13 +46,17 @@ const (
 
 // Runs the "generic" CNF test cases.
 var _ = ginkgo.Describe(common.NetworkingTestKey, func() {
-	if testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusStrings, common.NetworkingTestKey) {
+	conf, _ := ginkgo.GinkgoConfiguration()
+	if testcases.IsInFocus(conf.FocusStrings, common.NetworkingTestKey) {
 		env := config.GetTestEnvironment()
 		ginkgo.BeforeEach(func() {
 			env.LoadAndRefresh()
 			gomega.Expect(len(env.PodsUnderTest)).ToNot(gomega.Equal(0))
 			gomega.Expect(len(env.ContainersUnderTest)).ToNot(gomega.Equal(0))
 		})
+
+		ginkgo.ReportAfterEach(results.RecordResult)
+
 		ginkgo.Context("Both Pods are on the Default network", func() {
 			// for each container under test, ensure bidirectional ICMP traffic between the container and the orchestrator.
 			testDefaultNetworkConnectivity(env, defaultNumPings)
@@ -85,7 +88,6 @@ func testDefaultNetworkConnectivity(env *config.TestEnvironment, count int) {
 				ginkgo.By(fmt.Sprintf("a Ping is issued from %s(%s) to %s(%s) %s", testOrchestrator.Oc.GetPodName(),
 					testOrchestrator.Oc.GetPodContainerName(), cut.Oc.GetPodName(), cut.Oc.GetPodContainerName(),
 					cut.DefaultNetworkIPAddress))
-				defer results.RecordResult(identifiers.TestICMPv4ConnectivityIdentifier)
 				testPing(testOrchestrator.Oc, cut.DefaultNetworkIPAddress, count)
 				ginkgo.By(fmt.Sprintf("a Ping is issued from %s(%s) to %s(%s) %s", cut.Oc.GetPodName(),
 					cut.Oc.GetPodContainerName(), testOrchestrator.Oc.GetPodName(), testOrchestrator.Oc.GetPodContainerName(),
@@ -112,7 +114,6 @@ func testMultusNetworkConnectivity(env *config.TestEnvironment, count int) {
 					ginkgo.By(fmt.Sprintf("a Ping is issued from %s(%s) to %s(%s) %s", testOrchestrator.Oc.GetPodName(),
 						testOrchestrator.Oc.GetPodContainerName(), cut.Oc.GetPodName(), cut.Oc.GetPodContainerName(),
 						cut.DefaultNetworkIPAddress))
-					defer results.RecordResult(identifiers.TestICMPv4ConnectivityIdentifier)
 					testPing(testOrchestrator.Oc, multusIPAddress, count)
 				}
 			}
@@ -135,15 +136,11 @@ func testPing(initiatingPodOc *interactive.Oc, targetPodIPAddress string, count 
 func testNodePort(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestServicesDoNotUseNodeportsIdentifier)
 	ginkgo.It(testID, func() {
-		for _, podUnderTest := range env.PodsUnderTest {
-			defer results.RecordResult(identifiers.TestServicesDoNotUseNodeportsIdentifier)
-			context := common.GetContext()
-			podNamespace := podUnderTest.Namespace
-			ginkgo.By(fmt.Sprintf("Testing services in namespace %s", podNamespace))
-			tester := nodeport.NewNodePort(common.DefaultTimeout, podNamespace)
-			test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
-			gomega.Expect(err).To(gomega.BeNil())
-			test.RunAndValidate()
-		}
+		context := common.GetContext()
+		ginkgo.By(fmt.Sprintf("Testing services in namespace %s", env.NameSpaceUnderTest))
+		tester := nodeport.NewNodePort(common.DefaultTimeout, env.NameSpaceUnderTest)
+		test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
+		gomega.Expect(err).To(gomega.BeNil())
+		test.RunAndValidate()
 	})
 }

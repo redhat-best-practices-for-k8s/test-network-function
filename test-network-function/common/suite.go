@@ -16,17 +16,28 @@
 
 package common
 
-// Constants shared by multiple test suite packages
-const (
-	ConfiguredTestFile        = "testconfigure.yml"
-	defaultTimeoutSeconds     = 10
-	AccessControlTestKey      = "access-control"
-	DiagnosticTestKey         = "diagnostic"
-	LifecycleTestKey          = "lifecycle"
-	AffiliatedCertTestKey     = "affiliated-certification"
-	NetworkingTestKey         = "networking"
-	ObservabilityTestKey      = "observability"
-	OperatorTestKey           = "operator"
-	PlatformAlterationTestKey = "platform-alteration"
-	CommonTestKey             = "common"
+import (
+	"github.com/onsi/ginkgo"
+	log "github.com/sirupsen/logrus"
+	configpkg "github.com/test-network-function/test-network-function/pkg/config"
+	"github.com/test-network-function/test-network-function/pkg/config/autodiscover"
 )
+
+var env *configpkg.TestEnvironment
+
+var _ = ginkgo.BeforeSuite(func() {
+	for name := range autodiscover.GetNodesList() {
+		autodiscover.DeleteDebugLabel(name)
+	}
+	env = configpkg.GetTestEnvironment()
+	env.LoadAndRefresh()
+})
+
+var _ = ginkgo.AfterSuite(func() {
+	// clean up added label to nodes
+	log.Info("clean up added labels to nodes")
+	for name, node := range env.NodesUnderTest {
+		node.Oc.Close()
+		autodiscover.DeleteDebugLabel(name)
+	}
+})
