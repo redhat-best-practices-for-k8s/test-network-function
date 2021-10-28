@@ -26,7 +26,6 @@ import (
 	"strings"
 	"time"
 
-	expect "github.com/google/goexpect"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/test-network-function/test-network-function/pkg/config"
@@ -411,7 +410,7 @@ func testTainted(env *config.TestEnvironment) {
 	})
 }
 
-func runAndValidateCommand(command string, expecter *expect.Expecter, errChan <-chan error, failureCallbackFun func()) (match string) {
+func runAndValidateCommand(command string, context *interactive.Context, failureCallbackFun func()) (match string) {
 	log.Debugf("Launching generic command handler for cmd: %s", command)
 
 	values := make(map[string]interface{})
@@ -425,7 +424,7 @@ func runAndValidateCommand(command string, expecter *expect.Expecter, errChan <-
 	gomega.Expect(handlers).ToNot(gomega.BeNil())
 	gomega.Expect(tester).ToNot(gomega.BeNil())
 
-	test, err := tnf.NewTest(expecter, *tester, handlers, errChan)
+	test, err := tnf.NewTest(context.GetExpecter(), *tester, handlers, context.GetErrorChannel())
 	gomega.Expect(test).ToNot(gomega.BeNil())
 	gomega.Expect(err).To(gomega.BeNil())
 	test.RunAndValidateWithFailureCallback(failureCallbackFun)
@@ -496,8 +495,10 @@ func getNodeNumaHugePages(node *config.NodeConfig) (hugepages numaHugePagesPerSi
 	const outputRegex = `node(\d+).*hugepages-(\d+)kB.* count:(\d+)`
 	const numRegexFields = 4
 
+	// This command must run inside the node, so we'll need the node's context to run commands inside the debug daemonset pod.
+	context := interactive.NewContext(node.Oc.GetExpecter(), node.Oc.GetErrorChannel())
 	var commandErr error
-	hugepagesCmdOut := runAndValidateCommand(cmd, node.Oc.GetExpecter(), node.Oc.GetErrorChannel(), func() {
+	hugepagesCmdOut := runAndValidateCommand(cmd, context, func() {
 		commandErr = fmt.Errorf("failed to get node %s hugepages per numa", node.Name)
 	})
 	if commandErr != nil {
@@ -536,8 +537,10 @@ func getNodeNumaHugePages(node *config.NodeConfig) (hugepages numaHugePagesPerSi
 // getMachineConfig gets the machineconfig in json format does the unmarshalling.
 func getMachineConfig(mcName string) (machineConfig, error) {
 	var commandErr error
+
+	// Local shell context is needed for the command handler.
 	context := common.GetContext()
-	mcJSON := runAndValidateCommand(fmt.Sprintf("oc get mc %s -o json", mcName), context.GetExpecter(), context.GetErrorChannel(), func() {
+	mcJSON := runAndValidateCommand(fmt.Sprintf("oc get mc %s -o json", mcName), context, func() {
 		commandErr = fmt.Errorf("failed to get json machineconfig %s", mcName)
 	})
 	if commandErr != nil {
