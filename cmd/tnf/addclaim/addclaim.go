@@ -1,4 +1,3 @@
-////////////////////
 package addclaim
 
 import (
@@ -35,7 +34,6 @@ const (
 )
 
 func claimUpdate(cmd *cobra.Command, args []string) error {
-
 	claimFileTextPtr := &Claim
 	reportFilesTextPtr := &Reportdir
 	fileUpdated := false
