@@ -43,11 +43,12 @@ var (
 // DefaultTimeout for creating new interactive sessions (oc, ssh, tty)
 var DefaultTimeout = time.Duration(defaultTimeoutSeconds) * time.Second
 
-var DefaultExpectersVerboseEnabled = false
+// LogLevelTraceEnabled is saved to filter some debug trace logs (e.g. expecters Sent/Match)
+var LogLevelTraceEnabled = false
 
 // GetContext spawns a new shell session and returns its context
 func GetContext() *interactive.Context {
-	context, err := interactive.SpawnShell(interactive.CreateGoExpectSpawner(), DefaultTimeout, interactive.Verbose(DefaultExpectersVerboseEnabled), interactive.SendTimeout(DefaultTimeout))
+	context, err := interactive.SpawnShell(interactive.CreateGoExpectSpawner(), DefaultTimeout, interactive.Verbose(LogLevelTraceEnabled), interactive.SendTimeout(DefaultTimeout))
 	gomega.Expect(err).To(gomega.BeNil())
 	gomega.Expect(context).ToNot(gomega.BeNil())
 	gomega.Expect(context.GetExpecter()).ToNot(gomega.BeNil())
@@ -92,7 +93,7 @@ func SetLogLevel() {
 	}
 
 	if aLogLevel == log.TraceLevel {
-		DefaultExpectersVerboseEnabled = true
+		LogLevelTraceEnabled = true
 	}
 
 	log.Info("Log level set to:", aLogLevel)

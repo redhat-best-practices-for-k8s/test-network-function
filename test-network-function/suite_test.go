@@ -123,6 +123,9 @@ func TestTest(t *testing.T) {
 	gomega.RegisterFailHandler(ginkgo.Fail)
 	common.SetLogFormat()
 	common.SetLogLevel()
+	if common.LogLevelTraceEnabled {
+		config.EnableExpectersVerboseMode()
+	}
 	// Display GinkGo Version
 	log.Info("Ginkgo Version: ", ginkgo.GINKGO_VERSION)
 	// Display the latest previously released build in case this build is not released
