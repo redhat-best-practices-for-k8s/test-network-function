@@ -25,17 +25,15 @@ import (
 
 	"github.com/test-network-function/test-network-function/test-network-function/common"
 	"github.com/test-network-function/test-network-function/test-network-function/identifiers"
-	"github.com/test-network-function/test-network-function/test-network-function/results"
 
 	"github.com/onsi/ginkgo"
-	ginkgoconfig "github.com/onsi/ginkgo/config"
 	"github.com/onsi/gomega"
 	"github.com/test-network-function/test-network-function/pkg/config"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/operator"
-	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
 	"github.com/test-network-function/test-network-function/pkg/tnf/testcases"
+	"github.com/test-network-function/test-network-function/test-network-function/results"
 )
 
 const (
@@ -45,8 +43,6 @@ const (
 )
 
 var (
-	context *interactive.Context
-	err     error
 
 	// checkSubscriptionTestPath is the file location of the uncordon.json test case relative to the project root.
 	checkSubscriptionTestPath = path.Join("pkg", "tnf", "handlers", "checksubscription", "check-subscription.json")
@@ -65,7 +61,8 @@ var (
 )
 
 var _ = ginkgo.Describe(testSpecName, func() {
-	if testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusStrings, testSpecName) {
+	conf, _ := ginkgo.GinkgoConfiguration()
+	if testcases.IsInFocus(conf.FocusStrings, testSpecName) {
 		env := config.GetTestEnvironment()
 		ginkgo.BeforeEach(func() {
 			env.LoadAndRefresh()
@@ -73,16 +70,8 @@ var _ = ginkgo.Describe(testSpecName, func() {
 				ginkgo.Skip("No Operator found.")
 			}
 		})
-
+		ginkgo.ReportAfterEach(results.RecordResult)
 		defer ginkgo.GinkgoRecover()
-		ginkgo.When("a local shell is spawned", func() {
-			context = common.GetContext()
-			ginkgo.It("should be created without error", func() {
-				gomega.Expect(err).To(gomega.BeNil())
-				gomega.Expect(context).ToNot(gomega.BeNil())
-				gomega.Expect(context.GetExpecter()).ToNot(gomega.BeNil())
-			})
-		})
 		ginkgo.Context("Runs test on operators", func() {
 			itRunsTestsOnOperator(env)
 		})
@@ -95,7 +84,6 @@ func testOperatorsAreInstalledViaOLM(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestOperatorIsInstalledViaOLMIdentifier)
 	ginkgo.It(testID, func() {
 		for _, operatorInTest := range env.OperatorsUnderTest {
-			defer results.RecordResult(identifiers.TestOperatorIsInstalledViaOLMIdentifier)
 			ginkgo.By(fmt.Sprintf("%s in namespace %s Should have a valid subscription", operatorInTest.SubscriptionName, operatorInTest.Namespace))
 			testOperatorIsInstalledViaOLM(operatorInTest.SubscriptionName, operatorInTest.Namespace)
 		}
@@ -114,7 +102,7 @@ func testOperatorIsInstalledViaOLM(subscriptionName, subscriptionNamespace strin
 	gomega.Expect(handlers).ToNot(gomega.BeNil())
 	gomega.Expect(len(handlers)).To(gomega.Equal(1))
 	gomega.Expect(tester).ToNot(gomega.BeNil())
-
+	context := common.GetContext()
 	test, err := tnf.NewTest(context.GetExpecter(), *tester, handlers, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
 	gomega.Expect(test).ToNot(gomega.BeNil())
@@ -142,9 +130,8 @@ func itRunsTestsOnOperator(env *config.TestEnvironment) {
 
 //nolint:gocritic // ignore hugeParam error. Pointers to loop iterator vars are bad and `testCmd` is likely to be such.
 func runTestsOnOperator(env *config.TestEnvironment, testCase testcases.BaseTestCase) {
-	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestOperatorInstallStatusIdentifier) + "-" + testCase.Name
+	testID := identifiers.XformToGinkgoItIdentifierExtended(identifiers.TestOperatorInstallStatusIdentifier, testCase.Name)
 	ginkgo.It(testID, func() {
-		defer results.RecordResult(identifiers.TestOperatorInstallStatusIdentifier)
 		for _, op := range env.OperatorsUnderTest {
 			if testCase.ExpectedType == testcases.Function {
 				for _, val := range testCase.ExpectedStatus {
@@ -156,6 +143,7 @@ func runTestsOnOperator(env *config.TestEnvironment, testCase testcases.BaseTest
 			cmdArgs := strings.Split(fmt.Sprintf(testCase.Command, args...), " ")
 			opInTest := operator.NewOperator(cmdArgs, name, op.Namespace, testCase.ExpectedStatus, testCase.ResultType, testCase.Action, common.DefaultTimeout)
 			gomega.Expect(opInTest).ToNot(gomega.BeNil())
+			context := common.GetContext()
 			test, err := tnf.NewTest(context.GetExpecter(), opInTest, []reel.Handler{opInTest}, context.GetErrorChannel())
 			gomega.Expect(err).To(gomega.BeNil())
 			gomega.Expect(test).ToNot(gomega.BeNil())

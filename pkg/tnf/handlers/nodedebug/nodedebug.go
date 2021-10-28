@@ -21,7 +21,6 @@ import (
 	"time"
 
 	"github.com/test-network-function/test-network-function/pkg/tnf"
-	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/common"
 	"github.com/test-network-function/test-network-function/pkg/tnf/identifier"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
 )
@@ -51,7 +50,7 @@ func NewNodeDebug(timeout time.Duration, nodeName, command string, trim, split b
 		timeout: timeout,
 		result:  tnf.ERROR,
 		args: []string{
-			"echo", "-e", "\"chroot /host\n\"", command, "|", common.GetOcDebugCommand(), "node/" + nodeName,
+			"chroot", "/host", command,
 		},
 		Trim:  trim,
 		Split: split,

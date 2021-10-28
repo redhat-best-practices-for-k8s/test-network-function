@@ -360,6 +360,16 @@ Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`cat`
 
+### http://test-network-function.com/tests/daemonset
+Property|Description
+---|---
+Version|v1.0.0
+Description|check whether a given daemonset was deployed successfully
+Result Type|normative
+Intrusive|false
+Modifications Persist After Test|false
+Runtime Binaries Required|`oc`
+
 ### http://test-network-function.com/tests/deployments
 Property|Description
 ---|---

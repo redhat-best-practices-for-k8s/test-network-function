@@ -9,10 +9,8 @@ import (
 	"github.com/test-network-function/test-network-function/pkg/config"
 	"github.com/test-network-function/test-network-function/test-network-function/common"
 	"github.com/test-network-function/test-network-function/test-network-function/identifiers"
-	"github.com/test-network-function/test-network-function/test-network-function/results"
 
 	"github.com/onsi/ginkgo"
-	ginkgoconfig "github.com/onsi/ginkgo/config"
 	"github.com/onsi/gomega"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/clusterversion"
@@ -20,6 +18,7 @@ import (
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodedebug"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
 	"github.com/test-network-function/test-network-function/pkg/tnf/testcases"
+	"github.com/test-network-function/test-network-function/test-network-function/results"
 )
 
 const (
@@ -66,66 +65,56 @@ var (
 )
 
 var _ = ginkgo.Describe(common.DiagnosticTestKey, func() {
-	if testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusStrings, common.DiagnosticTestKey) {
+	conf, _ := ginkgo.GinkgoConfiguration()
+	if testcases.IsInFocus(conf.FocusStrings, common.DiagnosticTestKey) {
 		env := config.GetTestEnvironment()
 		ginkgo.BeforeEach(func() {
 			env.LoadAndRefresh()
 			gomega.Expect(len(env.PodsUnderTest)).ToNot(gomega.Equal(0))
 			gomega.Expect(len(env.ContainersUnderTest)).ToNot(gomega.Equal(0))
 		})
-		ginkgo.When("a cluster is set up and installed with OpenShift", func() {
+		ginkgo.ReportAfterEach(results.RecordResult)
+		testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestclusterVersionIdentifier)
+		ginkgo.It(testID, func() {
+			testOcpVersion()
+		})
 
-			ginkgo.By("should report OCP version")
-			testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestclusterVersionIdentifier)
-			ginkgo.It(testID, func() {
-				defer results.RecordResult(identifiers.TestclusterVersionIdentifier)
-				testOcpVersion()
-			})
+		testID = identifiers.XformToGinkgoItIdentifier(identifiers.TestExtractNodeInformationIdentifier)
+		ginkgo.It(testID, func() {
+			context := common.GetContext()
 
-			testID = identifiers.XformToGinkgoItIdentifier(identifiers.TestExtractNodeInformationIdentifier)
-			ginkgo.It(testID, func() {
-				defer results.RecordResult(identifiers.TestExtractNodeInformationIdentifier)
-				context := common.GetContext()
+			tester, handlers, jsonParseResult, err := generic.NewGenericFromJSONFile(relativeNodesTestPath, relativeSchemaPath)
+			gomega.Expect(err).To(gomega.BeNil())
+			gomega.Expect(jsonParseResult).ToNot(gomega.BeNil())
+			gomega.Expect(jsonParseResult.Valid()).To(gomega.BeTrue())
+			gomega.Expect(handlers).ToNot(gomega.BeNil())
+			gomega.Expect(tester).ToNot(gomega.BeNil())
 
-				tester, handlers, jsonParseResult, err := generic.NewGenericFromJSONFile(relativeNodesTestPath, relativeSchemaPath)
-				gomega.Expect(err).To(gomega.BeNil())
-				gomega.Expect(jsonParseResult).ToNot(gomega.BeNil())
-				gomega.Expect(jsonParseResult.Valid()).To(gomega.BeTrue())
-				gomega.Expect(handlers).ToNot(gomega.BeNil())
-				gomega.Expect(tester).ToNot(gomega.BeNil())
+			test, err := tnf.NewTest(context.GetExpecter(), *tester, handlers, context.GetErrorChannel())
+			gomega.Expect(err).To(gomega.BeNil())
+			gomega.Expect(test).ToNot(gomega.BeNil())
 
-				test, err := tnf.NewTest(context.GetExpecter(), *tester, handlers, context.GetErrorChannel())
-				gomega.Expect(err).To(gomega.BeNil())
-				gomega.Expect(test).ToNot(gomega.BeNil())
+			test.RunAndValidate()
 
-				test.RunAndValidate()
-
-				genericTest := (*tester).(*generic.Generic)
-				gomega.Expect(genericTest).ToNot(gomega.BeNil())
-				matches := genericTest.Matches
-				gomega.Expect(len(matches)).To(gomega.Equal(1))
-				match := genericTest.GetMatches()[0]
-				err = json.Unmarshal([]byte(match.Match), &nodeSummary)
-				gomega.Expect(err).To(gomega.BeNil())
-			})
-			ginkgo.By("should report all CNI plugins")
-			testID = identifiers.XformToGinkgoItIdentifier(identifiers.TestListCniPluginsIdentifier)
-			ginkgo.It(testID, func() {
-				defer results.RecordResult(identifiers.TestListCniPluginsIdentifier)
-				testCniPlugins()
-			})
-			ginkgo.By("should report nodes HW info")
-			testID = identifiers.XformToGinkgoItIdentifier(identifiers.TestNodesHwInfoIdentifier)
-			ginkgo.It(testID, func() {
-				defer results.RecordResult(identifiers.TestNodesHwInfoIdentifier)
-				testNodesHwInfo()
-			})
-			ginkgo.By("should report cluster CSI driver info")
-			testID = identifiers.XformToGinkgoItIdentifier(identifiers.TestClusterCsiInfoIdentifier)
-			ginkgo.It(testID, func() {
-				defer results.RecordResult(identifiers.TestClusterCsiInfoIdentifier)
-				listClusterCSIInfo()
-			})
+			genericTest := (*tester).(*generic.Generic)
+			gomega.Expect(genericTest).ToNot(gomega.BeNil())
+			matches := genericTest.Matches
+			gomega.Expect(len(matches)).To(gomega.Equal(1))
+			match := genericTest.GetMatches()[0]
+			err = json.Unmarshal([]byte(match.Match), &nodeSummary)
+			gomega.Expect(err).To(gomega.BeNil())
+		})
+		testID = identifiers.XformToGinkgoItIdentifier(identifiers.TestListCniPluginsIdentifier)
+		ginkgo.It(testID, func() {
+			testCniPlugins()
+		})
+		testID = identifiers.XformToGinkgoItIdentifier(identifiers.TestNodesHwInfoIdentifier)
+		ginkgo.It(testID, func() {
+			testNodesHwInfo()
+		})
+		testID = identifiers.XformToGinkgoItIdentifier(identifiers.TestClusterCsiInfoIdentifier)
+		ginkgo.It(testID, func() {
+			listClusterCSIInfo()
 		})
 	}
 })
@@ -177,8 +166,8 @@ func GetCsiDriverInfo() map[string]interface{} {
 }
 
 func getMasterNodeName(env *config.TestEnvironment) string {
-	for _, node := range env.Nodes {
-		if node.IsMaster() {
+	for _, node := range env.NodesUnderTest {
+		if node.IsMaster() && node.HasDebugPod() {
 			return node.Name
 		}
 	}
@@ -186,8 +175,8 @@ func getMasterNodeName(env *config.TestEnvironment) string {
 }
 
 func getWorkerNodeName(env *config.TestEnvironment) string {
-	for _, node := range env.Nodes {
-		if node.IsWorker() {
+	for _, node := range env.NodesUnderTest {
+		if node.IsWorker() && node.HasDebugPod() {
 			return node.Name
 		}
 	}
@@ -195,9 +184,10 @@ func getWorkerNodeName(env *config.TestEnvironment) string {
 }
 
 func listNodeCniPlugins(nodeName string) []CniPlugin {
-	const command = "jq -r .name,.cniVersion '/etc/cni/net.d/*'"
+	const command = "jq -r .name,.cniVersion /etc/cni/net.d/*"
 	result := []CniPlugin{}
-	context := common.GetContext()
+	nodes := config.GetTestEnvironment().NodesUnderTest
+	context := nodes[nodeName].Oc
 	tester := nodedebug.NewNodeDebug(defaultTestTimeout, nodeName, command, true, true)
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
@@ -259,7 +249,8 @@ func getNodeLscpu(nodeName string) map[string]string {
 	const command = "lscpu"
 	const numSplitSubstrings = 2
 	result := map[string]string{}
-	context := common.GetContext()
+	env := config.GetTestEnvironment().NodesUnderTest
+	context := env[nodeName].Oc
 	tester := nodedebug.NewNodeDebug(defaultTestTimeout, nodeName, command, true, true)
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
@@ -275,7 +266,8 @@ func getNodeIfconfig(nodeName string) map[string][]string {
 	const command = "ifconfig"
 	const numSplitSubstrings = 2
 	result := map[string][]string{}
-	context := common.GetContext()
+	env := config.GetTestEnvironment().NodesUnderTest
+	context := env[nodeName].Oc
 	tester := nodedebug.NewNodeDebug(defaultTestTimeout, nodeName, command, true, true)
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
@@ -297,7 +289,8 @@ func getNodeIfconfig(nodeName string) map[string][]string {
 
 func getNodeLsblk(nodeName string) interface{} {
 	const command = "lsblk -J"
-	context := common.GetContext()
+	env := config.GetTestEnvironment().NodesUnderTest
+	context := env[nodeName].Oc
 	tester := nodedebug.NewNodeDebug(defaultTestTimeout, nodeName, command, false, false)
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
@@ -310,7 +303,8 @@ func getNodeLsblk(nodeName string) interface{} {
 
 func getNodeLspci(nodeName string) []string {
 	const command = "lspci"
-	context := common.GetContext()
+	env := config.GetTestEnvironment().NodesUnderTest
+	context := env[nodeName].Oc
 	tester := nodedebug.NewNodeDebug(defaultTestTimeout, nodeName, command, true, true)
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())

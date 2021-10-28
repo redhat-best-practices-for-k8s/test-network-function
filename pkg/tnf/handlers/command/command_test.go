@@ -35,10 +35,10 @@ const (
 )
 
 var (
+	pathRelativeToRoot    = path.Join("..", "..", "..", "..")
 	genericTestSchemaFile = path.Join("schemas", "generic-test.schema.json")
 	checkSubFilename      = "command.json"
 	expectedPassPattern   = "(?m).*"
-	pathRelativeToRoot    = path.Join("..", "..", "..", "..")
 	pathToTestSchemaFile  = path.Join(pathRelativeToRoot, genericTestSchemaFile)
 	testCommand           = "oc get pods -n tnf"
 )

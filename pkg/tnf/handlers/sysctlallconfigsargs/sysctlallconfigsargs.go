@@ -20,7 +20,6 @@ import (
 	"time"
 
 	"github.com/test-network-function/test-network-function/pkg/tnf"
-	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/common"
 	"github.com/test-network-function/test-network-function/pkg/tnf/identifier"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
 )
@@ -39,12 +38,12 @@ type SysctlAllConfigsArgs struct {
 }
 
 // NewSysctlAllConfigsArgs creates a SysctlAllConfigsArgs tnf.Test.
-func NewSysctlAllConfigsArgs(timeout time.Duration, nodeName string) *SysctlAllConfigsArgs {
+func NewSysctlAllConfigsArgs(timeout time.Duration) *SysctlAllConfigsArgs {
 	return &SysctlAllConfigsArgs{
 		timeout: timeout,
 		result:  tnf.ERROR,
 		args: []string{
-			"echo", "\"sysctl --system\"", "|", common.GetOcDebugCommand(), "-q", "node/" + nodeName,
+			"sysctl --system",
 		},
 	}
 }

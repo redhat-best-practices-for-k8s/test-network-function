@@ -20,20 +20,22 @@ import (
 	"encoding/json"
 	"os/exec"
 	"strings"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/test-network-function/test-network-function/pkg/config/configsections"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodenames"
+	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
 	"github.com/test-network-function/test-network-function/pkg/tnf/testcases"
-	"github.com/test-network-function/test-network-function/test-network-function/common"
 )
 
 const (
 	operatorLabelName           = "operator"
 	skipConnectivityTestsLabel  = "skip_connectivity_tests"
 	ocGetClusterCrdNamesCommand = "kubectl get crd -o json | jq '[.items[].metadata.name]'"
+	DefaultTimeout              = 10 * time.Second
 )
 
 var (
@@ -82,8 +84,8 @@ func FindTestTarget(labels []configsections.Label, target *configsections.TestTa
 func GetNodesList() (nodes map[string]configsections.Node) {
 	nodes = make(map[string]configsections.Node)
 	var nodeNames []string
-	context := common.GetContext()
-	tester := nodenames.NewNodeNames(common.DefaultTimeout, map[string]*string{configsections.MasterLabel: nil})
+	context := interactive.GetContext()
+	tester := nodenames.NewNodeNames(DefaultTimeout, map[string]*string{configsections.MasterLabel: nil})
 	test, _ := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 	_, err := test.Run()
 	if err != nil {
@@ -98,8 +100,7 @@ func GetNodesList() (nodes map[string]configsections.Node) {
 		}
 	}
 
-	context = common.GetContext()
-	tester = nodenames.NewNodeNames(common.DefaultTimeout, map[string]*string{configsections.WorkerLabel: nil})
+	tester = nodenames.NewNodeNames(DefaultTimeout, map[string]*string{configsections.WorkerLabel: nil})
 	test, _ = tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 	_, err = test.Run()
 	if err != nil {
