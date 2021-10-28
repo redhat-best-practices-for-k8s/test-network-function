@@ -21,7 +21,6 @@ import (
 	"strings"
 
 	"github.com/onsi/ginkgo"
-	ginkgoconfig "github.com/onsi/ginkgo/config"
 	"github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
 	"github.com/test-network-function/test-network-function/pkg/config"
@@ -38,13 +37,16 @@ import (
 )
 
 var _ = ginkgo.Describe(common.AccessControlTestKey, func() {
-	if testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusStrings, common.AccessControlTestKey) {
+	conf, _ := ginkgo.GinkgoConfiguration()
+	if testcases.IsInFocus(conf.FocusStrings, common.AccessControlTestKey) {
 		env := config.GetTestEnvironment()
 		ginkgo.BeforeEach(func() {
 			env.LoadAndRefresh()
 			gomega.Expect(len(env.PodsUnderTest)).ToNot(gomega.Equal(0))
 			gomega.Expect(len(env.ContainersUnderTest)).ToNot(gomega.Equal(0))
 		})
+
+		ginkgo.ReportAfterEach(results.RecordResult)
 
 		testNamespace(env)
 
@@ -75,7 +77,7 @@ var _ = ginkgo.Describe(common.AccessControlTestKey, func() {
 
 //nolint:gocritic,funlen // ignore hugeParam error. Pointers to loop iterator vars are bad and `testCmd` is likely to be such.
 func runTestOnPods(env *config.TestEnvironment, testCmd testcases.BaseTestCase, testType string) {
-	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestHostResourceIdentifier) + "-" + testCmd.Name
+	testID := identifiers.XformToGinkgoItIdentifierExtended(identifiers.TestHostResourceIdentifier, testCmd.Name)
 	ginkgo.It(testID, func() {
 		context := common.GetContext()
 		for _, podUnderTest := range env.PodsUnderTest {
@@ -87,7 +89,6 @@ func runTestOnPods(env *config.TestEnvironment, testCmd testcases.BaseTestCase, 
 					testCmd.ExpectedStatusFn(podName, testcases.StatusFunctionType(val))
 				}
 			}
-			defer results.RecordResult(identifiers.TestHostResourceIdentifier)
 			testType := testType
 			testCmd := testCmd
 			var args []interface{}
@@ -137,7 +138,6 @@ func testNamespace(env *config.TestEnvironment) {
 				podName := podUnderTest.Name
 				podNamespace := podUnderTest.Namespace
 				ginkgo.By(fmt.Sprintf("Reading namespace of podnamespace= %s podname= %s, should not be 'default' or begin with openshift-", podNamespace, podName))
-				defer results.RecordResult(identifiers.TestNamespaceBestPracticesIdentifier)
 				gomega.Expect(podNamespace).To(gomega.Not(gomega.Equal("default")))
 				gomega.Expect(podNamespace).To(gomega.Not(gomega.HavePrefix("openshift-")))
 			}
@@ -160,7 +160,6 @@ func testServiceAccount(env *config.TestEnvironment) {
 			podNamespace := podUnderTest.Namespace
 			context := common.GetContext()
 			ginkgo.By(fmt.Sprintf("Testing pod service account %s %s", podNamespace, podName))
-			defer results.RecordResult(identifiers.TestPodServiceAccountBestPracticesIdentifier)
 			tester := serviceaccount.NewServiceAccount(common.DefaultTimeout, podName, podNamespace)
 			test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 			gomega.Expect(err).To(gomega.BeNil())
@@ -181,7 +180,6 @@ func testRoleBindings(env *config.TestEnvironment) {
 			podNamespace := podUnderTest.Namespace
 			serviceAccountName := podUnderTest.ServiceAccount
 			context := common.GetContext()
-			defer results.RecordResult(identifiers.TestPodRoleBindingsBestPracticesIdentifier)
 			ginkgo.By(fmt.Sprintf("Testing role  bidning  %s %s", podNamespace, podName))
 			if serviceAccountName == "" {
 				ginkgo.Skip("Can not test when serviceAccountName is empty. Please check previous tests for failures")
@@ -204,7 +202,6 @@ func testClusterRoleBindings(env *config.TestEnvironment) {
 			podNamespace := podUnderTest.Namespace
 			serviceAccountName := podUnderTest.ServiceAccount
 			context := common.GetContext()
-			defer results.RecordResult(identifiers.TestPodClusterRoleBindingsBestPracticesIdentifier)
 			ginkgo.By(fmt.Sprintf("Testing cluster role  bidning  %s %s", podNamespace, podName))
 			if serviceAccountName == "" {
 				ginkgo.Skip("Can not test when serviceAccountName is empty. Please check previous tests for failures")

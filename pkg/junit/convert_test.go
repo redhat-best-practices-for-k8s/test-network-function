@@ -38,7 +38,7 @@ func TestExtractTestSuiteResults(t *testing.T) {
 	results, err := junit.ExtractTestSuiteResults(claim, testKey)
 	assert.Nil(t, err)
 	// positive test
-	assert.Equal(t, true, results["generic when Reading namespace of test/test Should not be 'default' and should not begin with 'openshift-'"].Passed)
+	assert.Equal(t, true, results["[It] operator Runs test on operators operator-install-status-CSV_INSTALLED"].Passed)
 	// negative test
-	assert.Equal(t, false, results["generic when Testing owners of CNF pod Should contain at least one of kind DaemonSet/ReplicaSet"].Passed, false)
+	assert.Equal(t, false, results["[It] platform-alteration platform-alteration-boot-params"].Passed)
 }

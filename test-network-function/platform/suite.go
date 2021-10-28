@@ -33,10 +33,8 @@ import (
 
 	"github.com/test-network-function/test-network-function/test-network-function/common"
 	"github.com/test-network-function/test-network-function/test-network-function/identifiers"
-	"github.com/test-network-function/test-network-function/test-network-function/results"
 
 	"github.com/onsi/ginkgo"
-	ginkgoconfig "github.com/onsi/ginkgo/config"
 	"github.com/onsi/gomega"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/base/redhat"
@@ -53,6 +51,7 @@ import (
 	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
 	utils "github.com/test-network-function/test-network-function/pkg/utils"
+	"github.com/test-network-function/test-network-function/test-network-function/results"
 )
 
 var (
@@ -135,13 +134,15 @@ func getTaintedBitValues() []string {
 }
 
 var _ = ginkgo.Describe(common.PlatformAlterationTestKey, func() {
-	if testcases.IsInFocus(ginkgoconfig.GinkgoConfig.FocusStrings, common.PlatformAlterationTestKey) {
+	conf, _ := ginkgo.GinkgoConfiguration()
+	if testcases.IsInFocus(conf.FocusStrings, common.PlatformAlterationTestKey) {
 		env := config.GetTestEnvironment()
 		ginkgo.BeforeEach(func() {
 			env.LoadAndRefresh()
 			gomega.Expect(len(env.PodsUnderTest)).ToNot(gomega.Equal(0))
 			gomega.Expect(len(env.ContainersUnderTest)).ToNot(gomega.Equal(0))
 		})
+		ginkgo.ReportAfterEach(results.RecordResult)
 		// use this boolean to turn off tests that require OS packages
 		if !common.IsMinikube() {
 			testContainersFsDiff(env)
@@ -159,7 +160,6 @@ func testIsRedHatRelease(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestIsRedHatReleaseIdentifier)
 	ginkgo.It(testID, func() {
 		ginkgo.By("should report a proper Red Hat version")
-		defer results.RecordResult(identifiers.TestIsRedHatReleaseIdentifier)
 		for _, cut := range env.ContainersUnderTest {
 			testContainerIsRedHatRelease(cut)
 		}
@@ -204,7 +204,6 @@ func testContainersFsDiff(env *config.TestEnvironment) {
 
 // newContainerFsDiffTest  test that the CUT didn't install new packages after starting, and report through Ginkgo.
 func newContainerFsDiffTest(nodeName string, nodeOc, targetContainerOC *interactive.Oc) *tnf.Test {
-	defer results.RecordResult(identifiers.TestUnalteredBaseImageIdentifier)
 	targetContainerOC.GetExpecter()
 	containerIDTester := containerid.NewContainerID(common.DefaultTimeout)
 	test, err := tnf.NewTest(targetContainerOC.GetExpecter(), containerIDTester, []reel.Handler{containerIDTester}, targetContainerOC.GetErrorChannel())
@@ -322,7 +321,6 @@ func testBootParams(env *config.TestEnvironment) {
 }
 func testBootParamsHelper(context *interactive.Context, podName, podNamespace string, targetContainerOc *interactive.Oc) {
 	ginkgo.By(fmt.Sprintf("Testing boot params for the pod's node %s/%s", podNamespace, podName))
-	defer results.RecordResult(identifiers.TestUnalteredStartupBootParamsIdentifier)
 	nodeName := getPodNodeName(context, podName, podNamespace)
 	mcName := getMcName(context, nodeName)
 	mcKernelArgumentsMap := getMcKernelArguments(context, mcName)
@@ -342,7 +340,8 @@ func testBootParamsHelper(context *interactive.Context, podName, podNamespace st
 }
 
 func testSysctlConfigs(env *config.TestEnvironment) {
-	ginkgo.It("platform-sysctl-config", func() {
+	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestSysctlConfigsIdentifier)
+	ginkgo.It(testID, func() {
 		for _, podUnderTest := range env.PodsUnderTest {
 			podName := podUnderTest.Name
 			podNameSpace := podUnderTest.Namespace
@@ -385,6 +384,9 @@ func testTainted(env *config.TestEnvironment) {
 
 		var taintedNodes []string
 		for _, node := range env.NodesUnderTest {
+			if !node.HasDebugPod() {
+				continue
+			}
 			context := node.Oc
 			tester := nodetainted.NewNodeTainted(common.DefaultTimeout)
 			test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
@@ -669,8 +671,6 @@ func getNodeMachineConfig(nodeName string, machineconfigs map[string]machineConf
 func testHugepages(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestHugepagesNotManuallyManipulated)
 	ginkgo.It(testID, func() {
-		defer results.RecordResult(identifiers.TestHugepagesNotManuallyManipulated)
-
 		// Map to save already retrieved and parsed machineconfigs.
 		machineconfigs := map[string]machineConfig{}
 		var badNodes []string
