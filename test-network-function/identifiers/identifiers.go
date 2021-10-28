@@ -56,7 +56,7 @@ func formTestURL(suite, name string) string {
 }
 
 var (
-  // TestIdToClaimId converts the testcase short ID to the claim identifier
+	// TestIdToClaimId converts the testcase short ID to the claim identifier
 	TestIDToClaimID = map[string]claim.Identifier{}
 
 	// TestNetRawIdentifier tests container best practices.
