@@ -627,30 +627,34 @@ The command relays on golang templates located in [pkg/tnf/handlers/handler_temp
 
 The result of each test execution is included in the claim file.
 Sometimes it is convenient to add informational messages regarding the test execution.
-For this purpose we have an additional section in the claim file (see `suite.extraInfoKey` in suite_test.go).
-In order to add informational messages to your test use the function `tnf.CreateTestExtraInfoWriter`.
-This function adds an entry for your test in the claim file.
-The return value is a function.
-The returned function can be called to add a message to the test entry.
+In order to add informational messages to your test use the function `ginkgo.GinkgoWriter`.
+This function adds an additional message that will appear in the `CapturedTestOutput` section of the claim file, together witht the output of the by directives.
 Each added message will be written to claim file even if test failed or error occurred in the middle of the test.
 
 Example usage:
 ```go
 ginkgo.It("Should do what I tell it to do", func(){
-  // do some work
-  // create test info writer
-  myWriter := tnf.CreateTestExtraInfoWriter()
   // do some more work
   // add info
-  myWriter("important info part 1")
+  _, err := ginkgo.GinkgoWriter.Write([]byte("important info part 1"))
+  if err != nil {
+    log.Errorf("Ginkgo writer could not write because: %s", err)
+  }
+
   // more work
   // more info
-  myWriter("important info part 2")
+  _, err := ginkgo.GinkgoWriter.Write([]byte("important info part 2"))
+  if err != nil {
+    log.Errorf("Ginkgo writer could not write because: %s", err)
+  }
   // error
   if err != nil {
     return
   }
   // last info
-  myWriter("important info part last")
+  _, err := ginkgo.GinkgoWriter.Write([]byte("important info part last"))
+  if err != nil {
+    log.Errorf("Ginkgo writer could not write because: %s", err)
+  }
 })
 ```
