@@ -232,6 +232,11 @@ func (env *TestEnvironment) doAutodiscover() {
 		env.ContainersToExcludeFromConnectivityTests[cid] = ""
 	}
 
+	// Delete all remaining sessions before re-creating them
+	for _, cut := range env.ContainersUnderTest {
+		cut.Oc.Close()
+	}
+
 	env.ContainersUnderTest = env.createContainers(env.Config.ContainerConfigList)
 	env.PodsUnderTest = env.Config.PodsUnderTest
 
