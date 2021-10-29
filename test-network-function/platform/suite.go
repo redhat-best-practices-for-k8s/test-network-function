@@ -499,6 +499,9 @@ func getMcHugepagesFromMcKernelArguments(mc *machineConfig) (hugepagesPerSize ma
 
 		if key == DefaultHugepagesz {
 			defhugepagesz = hugepageSizeToInt(value)
+			// In case only default_hugepagesz and hugepages values are provided. The actual value should be
+			// parsed next and this default value overwritten.
+			hugepagesPerSize[hugepagesz] = RhelDefaultHugepages
 		}
 	}
 
@@ -612,6 +615,12 @@ func getMcSystemdUnitsHugepagesConfig(mc *machineConfig) (hugepages numaHugePage
 		}
 	}
 
+	if len(hugepages) > 0 {
+		log.Infof("Machineconfig's systemd.units hugepages: %v", hugepages)
+	} else {
+		log.Infof("No hugepages found in machineconfig system.units")
+	}
+
 	return hugepages, nil
 }
 
@@ -665,7 +674,9 @@ func testNodeHugepagesWithKernelArgs(nodeName string, nodeNumaHugePages numaHuge
 			}
 		}
 
-		if total != count {
+		if total == count {
+			log.Infof("kernelArguments' hugepages count:%d, size:%d match total node ones for that size.", count, size)
+		} else {
 			return false, fmt.Errorf("node %s: total hugepages of size %d won't match (node count=%d, expected=%d)",
 				nodeName, size, total, count)
 		}
@@ -732,7 +743,7 @@ func testHugepages(env *config.TestEnvironment) {
 				}
 			} else {
 				ginkgo.By("Comparing MC Systemd hugepages info against node values.")
-				if pass, err := testNodeHugepagesWithMcSystemd(node.Name, mcSystemdHugepages, nodeNumaHugePages); !pass {
+				if pass, err := testNodeHugepagesWithMcSystemd(node.Name, nodeNumaHugePages, mcSystemdHugepages); !pass {
 					log.Error(err)
 					badNodes = append(badNodes, node.Name)
 				}
