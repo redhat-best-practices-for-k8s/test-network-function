@@ -55,11 +55,12 @@ import (
 )
 
 const (
-	RhelDefaultHugepagesz = 2048 // kB
-	RhelDefaultHugepages  = 0
-	HugepagesParam        = "hugepages"
-	HugepageszParam       = "hugepagesz"
-	DefaultHugepagesz     = "default_hugepagesz"
+	RhelDefaultHugepagesz    = 2048 // kB
+	RhelDefaultHugepages     = 0
+	HugepagesParam           = "hugepages"
+	HugepageszParam          = "hugepagesz"
+	DefaultHugepagesz        = "default_hugepagesz"
+	KernArgsKeyValueSplitLen = 2
 )
 
 var (
@@ -469,15 +470,13 @@ func logMcKernelArgumentsHugepages(hugepagesPerSize map[int]int, defhugepagesz i
 
 // getMcHugepagesFromMcKernelArguments gets the hugepages params from machineconfig's kernelArguments
 func getMcHugepagesFromMcKernelArguments(mc *machineConfig) (hugepagesPerSize map[int]int, defhugepagesz int, err error) {
-	const KeyValueSplitLen = 2
-
 	defhugepagesz = RhelDefaultHugepagesz
 	hugepagesPerSize = map[int]int{}
 
 	hugepagesz := 0
 	for _, arg := range mc.Spec.KernelArguments {
 		keyValueSlice := strings.Split(arg, "=")
-		if len(keyValueSlice) != KeyValueSplitLen {
+		if len(keyValueSlice) != KernArgsKeyValueSplitLen {
 			// Some kernel arguments don't come in name=value
 			continue
 		}
