@@ -218,7 +218,10 @@ func testNodeSelector(env *config.TestEnvironment) {
 			test.RunAndValidateWithFailureCallback(func() {
 				msg := fmt.Sprintf("The pod specifies nodeSelector/nodeAffinity field, you might want to change it, %s %s", podNamespace, podName)
 				log.Warn(msg)
-				ginkgo.GinkgoWriter.Write([]byte(msg))
+				_, err := ginkgo.GinkgoWriter.Write([]byte(msg))
+				if err != nil {
+					log.Errorf("Ginkgo writer could not write because: %s", err)
+				}
 			})
 		}
 	})
@@ -241,7 +244,10 @@ func testGracePeriod(env *config.TestEnvironment) {
 			if gracePeriod == defaultTerminationGracePeriod {
 				msg := fmt.Sprintf("%s %s has terminationGracePeriod set to %d, you might want to change it", podNamespace, podName, defaultTerminationGracePeriod)
 				log.Warn(msg)
-				ginkgo.GinkgoWriter.Write([]byte(msg))
+				_, err := ginkgo.GinkgoWriter.Write([]byte(msg))
+				if err != nil {
+					log.Errorf("Ginkgo writer could not write because: %s", err)
+				}
 			}
 		}
 	})
@@ -406,13 +412,19 @@ func podAntiAffinity(deployment, podNamespace string, replica int) {
 			msg := fmt.Sprintf("The deployment replica count is %d, but a podAntiAffinity rule is not defined, "+
 				"you might want to change it in deployment %s in namespace %s", replica, deployment, podNamespace)
 			log.Warn(msg)
-			ginkgo.GinkgoWriter.Write([]byte(msg))
+			_, err := ginkgo.GinkgoWriter.Write([]byte(msg))
+			if err != nil {
+				log.Errorf("Ginkgo writer could not write because: %s", err)
+			}
 		} else {
 			msg := fmt.Sprintf("The deployment replica count is %d. Pod replica should be > 1 with an "+
 				"podAntiAffinity rule defined . You might want to change it in deployment %s in namespace %s",
 				replica, deployment, podNamespace)
 			log.Warn(msg)
-			ginkgo.GinkgoWriter.Write([]byte(msg))
+			_, err := ginkgo.GinkgoWriter.Write([]byte(msg))
+			if err != nil {
+				log.Errorf("Ginkgo writer could not write because: %s", err)
+			}
 		}
 	})
 }
