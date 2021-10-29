@@ -483,7 +483,7 @@ func getMcHugepagesFromMcKernelArguments(mc *machineConfig) (hugepagesPerSize ma
 		}
 
 		key, value := keyValueSlice[0], keyValueSlice[1]
-		if key == HugepagesParam {
+		if key == HugepagesParam && value != "" {
 			if _, sizeFound := hugepagesPerSize[hugepagesz]; !sizeFound {
 				return map[int]int{}, RhelDefaultHugepagesz, fmt.Errorf("found hugepages count without size in kernelArguments: %v", mc.Spec.KernelArguments)
 			}
@@ -491,17 +491,18 @@ func getMcHugepagesFromMcKernelArguments(mc *machineConfig) (hugepagesPerSize ma
 			hugepagesPerSize[hugepagesz] = hugepages
 		}
 
-		if key == HugepageszParam {
+		if key == HugepageszParam && value != "" {
 			hugepagesz = hugepageSizeToInt(value)
 			// Create new map entry for this size
 			hugepagesPerSize[hugepagesz] = 0
 		}
 
-		if key == DefaultHugepagesz {
+		if key == DefaultHugepagesz && value != "" {
 			defhugepagesz = hugepageSizeToInt(value)
 			// In case only default_hugepagesz and hugepages values are provided. The actual value should be
 			// parsed next and this default value overwritten.
-			hugepagesPerSize[hugepagesz] = RhelDefaultHugepages
+			hugepagesPerSize[defhugepagesz] = RhelDefaultHugepages
+			hugepagesz = defhugepagesz
 		}
 	}
 
