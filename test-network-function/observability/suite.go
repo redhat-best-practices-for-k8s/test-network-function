@@ -48,24 +48,25 @@ var (
 	relativeCrdTestPath = path.Join(common.PathRelativeToRoot, crdTestPath)
 	// testCrdsTimeout is the timeout in seconds for the CRDs TC.
 	testCrdsTimeout = 10 * time.Second
+	// retrieve the singleton instance of test environment
+	env *config.TestEnvironment = config.GetTestEnvironment()
 )
-
 var _ = ginkgo.Describe(common.ObservabilityTestKey, func() {
 	conf, _ := ginkgo.GinkgoConfiguration()
+
 	if testcases.IsInFocus(conf.FocusStrings, common.ObservabilityTestKey) {
-		env := config.GetTestEnvironment()
 		ginkgo.BeforeEach(func() {
 			env.LoadAndRefresh()
 			gomega.Expect(len(env.PodsUnderTest)).ToNot(gomega.Equal(0))
 			gomega.Expect(len(env.ContainersUnderTest)).ToNot(gomega.Equal(0))
 		})
 		ginkgo.ReportAfterEach(results.RecordResult)
-		testLogging(env)
-		testCrds(env)
+		testLogging()
+		testCrds()
 	}
 })
 
-func testLogging(env *config.TestEnvironment) {
+func testLogging() {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestLoggingIdentifier)
 	ginkgo.It(testID, func() {
 		for _, cut := range env.ContainersUnderTest {
@@ -95,7 +96,7 @@ func loggingTest(c configsections.ContainerIdentifier) {
 	test.RunAndValidate()
 }
 
-func testCrds(env *config.TestEnvironment) {
+func testCrds() {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestCrdsStatusSubresourceIdentifier)
 	ginkgo.It(testID, func() {
 		ginkgo.By("CRDs should have a status subresource")
