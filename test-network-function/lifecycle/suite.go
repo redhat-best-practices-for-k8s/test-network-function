@@ -212,14 +212,16 @@ func testNodeSelector(env *config.TestEnvironment) {
 			podName := podUnderTest.Name
 			podNamespace := podUnderTest.Namespace
 			ginkgo.By(fmt.Sprintf("Testing pod nodeSelector %s/%s", podNamespace, podName))
-			infoWriter := tnf.CreateTestExtraInfoWriter()
 			tester := nodeselector.NewNodeSelector(common.DefaultTimeout, podName, podNamespace)
 			test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 			gomega.Expect(err).To(gomega.BeNil())
 			test.RunAndValidateWithFailureCallback(func() {
 				msg := fmt.Sprintf("The pod specifies nodeSelector/nodeAffinity field, you might want to change it, %s %s", podNamespace, podName)
 				log.Warn(msg)
-				infoWriter(msg)
+				_, err := ginkgo.GinkgoWriter.Write([]byte(msg))
+				if err != nil {
+					log.Errorf("Ginkgo writer could not write because: %s", err)
+				}
 			})
 		}
 	})
@@ -234,7 +236,6 @@ func testGracePeriod(env *config.TestEnvironment) {
 			podName := podUnderTest.Name
 			podNamespace := podUnderTest.Namespace
 			ginkgo.By(fmt.Sprintf("Testing pod terminationGracePeriod %s %s", podNamespace, podName))
-			infoWriter := tnf.CreateTestExtraInfoWriter()
 			tester := graceperiod.NewGracePeriod(common.DefaultTimeout, podName, podNamespace)
 			test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 			gomega.Expect(err).To(gomega.BeNil())
@@ -243,7 +244,10 @@ func testGracePeriod(env *config.TestEnvironment) {
 			if gracePeriod == defaultTerminationGracePeriod {
 				msg := fmt.Sprintf("%s %s has terminationGracePeriod set to %d, you might want to change it", podNamespace, podName, defaultTerminationGracePeriod)
 				log.Warn(msg)
-				infoWriter(msg)
+				_, err := ginkgo.GinkgoWriter.Write([]byte(msg))
+				if err != nil {
+					log.Errorf("Ginkgo writer could not write because: %s", err)
+				}
 			}
 		}
 	})
@@ -392,7 +396,6 @@ func podAntiAffinity(deployment, podNamespace string, replica int) {
 	values := make(map[string]interface{})
 	values["DEPLOYMENT_NAME"] = deployment
 	values["DEPLOYMENT_NAMESPACE"] = podNamespace
-	infoWriter := tnf.CreateTestExtraInfoWriter()
 	tester, handlers, result, err := generic.NewGenericFromMap(relativePodTestPath, common.RelativeSchemaPath, values)
 	gomega.Expect(err).To(gomega.BeNil())
 	gomega.Expect(result).ToNot(gomega.BeNil())
@@ -409,13 +412,19 @@ func podAntiAffinity(deployment, podNamespace string, replica int) {
 			msg := fmt.Sprintf("The deployment replica count is %d, but a podAntiAffinity rule is not defined, "+
 				"you might want to change it in deployment %s in namespace %s", replica, deployment, podNamespace)
 			log.Warn(msg)
-			infoWriter(msg)
+			_, err := ginkgo.GinkgoWriter.Write([]byte(msg))
+			if err != nil {
+				log.Errorf("Ginkgo writer could not write because: %s", err)
+			}
 		} else {
 			msg := fmt.Sprintf("The deployment replica count is %d. Pod replica should be > 1 with an "+
 				"podAntiAffinity rule defined . You might want to change it in deployment %s in namespace %s",
 				replica, deployment, podNamespace)
 			log.Warn(msg)
-			infoWriter(msg)
+			_, err := ginkgo.GinkgoWriter.Write([]byte(msg))
+			if err != nil {
+				log.Errorf("Ginkgo writer could not write because: %s", err)
+			}
 		}
 	})
 }
