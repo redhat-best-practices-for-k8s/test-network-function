@@ -73,7 +73,7 @@ echo "Running with skip  '$SKIP'"
 echo "Report will be output to '$OUTPUT_LOC'"
 echo "ginkgo arguments '${GINKGO_ARGS}'"
 SKIP_STRING=""
-if [ -n $SKIP ]; then
+if [ -n "$SKIP" ]; then
 	SKIP_STRING=-ginkgo.skip="$SKIP"
 fi
 cd ./test-network-function && ./test-network-function.test -ginkgo.focus="$FOCUS" $SKIP_STRING ${GINKGO_ARGS}
