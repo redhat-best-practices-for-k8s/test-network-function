@@ -96,11 +96,10 @@ func loggingTest(c configsections.ContainerIdentifier) {
 }
 
 func testCrds(env *config.TestEnvironment) {
-	ginkgo.By("CRDs should have a status subresource")
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestCrdsStatusSubresourceIdentifier)
 	ginkgo.It(testID, func() {
+		ginkgo.By("CRDs should have a status subresource")
 		context := common.GetContext()
-
 		for _, crdName := range env.CrdNames {
 			ginkgo.By("Testing CRD " + crdName)
 
