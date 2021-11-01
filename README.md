@@ -186,7 +186,7 @@ It's recommended to clean up disk space and make sure there's enough resources t
 There are several required arguments:
 
 * `-t` gives the local directory that contains tnf config files set up for the test.
-* `-o` gives the local directory that the test results will be available in once the container exits.
+* `-o` gives the local directory that the test results will be available in once the container exits. This directory must exist in order for the claim file to be written.
 * `-f` gives the list of suites to be run, space separated.
 
 Optional arguments are:
