@@ -199,12 +199,12 @@ func (env *TestEnvironment) LoadAndRefresh() {
 		}
 		env.doAutodiscover()
 	} else if env.needsRefresh {
-		env.cleanupEnv()
+		env.reset()
 		env.doAutodiscover()
 	}
 }
 
-func (env *TestEnvironment) cleanupEnv() {
+func (env *TestEnvironment) reset() {
 	log.Debug("clean up environment Test structure")
 	env.Config.Partner = configsections.TestPartner{}
 	env.Config.TestTarget = configsections.TestTarget{}
