@@ -199,25 +199,34 @@ func (env *TestEnvironment) LoadAndRefresh() {
 		}
 		env.doAutodiscover()
 	} else if env.needsRefresh {
-		log.Debug("clean up environment Test structure")
-		env.Config.Partner = configsections.TestPartner{}
-		env.Config.TestTarget = configsections.TestTarget{}
-		env.TestOrchestrator = nil
-		for name, node := range env.NodesUnderTest {
-			if node.HasDebugPod() {
-				node.Oc.Close()
-				autodiscover.DeleteDebugLabel(name)
-			}
-		}
-		env.NodesUnderTest = nil
-		env.Config.Nodes = nil
-		env.DebugContainers = nil
-		log.Debug("start auto discovery")
+		env.cleanupEnv()
 		env.doAutodiscover()
 	}
 }
 
+func (env *TestEnvironment) cleanupEnv() {
+	log.Debug("clean up environment Test structure")
+	env.Config.Partner = configsections.TestPartner{}
+	env.Config.TestTarget = configsections.TestTarget{}
+	env.TestOrchestrator = nil
+	// Delete Oc debug sessions before re-creating them
+	for name, node := range env.NodesUnderTest {
+		if node.HasDebugPod() {
+			node.Oc.Close()
+			autodiscover.DeleteDebugLabel(name)
+		}
+	}
+	// Delete all remaining sessions before re-creating them
+	for _, cut := range env.ContainersUnderTest {
+		cut.Oc.Close()
+	}
+	env.NodesUnderTest = nil
+	env.Config.Nodes = nil
+	env.DebugContainers = nil
+}
+
 func (env *TestEnvironment) doAutodiscover() {
+	log.Debug("start auto discovery")
 	if len(env.Config.TargetNameSpaces) != 1 {
 		log.Fatal("a single namespace should be specified in config file")
 	}
@@ -230,11 +239,6 @@ func (env *TestEnvironment) doAutodiscover() {
 
 	for _, cid := range env.Config.ExcludeContainersFromConnectivityTests {
 		env.ContainersToExcludeFromConnectivityTests[cid] = ""
-	}
-
-	// Delete all remaining sessions before re-creating them
-	for _, cut := range env.ContainersUnderTest {
-		cut.Oc.Close()
 	}
 
 	env.ContainersUnderTest = env.createContainers(env.Config.ContainerConfigList)
