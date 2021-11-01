@@ -88,7 +88,8 @@ func readClaim(contents *[]byte) *claim.Root {
 	}
 	return &claimRoot
 }
-func Execute() *cobra.Command {
+
+func Returncobra() *cobra.Command {
 	claimAddFile.Flags().StringVarP(
 		&Reportdir, "reportdir", "r", "",
 		"dir of JUnit XML reports. (Required)",
