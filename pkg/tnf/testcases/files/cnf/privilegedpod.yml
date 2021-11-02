@@ -49,6 +49,8 @@ testcase:
     expectedstatus:
       - NET_ADMIN
       - SYS_ADMIN
+      - NET_RAW
+      - IPC_LOCK
   - name: ROOT_CHECK
     skiptest: true
     loop: 0
