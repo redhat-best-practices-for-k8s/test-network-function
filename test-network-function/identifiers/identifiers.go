@@ -263,6 +263,8 @@ cannot be followed.`,
 6. The Pod is not granted SYS_ADMIN SCC.
 7. The Pod does not run as root.
 8. The Pod does not allow privileged escalation.
+9. The Pod is not granted NET_RAW SCC.
+10. The Pod is not granted IPC_LOCK SCC.
 `),
 		BestPracticeReference: bestPracticeDocV1dot2URL + " Section 6.2",
 	},

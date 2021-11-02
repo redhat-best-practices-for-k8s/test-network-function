@@ -54,6 +54,8 @@ var (
 	schemaPath = path.Join("schemas", "generic-test.schema.json")
 	// commandDriver stores the csi driver JSON output.
 	commandDriver = make(map[string]interface{})
+
+	expectersVerboseModeEnabled = false
 )
 
 // PerformAutoDiscovery checks the environment variable to see if autodiscovery should be performed
@@ -97,7 +99,7 @@ func executeOcCommand(command string) (string, error) {
 	values := make(map[string]interface{})
 	values["COMMAND"] = command
 	values["TIMEOUT"] = ocCommandTimeOut.Nanoseconds()
-	context := interactive.GetContext()
+	context := interactive.GetContext(expectersVerboseModeEnabled)
 	tester, handler, result, err := generic.NewGenericFromMap(pathToTestFile, relativeSchemaPath, values)
 
 	gomega.Expect(err).To(gomega.BeNil())
@@ -182,4 +184,9 @@ func buildContainersFromPodResource(pr *PodResource) (containers []configsection
 		containers = append(containers, container)
 	}
 	return
+}
+
+// EnableExpectersVerboseMode enables the verbose mode for expecters (Sent/Match output)
+func EnableExpectersVerboseMode() {
+	expectersVerboseModeEnabled = true
 }

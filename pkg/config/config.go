@@ -39,6 +39,7 @@ const (
 )
 
 var (
+	expectersVerboseModeEnabled = false
 	// testEnvironment is the singleton instance of `TestEnvironment`, accessed through `GetTestEnvironment`
 	testEnvironment TestEnvironment
 )
@@ -349,7 +350,7 @@ func (env *TestEnvironment) discoverNodes() {
 func (env *TestEnvironment) createContainers(containerDefinitions []configsections.ContainerConfig) map[configsections.ContainerIdentifier]*Container {
 	createdContainers := make(map[configsections.ContainerIdentifier]*Container)
 	for _, c := range containerDefinitions {
-		oc := getOcSession(c.PodName, c.ContainerName, c.Namespace, DefaultTimeout, interactive.Verbose(true), interactive.SendTimeout(DefaultTimeout))
+		oc := getOcSession(c.PodName, c.ContainerName, c.Namespace, DefaultTimeout, interactive.Verbose(expectersVerboseModeEnabled), interactive.SendTimeout(DefaultTimeout))
 		var defaultIPAddress = "UNKNOWN"
 		var err error
 		if _, ok := env.ContainersToExcludeFromConnectivityTests[c.ContainerIdentifier]; !ok {
@@ -377,4 +378,11 @@ func (env *TestEnvironment) SetNeedsRefresh() {
 // GetTestEnvironment provides the current state of test environment
 func GetTestEnvironment() *TestEnvironment {
 	return &testEnvironment
+}
+
+// EnableExpectersVerboseMode enables the verbose mode for expecters (Sent/Match output)
+func EnableExpectersVerboseMode() {
+	expectersVerboseModeEnabled = true
+
+	autodiscover.EnableExpectersVerboseMode()
 }

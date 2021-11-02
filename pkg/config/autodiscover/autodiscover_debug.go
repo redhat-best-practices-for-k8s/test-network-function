@@ -89,7 +89,7 @@ func CheckDebugDaemonset() {
 
 // checkDebugPodsReadiness helper function that returns true if the daemonset debug is deployed properly
 func checkDebugPodsReadiness() bool {
-	context := interactive.GetContext()
+	context := interactive.GetContext(expectersVerboseModeEnabled)
 	tester := ds.NewDaemonSet(DefaultTimeout, debugDaemonSet, defaultNamespace)
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 	if err != nil {
