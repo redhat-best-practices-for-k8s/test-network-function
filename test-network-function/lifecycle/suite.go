@@ -313,6 +313,9 @@ func testPodsRecreation(env *config.TestEnvironment) {
 			closeOcSessionsByNode(env.PartnerContainers, n.Name)
 			// drain node
 			drainNode(n.Name) // should go in this
+
+			waitForAllDeploymentsReady(env.NameSpaceUnderTest, scalingTimeout, scalingPollingPeriod)
+
 			// verify deployments are ready again
 			_, notReadyDeployments = getDeployments(env.NameSpaceUnderTest)
 			if len(notReadyDeployments) != 0 {
