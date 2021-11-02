@@ -51,7 +51,7 @@ var (
 	introMDFile = path.Join(mdDirectory, introMDFilename)
 
 	// mdDirectory is the path to the directory of files that contain static text for CATALOG.md.
-	mdDirectory = path.Join("cmd", "catalog", "cmd", "data")
+	mdDirectory = path.Join("cmd", "tnf", "generate", "catalog")
 
 	// tccFile is the path to the file that contains the test case catalog section introductory text for CATALOG.md.
 	tccFile = path.Join(mdDirectory, tccFilename)
