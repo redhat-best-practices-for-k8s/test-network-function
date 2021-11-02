@@ -206,7 +206,7 @@ func runGenerateJSONCmd(_ *cobra.Command, _ []string) error {
 }
 
 // Execute executes the "catalog" CLI.
-func Returncobra() *cobra.Command {
+func NewCommand() *cobra.Command {
 	generateCmd.AddCommand(jsonGenerateCmd, markdownGenerateCmd)
 	return generateCmd
 }

@@ -348,7 +348,7 @@ func runPTYTemplateCmd(_ *cobra.Command, args []string) {
 }
 
 // Execute executes the jsontest program, returning any applicable errors.
-func Returncobra() *cobra.Command {
+func NewCommand() *cobra.Command {
 	runCmd.AddCommand(ocCmd, sshCmd, shellCmd, ptyCmd, ptyTemplateCmd)
 	return runCmd
 }

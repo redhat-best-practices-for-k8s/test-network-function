@@ -132,6 +132,6 @@ func createfile(templateFilePath, outputFileName string, myhandler myHandler, ne
 	return nil
 }
 
-func Returncobra() *cobra.Command {
+func NewCommand() *cobra.Command {
 	return handler
 }

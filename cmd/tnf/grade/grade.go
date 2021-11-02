@@ -32,7 +32,7 @@ func runGradetool(cmd *cobra.Command, args []string) error {
 	}
 	return nil
 }
-func Returncobra() *cobra.Command {
+func NewCommand() *cobra.Command {
 	grade.Flags().StringVarP(
 		&results, "results", "r", "",
 		"Path to the input test results file",

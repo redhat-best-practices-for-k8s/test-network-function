@@ -24,16 +24,16 @@ var (
 )
 
 func main() {
-	claimAddFile := addclaim.Returncobra()
+	claimAddFile := addclaim.NewCommand()
 	rootCmd.AddCommand(claimAddFile)
 	rootCmd.AddCommand(generate)
-	generateCatalog := catalog.Returncobra()
+	generateCatalog := catalog.NewCommand()
 	generate.AddCommand(generateCatalog)
-	handlercmd := handler.Returncobra()
+	handlercmd := handler.NewCommand()
 	generate.AddCommand(handlercmd)
-	jsontestCli := jsontest.Returncobra()
+	jsontestCli := jsontest.NewCommand()
 	rootCmd.AddCommand(jsontestCli)
-	gradetool := grade.Returncobra()
+	gradetool := grade.NewCommand()
 	rootCmd.AddCommand(gradetool)
 	if err := rootCmd.Execute(); err != nil {
 		log.Fatal(err)
