@@ -96,22 +96,6 @@ build-cnf-tests-debug:
 	PATH=${PATH}:${GOBIN} ginkgo build -gcflags "all=-N -l" -ldflags "-X github.com/test-network-function/test-network-function/test-network-function.GitCommit=${GIT_COMMIT} -X github.com/test-network-function/test-network-function/test-network-function.GitRelease=${GIT_RELEASE} -X github.com/test-network-function/test-network-function/test-network-function.GitPreviousRelease=${GIT_PREVIOUS_RELEASE} -extldflags '-z relro -z now'" ./test-network-function
 	make build-catalog-md
 
-# run all CNF tests
-run-cnf-tests: build-cnf-tests
-	./run-cnf-suites.sh diagnostic generic multus operator container
-
-# run only the generic CNF tests
-run-generic-cnf-tests: build-cnf-tests
-	./run-cnf-suites.sh diagnostic generic
-
-# Run operator CNF tests
-run-operator-tests: build-cnf-tests
-	./run-cnf-suites.sh diagnostic operator
-
-# Run container CNF tests
-run-container-tests: build-cnf-tests
-	./run-cnf-suites.sh diagnostic container
-
 # Each mock depends on one source file
 pkg/tnf/interactive/mocks/mock_spawner.go: pkg/tnf/interactive/spawner.go
 	mockgen -source=pkg/tnf/interactive/spawner.go -destination=pkg/tnf/interactive/mocks/mock_spawner.go
