@@ -22,7 +22,6 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	expect "github.com/google/goexpect"
-	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
 	"github.com/test-network-function/test-network-function/pkg/tnf/identifier"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
@@ -40,20 +39,6 @@ const (
 // TestsExtraInfo a collection of messages per test that is added to the claim file
 // use WriteTestExtraInfo for writing to it
 var TestsExtraInfo = []map[string][]string{}
-
-// CreateTestExtraInfoWriter creates a function that writes info messages for a specific test
-// info messages that were already added by calling the function will exist in the claim file
-func CreateTestExtraInfoWriter() func(string) {
-	testName := ginkgo.CurrentGinkgoTestDescription().FullTestText
-	if testName == "" {
-		return func(string) {}
-	}
-	extraInfo := map[string][]string{testName: nil}
-	TestsExtraInfo = append(TestsExtraInfo, extraInfo)
-	return func(info string) {
-		extraInfo[testName] = append(extraInfo[testName], info)
-	}
-}
 
 // ExitCodeMap maps a test result value to a more appropriate Unix return code.
 var ExitCodeMap = map[int]int{

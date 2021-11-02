@@ -29,14 +29,17 @@ var _ = ginkgo.BeforeSuite(func() {
 	for name := range autodiscover.GetNodesList() {
 		autodiscover.DeleteDebugLabel(name)
 	}
-	env = configpkg.GetTestEnvironment()
-	env.LoadAndRefresh()
 })
 
 var _ = ginkgo.AfterSuite(func() {
 	// clean up added label to nodes
 	log.Info("clean up added labels to nodes")
+	env = configpkg.GetTestEnvironment()
+	env.LoadAndRefresh()
 	for name, node := range env.NodesUnderTest {
+		if !(node.HasDebugPod()) {
+			continue
+		}
 		node.Oc.Close()
 		autodiscover.DeleteDebugLabel(name)
 	}

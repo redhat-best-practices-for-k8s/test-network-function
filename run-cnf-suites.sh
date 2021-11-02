@@ -45,7 +45,7 @@ while [[ $1 == -* ]]; do
   shift
 done
 # specify Junit report file name.
-GINKGO_ARGS="-junit $OUTPUT_LOC -claimloc $OUTPUT_LOC -ginkgo.reportFile $OUTPUT_LOC/cnf-certification-tests_junit.xml -ginkgo.v -test.v"
+GINKGO_ARGS="-junit $OUTPUT_LOC -claimloc $OUTPUT_LOC --ginkgo.junit-report $OUTPUT_LOC/cnf-certification-tests_junit.xml -ginkgo.v -test.v"
 
 
 # If no focus is set then display usage and quit with a non-zero exit code.
@@ -73,7 +73,7 @@ echo "Running with skip  '$SKIP'"
 echo "Report will be output to '$OUTPUT_LOC'"
 echo "ginkgo arguments '${GINKGO_ARGS}'"
 SKIP_STRING=""
-if [ -z $SKIP ]; then
-	$SKIP_STRING=-ginkgo.skip="$SKIP"
+if [ -n "$SKIP" ]; then
+	SKIP_STRING=-ginkgo.skip="$SKIP"
 fi
 cd ./test-network-function && ./test-network-function.test -ginkgo.focus="$FOCUS" $SKIP_STRING ${GINKGO_ARGS}

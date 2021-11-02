@@ -50,7 +50,7 @@ func NewNodeDebug(timeout time.Duration, nodeName, command string, trim, split b
 		timeout: timeout,
 		result:  tnf.ERROR,
 		args: []string{
-			"chroot", "/host", command,
+			command,
 		},
 		Trim:  trim,
 		Split: split,
