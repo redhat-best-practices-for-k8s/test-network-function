@@ -69,6 +69,7 @@ RUN make install-lint
 RUN make install-tools && \
 	make mocks && \
 	make update-deps && \
+	make build-tnf-tool && \
 	make build-cnf-tests-debug
 
 #  Extract what's needed to run at a seperate location
