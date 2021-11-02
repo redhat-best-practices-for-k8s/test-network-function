@@ -23,3 +23,6 @@ pkg/tnf/reel/mocks/mock_reel.go
 pkg/tnf/interactive/mocks/mock_spawner.go
 temp/
 /tnf
+/all-releases.txt
+/latest-release-tag.txt
+/release-tag.txt
