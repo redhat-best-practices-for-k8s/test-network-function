@@ -21,10 +21,6 @@ GO_PACKAGES=$(shell go list ./... | grep -v vendor)
 	clean \
 	lint \
 	test \
-	build-jsontest-cli \
-	build-gradetool \
-	build-catalog-json \
-	build-catalog-md \
 	build-cnf-tests \
 	run-cnf-tests \
 	run-generic-cnf-tests \
@@ -56,8 +52,8 @@ GOLANGCI_VERSION=v1.42.1
 build:
 	make test
 	make build-cnf-tests
-	make build-jsontest-cli
-	make build-gradetool
+#	make build-jsontest-cli
+#	make build-gradetool
 	make build-tnf-tool
 
 build-tnf-tool:
@@ -85,20 +81,20 @@ test: mocks
 	go test -coverprofile=cover.out `go list ./... | grep -v "github.com/test-network-function/test-network-function/test-network-function" | grep -v mock`
 
 # build the binary that can be used to run JSON-defined tests.
-build-jsontest-cli:
-	go build -o jsontest-cli -v cmd/generic/main.go
+#build-jsontest-cli:
+#	go build -o jsontest-cli -v cmd/generic/main.go
 
 # build the binary that can be used to run gradetool.
-build-gradetool:
-	go build -o gradetool -v cmd/gradetool/main.go
+#build-gradetool:
+#	go build -o gradetool -v cmd/gradetool/main.go
 
 # generate the test catalog in JSON
 build-catalog-json:
-	go run cmd/catalog/main.go generate json > catalog.json
+	./tnf generate catalog json > catalog.json
 
 # generate the test catalog in Markdown
 build-catalog-md:
-	go run cmd/catalog/main.go generate markdown > CATALOG.md
+	./tnf generate catalog markdown > CATALOG.md
 
 # build the CNF test binary
 build-cnf-tests:
