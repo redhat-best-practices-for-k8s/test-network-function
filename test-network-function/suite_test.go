@@ -35,6 +35,7 @@ import (
 	"github.com/test-network-function/test-network-function/pkg/tnf"
 	tnfcommon "github.com/test-network-function/test-network-function/pkg/tnf/handlers/common"
 
+	utils "github.com/test-network-function/test-network-function/pkg/utils"
 	_ "github.com/test-network-function/test-network-function/test-network-function/accesscontrol"
 	_ "github.com/test-network-function/test-network-function/test-network-function/certification"
 	"github.com/test-network-function/test-network-function/test-network-function/common"
@@ -120,9 +121,17 @@ func loadJUnitXMLIntoMap(result map[string]interface{}, junitFilename, key strin
 func TestTest(t *testing.T) {
 	// set up input flags and register failure handlers.
 	flag.Parse()
+
+	// Checking if output directories exist
+	utils.CheckFileExists(*claimPath, "claim")
+	utils.CheckFileExists(*junitPath, "junit")
+
 	gomega.RegisterFailHandler(ginkgo.Fail)
 	common.SetLogFormat()
 	common.SetLogLevel()
+	if common.LogLevelTraceEnabled {
+		config.EnableExpectersVerboseMode()
+	}
 	// Display GinkGo Version
 	log.Info("Ginkgo Version: ", ginkgo.GINKGO_VERSION)
 	// Display the latest previously released build in case this build is not released
