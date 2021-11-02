@@ -14,7 +14,7 @@
 // with this program; if not, write to the Free Software Foundation, Inc.,
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-package cmd
+package jsontest
 
 import (
 	"encoding/json"
@@ -88,18 +88,13 @@ const (
 var (
 	// rootCmd is the jsontest executable root.  Currently, the jsontest entrypoint has only one sub-command called
 	// "run", which runs a generic JSON test.
-	rootCmd = &cobra.Command{
-		Use:   "jsontest-cli",
+	runCmd = &cobra.Command{
+		Use:   "jsontest",
 		Short: "A CLI for creating, validating, and running JSON test-network-function tests.",
-		Long:  `jsontest is a CLI library included in test-network-function used to prototype JSON test cases.`,
+		Long:  `jsontest is a CLI library included in test-network-function used to prototype JSON test cases. The JSON test case can be run using oc, ssh, or local shell.`,
 	}
 
 	// runCmd is the json test executable option to run a JSON test.
-	runCmd = &cobra.Command{
-		Use:   "run",
-		Short: "run a JSON test case",
-		Long:  `run is a CLI library included in test-network-function used to run a JSON test case.  The JSON test case can be run using oc, ssh, or local shell.`,
-	}
 
 	// shellCmd is the entrypoint for running a test case on the local shell.
 	shellCmd = &cobra.Command{
@@ -353,8 +348,7 @@ func runPTYTemplateCmd(_ *cobra.Command, args []string) {
 }
 
 // Execute executes the jsontest program, returning any applicable errors.
-func Execute() error {
+func NewCommand() *cobra.Command {
 	runCmd.AddCommand(ocCmd, sshCmd, shellCmd, ptyCmd, ptyTemplateCmd)
-	rootCmd.AddCommand(runCmd)
-	return rootCmd.Execute()
+	return runCmd
 }

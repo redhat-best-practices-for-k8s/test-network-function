@@ -14,7 +14,7 @@
 // with this program; if not, write to the Free Software Foundation, Inc.,
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-package cmd
+package catalog
 
 import (
 	"encoding/json"
@@ -51,7 +51,7 @@ var (
 	introMDFile = path.Join(mdDirectory, introMDFilename)
 
 	// mdDirectory is the path to the directory of files that contain static text for CATALOG.md.
-	mdDirectory = path.Join("cmd", "catalog", "cmd", "data")
+	mdDirectory = path.Join("cmd", "tnf", "generate", "catalog")
 
 	// tccFile is the path to the file that contains the test case catalog section introductory text for CATALOG.md.
 	tccFile = path.Join(mdDirectory, tccFilename)
@@ -60,15 +60,9 @@ var (
 	// for CATALOG.md
 	tccbbFile = path.Join(mdDirectory, tccbbFilename)
 
-	// rootCmd is the root of the "catalog" CLI program.
-	rootCmd = &cobra.Command{
-		Use:   "catalog",
-		Short: "A CLI for creating the test catalog.",
-	}
-
 	// generateCmd is the root of the "catalog generate" CLI program.
 	generateCmd = &cobra.Command{
-		Use:   "generate",
+		Use:   "catalog",
 		Short: "Generates the test catalog",
 	}
 
@@ -145,7 +139,6 @@ func outputTestCases() {
 		fmt.Fprintf(os.Stdout, "Description|%s\n", strings.ReplaceAll(identifiers.Catalog[k].Description, "\n", " "))
 		fmt.Fprintf(os.Stdout, "Result Type|%s\n", identifiers.Catalog[k].Type)
 		fmt.Fprintf(os.Stdout, "Suggested Remediation|%s\n", strings.ReplaceAll(identifiers.Catalog[k].Remediation, "\n", " "))
-		fmt.Fprintf(os.Stdout, "Best Practice Reference|%s\n", strings.ReplaceAll(identifiers.Catalog[k].BestPracticeReference, "\n", " "))
 	}
 	fmt.Println()
 	fmt.Println()
@@ -213,8 +206,7 @@ func runGenerateJSONCmd(_ *cobra.Command, _ []string) error {
 }
 
 // Execute executes the "catalog" CLI.
-func Execute() error {
+func NewCommand() *cobra.Command {
 	generateCmd.AddCommand(jsonGenerateCmd, markdownGenerateCmd)
-	rootCmd.AddCommand(generateCmd)
-	return rootCmd.Execute()
+	return generateCmd
 }
