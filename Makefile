@@ -51,10 +51,10 @@ GOLANGCI_VERSION=v1.42.1
 # Run the unit tests and build all binaries
 build:
 	make test
+	make build-tnf-tool
 	make build-cnf-tests
 #	make build-jsontest-cli
 #	make build-gradetool
-	make build-tnf-tool
 
 build-tnf-tool:
 	go build -o tnf -v cmd/tnf/main.go
