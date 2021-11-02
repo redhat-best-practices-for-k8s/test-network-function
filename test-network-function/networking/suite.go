@@ -79,10 +79,12 @@ func testDefaultNetworkConnectivity(env *config.TestEnvironment, count int) {
 			if env.TestOrchestrator == nil {
 				ginkgo.Skip("Orchestrator is not deployed, skip this test")
 			}
+			found := false
 			for _, cut := range env.ContainersUnderTest {
 				if _, ok := env.ContainersToExcludeFromConnectivityTests[cut.ContainerIdentifier]; ok {
 					continue
 				}
+				found = true
 				context := cut.Oc
 				testOrchestrator := env.TestOrchestrator
 				ginkgo.By(fmt.Sprintf("a Ping is issued from %s(%s) to %s(%s) %s", testOrchestrator.Oc.GetPodName(),
@@ -93,6 +95,9 @@ func testDefaultNetworkConnectivity(env *config.TestEnvironment, count int) {
 					cut.Oc.GetPodContainerName(), testOrchestrator.Oc.GetPodName(), testOrchestrator.Oc.GetPodContainerName(),
 					testOrchestrator.DefaultNetworkIPAddress))
 				testPing(context, testOrchestrator.DefaultNetworkIPAddress, count)
+			}
+			if !found {
+				ginkgo.Skip("No container found suitable for connectivity test")
 			}
 		})
 	})
