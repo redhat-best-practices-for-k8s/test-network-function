@@ -51,7 +51,6 @@ GOLANGCI_VERSION=v1.42.1
 # Run the unit tests and build all binaries
 build:
 	make test
-	make build-tnf-tool
 	make build-cnf-tests
 
 
@@ -69,6 +68,7 @@ clean:
 	make clean-mocks
 	rm -f ./test-network-function/test-network-function.test
 	rm -f ./test-network-function/cnf-certification-tests_junit.xml
+	rm -f ./tnf
 
 # Run configured linters
 lint:
@@ -80,11 +80,11 @@ test: mocks
 	go test -coverprofile=cover.out `go list ./... | grep -v "github.com/test-network-function/test-network-function/test-network-function" | grep -v mock`
 
 # generate the test catalog in JSON
-build-catalog-json:
+build-catalog-json: build-tnf-tool
 	./tnf generate catalog json > catalog.json
 
 # generate the test catalog in Markdown
-build-catalog-md:
+build-catalog-md: build-tnf-tool
 	./tnf generate catalog markdown > CATALOG.md
 
 # build the CNF test binary
@@ -95,22 +95,6 @@ build-cnf-tests:
 build-cnf-tests-debug:
 	PATH=${PATH}:${GOBIN} ginkgo build -gcflags "all=-N -l" -ldflags "-X github.com/test-network-function/test-network-function/test-network-function.GitCommit=${GIT_COMMIT} -X github.com/test-network-function/test-network-function/test-network-function.GitRelease=${GIT_RELEASE} -X github.com/test-network-function/test-network-function/test-network-function.GitPreviousRelease=${GIT_PREVIOUS_RELEASE} -extldflags '-z relro -z now'" ./test-network-function
 	make build-catalog-md
-
-# run all CNF tests
-run-cnf-tests: build-cnf-tests
-	./run-cnf-suites.sh diagnostic generic multus operator container
-
-# run only the generic CNF tests
-run-generic-cnf-tests: build-cnf-tests
-	./run-cnf-suites.sh diagnostic generic
-
-# Run operator CNF tests
-run-operator-tests: build-cnf-tests
-	./run-cnf-suites.sh diagnostic operator
-
-# Run container CNF tests
-run-container-tests: build-cnf-tests
-	./run-cnf-suites.sh diagnostic container
 
 # Each mock depends on one source file
 pkg/tnf/interactive/mocks/mock_spawner.go: pkg/tnf/interactive/spawner.go
