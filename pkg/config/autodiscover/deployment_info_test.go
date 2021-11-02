@@ -21,7 +21,6 @@ import (
 	"errors"
 	"log"
 	"os"
-	"os/exec"
 	"path"
 	"testing"
 
@@ -94,14 +93,14 @@ func TestGetTargetDeploymentByNamespace(t *testing.T) {
 	for _, tc := range testCases {
 		// Setup the mock functions
 		if tc.badExec {
-			execCommandOutput = func(cmd *exec.Cmd) ([]byte, error) {
-				return nil, tc.execErr
+			execCommandOutput = func(command string) string {
+				return ""
 			}
 		} else {
-			execCommandOutput = func(cmd *exec.Cmd) ([]byte, error) {
+			execCommandOutput = func(command string) string {
 				contents, err := os.ReadFile(testJQFilePath)
 				assert.Nil(t, err)
-				return contents, nil
+				return string(contents)
 			}
 		}
 		if tc.badJSONUnmarshal {
