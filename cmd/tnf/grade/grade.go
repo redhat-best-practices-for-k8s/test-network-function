@@ -32,6 +32,7 @@ func runGradetool(cmd *cobra.Command, args []string) error {
 	}
 	return nil
 }
+
 func NewCommand() *cobra.Command {
 	grade.Flags().StringVarP(
 		&results, "results", "r", "",
