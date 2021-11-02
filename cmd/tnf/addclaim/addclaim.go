@@ -1,4 +1,4 @@
-package addclaim
+package claim
 
 import (
 	"fmt"
