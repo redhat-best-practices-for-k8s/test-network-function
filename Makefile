@@ -53,8 +53,7 @@ build:
 	make test
 	make build-tnf-tool
 	make build-cnf-tests
-#	make build-jsontest-cli
-#	make build-gradetool
+
 
 build-tnf-tool:
 	go build -o tnf -v cmd/tnf/main.go
@@ -79,14 +78,6 @@ lint:
 test: mocks
 	go build ${COMMON_GO_ARGS} ./...
 	go test -coverprofile=cover.out `go list ./... | grep -v "github.com/test-network-function/test-network-function/test-network-function" | grep -v mock`
-
-# build the binary that can be used to run JSON-defined tests.
-#build-jsontest-cli:
-#	go build -o jsontest-cli -v cmd/generic/main.go
-
-# build the binary that can be used to run gradetool.
-#build-gradetool:
-#	go build -o gradetool -v cmd/gradetool/main.go
 
 # generate the test catalog in JSON
 build-catalog-json:
