@@ -50,8 +50,8 @@ GOLANGCI_VERSION=v1.42.1
 
 # Run the unit tests and build all binaries
 build:
+    make build-tnf-tool
 	make test
-	make build-tnf-tool
 	make build-cnf-tests
 #	make build-jsontest-cli
 #	make build-gradetool
