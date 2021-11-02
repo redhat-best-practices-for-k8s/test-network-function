@@ -51,7 +51,6 @@ GOLANGCI_VERSION=v1.42.1
 # Run the unit tests and build all binaries
 build:
 	make test
-	make build-tnf-tool
 	make build-cnf-tests
 
 
@@ -69,6 +68,7 @@ clean:
 	make clean-mocks
 	rm -f ./test-network-function/test-network-function.test
 	rm -f ./test-network-function/cnf-certification-tests_junit.xml
+	rm -f ./tnf
 
 # Run configured linters
 lint:
@@ -80,11 +80,11 @@ test: mocks
 	go test -coverprofile=cover.out `go list ./... | grep -v "github.com/test-network-function/test-network-function/test-network-function" | grep -v mock`
 
 # generate the test catalog in JSON
-build-catalog-json:
+build-catalog-json: build-tnf-tool
 	./tnf generate catalog json > catalog.json
 
 # generate the test catalog in Markdown
-build-catalog-md:
+build-catalog-md: build-tnf-tool
 	./tnf generate catalog markdown > CATALOG.md
 
 # build the CNF test binary
