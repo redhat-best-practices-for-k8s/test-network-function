@@ -68,14 +68,6 @@ Version|v1.0.0
 Description|http://test-network-function.com/testcases/diagnostic/clusterversion Extracts OCP versions from the cluster.
 Result Type|informative
 Suggested Remediation|
-### http://test-network-function.com/testcases/diagnostic/crd-status
-
-Property|Description
----|---
-Version|v1.0.0
-Description|http://test-network-function.com/testcases/diagnostic/crd-status checks that all CRDs have a status subresource specification.
-Result Type|informative
-Suggested Remediation|make sure that all the CRDs have a meaningful status specification.
 ### http://test-network-function.com/testcases/diagnostic/extract-node-information
 
 Property|Description
@@ -172,6 +164,14 @@ Version|v1.0.0
 Description|http://test-network-function.com/testcases/networking/service-type tests that each CNF Service does not utilize NodePort(s).
 Result Type|normative
 Suggested Remediation|Ensure Services are not configured to use NodePort(s).
+### http://test-network-function.com/testcases/observability/crd-status
+
+Property|Description
+---|---
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/observability/crd-status checks that all CRDs have a status subresource specification.
+Result Type|informative
+Suggested Remediation|make sure that all the CRDs have a meaningful status specification.
 ### http://test-network-function.com/testcases/operator/install-source
 
 Property|Description
