@@ -182,6 +182,11 @@ var (
 		Url:     formTestURL(common.ObservabilityTestKey, "container-logging"),
 		Version: versionOne,
 	}
+	// TestCrdsStatusSubresourceIdentifier ensures all CRDs have a valid status subresource
+	TestCrdsStatusSubresourceIdentifier = claim.Identifier{
+		Url:     formTestURL(common.ObservabilityTestKey, "crd-status"),
+		Version: versionOne,
+	}
 	// TestShudtownIdentifier ensures pre-stop lifecycle is defined
 	TestShudtownIdentifier = claim.Identifier{
 		Url:     formTestURL(common.LifecycleTestKey, "container-shutdown"),
@@ -210,11 +215,6 @@ var (
 	// TestclusterVersionIdentifier list Cluster CSIdriver Identifier retrieves Third Party CSI driver info.
 	TestclusterVersionIdentifier = claim.Identifier{
 		Url:     formTestURL(common.DiagnosticTestKey, "clusterversion"),
-		Version: versionOne,
-	}
-	// TestCrdsStatusSubresourceIdentifier ensures all CRDs have a valid status subresource
-	TestCrdsStatusSubresourceIdentifier = claim.Identifier{
-		Url:     formTestURL(common.DiagnosticTestKey, "crd-status"),
 		Version: versionOne,
 	}
 )
@@ -594,5 +594,13 @@ the changes for you.`,
 			`checks that all CRDs have a status subresource specification.`),
 		Remediation:           `make sure that all the CRDs have a meaningful status specification.`,
 		BestPracticeReference: bestPracticeDocV1dot2URL + " Section 6.2",
+	},
+	TestLoggingIdentifier: {
+		Identifier: TestLoggingIdentifier,
+		Type:       informativeResult,
+		Description: formDescription(TestLoggingIdentifier,
+			`check that all containers under test use standard input output and sstandard error when logging`),
+		Remediation:           `make sure containers are not redirecting stdout/stderr`,
+		BestPracticeReference: bestPracticeDocV1dot2URL + " Section 11.1",
 	},
 }
