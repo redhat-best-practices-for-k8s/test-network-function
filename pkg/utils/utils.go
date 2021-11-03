@@ -52,12 +52,12 @@ func FilterArray(vs []string, f func(string) bool) []string {
 
 func CheckFileExists(filePath, name string) {
 	fullPath, _ := filepath.Abs(filePath)
-	if _, err := os.Stat(filePath); err == nil {
+	if _, err := os.Stat(fullPath); err == nil {
 		log.Infof("Path to %s file found and valid: %s ", name, fullPath)
 	} else if errors.Is(err, os.ErrNotExist) {
 		log.Fatalf("Path to %s file not found: %s , Exiting", name, fullPath)
 	} else {
-		log.Infof("Path to %s file not valid: %s , err=%s, exiting", name, fullPath, err)
+		log.Fatalf("Path to %s file not valid: %s , err=%s, exiting", name, fullPath, err)
 	}
 }
 
