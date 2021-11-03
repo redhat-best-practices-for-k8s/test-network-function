@@ -81,7 +81,7 @@ func (ow *Owners) ReelFirst() *reel.Step {
 }
 
 // ReelMatch ensures that list of nodes is not empty and stores the names as []string
-func (ow *Owners) ReelMatch(_, _, match string) *reel.Step {
+func (ow *Owners) ReelMatch(_, _, match string, status int) *reel.Step {
 	if (strings.Contains(match, statefulSet) || strings.Contains(match, replicaSet)) &&
 		!strings.Contains(match, daemonSet) {
 		ow.result = tnf.SUCCESS

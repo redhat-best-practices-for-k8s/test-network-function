@@ -158,7 +158,7 @@ func TestPing_ReelMatch(t *testing.T) {
 	for testCaseName, testCase := range testCases {
 		request := ping.NewPing(testTimeoutDuration, testCase.host, testCase.count)
 		matchMock := getMockOutput(t, testCaseName)
-		step := request.ReelMatch("", "", matchMock)
+		step := request.ReelMatch("", "", matchMock, 0)
 		assert.Nil(t, step)
 		actualSent, actualReceived, actualErrors := request.GetStats()
 		assert.Equal(t, testCase.expectedSent, actualSent)

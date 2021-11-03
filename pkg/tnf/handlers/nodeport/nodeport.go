@@ -75,7 +75,7 @@ func (np *NodePort) ReelFirst() *reel.Step {
 }
 
 // ReelMatch ensures that no services utilize NodePort(s).
-func (np *NodePort) ReelMatch(_, _, match string) *reel.Step {
+func (np *NodePort) ReelMatch(_, _, match string, status int) *reel.Step {
 	numExpectedLines := 1 // We want to have just the headers/titles line. Any other line is a NodePort line.
 
 	trimmedMatch := strings.Trim(match, "\n")

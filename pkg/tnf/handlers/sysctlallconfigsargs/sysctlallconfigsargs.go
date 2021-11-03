@@ -82,7 +82,7 @@ func (handler *SysctlAllConfigsArgs) ReelFirst() *reel.Step {
 }
 
 // ReelMatch passes the result to cmdOutput.
-func (handler *SysctlAllConfigsArgs) ReelMatch(_, _, match string) *reel.Step {
+func (handler *SysctlAllConfigsArgs) ReelMatch(_, _, match string, status int) *reel.Step {
 	handler.cmdOutput = match
 	handler.result = tnf.SUCCESS
 	return nil

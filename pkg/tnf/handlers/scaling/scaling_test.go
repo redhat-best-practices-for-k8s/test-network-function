@@ -57,7 +57,7 @@ func Test_ReelMatchSuccess(t *testing.T) {
 	handler := scaling.NewScaling(testTimeoutDuration, testPodNamespace, testDeploymentName, testReplicaCount)
 	assert.NotNil(t, handler)
 
-	step := handler.ReelMatch("", "", testInputSuccess)
+	step := handler.ReelMatch("", "", testInputSuccess, 0)
 	assert.Nil(t, step)
 	assert.Equal(t, tnf.SUCCESS, handler.Result())
 }

@@ -178,7 +178,7 @@ func TestTest_Run(t *testing.T) {
 		mockHandler.EXPECT().ReelFirst().Return(testCase.reelFirstResult)
 		// Only for cases where ReelMatch(...) is encountered
 		if testCase.reelMatchIsCalled {
-			mockHandler.EXPECT().ReelMatch(testCase.reelMatchPattern, testCase.reelMatchBefore, testCase.reelMatchMatch).Return(testCase.reelMatchResult)
+			mockHandler.EXPECT().ReelMatch(testCase.reelMatchPattern, testCase.reelMatchBefore, testCase.reelMatchMatch, 0).Return(testCase.reelMatchResult)
 		}
 
 		var expecter expect.Expecter = mockExpecter

@@ -74,7 +74,7 @@ func (p *CnfFsDiff) ReelFirst() *reel.Step {
 
 // ReelMatch checks if the test passed the first regex which means there were no installation on the container
 // or the second regex which accepts everything and means that something in the container was installed.
-func (p *CnfFsDiff) ReelMatch(pattern, before, match string) *reel.Step {
+func (p *CnfFsDiff) ReelMatch(pattern, before, match string, status int) *reel.Step {
 	p.result = tnf.SUCCESS
 	switch pattern {
 	case varlibrpm, varlibdpkg, bin, sbin, lib, usrbin, usrsbin, usrlib:

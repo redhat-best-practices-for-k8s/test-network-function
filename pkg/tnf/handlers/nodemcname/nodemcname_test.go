@@ -45,7 +45,7 @@ func Test_ReelFirst(t *testing.T) {
 func Test_ReelMatch(t *testing.T) {
 	newNodeMcName := nodemcname.NewNodeMcName(testTimeoutDuration, testNodeName)
 	assert.NotNil(t, newNodeMcName)
-	step := newNodeMcName.ReelMatch("", "", testInput)
+	step := newNodeMcName.ReelMatch("", "", testInput, 0)
 	assert.Nil(t, step)
 	assert.Equal(t, tnf.SUCCESS, newNodeMcName.Result())
 }

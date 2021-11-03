@@ -107,7 +107,7 @@ func TestCommand_ReelMatch(t *testing.T) {
 	assert.Equal(t, 1, len(handlers))
 	handler := handlers[0]
 	// Positive Test
-	step := handler.ReelMatch(expectedPassPattern, "", "OK")
+	step := handler.ReelMatch(expectedPassPattern, "", "OK", 0)
 	assert.Nil(t, step)
 	assert.Equal(t, tnf.SUCCESS, (*tester).Result())
 }

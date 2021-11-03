@@ -79,7 +79,7 @@ func (i *IPAddr) ReelFirst() *reel.Step {
 
 // ReelMatch parses the ip addr output and set the test result on match.
 // Returns no step; the test is complete.
-func (i *IPAddr) ReelMatch(pattern, _, match string) *reel.Step {
+func (i *IPAddr) ReelMatch(pattern, _, match string, status int) *reel.Step {
 	if pattern == DeviceDoesNotExistRegex {
 		i.result = tnf.ERROR
 		return nil

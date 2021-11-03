@@ -86,7 +86,7 @@ func (rb *RoleBinding) ReelFirst() *reel.Step {
 }
 
 // ReelMatch ensures that there are no ServiceAccount RoleBindings for a given OpenShift Pod namespace.
-func (rb *RoleBinding) ReelMatch(_, _, match string) *reel.Step {
+func (rb *RoleBinding) ReelMatch(_, _, match string, status int) *reel.Step {
 	const (
 		nsIdx   = 0
 		nameIdx = 1

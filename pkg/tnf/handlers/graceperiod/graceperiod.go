@@ -77,7 +77,7 @@ func (gp *GracePeriod) ReelFirst() *reel.Step {
 
 // ReelMatch ensures that the terminationGracePeriod exist, and stores the correct grace period within
 // the GracePeriod struct for later retrieval.
-func (gp *GracePeriod) ReelMatch(_, _, match string) *reel.Step {
+func (gp *GracePeriod) ReelMatch(_, _, match string, status int) *reel.Step {
 	re := regexp.MustCompile(gpRegex)
 	matched := re.FindStringSubmatch(match)
 	if matched != nil {

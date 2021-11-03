@@ -65,7 +65,7 @@ func Test_ReelFirstNegative(t *testing.T) {
 func Test_ReelMatchSuccess(t *testing.T) {
 	newNn := nn.NewNodeNames(testTimeoutDuration, nil)
 	assert.NotNil(t, newNn)
-	step := newNn.ReelMatch("", "", testInputSuccess)
+	step := newNn.ReelMatch("", "", testInputSuccess, 0)
 	assert.Nil(t, step)
 	assert.Equal(t, tnf.SUCCESS, newNn.Result())
 	assert.Len(t, newNn.GetNodeNames(), 2)
@@ -74,7 +74,7 @@ func Test_ReelMatchSuccess(t *testing.T) {
 func Test_ReelMatchFail(t *testing.T) {
 	newNn := nn.NewNodeNames(testTimeoutDuration, nil)
 	assert.NotNil(t, newNn)
-	step := newNn.ReelMatch("", "", testInputFailure)
+	step := newNn.ReelMatch("", "", testInputFailure, 0)
 	assert.Nil(t, step)
 	assert.Equal(t, tnf.FAILURE, newNn.Result())
 	assert.Len(t, newNn.GetNodeNames(), 0)

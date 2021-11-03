@@ -57,19 +57,19 @@ func TestRelease_ReelMatch(t *testing.T) {
 	r := redhat.NewRelease(testTimeoutDuration)
 
 	// Positive test.
-	step := r.ReelMatch(redhat.VersionRegex, "", "")
+	step := r.ReelMatch(redhat.VersionRegex, "", "", 0)
 	assert.Nil(t, step)
 	assert.Equal(t, tnf.SUCCESS, r.Result())
 
 	r = redhat.NewRelease(testTimeoutDuration)
 
 	// Negative test.
-	step = r.ReelMatch(redhat.NotRedHatBasedRegex, "", "")
+	step = r.ReelMatch(redhat.NotRedHatBasedRegex, "", "", 0)
 	assert.Nil(t, step)
 	assert.Equal(t, tnf.FAILURE, r.Result())
 
 	// Error case.  Note, this shouldn't ever happen based on the FSM, but it is better to be defensive.
-	step = r.ReelMatch("unknown regex", "", "")
+	step = r.ReelMatch("unknown regex", "", "", 0)
 	assert.Nil(t, step)
 	assert.Equal(t, tnf.ERROR, r.Result())
 }

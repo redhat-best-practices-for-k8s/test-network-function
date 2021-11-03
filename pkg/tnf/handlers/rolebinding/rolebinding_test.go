@@ -65,7 +65,7 @@ func Test_ReelFirstNegative(t *testing.T) {
 func Test_ReelMatchSuccess(t *testing.T) {
 	newRb := rb.NewRoleBinding(testTimeoutDuration, testServiceAccount, testPodNamespace)
 	assert.NotNil(t, newRb)
-	step := newRb.ReelMatch("", "", testInputSuccess)
+	step := newRb.ReelMatch("", "", testInputSuccess, 0)
 	assert.Nil(t, step)
 	assert.Equal(t, tnf.SUCCESS, newRb.Result())
 	assert.Len(t, newRb.GetRoleBindings(), 0)
@@ -74,7 +74,7 @@ func Test_ReelMatchSuccess(t *testing.T) {
 func Test_ReelMatchSuccessEmpty(t *testing.T) {
 	newRb := rb.NewRoleBinding(testTimeoutDuration, testServiceAccount, testPodNamespace)
 	assert.NotNil(t, newRb)
-	step := newRb.ReelMatch("", "", testInputSuccessEmpty)
+	step := newRb.ReelMatch("", "", testInputSuccessEmpty, 0)
 	assert.Nil(t, step)
 	assert.Equal(t, tnf.SUCCESS, newRb.Result())
 	assert.Len(t, newRb.GetRoleBindings(), 0)
@@ -83,7 +83,7 @@ func Test_ReelMatchSuccessEmpty(t *testing.T) {
 func Test_ReelMatchFail(t *testing.T) {
 	newRb := rb.NewRoleBinding(testTimeoutDuration, testServiceAccount, testPodNamespace)
 	assert.NotNil(t, newRb)
-	step := newRb.ReelMatch("", "", testInputFail)
+	step := newRb.ReelMatch("", "", testInputFail, 0)
 	assert.Nil(t, step)
 	assert.Equal(t, tnf.FAILURE, newRb.Result())
 	assert.Len(t, newRb.GetRoleBindings(), 2)

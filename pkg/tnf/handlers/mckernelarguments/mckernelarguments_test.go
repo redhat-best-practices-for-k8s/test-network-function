@@ -45,7 +45,7 @@ func Test_ReelFirst(t *testing.T) {
 func Test_ReelMatch(t *testing.T) {
 	newMcKernelArguments := mckernelarguments.NewMcKernelArguments(testTimeoutDuration, testMcName)
 	assert.NotNil(t, newMcKernelArguments)
-	step := newMcKernelArguments.ReelMatch("", "", testInput)
+	step := newMcKernelArguments.ReelMatch("", "", testInput, 0)
 	assert.Nil(t, step)
 	assert.Equal(t, tnf.SUCCESS, newMcKernelArguments.Result())
 }

@@ -55,7 +55,7 @@ func Test_ReelFirstNegative(t *testing.T) {
 func Test_ReelMatchSuccess(t *testing.T) {
 	newNh := nh.NewNodeHugepages(testTimeoutDuration, testExpectedHugepagesz, testExpectedHugepages)
 	assert.NotNil(t, newNh)
-	step := newNh.ReelMatch("", "", testInputSuccess)
+	step := newNh.ReelMatch("", "", testInputSuccess, 0)
 	assert.Nil(t, step)
 	assert.Equal(t, tnf.SUCCESS, newNh.Result())
 }
@@ -63,7 +63,7 @@ func Test_ReelMatchSuccess(t *testing.T) {
 func Test_ReelMatchFailure(t *testing.T) {
 	newNh := nh.NewNodeHugepages(testTimeoutDuration, testExpectedHugepagesz, testExpectedHugepages)
 	assert.NotNil(t, newNh)
-	step := newNh.ReelMatch("", "", testInputFailure)
+	step := newNh.ReelMatch("", "", testInputFailure, 0)
 	assert.Nil(t, step)
 	assert.Equal(t, tnf.FAILURE, newNh.Result())
 }

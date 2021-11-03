@@ -82,7 +82,7 @@ func (bce *BootConfigEntries) ReelFirst() *reel.Step {
 }
 
 // ReelMatch ensures that there are no GrubKernelCmdlineArgs matched in the command output.
-func (bce *BootConfigEntries) ReelMatch(_, _, match string) *reel.Step {
+func (bce *BootConfigEntries) ReelMatch(_, _, match string, status int) *reel.Step {
 	splitMatch := strings.Split(match, "\n")
 	bce.bootConfigEntries = splitMatch[0 : len(splitMatch)-1]
 	bce.result = tnf.SUCCESS

@@ -125,4 +125,9 @@ func (o *Oc) Close() {
 	}
 	log.Debugf("send close to channel pod %s/%s ", o.pod, o.container)
 	o.doneChannel <- true
+	close(o.doneChannel)
+	err := (*(o.expecter)).Close()
+	if err != nil {
+		log.Errorf("Oc session close failed because of: %s", err)
+	}
 }

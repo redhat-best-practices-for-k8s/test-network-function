@@ -76,7 +76,7 @@ func (sa *ServiceAccount) ReelFirst() *reel.Step {
 
 // ReelMatch ensures that the correct number of ServiceAccount annotations exist, and stores the correct SA within
 // the ServiceAccount struct for later retrieval.
-func (sa *ServiceAccount) ReelMatch(_, _, match string) *reel.Step {
+func (sa *ServiceAccount) ReelMatch(_, _, match string, status int) *reel.Step {
 	numExpectedMatches := 2
 	saMatchIdx := 1
 	re := regexp.MustCompile(saRegex)

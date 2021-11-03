@@ -253,7 +253,7 @@ func TestReel_Step(t *testing.T) {
 
 		// successful ExpectBatch
 		if len(testCase.expectBatchResResult) > 0 {
-			handler.EXPECT().ReelMatch(gomock.Any(), gomock.Any(), gomock.Any())
+			handler.EXPECT().ReelMatch(gomock.Any(), gomock.Any(), gomock.Any(), 0)
 		}
 
 		err = r.Step(testCase.stepInput, handler)

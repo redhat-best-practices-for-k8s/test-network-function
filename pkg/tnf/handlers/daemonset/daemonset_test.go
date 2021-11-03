@@ -113,7 +113,7 @@ func TestDaemonSet_ReelMatch(t *testing.T) {
 		fmt.Println("process case ", testName)
 		ds := NewDaemonSet(testTimeoutDuration, testCase.daemonset.Name, "default")
 		matchMock := getMockOutput(t, testName)
-		step := ds.ReelMatch("", "", matchMock)
+		step := ds.ReelMatch("", "", matchMock, 0)
 		assert.Nil(t, step)
 		assert.Equal(t, testCase.daemonset, ds.GetStatus())
 		assert.Equal(t, testCase.result, ds.result)

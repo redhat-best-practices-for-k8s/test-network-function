@@ -78,6 +78,6 @@ func match(t *testing.T, input string, expectError bool) {
 		return
 	}
 	assert.Len(t, matches, testNumMatchesNoError)
-	step := testNp.ReelMatch("", "", matches[0])
+	step := testNp.ReelMatch("", "", matches[0], 0)
 	assert.Nil(t, step)
 }

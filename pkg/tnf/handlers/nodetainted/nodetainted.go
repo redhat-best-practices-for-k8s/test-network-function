@@ -76,7 +76,7 @@ func (nt *NodeTainted) ReelFirst() *reel.Step {
 }
 
 // ReelMatch tests whether node is tainted or not
-func (nt *NodeTainted) ReelMatch(_, _, match string) *reel.Step {
+func (nt *NodeTainted) ReelMatch(_, _, match string, status int) *reel.Step {
 	nt.Match = match
 	if match == "0" {
 		nt.result = tnf.SUCCESS

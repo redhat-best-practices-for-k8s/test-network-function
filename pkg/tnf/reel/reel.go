@@ -83,7 +83,7 @@ type Handler interface {
 	// `pattern` represents the regular expression pattern which was matched.
 	// `before` contains all output preceding `match`.
 	// `match` is the text matched by `pattern`.
-	ReelMatch(pattern string, before string, match string) *Step
+	ReelMatch(pattern string, before string, match string, status int) *Step
 
 	// ReelTimeout informs of a timeout event, returning the next step to perform.
 	ReelTimeout() *Step
@@ -223,7 +223,7 @@ func (r *Reel) Step(step *Step, handler Handler) error {
 					before = ""
 				}
 				strippedFirstMatchRe := r.stripEmulatedRegularExpression(firstMatchRe)
-				step = handler.ReelMatch(strippedFirstMatchRe, before, match)
+				step = handler.ReelMatch(strippedFirstMatchRe, before, match, outputStatus)
 			}
 		}
 	}

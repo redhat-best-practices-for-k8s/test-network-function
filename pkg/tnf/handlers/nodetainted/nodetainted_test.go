@@ -65,7 +65,7 @@ func Test_ReelFirstNegative(t *testing.T) {
 func Test_ReelMatchSuccess(t *testing.T) {
 	newNt := nt.NewNodeTainted(testTimeoutDuration)
 	assert.NotNil(t, newNt)
-	step := newNt.ReelMatch("", "", testMatchSuccess)
+	step := newNt.ReelMatch("", "", testMatchSuccess, 0)
 	assert.Nil(t, step)
 	assert.Equal(t, tnf.SUCCESS, newNt.Result())
 }
@@ -73,7 +73,7 @@ func Test_ReelMatchSuccess(t *testing.T) {
 func Test_ReelMatchFail(t *testing.T) {
 	newNt := nt.NewNodeTainted(testTimeoutDuration)
 	assert.NotNil(t, newNt)
-	step := newNt.ReelMatch("", "", testMatchFailure)
+	step := newNt.ReelMatch("", "", testMatchFailure, 0)
 	assert.Nil(t, step)
 	assert.Equal(t, tnf.FAILURE, newNt.Result())
 }

@@ -65,7 +65,7 @@ func Test_ReelFirstNegative(t *testing.T) {
 func Test_ReelMatchSuccess(t *testing.T) {
 	newCrb := crb.NewClusterRoleBinding(testTimeoutDuration, testServiceAccount, testPodNamespace)
 	assert.NotNil(t, newCrb)
-	step := newCrb.ReelMatch("", "", testInputSuccess)
+	step := newCrb.ReelMatch("", "", testInputSuccess, 0)
 	assert.Nil(t, step)
 	assert.Equal(t, tnf.SUCCESS, newCrb.Result())
 	assert.Len(t, newCrb.GetClusterRoleBindings(), 0)
@@ -74,7 +74,7 @@ func Test_ReelMatchSuccess(t *testing.T) {
 func Test_ReelMatchFail(t *testing.T) {
 	newCrb := crb.NewClusterRoleBinding(testTimeoutDuration, testServiceAccount, testPodNamespace)
 	assert.NotNil(t, newCrb)
-	step := newCrb.ReelMatch("", "", testInputFail)
+	step := newCrb.ReelMatch("", "", testInputFail, 0)
 	assert.Nil(t, step)
 	assert.Equal(t, tnf.FAILURE, newCrb.Result())
 	assert.Len(t, newCrb.GetClusterRoleBindings(), 3)

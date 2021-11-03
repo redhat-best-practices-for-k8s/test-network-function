@@ -82,7 +82,7 @@ func (r *Release) ReelFirst() *reel.Step {
 }
 
 // ReelMatch determines whether the container is based on Red Hat technologies through pattern matching logic.
-func (r *Release) ReelMatch(pattern, _, _ string) *reel.Step {
+func (r *Release) ReelMatch(pattern, _, _ string, status int) *reel.Step {
 	if pattern == NotRedHatBasedRegex {
 		r.result = tnf.FAILURE
 		r.isRedHatBased = false

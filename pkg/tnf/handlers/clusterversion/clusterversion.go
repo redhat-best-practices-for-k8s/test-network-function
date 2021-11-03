@@ -99,7 +99,7 @@ func deleteEmpty(s []string) []string {
 }
 
 // ReelMatch ensures that list of nodes is not empty and stores the names as []string
-func (ver *TestMetadata) ReelMatch(_, _, match string) *reel.Step {
+func (ver *TestMetadata) ReelMatch(_, _, match string, status int) *reel.Step {
 	re := regexp.MustCompile("(Server Version: )|(Client Version: )|(Kubernetes Version: )|(\n)")
 	versions := re.Split(match, -1)
 	versions = deleteEmpty(versions)

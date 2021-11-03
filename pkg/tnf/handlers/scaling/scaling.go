@@ -80,7 +80,7 @@ func (scaling *Scaling) ReelFirst() *reel.Step {
 }
 
 // ReelMatch does nothing, just set the test result as success.
-func (scaling *Scaling) ReelMatch(_, _, match string) *reel.Step {
+func (scaling *Scaling) ReelMatch(_, _, match string, status int) *reel.Step {
 	scaling.result = tnf.SUCCESS
 	return nil
 }

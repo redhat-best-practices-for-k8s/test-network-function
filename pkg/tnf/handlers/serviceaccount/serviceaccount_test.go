@@ -64,7 +64,7 @@ func Test_ReelMatch(t *testing.T) {
 	assert.Equal(t, "default", matches[1])
 
 	// Call ReelMatch
-	step := newSa.ReelMatch("", "", matches[0])
+	step := newSa.ReelMatch("", "", matches[0], 0)
 	assert.Nil(t, step)
 	assert.Equal(t, tnf.SUCCESS, newSa.Result())
 	assert.Equal(t, "default", newSa.GetServiceAccountName())

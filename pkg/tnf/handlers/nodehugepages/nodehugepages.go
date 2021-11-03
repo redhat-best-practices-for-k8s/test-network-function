@@ -81,7 +81,7 @@ func (nh *NodeHugepages) ReelFirst() *reel.Step {
 }
 
 // ReelMatch tests the node's hugepages configuration
-func (nh *NodeHugepages) ReelMatch(_, _, match string) *reel.Step {
+func (nh *NodeHugepages) ReelMatch(_, _, match string, status int) *reel.Step {
 	trimmedMatch := strings.Trim(match, "\n")
 	lines := strings.Split(trimmedMatch, "\n")
 

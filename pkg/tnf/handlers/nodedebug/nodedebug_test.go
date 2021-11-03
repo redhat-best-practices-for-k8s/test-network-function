@@ -59,7 +59,7 @@ func Test_ReelFirstNegative(t *testing.T) {
 func Test_ReelMatch(t *testing.T) {
 	newNd := nd.NewNodeDebug(testTimeoutDuration, testNodeName, testCommand, true, true)
 	assert.NotNil(t, newNd)
-	step := newNd.ReelMatch("", "", testInputSuccess)
+	step := newNd.ReelMatch("", "", testInputSuccess, 0)
 	assert.Nil(t, step)
 	assert.Equal(t, tnf.SUCCESS, newNd.Result())
 	assert.Equal(t, testInputSuccess, newNd.Raw)

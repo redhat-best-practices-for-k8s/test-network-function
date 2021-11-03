@@ -83,8 +83,12 @@ func (dd *DeploymentsDrain) ReelFirst() *reel.Step {
 }
 
 // ReelMatch sets result
-func (dd *DeploymentsDrain) ReelMatch(_, _, _ string) *reel.Step {
-	dd.result = tnf.SUCCESS
+func (dd *DeploymentsDrain) ReelMatch(_, _, _ string, status int) *reel.Step {
+	if status == 0 {
+		dd.result = tnf.SUCCESS
+	} else {
+		dd.result = tnf.FAILURE
+	}
 	return nil
 }
 

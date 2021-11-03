@@ -45,7 +45,7 @@ func Test_ReelFirst(t *testing.T) {
 func Test_ReelMatch(t *testing.T) {
 	newSysctlAllConfigsArgs := sysctlallconfigsargs.NewSysctlAllConfigsArgs(testTimeoutDuration)
 	assert.NotNil(t, newSysctlAllConfigsArgs)
-	step := newSysctlAllConfigsArgs.ReelMatch("", "", testInput)
+	step := newSysctlAllConfigsArgs.ReelMatch("", "", testInput, 0)
 	assert.Nil(t, step)
 	assert.Equal(t, tnf.SUCCESS, newSysctlAllConfigsArgs.Result())
 }
