@@ -19,7 +19,6 @@ package platform
 import (
 	"encoding/json"
 	"fmt"
-	"path"
 	"regexp"
 	"sort"
 	"strconv"
@@ -41,7 +40,6 @@ import (
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/cnffsdiff"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/containerid"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/currentkernelcmdlineargs"
-	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/generic"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/mckernelarguments"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodemcname"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodetainted"
@@ -61,11 +59,7 @@ const (
 	HugepageszParam          = "hugepagesz"
 	DefaultHugepagesz        = "default_hugepagesz"
 	KernArgsKeyValueSplitLen = 2
-)
-
-var (
-	commandHandlerFilePath = path.Join(common.PathRelativeToRoot, "pkg", "tnf", "handlers", "command", "command.json")
-	mcGetterCommandTimeout = time.Second * 30
+	commandTimeout           = 30 * time.Second
 )
 
 type hugePagesConfig struct {
@@ -420,33 +414,6 @@ func testTainted(env *config.TestEnvironment) {
 	})
 }
 
-func runAndValidateCommand(command string, context *interactive.Context, failureCallbackFun func()) (match string) {
-	log.Debugf("Launching generic command handler for cmd: %s", command)
-
-	values := make(map[string]interface{})
-	values["COMMAND"] = command
-	values["TIMEOUT"] = mcGetterCommandTimeout.Nanoseconds()
-
-	tester, handlers, result, err := generic.NewGenericFromMap(commandHandlerFilePath, common.RelativeSchemaPath, values)
-	gomega.Expect(err).To(gomega.BeNil())
-	gomega.Expect(result).ToNot(gomega.BeNil())
-	gomega.Expect(result.Valid()).To(gomega.BeTrue())
-	gomega.Expect(handlers).ToNot(gomega.BeNil())
-	gomega.Expect(tester).ToNot(gomega.BeNil())
-
-	test, err := tnf.NewTest(context.GetExpecter(), *tester, handlers, context.GetErrorChannel())
-	gomega.Expect(test).ToNot(gomega.BeNil())
-	gomega.Expect(err).To(gomega.BeNil())
-	test.RunAndValidateWithFailureCallback(failureCallbackFun)
-
-	genericTest := (*tester).(*generic.Generic)
-	gomega.Expect(genericTest).ToNot(gomega.BeNil())
-
-	matches := genericTest.Matches
-	gomega.Expect(len(matches)).To(gomega.Equal(1))
-	return genericTest.GetMatches()[0].Match
-}
-
 func hugepageSizeToInt(s string) int {
 	num, _ := strconv.Atoi(s[:len(s)-1])
 	unit := s[len(s)-1]
@@ -523,7 +490,7 @@ func getNodeNumaHugePages(node *config.NodeConfig) (hugepages numaHugePagesPerSi
 	// This command must run inside the node, so we'll need the node's context to run commands inside the debug daemonset pod.
 	context := interactive.NewContext(node.Oc.GetExpecter(), node.Oc.GetErrorChannel())
 	var commandErr error
-	hugepagesCmdOut := runAndValidateCommand(cmd, context, func() {
+	hugepagesCmdOut := utils.ExecuteCommand(cmd, commandTimeout, context, func() {
 		commandErr = fmt.Errorf("failed to get node %s hugepages per numa", node.Name)
 	})
 	if commandErr != nil {
@@ -565,7 +532,7 @@ func getMachineConfig(mcName string) (machineConfig, error) {
 
 	// Local shell context is needed for the command handler.
 	context := common.GetContext()
-	mcJSON := runAndValidateCommand(fmt.Sprintf("oc get mc %s -o json", mcName), context, func() {
+	mcJSON := utils.ExecuteCommand(fmt.Sprintf("oc get mc %s -o json", mcName), commandTimeout, context, func() {
 		commandErr = fmt.Errorf("failed to get json machineconfig %s", mcName)
 	})
 	if commandErr != nil {

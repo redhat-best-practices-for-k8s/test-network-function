@@ -19,9 +19,11 @@ package autodiscover
 import (
 	"encoding/json"
 	"fmt"
-	"os/exec"
 
+	log "github.com/sirupsen/logrus"
 	"github.com/test-network-function/test-network-function/pkg/config/configsections"
+	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
+	"github.com/test-network-function/test-network-function/pkg/utils"
 )
 
 const (
@@ -30,8 +32,10 @@ const (
 
 var (
 	jsonUnmarshal     = json.Unmarshal
-	execCommandOutput = func(cmd *exec.Cmd) ([]byte, error) {
-		return cmd.Output()
+	execCommandOutput = func(command string) string {
+		return utils.ExecuteCommand(command, ocCommandTimeOut, interactive.GetContext(expectersVerboseModeEnabled), func() {
+			log.Error("can't run command: ", command)
+		})
 	}
 )
 
@@ -80,15 +84,10 @@ func GetTargetDeploymentsByNamespace(namespace string, targetLabel configsection
 	jqArgs := fmt.Sprintf("'[.items[] | select(.spec.template.metadata.labels.%s)]'", labelQuery)
 	ocCmd := fmt.Sprintf("oc get %s -n %s -o json | jq %s", resourceTypeDeployment, namespace, jqArgs)
 
-	cmd := exec.Command("bash", "-c", ocCmd)
-
-	out, err := execCommandOutput(cmd)
-	if err != nil {
-		return nil, err
-	}
+	out := execCommandOutput(ocCmd)
 
 	var deploymentList DeploymentList
-	err = jsonUnmarshal(out, &deploymentList.Items)
+	err := jsonUnmarshal([]byte(out), &deploymentList.Items)
 	if err != nil {
 		return nil, err
 	}
