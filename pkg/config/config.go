@@ -331,7 +331,13 @@ func (env *TestEnvironment) discoverNodes() {
 	env.NodesUnderTest = env.createNodes(env.Config.Nodes)
 	env.labelNodes()
 	if !autodiscover.IsMinikube() {
-		autodiscover.CheckDebugDaemonset()
+		expectedDebugPods := 0
+		for _, node := range env.NodesUnderTest {
+			if node.HasDebugPod() {
+				expectedDebugPods++
+			}
+		}
+		autodiscover.CheckDebugDaemonset(expectedDebugPods)
 		autodiscover.FindDebugPods(&env.Config.Partner)
 		for _, debugPod := range env.Config.Partner.ContainersDebugList {
 			env.ContainersToExcludeFromConnectivityTests[debugPod.ContainerIdentifier] = ""
