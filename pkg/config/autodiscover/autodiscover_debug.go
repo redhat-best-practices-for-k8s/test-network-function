@@ -27,6 +27,7 @@ import (
 	ds "github.com/test-network-function/test-network-function/pkg/tnf/handlers/daemonset"
 	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
+	"github.com/test-network-function/test-network-function/pkg/utils"
 )
 
 const (
@@ -60,22 +61,18 @@ func FindDebugPods(tp *configsections.TestPartner) {
 func AddDebugLabel(nodeName string) {
 	log.Info("add label", nodeLabelName, "=", nodeLabelValue, " to node ", nodeName)
 	ocCommand := fmt.Sprintf(addlabelCommand, nodeName, nodeLabelName, nodeLabelValue)
-	_, err := executeOcCommand(ocCommand)
-	if err != nil {
+	_ = utils.ExecuteCommand(ocCommand, ocCommandTimeOut, interactive.GetContext(expectersVerboseModeEnabled), func() {
 		log.Error("error in adding label to node ", nodeName)
-		return
-	}
+	})
 }
 
 // AddDebugLabel remove debug label from node
 func DeleteDebugLabel(nodeName string) {
 	log.Info("delete label", nodeLabelName, "=", nodeLabelValue, "to node ", nodeName)
 	ocCommand := fmt.Sprintf(deletelabelCommand, nodeName, nodeLabelName)
-	_, err := executeOcCommand(ocCommand)
-	if err != nil {
+	_ = utils.ExecuteCommand(ocCommand, ocCommandTimeOut, interactive.GetContext(expectersVerboseModeEnabled), func() {
 		log.Error("error in removing label from node ", nodeName)
-		return
-	}
+	})
 }
 
 // CheckDebugDaemonset checks if the debug pods are deployed properly
