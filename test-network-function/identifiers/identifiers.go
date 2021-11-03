@@ -182,6 +182,11 @@ var (
 		Url:     formTestURL(common.ObservabilityTestKey, "container-logging"),
 		Version: versionOne,
 	}
+	// TestCrdsStatusSubresourceIdentifier ensures all CRDs have a valid status subresource
+	TestCrdsStatusSubresourceIdentifier = claim.Identifier{
+		Url:     formTestURL(common.ObservabilityTestKey, "crd-status"),
+		Version: versionOne,
+	}
 	// TestShudtownIdentifier ensures pre-stop lifecycle is defined
 	TestShudtownIdentifier = claim.Identifier{
 		Url:     formTestURL(common.LifecycleTestKey, "container-shutdown"),
@@ -210,11 +215,6 @@ var (
 	// TestclusterVersionIdentifier list Cluster CSIdriver Identifier retrieves Third Party CSI driver info.
 	TestclusterVersionIdentifier = claim.Identifier{
 		Url:     formTestURL(common.DiagnosticTestKey, "clusterversion"),
-		Version: versionOne,
-	}
-	// TestCrdsStatusSubresourceIdentifier ensures all CRDs have a valid status subresource
-	TestCrdsStatusSubresourceIdentifier = claim.Identifier{
-		Url:     formTestURL(common.DiagnosticTestKey, "crd-status"),
 		Version: versionOne,
 	}
 )
