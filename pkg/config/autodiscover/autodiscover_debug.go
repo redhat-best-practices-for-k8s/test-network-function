@@ -98,12 +98,10 @@ func checkDebugPodsReadiness(expectedDebugPods int) bool {
 		return false
 	}
 	dsStatus := tester.GetStatus()
-	if dsStatus.Desired == expectedDebugPods &&
+	if expectedDebugPods == dsStatus.Desired &&
 		dsStatus.Desired == dsStatus.Current &&
+		dsStatus.Current == dsStatus.Available &&
 		dsStatus.Available == dsStatus.Ready &&
-		dsStatus.Ready == dsStatus.Desired &&
-
-		dsStatus.Ready != 0 &&
 		dsStatus.Misscheduled == 0 {
 		log.Info("daemonset is ready")
 		return true
