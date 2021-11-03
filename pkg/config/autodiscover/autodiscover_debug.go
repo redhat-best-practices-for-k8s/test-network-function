@@ -77,15 +77,15 @@ func DeleteDebugLabel(nodeName string) {
 
 // CheckDebugDaemonset checks if the debug pods are deployed properly
 // the function will try DefaultTimeout/time.Second times
-func CheckDebugDaemonset() {
+func CheckDebugDaemonset(expectedDebugPods int) {
 	gomega.Eventually(func() bool {
 		log.Debug("check debug daemonset status")
-		return checkDebugPodsReadiness()
+		return checkDebugPodsReadiness(expectedDebugPods)
 	}, 60*time.Second, 2*time.Second).Should(gomega.Equal(true)) //nolint: gomnd
 }
 
 // checkDebugPodsReadiness helper function that returns true if the daemonset debug is deployed properly
-func checkDebugPodsReadiness() bool {
+func checkDebugPodsReadiness(expectedDebugPods int) bool {
 	context := interactive.GetContext(expectersVerboseModeEnabled)
 	tester := ds.NewDaemonSet(DefaultTimeout, debugDaemonSet, defaultNamespace)
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
@@ -98,9 +98,11 @@ func checkDebugPodsReadiness() bool {
 		return false
 	}
 	dsStatus := tester.GetStatus()
-	if dsStatus.Desired == dsStatus.Current &&
+	if dsStatus.Desired == expectedDebugPods &&
+		dsStatus.Desired == dsStatus.Current &&
 		dsStatus.Available == dsStatus.Ready &&
 		dsStatus.Ready == dsStatus.Desired &&
+
 		dsStatus.Ready != 0 &&
 		dsStatus.Misscheduled == 0 {
 		log.Info("daemonset is ready")
