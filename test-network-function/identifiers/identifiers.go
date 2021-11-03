@@ -600,6 +600,7 @@ the changes for you.`,
 		Type:       informativeResult,
 		Description: formDescription(TestLoggingIdentifier,
 			`check that all containers under test use standard input output and sstandard error when logging`),
+		Remediation:           `make sure containers are not redirecting stdout/stderr`,
 		BestPracticeReference: bestPracticeDocV1dot2URL + " Section 11.1",
 	},
 }

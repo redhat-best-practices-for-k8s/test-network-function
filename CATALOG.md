@@ -171,7 +171,7 @@ Property|Description
 Version|v1.0.0
 Description|http://test-network-function.com/testcases/observability/container-logging check that all containers under test use standard input output and sstandard error when logging
 Result Type|informative
-Suggested Remediation|
+Suggested Remediation|make sure containers are not redirecting stdout/stderr
 ### http://test-network-function.com/testcases/observability/crd-status
 
 Property|Description
