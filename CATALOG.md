@@ -164,6 +164,14 @@ Version|v1.0.0
 Description|http://test-network-function.com/testcases/networking/service-type tests that each CNF Service does not utilize NodePort(s).
 Result Type|normative
 Suggested Remediation|Ensure Services are not configured to use NodePort(s).
+### http://test-network-function.com/testcases/observability/container-logging
+
+Property|Description
+---|---
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/observability/crd-status check that all containers under test use standard input output and sstandard error when logging
+Result Type|informative
+Suggested Remediation|
 ### http://test-network-function.com/testcases/observability/crd-status
 
 Property|Description

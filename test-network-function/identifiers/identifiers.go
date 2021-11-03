@@ -595,4 +595,11 @@ the changes for you.`,
 		Remediation:           `make sure that all the CRDs have a meaningful status specification.`,
 		BestPracticeReference: bestPracticeDocV1dot2URL + " Section 6.2",
 	},
+	TestLoggingIdentifier: {
+		Identifier: TestLoggingIdentifier,
+		Type:       informativeResult,
+		Description: formDescription(TestCrdsStatusSubresourceIdentifier,
+			`check that all containers under test use standard input output and sstandard error when logging`),
+		BestPracticeReference: bestPracticeDocV1dot2URL + " Section 11.1",
+	},
 }
