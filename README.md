@@ -351,7 +351,7 @@ Suite|Test Spec Description|Minimum OpenShift Version
 `networking`|The networking test suite contains tests that check connectivity and networking config related best practices.|4.6.0
 `operator`|The operator test suite is designed to test basic Kubernetes Operator functionality.|4.6.0
 `platform-alteration`| verifies that key platform configuration is not modified by the CNF under test|4.6.0
-
+`observability`|  the observability test suite contains tests that check CNF logging is following best practices and that CRDs have status fields|4.6.0
 Please consult [CATALOG.md](CATALOG.md) for a detailed description of tests in each suite.
 
 
