@@ -520,7 +520,7 @@ the changes for you.`,
 			`Ensure that the containers lifecycle pre-stop management feature is configured.`),
 		Remediation: `
 		It's considered best-practices to define prestop for proper management of container lifecycle.
-		The prestop can be used to gracefully stop the container and clean resources (e.g., DB connexion).
+		The prestop can be used to gracefully stop the container and clean resources (e.g., DB connection).
 		
 		The prestop can be configured using :
 		 1) Exec : executes the supplied command inside the container
@@ -528,7 +528,7 @@ the changes for you.`,
 		
 		When defined. K8s will handle shutdown of the container using the following:
 		1) K8s first execute the preStop hook inside the container.
-		2) K8s will wait for a grace perdiod.
+		2) K8s will wait for a grace period.
 		3) K8s will clean the remaining processes using KILL signal.		
 			`,
 		BestPracticeReference: bestPracticeDocV1dot2URL + " Section 6.2",
