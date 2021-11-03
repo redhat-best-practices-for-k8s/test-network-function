@@ -169,7 +169,7 @@ Suggested Remediation|Ensure Services are not configured to use NodePort(s).
 Property|Description
 ---|---
 Version|v1.0.0
-Description|http://test-network-function.com/testcases/observability/crd-status check that all containers under test use standard input output and sstandard error when logging
+Description|http://test-network-function.com/testcases/observability/container-logging check that all containers under test use standard input output and sstandard error when logging
 Result Type|informative
 Suggested Remediation|
 ### http://test-network-function.com/testcases/observability/crd-status

@@ -598,7 +598,7 @@ the changes for you.`,
 	TestLoggingIdentifier: {
 		Identifier: TestLoggingIdentifier,
 		Type:       informativeResult,
-		Description: formDescription(TestCrdsStatusSubresourceIdentifier,
+		Description: formDescription(TestLoggingIdentifier,
 			`check that all containers under test use standard input output and sstandard error when logging`),
 		BestPracticeReference: bestPracticeDocV1dot2URL + " Section 11.1",
 	},
