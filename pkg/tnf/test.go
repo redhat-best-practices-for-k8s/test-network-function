@@ -135,15 +135,23 @@ func (t *Test) RunAndValidateWithFailureCallback(cb func()) {
 	gomega.Expect(err).To(gomega.BeNil())
 }
 
-// RunWithFailureCallback runs the test, invokes the cb on failure
+// RunWithCallbacks runs the test, invokes the cb on failure/error/success
 // This is useful when the testcase needs to continue whether this test result is success or not
-func (t *Test) RunWithFailureCallback(cb func()) {
+func (t *Test) RunWithCallbacks(scb, fcb func(), ecb func(error)) {
 	testResult, err := t.Run()
-	if testResult == FAILURE && cb != nil {
-		cb()
-	}
-	if err != nil {
-		log.Warnf("Test %s error: %v", t.tester.GetIdentifier().URL, err)
+	switch testResult {
+	case SUCCESS:
+		if scb != nil {
+			scb()
+		}
+	case FAILURE:
+		if fcb != nil {
+			fcb()
+		}
+	case ERROR:
+		if ecb != nil {
+			ecb(err)
+		}
 	}
 }
 

@@ -186,6 +186,7 @@ func testContainersFsDiff(env *config.TestEnvironment) {
 		testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestUnalteredBaseImageIdentifier)
 		ginkgo.It(testID, func() {
 			var badContainers []string
+			var errContainers []string
 			for _, cut := range env.ContainersUnderTest {
 				podName := cut.Oc.GetPodName()
 				containerName := cut.Oc.GetPodContainerName()
@@ -194,12 +195,21 @@ func testContainersFsDiff(env *config.TestEnvironment) {
 				ginkgo.By(fmt.Sprintf("%s(%s) should not install new packages after starting", podName, containerName))
 				nodeOc := env.NodesUnderTest[nodeName].Oc
 				test := newContainerFsDiffTest(nodeName, nodeOc, containerOC)
-				test.RunWithFailureCallback(func() {
+				var message string
+				test.RunWithCallbacks(nil, func() {
 					badContainers = append(badContainers, containerName)
-					ginkgo.By(fmt.Sprintf("pod %s container %s did update/install/modify additional packages", podName, containerName))
+					message = fmt.Sprintf("pod %s container %s did update/install/modify additional packages", podName, containerName)
+				}, func(err error) {
+					errContainers = append(errContainers, containerName)
+					message = fmt.Sprintf("Failed to check pod %s container %s for additional packages due to: %v", podName, containerName, err)
 				})
+				_, err := ginkgo.GinkgoWriter.Write([]byte(message))
+				if err != nil {
+					log.Errorf("Ginkgo writer could not write because: %s", err)
+				}
 			}
 			gomega.Expect(badContainers).To(gomega.BeNil())
+			gomega.Expect(errContainers).To(gomega.BeNil())
 		})
 	})
 }
@@ -385,6 +395,7 @@ func testTainted(env *config.TestEnvironment) {
 		ginkgo.By("Testing tainted nodes in cluster")
 
 		var taintedNodes []string
+		var errNodes []string
 		for _, node := range env.NodesUnderTest {
 			if !node.HasDebugPod() {
 				continue
@@ -393,24 +404,29 @@ func testTainted(env *config.TestEnvironment) {
 			tester := nodetainted.NewNodeTainted(common.DefaultTimeout)
 			test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 			gomega.Expect(err).To(gomega.BeNil())
-			test.RunWithFailureCallback(func() {
-				taintedNodes = append(taintedNodes, node.Name)
-			})
-			taintedBitmap, err := strconv.ParseUint(tester.Match, 10, 32) //nolint:gomnd // base 10 and uint32
 			var message string
-			if err != nil {
-				message = fmt.Sprintf("Could not decode tainted kernel causes (code=%d) for node %s\n", taintedBitmap, node.Name)
-			} else if taintedBitmap != 0 {
-				message = fmt.Sprintf("Decoded tainted kernel causes (code=%d) for node %s : %s\n", taintedBitmap, node.Name, printTainted(taintedBitmap))
-			} else {
-				message = fmt.Sprintf("Decoded tainted kernel causes (code=%d) for node %s : None\n", taintedBitmap, node.Name)
-			}
+			test.RunWithCallbacks(func() {
+				message = fmt.Sprintf("Decoded tainted kernel causes (code=0) for node %s : None\n", node.Name)
+			}, func() {
+				taintedBitmap, err := strconv.ParseUint(tester.Match, 10, 32) //nolint:gomnd // base 10 and uint32
+				if err != nil {
+					message = fmt.Sprintf("Could not decode tainted kernel causes (code=%d) for node %s\n", taintedBitmap, node.Name)
+				} else {
+					message = fmt.Sprintf("Decoded tainted kernel causes (code=%d) for node %s : %s\n", taintedBitmap, node.Name, printTainted(taintedBitmap))
+				}
+				taintedNodes = append(taintedNodes, node.Name)
+			}, func(e error) {
+				message = fmt.Sprintf("Failed to retrieve tainted kernel code for node %s\n", node.Name)
+				errNodes = append(errNodes, node.Name)
+			})
+
 			_, err = ginkgo.GinkgoWriter.Write([]byte(message))
 			if err != nil {
 				log.Errorf("Ginkgo writer could not write because: %s", err)
 			}
 		}
 		gomega.Expect(taintedNodes).To(gomega.BeNil())
+		gomega.Expect(errNodes).To(gomega.BeNil())
 	})
 }
 
