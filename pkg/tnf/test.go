@@ -137,20 +137,20 @@ func (t *Test) RunAndValidateWithFailureCallback(cb func()) {
 
 // RunWithCallbacks runs the test, invokes the cb on failure/error/success
 // This is useful when the testcase needs to continue whether this test result is success or not
-func (t *Test) RunWithCallbacks(scb, fcb func(), ecb func(error)) {
+func (t *Test) RunWithCallbacks(successCb, failureCb func(), errorCb func(error)) {
 	testResult, err := t.Run()
 	switch testResult {
 	case SUCCESS:
-		if scb != nil {
-			scb()
+		if successCb != nil {
+			successCb()
 		}
 	case FAILURE:
-		if fcb != nil {
-			fcb()
+		if failureCb != nil {
+			failureCb()
 		}
 	case ERROR:
-		if ecb != nil {
-			ecb(err)
+		if errorCb != nil {
+			errorCb(err)
 		}
 	}
 }
