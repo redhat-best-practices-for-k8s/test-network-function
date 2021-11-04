@@ -78,7 +78,9 @@ var PrivilegedPodJSON = string(`{
       "action": "deny",
       "expectedstatus": [
         "NET_ADMIN",
-        "SYS_ADMIN"
+        "SYS_ADMIN",
+        "NET_RAW",
+        "IPC_LOCK"
       ]
     },
     {
