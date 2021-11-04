@@ -151,7 +151,7 @@ type TestEnvironment struct {
 	PodsUnderTest        []configsections.Pod
 	DeploymentsUnderTest []configsections.Deployment
 	OperatorsUnderTest   []configsections.Operator
-	NameSpaceUnderTest   string
+	NameSpacesUnderTest  []string
 	CrdNames             []string
 	NodesUnderTest       map[string]*NodeConfig
 
@@ -225,12 +225,12 @@ func (env *TestEnvironment) reset() {
 
 func (env *TestEnvironment) doAutodiscover() {
 	log.Debug("start auto discovery")
-	if len(env.Config.TargetNameSpaces) != 1 {
-		log.Fatal("a single namespace should be specified in config file")
+	for _, ns := range env.Config.TargetNameSpaces {
+		env.NameSpacesUnderTest = append(env.NameSpacesUnderTest, ns.Name)
 	}
-	env.NameSpaceUnderTest = env.Config.TargetNameSpaces[0].Name
+
 	if autodiscover.PerformAutoDiscovery() {
-		autodiscover.FindTestTarget(env.Config.TargetPodLabels, &env.Config.TestTarget, env.NameSpaceUnderTest)
+		autodiscover.FindTestTarget(env.Config.TargetPodLabels, &env.Config.TestTarget, env.NameSpacesUnderTest)
 	}
 
 	env.ContainersToExcludeFromConnectivityTests = make(map[configsections.ContainerIdentifier]interface{})
@@ -245,7 +245,7 @@ func (env *TestEnvironment) doAutodiscover() {
 	for _, cid := range env.Config.Partner.ContainersDebugList {
 		env.ContainersToExcludeFromConnectivityTests[cid.ContainerIdentifier] = ""
 	}
-	autodiscover.FindTestPartner(&env.Config.Partner, env.NameSpaceUnderTest)
+	autodiscover.FindTestPartner(&env.Config.Partner, env.NameSpacesUnderTest[0])
 	env.PartnerContainers = env.createContainers(env.Config.Partner.ContainerConfigList)
 	env.TestOrchestrator = env.PartnerContainers[env.Config.Partner.TestOrchestratorID]
 	env.DeploymentsUnderTest = env.Config.DeploymentsUnderTest
