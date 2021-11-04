@@ -290,7 +290,7 @@ cannot be followed.`,
 		Identifier: TestHugepagesNotManuallyManipulated,
 		Type:       normativeResult,
 		Remediation: `HugePage settings should be configured either directly through the MachineConfigOperator or indirectly using the
-PeformanceAddonOperator.  This ensures that OpenShift is aware of the special MachineConfig requirements, and can
+PerformanceAddonOperator.  This ensures that OpenShift is aware of the special MachineConfig requirements, and can
 provision your CNF on a Node that is part of the corresponding MachineConfigSet.  Avoid making changes directly to an
 underlying Node, and let OpenShift handle the heavy lifting of configuring advanced settings.`,
 		Description: formDescription(TestHugepagesNotManuallyManipulated,
@@ -599,7 +599,7 @@ the changes for you.`,
 		Identifier: TestLoggingIdentifier,
 		Type:       informativeResult,
 		Description: formDescription(TestLoggingIdentifier,
-			`check that all containers under test use standard input output and sstandard error when logging`),
+			`check that all containers under test use standard input output and standard error when logging`),
 		Remediation:           `make sure containers are not redirecting stdout/stderr`,
 		BestPracticeReference: bestPracticeDocV1dot2URL + " Section 11.1",
 	},

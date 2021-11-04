@@ -143,7 +143,7 @@ func getContainerDefaultNetworkIPAddress(oc *interactive.Oc, dev string) (string
 		oc.GetPodName(), oc.GetPodContainerName(), oc.GetPodNamespace(), result, err)
 }
 
-// TestEnvironment includes the representation of the current state of the test targets and parters as well as the test configuration
+// TestEnvironment includes the representation of the current state of the test targets and partners as well as the test configuration
 type TestEnvironment struct {
 	ContainersUnderTest  map[configsections.ContainerIdentifier]*Container
 	PartnerContainers    map[configsections.ContainerIdentifier]*Container
