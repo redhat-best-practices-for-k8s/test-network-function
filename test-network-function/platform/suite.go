@@ -408,7 +408,8 @@ func testTainted(env *config.TestEnvironment) {
 			test.RunWithCallbacks(func() {
 				message = fmt.Sprintf("Decoded tainted kernel causes (code=0) for node %s : None\n", node.Name)
 			}, func() {
-				taintedBitmap, err := strconv.ParseUint(tester.Match, 10, 32) //nolint:gomnd // base 10 and uint32
+				var taintedBitmap uint64
+				taintedBitmap, err = strconv.ParseUint(tester.Match, 10, 32) //nolint:gomnd // base 10 and uint32
 				if err != nil {
 					message = fmt.Sprintf("Could not decode tainted kernel causes (code=%d) for node %s\n", taintedBitmap, node.Name)
 				} else {
