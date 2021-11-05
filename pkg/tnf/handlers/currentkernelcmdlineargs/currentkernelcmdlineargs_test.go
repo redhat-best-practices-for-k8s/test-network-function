@@ -45,7 +45,7 @@ func Test_ReelFirst(t *testing.T) {
 func Test_ReelMatch(t *testing.T) {
 	newCurrentKernelCmdlineArgs := currentkernelcmdlineargs.NewCurrentKernelCmdlineArgs(testTimeoutDuration)
 	assert.NotNil(t, newCurrentKernelCmdlineArgs)
-	step := newCurrentKernelCmdlineArgs.ReelMatch("", "", testInput, 0)
+	step := newCurrentKernelCmdlineArgs.ReelMatch("", "", testInput)
 	assert.Nil(t, step)
 	assert.Equal(t, tnf.SUCCESS, newCurrentKernelCmdlineArgs.Result())
 }

@@ -76,7 +76,7 @@ func (h *{{ .UpperHandlername }}) ReelFirst() *reel.Step {
 }
 
 // ReelMatch parses the {{ .UpperHandlername }} output and set the test result on match.
-func (h *{{ .UpperHandlername }}) ReelMatch(_, _, match string, status int) *reel.Step {
+func (h *{{ .UpperHandlername }}) ReelMatch(_, _, match string) *reel.Step {
 	// TODO : add the matching logic here and return an appropriate tnf result.
 	h.result = tnf.ERROR
 	return nil

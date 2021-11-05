@@ -100,12 +100,12 @@ func TestPods_ReelMatch(t *testing.T) {
 	handler := handlers[0]
 
 	// Positive Test
-	step := handler.ReelMatch(expectedPassPattern, "", "OK", 0)
+	step := handler.ReelMatch(expectedPassPattern, "", "OK")
 	assert.Nil(t, step)
 	assert.Equal(t, tnf.SUCCESS, (*tester).Result())
 
 	// Negative Test
-	step = handler.ReelMatch(expectedFailPattern, "", "FAIL", 0)
+	step = handler.ReelMatch(expectedFailPattern, "", "FAIL")
 	assert.Nil(t, step)
 	assert.Equal(t, tnf.FAILURE, (*tester).Result())
 }

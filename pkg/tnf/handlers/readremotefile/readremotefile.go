@@ -82,7 +82,7 @@ func (handler *ReadRemoteFile) ReelFirst() *reel.Step {
 }
 
 // ReelMatch just forwards the output to handler.remoteFileContents.
-func (handler *ReadRemoteFile) ReelMatch(_, _, match string, status int) *reel.Step {
+func (handler *ReadRemoteFile) ReelMatch(_, _, match string) *reel.Step {
 	handler.remoteFileContents = match
 	handler.result = tnf.SUCCESS
 	return nil

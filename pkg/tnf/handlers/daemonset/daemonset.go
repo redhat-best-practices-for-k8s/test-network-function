@@ -95,7 +95,7 @@ func (ds *DaemonSet) ReelFirst() *reel.Step {
 }
 
 // ReelMatch parses the DaemonSet output and set the test result on match.
-func (ds *DaemonSet) ReelMatch(_, _, match string, status int) *reel.Step {
+func (ds *DaemonSet) ReelMatch(_, _, match string) *reel.Step {
 	const numExpectedFields = 6
 	trimmedMatch := strings.Trim(match, "\n")
 	lines := strings.Split(trimmedMatch, "\n")[0:] // Keep First line only

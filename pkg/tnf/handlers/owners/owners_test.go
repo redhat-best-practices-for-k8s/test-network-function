@@ -57,7 +57,7 @@ func Test_ReelMatchSuccess(t *testing.T) {
 	newOw := ow.NewOwners(testTimeoutDuration, testPodNamespace, testPodName)
 	assert.NotNil(t, newOw)
 	for _, input := range testInputSuccessSlice {
-		step := newOw.ReelMatch("", "", input, 0)
+		step := newOw.ReelMatch("", "", input)
 		assert.Nil(t, step)
 		assert.Equal(t, tnf.SUCCESS, newOw.Result())
 	}
@@ -67,7 +67,7 @@ func Test_ReelMatchFail(t *testing.T) {
 	newOw := ow.NewOwners(testTimeoutDuration, testPodNamespace, testPodName)
 	assert.NotNil(t, newOw)
 	for _, input := range testInputFailureSlice {
-		step := newOw.ReelMatch("", "", input, 0)
+		step := newOw.ReelMatch("", "", input)
 		assert.Nil(t, step)
 		assert.Equal(t, tnf.FAILURE, newOw.Result())
 	}

@@ -124,22 +124,22 @@ func TestLogging_ReelMatch(t *testing.T) {
 
 	assert.Equal(t, 1, len(handlers))
 	handler := handlers[0]
-	step := handler.ReelMatch(expectedPassPattern, "", "4", 0)
+	step := handler.ReelMatch(expectedPassPattern, "", "4")
 
 	assert.Nil(t, step)
 	assert.Equal(t, tnf.SUCCESS, (*tester).Result())
 
-	step = handler.ReelMatch(expectedFailPattern, "", "0", 0)
+	step = handler.ReelMatch(expectedFailPattern, "", "0")
 
 	assert.Nil(t, step)
 	assert.Equal(t, tnf.FAILURE, (*tester).Result())
 
-	step = handler.ReelMatch(expectedErrPattern, "", "a", 0)
+	step = handler.ReelMatch(expectedErrPattern, "", "a")
 
 	assert.Nil(t, step)
 	assert.Equal(t, tnf.ERROR, (*tester).Result())
 
-	step = handler.ReelMatch(expectedErrPattern, "", "", 0)
+	step = handler.ReelMatch(expectedErrPattern, "", "")
 
 	assert.Nil(t, step)
 	assert.Equal(t, tnf.ERROR, (*tester).Result())

@@ -78,14 +78,14 @@ func TestPod_ReelTimeout(t *testing.T) {
 
 func TestPodTest_ReelMatch_String(t *testing.T) {
 	c := container.NewPod(args, name, namespace, stringExpectedStatus, testcases.StringType, testcases.Allow, testTimeoutDuration)
-	step := c.ReelMatch("", "", IsNull, 0)
+	step := c.ReelMatch("", "", IsNull)
 	assert.Nil(t, step)
 	assert.Equal(t, tnf.SUCCESS, c.Result())
 }
 
 func TestPodTest_Facts(t *testing.T) {
 	c := container.NewPod(args, name, namespace, stringExpectedStatus, testcases.StringType, testcases.Allow, testTimeoutDuration)
-	step := c.ReelMatch("", "", IsNull, 0)
+	step := c.ReelMatch("", "", IsNull)
 	assert.Nil(t, step)
 	assert.NotNil(t, c.Facts())
 	assert.Equal(t, tnf.SUCCESS, c.Result())
@@ -93,42 +93,42 @@ func TestPodTest_Facts(t *testing.T) {
 
 func TestPodTest_ReelMatch_String_NotFound(t *testing.T) {
 	c := container.NewPod(args, name, namespace, stringExpectedStatus, testcases.StringType, testcases.Allow, testTimeoutDuration)
-	step := c.ReelMatch("", "", IsNotNull, 0)
+	step := c.ReelMatch("", "", IsNotNull)
 	assert.Nil(t, step)
 	assert.Equal(t, tnf.ERROR, c.Result())
 }
 
 func TestPodTest_ReelMatch_Array_Allow_Deny_ISNULL(t *testing.T) {
 	c := container.NewPod(args, name, namespace, sliceExpectedStatus, testcases.ArrayType, testcases.Allow, testTimeoutDuration)
-	step := c.ReelMatch("", "", IsNull, 0)
+	step := c.ReelMatch("", "", IsNull)
 	assert.Nil(t, step)
 	assert.Equal(t, tnf.SUCCESS, c.Result())
 }
 
 func TestPodTest_ReelMatchArray_Allow_Match(t *testing.T) {
 	c := container.NewPod(args, name, namespace, sliceExpectedStatus, testcases.ArrayType, testcases.Allow, testTimeoutDuration)
-	step := c.ReelMatch("", "", resultSliceExpectedStatus, 0)
+	step := c.ReelMatch("", "", resultSliceExpectedStatus)
 	assert.Nil(t, step)
 	assert.Equal(t, tnf.SUCCESS, c.Result())
 }
 
 func TestPodTest_ReelMatch_Array_Allow_NoMatch(t *testing.T) {
 	c := container.NewPod(args, name, namespace, sliceExpectedStatus, testcases.ArrayType, testcases.Allow, testTimeoutDuration)
-	step := c.ReelMatch("", "", resultSliceExpectedStatusInvalid, 0)
+	step := c.ReelMatch("", "", resultSliceExpectedStatusInvalid)
 	assert.Nil(t, step)
 	assert.Equal(t, tnf.ERROR, c.Result())
 }
 
 func TestPodTest_ReelMatch_Array_Deny_Match(t *testing.T) {
 	c := container.NewPod(args, name, namespace, sliceExpectedStatus, testcases.ArrayType, testcases.Deny, testTimeoutDuration)
-	step := c.ReelMatch("", "", resultSliceExpectedStatus, 0)
+	step := c.ReelMatch("", "", resultSliceExpectedStatus)
 	assert.Nil(t, step)
 	assert.Equal(t, tnf.ERROR, c.Result())
 }
 
 func TestPodTest_ReelMatch_Array_Deny_NotMatch(t *testing.T) {
 	c := container.NewPod(args, name, namespace, sliceExpectedStatus, testcases.ArrayType, testcases.Deny, testTimeoutDuration)
-	step := c.ReelMatch("", "", resultSliceExpectedStatusInvalid, 0)
+	step := c.ReelMatch("", "", resultSliceExpectedStatusInvalid)
 	assert.Nil(t, step)
 	assert.Equal(t, tnf.SUCCESS, c.Result())
 }

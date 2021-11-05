@@ -101,7 +101,7 @@ func (dp *Deployments) ReelFirst() *reel.Step {
 }
 
 // ReelMatch ensures that list of nodes is not empty and stores the names as []string
-func (dp *Deployments) ReelMatch(_, _, match string, status int) *reel.Step {
+func (dp *Deployments) ReelMatch(_, _, match string) *reel.Step {
 	const numExepctedFields = 6
 	trimmedMatch := strings.Trim(match, "\n")
 	lines := strings.Split(trimmedMatch, "\n")[1:] // First line is the headers/titles line

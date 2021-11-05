@@ -80,7 +80,7 @@ func (mka *McKernelArguments) ReelFirst() *reel.Step {
 }
 
 // ReelMatch ensures that there are no McKernelArguments matched in the command output.
-func (mka *McKernelArguments) ReelMatch(_, _, match string, status int) *reel.Step {
+func (mka *McKernelArguments) ReelMatch(_, _, match string) *reel.Step {
 	mka.kernelArguments = match
 	mka.result = tnf.SUCCESS
 	return nil

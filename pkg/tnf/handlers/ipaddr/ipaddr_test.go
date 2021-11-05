@@ -112,7 +112,7 @@ func TestIpAddr_Result(t *testing.T) {
 	for testName, testCase := range testCases {
 		ipAddr := ipaddr.NewIPAddr(testTimeoutDuration, testCase.device)
 		assert.Equal(t, tnf.ERROR, ipAddr.Result())
-		step := ipAddr.ReelMatch(testCase.pattern, "", getMockOutput(t, testName), 0)
+		step := ipAddr.ReelMatch(testCase.pattern, "", getMockOutput(t, testName))
 		assert.Nil(t, step)
 		assert.Equal(t, testCase.expectedResult, ipAddr.Result())
 	}
@@ -121,7 +121,7 @@ func TestIpAddr_Result(t *testing.T) {
 func TestIpAddr_GetIpv4Address(t *testing.T) {
 	for testName, testCase := range testCases {
 		ipAddr := ipaddr.NewIPAddr(testTimeoutDuration, testCase.device)
-		step := ipAddr.ReelMatch(testCase.pattern, "", getMockOutput(t, testName), 0)
+		step := ipAddr.ReelMatch(testCase.pattern, "", getMockOutput(t, testName))
 		assert.Nil(t, step)
 		assert.Equal(t, testCase.expectedIpv4Address, ipAddr.GetIPv4Address())
 	}

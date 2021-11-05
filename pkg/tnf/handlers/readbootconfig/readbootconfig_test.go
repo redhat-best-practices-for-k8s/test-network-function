@@ -46,7 +46,7 @@ func Test_ReelFirst(t *testing.T) {
 func Test_ReelMatch(t *testing.T) {
 	newBootConfig := bootconfigentries.NewBootConfigEntries(testTimeoutDuration)
 	assert.NotNil(t, newBootConfig)
-	step := newBootConfig.ReelMatch("", "", testInput, 0)
+	step := newBootConfig.ReelMatch("", "", testInput)
 	assert.Nil(t, step)
 	assert.Equal(t, tnf.SUCCESS, newBootConfig.Result())
 }

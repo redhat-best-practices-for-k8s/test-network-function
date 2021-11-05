@@ -353,8 +353,8 @@ func drainNode(node string) {
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
 	result, err := test.Run()
-	if err != nil || result == tnf.FAILURE {
-		ginkgo.Skip("Test skipped because of draining node failure - platform issue")
+	if err != nil || result == tnf.ERROR {
+		log.Fatalf("Test skipped because of draining node failure - platform issue")
 	}
 }
 

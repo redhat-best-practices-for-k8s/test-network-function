@@ -125,12 +125,12 @@ func TestShutdown_ReelMatch(t *testing.T) {
 
 	assert.Equal(t, 1, len(handlers))
 	handler := handlers[0]
-	step := handler.ReelMatch(expectedFailPattern, "", "prestop-not-defined", 0)
+	step := handler.ReelMatch(expectedFailPattern, "", "prestop-not-defined")
 
 	assert.Nil(t, step)
 	assert.Equal(t, tnf.FAILURE, (*tester).Result())
 
-	step = handler.ReelMatch(expectedPassPattern, "", "prestop-defined", 0)
+	step = handler.ReelMatch(expectedPassPattern, "", "prestop-defined")
 
 	assert.Nil(t, step)
 	assert.Equal(t, tnf.SUCCESS, (*tester).Result())

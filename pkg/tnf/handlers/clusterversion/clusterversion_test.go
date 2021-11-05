@@ -75,7 +75,7 @@ func Test_ReelFirstNegative(t *testing.T) {
 func Test_ReelMatchSuccessOcp(t *testing.T) {
 	newVer := ver.NewClusterVersion(testTimeoutDuration)
 	assert.NotNil(t, newVer)
-	step := newVer.ReelMatch("", "", testInputSuccessOcp, 0)
+	step := newVer.ReelMatch("", "", testInputSuccessOcp)
 	assert.Nil(t, step)
 	assert.Equal(t, tnf.SUCCESS, newVer.Result())
 	assert.Equal(t, newVer.GetVersions().Oc, "4.7.16")
@@ -86,7 +86,7 @@ func Test_ReelMatchSuccessOcp(t *testing.T) {
 func Test_ReelMatchSuccessMinikube(t *testing.T) {
 	newVer := ver.NewClusterVersion(testTimeoutDuration)
 	assert.NotNil(t, newVer)
-	step := newVer.ReelMatch("", "", testInputSuccessMinikube, 0)
+	step := newVer.ReelMatch("", "", testInputSuccessMinikube)
 	assert.Nil(t, step)
 	assert.Equal(t, tnf.SUCCESS, newVer.Result())
 	assert.Equal(t, newVer.GetVersions().Oc, "4.7.16")
@@ -97,7 +97,7 @@ func Test_ReelMatchSuccessMinikube(t *testing.T) {
 func Test_ReelMatchFail(t *testing.T) {
 	newVer := ver.NewClusterVersion(testTimeoutDuration)
 	assert.NotNil(t, newVer)
-	step := newVer.ReelMatch("", "", testInputFailure, 0)
+	step := newVer.ReelMatch("", "", testInputFailure)
 	assert.Nil(t, step)
 	assert.Equal(t, tnf.FAILURE, newVer.Result())
 	assert.Equal(t, newVer.GetVersions().Ocp, "")

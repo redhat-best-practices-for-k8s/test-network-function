@@ -95,7 +95,7 @@ func (nn *NodeNames) ReelFirst() *reel.Step {
 }
 
 // ReelMatch ensures that list of nodes is not empty and stores the names as []string
-func (nn *NodeNames) ReelMatch(_, _, match string, status int) *reel.Step {
+func (nn *NodeNames) ReelMatch(_, _, match string) *reel.Step {
 	trimmedMatch := strings.Trim(match, "\n")
 	nn.nodeNames = strings.Split(trimmedMatch, "\n")[1:] // First line is the headers/titles line
 

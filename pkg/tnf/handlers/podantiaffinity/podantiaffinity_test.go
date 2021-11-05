@@ -129,16 +129,16 @@ func TestPods_ReelMatch(t *testing.T) {
 	handler := handlers[0]
 
 	// Positive Test
-	step := handler.ReelMatch(expectedPassPattern, "", "OK", 0)
+	step := handler.ReelMatch(expectedPassPattern, "", "OK")
 	assert.Nil(t, step)
 	assert.Equal(t, tnf.SUCCESS, (*tester).Result())
 
 	// Negative Test
-	step = handler.ReelMatch(expectedFailPattern1, "", "Antiaffinity missing", 0)
+	step = handler.ReelMatch(expectedFailPattern1, "", "Antiaffinity missing")
 	assert.Nil(t, step)
 	assert.Equal(t, tnf.FAILURE, (*tester).Result())
 	// Negative Test
-	step = handler.ReelMatch(expectedFailPattern2, "", "Replica count is 1", 0)
+	step = handler.ReelMatch(expectedFailPattern2, "", "Replica count is 1")
 	assert.Nil(t, step)
 	assert.Equal(t, tnf.FAILURE, (*tester).Result())
 }

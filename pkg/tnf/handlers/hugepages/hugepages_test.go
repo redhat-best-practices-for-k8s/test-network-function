@@ -65,7 +65,7 @@ func Test_ReelFirstNegative(t *testing.T) {
 func Test_ReelMatchSuccessEmpty(t *testing.T) {
 	newHp := hp.NewHugepages(testTimeoutDuration, testMachineConfig)
 	assert.NotNil(t, newHp)
-	step := newHp.ReelMatch("", "", testInputEmpty, 0)
+	step := newHp.ReelMatch("", "", testInputEmpty)
 	assert.Nil(t, step)
 	assert.Equal(t, tnf.SUCCESS, newHp.Result())
 	assert.Equal(t, hp.RhelDefaultHugepages, newHp.GetHugepages())
@@ -75,7 +75,7 @@ func Test_ReelMatchSuccessEmpty(t *testing.T) {
 func Test_ReelMatchSuccess(t *testing.T) {
 	newHp := hp.NewHugepages(testTimeoutDuration, testMachineConfig)
 	assert.NotNil(t, newHp)
-	step := newHp.ReelMatch("", "", testInputSuccess, 0)
+	step := newHp.ReelMatch("", "", testInputSuccess)
 	assert.Nil(t, step)
 	assert.Equal(t, tnf.SUCCESS, newHp.Result())
 	assert.Equal(t, testExpectedHugepages, newHp.GetHugepages())

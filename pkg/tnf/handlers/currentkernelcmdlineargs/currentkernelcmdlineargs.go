@@ -80,7 +80,7 @@ func (cmdlineArgs *CurrentKernelCmdlineArgs) ReelFirst() *reel.Step {
 }
 
 // ReelMatch ensures that there are no McKernelArguments matched in the command output.
-func (cmdlineArgs *CurrentKernelCmdlineArgs) ReelMatch(_, _, match string, status int) *reel.Step {
+func (cmdlineArgs *CurrentKernelCmdlineArgs) ReelMatch(_, _, match string) *reel.Step {
 	cmdlineArgs.kernelArguments = match
 	cmdlineArgs.result = tnf.SUCCESS
 	return nil

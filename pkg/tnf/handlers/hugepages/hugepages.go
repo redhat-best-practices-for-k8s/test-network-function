@@ -89,7 +89,7 @@ func (hp *Hugepages) ReelFirst() *reel.Step {
 }
 
 // ReelMatch sets the hugepages parameters based on cluster configuration and RHEL defaults
-func (hp *Hugepages) ReelMatch(_, _, match string, status int) *reel.Step {
+func (hp *Hugepages) ReelMatch(_, _, match string) *reel.Step {
 	trimmedMatch := strings.Trim(match, "\n")
 	lines := strings.Split(trimmedMatch, "\n")[1:] // First line is the headers/titles line
 

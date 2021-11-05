@@ -86,7 +86,7 @@ func (nd *NodeDebug) ReelFirst() *reel.Step {
 }
 
 // ReelMatch executs the command and parses the output
-func (nd *NodeDebug) ReelMatch(_, _, match string, status int) *reel.Step {
+func (nd *NodeDebug) ReelMatch(_, _, match string) *reel.Step {
 	nd.result = tnf.SUCCESS
 	nd.Raw = match
 	if !nd.Split && !nd.Trim {

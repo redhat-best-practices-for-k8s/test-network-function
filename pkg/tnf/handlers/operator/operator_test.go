@@ -93,14 +93,14 @@ func TestOperator_ReelTimeout(t *testing.T) {
 
 func TestOperatorTest_ReelMatch_String(t *testing.T) {
 	c := operator.NewOperator(args, name, namespace, stringExpectedStatus, testcases.StringType, testcases.Allow, testTimeoutDuration)
-	step := c.ReelMatch("", "", "null", 0)
+	step := c.ReelMatch("", "", "null")
 	assert.Nil(t, step)
 	assert.Equal(t, tnf.SUCCESS, c.Result())
 }
 
 func TestOperatorTest_Facts(t *testing.T) {
 	c := operator.NewOperator(args, name, namespace, stringExpectedStatus, testcases.StringType, testcases.Allow, testTimeoutDuration)
-	step := c.ReelMatch("", "", "null", 0)
+	step := c.ReelMatch("", "", "null")
 	assert.Nil(t, step)
 	assert.NotNil(t, c.Facts())
 	assert.Equal(t, tnf.SUCCESS, c.Result())
@@ -108,42 +108,42 @@ func TestOperatorTest_Facts(t *testing.T) {
 
 func TestOperatorTest_ReelMatch_Array_Allow_Deny_ISNULL(t *testing.T) {
 	c := operator.NewOperator(args, name, namespace, sliceExpectedStatus, testcases.ArrayType, testcases.Allow, testTimeoutDuration)
-	step := c.ReelMatch("", "", `null`, 0)
+	step := c.ReelMatch("", "", `null`)
 	assert.Nil(t, step)
 	assert.Equal(t, tnf.SUCCESS, c.Result())
 }
 
 func TestOperatorTest_ReelMatch_Array_Allow_Match(t *testing.T) {
 	c := operator.NewOperator(args, name, namespace, sliceExpectedStatus, testcases.ArrayType, testcases.Allow, testTimeoutDuration)
-	step := c.ReelMatch("", "", resultSliceExpectedStatus, 0)
+	step := c.ReelMatch("", "", resultSliceExpectedStatus)
 	assert.Nil(t, step)
 	assert.Equal(t, tnf.SUCCESS, c.Result())
 }
 
 func TestOperatorTest_ReelMatch_Array_Allow_NoMatch(t *testing.T) {
 	c := operator.NewOperator(args, name, namespace, sliceExpectedStatus, testcases.ArrayType, testcases.Allow, testTimeoutDuration)
-	step := c.ReelMatch("", "", resultSliceExpectedStatusInvalid, 0)
+	step := c.ReelMatch("", "", resultSliceExpectedStatusInvalid)
 	assert.Nil(t, step)
 	assert.Equal(t, tnf.ERROR, c.Result())
 }
 
 func TestOperatorTest_ReelMatch_Array_Deny_Match(t *testing.T) {
 	c := operator.NewOperator(args, name, namespace, sliceExpectedStatus, testcases.ArrayType, testcases.Deny, testTimeoutDuration)
-	step := c.ReelMatch("", "", resultSliceExpectedStatus, 0)
+	step := c.ReelMatch("", "", resultSliceExpectedStatus)
 	assert.Nil(t, step)
 	assert.Equal(t, tnf.ERROR, c.Result())
 }
 
 func TestOperatorTest_ReelMatch_Array_Deny_NotMatch(t *testing.T) {
 	c := operator.NewOperator(args, name, namespace, sliceExpectedStatusInvalid, testcases.ArrayType, testcases.Deny, testTimeoutDuration)
-	step := c.ReelMatch("", "", resultSliceExpectedStatusInvalid, 0)
+	step := c.ReelMatch("", "", resultSliceExpectedStatusInvalid)
 	assert.Nil(t, step)
 	assert.Equal(t, tnf.ERROR, c.Result())
 }
 
 func TestOperatorTest_ReelMatch_StringNoFound(t *testing.T) {
 	c := operator.NewOperator(args, name, namespace, stringExpectedStatus, testcases.StringType, testcases.Allow, testTimeoutDuration)
-	step := c.ReelMatch("", "", "not_null", 0)
+	step := c.ReelMatch("", "", "not_null")
 	assert.Nil(t, step)
 	assert.Equal(t, tnf.ERROR, c.Result())
 }

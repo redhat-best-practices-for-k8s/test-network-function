@@ -81,7 +81,7 @@ func (pnn *PodNodeName) ReelFirst() *reel.Step {
 }
 
 // ReelMatch ensures that there are no PodNodeName matched in the command output.
-func (pnn *PodNodeName) ReelMatch(_, _, match string, status int) *reel.Step {
+func (pnn *PodNodeName) ReelMatch(_, _, match string) *reel.Step {
 	pnn.NodeName = match
 	pnn.result = tnf.SUCCESS
 	return nil

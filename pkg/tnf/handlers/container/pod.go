@@ -89,7 +89,7 @@ func contains(arr []string, str string) (found bool) {
 
 // ReelMatch parses the status output and set the test result on match.
 // Returns no step; the test is complete.
-func (p *Pod) ReelMatch(_, _, match string, status int) *reel.Step {
+func (p *Pod) ReelMatch(_, _, match string) *reel.Step {
 	// for type: array ,should match for any expected status or fail on any expected status
 	// based on the action type allow (default)|deny
 	p.facts = match

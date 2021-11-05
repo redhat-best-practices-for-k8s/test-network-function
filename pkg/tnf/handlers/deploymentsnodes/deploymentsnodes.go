@@ -91,7 +91,7 @@ func (dn *DeploymentsNodes) ReelFirst() *reel.Step {
 }
 
 // ReelMatch ensures that list of nodes is not empty and stores the names as []string
-func (dn *DeploymentsNodes) ReelMatch(_, _, match string, status int) *reel.Step {
+func (dn *DeploymentsNodes) ReelMatch(_, _, match string) *reel.Step {
 	const (
 		numExepctedFields = 2
 		podNameIdx        = 0

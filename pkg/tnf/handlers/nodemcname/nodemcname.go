@@ -81,7 +81,7 @@ func (nmn *NodeMcName) ReelFirst() *reel.Step {
 }
 
 // ReelMatch ensures that there are no NodeMcName matched in the command output.
-func (nmn *NodeMcName) ReelMatch(_, _, match string, status int) *reel.Step {
+func (nmn *NodeMcName) ReelMatch(_, _, match string) *reel.Step {
 	nmn.McName = match
 	nmn.result = tnf.SUCCESS
 	return nil

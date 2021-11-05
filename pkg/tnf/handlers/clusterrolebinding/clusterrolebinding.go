@@ -84,7 +84,7 @@ func (crb *ClusterRoleBinding) ReelFirst() *reel.Step {
 }
 
 // ReelMatch ensures that there are no ClusterRoleBindings matched in the command output.
-func (crb *ClusterRoleBinding) ReelMatch(_, _, match string, status int) *reel.Step {
+func (crb *ClusterRoleBinding) ReelMatch(_, _, match string) *reel.Step {
 	const (
 		nameIdx = 0
 	)

@@ -247,7 +247,7 @@ func TestGeneric(t *testing.T) {
 				// Test ReelMatch() cases.
 				for _, reelMatchTestCase := range testCase.matchTestCases {
 					actualReelMatchStep := firstHandler.ReelMatch(reelMatchTestCase.inputPattern,
-						reelMatchTestCase.inputBefore, reelMatchTestCase.inputMatch, 0)
+						reelMatchTestCase.inputBefore, reelMatchTestCase.inputMatch)
 					assert.Equal(t, reelMatchTestCase.expectedReelMatchNextStep, actualReelMatchStep)
 					assert.Equal(t, reelMatchTestCase.expectedFinalResult, (*tester).Result())
 				}

@@ -45,7 +45,7 @@ func Test_ReelFirst(t *testing.T) {
 func Test_ReelMatch(t *testing.T) {
 	newReadRemoteFile := readremotefile.NewReadRemoteFile(testTimeoutDuration, testNodeName, testRemotePath)
 	assert.NotNil(t, newReadRemoteFile)
-	step := newReadRemoteFile.ReelMatch("", "", testInput, 0)
+	step := newReadRemoteFile.ReelMatch("", "", testInput)
 	assert.Nil(t, step)
 	assert.Equal(t, tnf.SUCCESS, newReadRemoteFile.Result())
 }

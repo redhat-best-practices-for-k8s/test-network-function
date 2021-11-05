@@ -125,12 +125,12 @@ func TestNodes_ReelMatch(t *testing.T) {
 	handler := handlers[0]
 
 	// Positive Test
-	step := handler.ReelMatch(expectedPassPattern, "", testSubscriptionName, 0)
+	step := handler.ReelMatch(expectedPassPattern, "", testSubscriptionName)
 	assert.Nil(t, step)
 	assert.Equal(t, tnf.SUCCESS, (*tester).Result())
 
 	// Negative Test
-	step = handler.ReelMatch(expectedFailPattern, "", "Error from server", 0)
+	step = handler.ReelMatch(expectedFailPattern, "", "Error from server")
 	assert.Nil(t, step)
 	assert.Equal(t, tnf.FAILURE, (*tester).Result())
 }

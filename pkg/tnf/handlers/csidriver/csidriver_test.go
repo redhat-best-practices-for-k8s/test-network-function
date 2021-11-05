@@ -116,7 +116,7 @@ func TestCSIs_ReelMatch(t *testing.T) {
 	handler := handlers[0]
 
 	// Positive Test
-	step := handler.ReelMatch(expectedPassPattern, "", "anythingMatches", 0)
+	step := handler.ReelMatch(expectedPassPattern, "", "anythingMatches")
 	assert.Nil(t, step)
 	assert.Equal(t, tnf.SUCCESS, (*tester).Result())
 }

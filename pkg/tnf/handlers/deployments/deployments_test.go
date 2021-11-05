@@ -56,7 +56,7 @@ func Test_ReelFirstNegative(t *testing.T) {
 func Test_ReelMatchSuccess(t *testing.T) {
 	newDp := dp.NewDeployments(testTimeoutDuration, testNamespace)
 	assert.NotNil(t, newDp)
-	step := newDp.ReelMatch("", "", testInputSuccess, 0)
+	step := newDp.ReelMatch("", "", testInputSuccess)
 	assert.Nil(t, step)
 	assert.Equal(t, tnf.SUCCESS, newDp.Result())
 	assert.Len(t, newDp.GetDeployments(), testInputSuccessNumLines)

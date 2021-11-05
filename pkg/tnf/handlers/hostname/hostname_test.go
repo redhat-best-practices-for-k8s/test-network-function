@@ -64,7 +64,7 @@ func TestHostname_ReelTimeout(t *testing.T) {
 func TestHostname_ReelMatch(t *testing.T) {
 	h := hostname.NewHostname(testTimeoutDuration)
 	matchHostname := "testHostname"
-	step := h.ReelMatch("", "", matchHostname, 0)
+	step := h.ReelMatch("", "", matchHostname)
 	assert.Nil(t, step)
 	assert.Equal(t, matchHostname, h.GetHostname())
 	assert.Equal(t, tnf.SUCCESS, h.Result())

@@ -73,7 +73,7 @@ func (ns *NodeSelector) ReelFirst() *reel.Step {
 }
 
 // ReelMatch ensures that there is no nodeSelector or nodeAffinity on the pod spec
-func (ns *NodeSelector) ReelMatch(_, _, match string, status int) *reel.Step {
+func (ns *NodeSelector) ReelMatch(_, _, match string) *reel.Step {
 	ns.result = tnf.SUCCESS
 
 	return nil
