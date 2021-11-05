@@ -28,6 +28,7 @@ const (
 	cnfIPsKey                     = "multusips"
 	cniNetworksStatusKey          = "k8s.v1.cni.cncf.io/networks-status"
 	resourceTypePods              = "pods"
+	podPhaseRunning               = "Running"
 )
 
 var (
@@ -58,6 +59,7 @@ type PodResource struct {
 	} `json:"spec"`
 	Status struct {
 		PodIPs []map[string]string `json:"podIPs"`
+		Phase  string              `json:"phase"`
 	} `json:"status"`
 }
 
@@ -132,15 +134,17 @@ func (pr *PodResource) getPodIPs() (ips []string, err error) {
 		if err != nil {
 			return nil, pr.annotationUnmarshalError(cniNetworksStatusKey, err)
 		}
+		// If this is the default interface, skip it as it is tested separately
+		// Otherwise add all non default interfaces
 		for _, cniInterface := range cniInfo {
-			ips = append(ips, cniInterface.IPs...)
+			if !cniInterface.Default {
+				ips = append(ips, cniInterface.IPs...)
+			}
 		}
 		return
 	}
 	log.Warn("Could not establish pod IPs from annotations, please manually set the 'test-network-function.com/multusips' annotation for complete test coverage")
-	for _, ip := range pr.Status.PodIPs {
-		ips = append(ips, ip["ip"])
-	}
+
 	return
 }
 
@@ -152,25 +156,21 @@ func (pr *PodResource) annotationUnmarshalError(annotationKey string, err error)
 // GetPodsByLabel will return all pods with a given label value. If `labelValue` is an empty string, all pods with that
 // label will be returned, regardless of the labels value.
 func GetPodsByLabel(label configsections.Label, namespace string) (*PodList, error) {
-	out, err := executeOcGetCommand(resourceTypePods, buildLabelQuery(label), namespace)
-
-	if err != nil {
-		return nil, err
-	}
+	out := executeOcGetCommand(resourceTypePods, buildLabelQuery(label), namespace)
 
 	log.Debug("JSON output for all pods labeled with: ", label)
 	log.Debug("Command: ", out)
 
 	var podList PodList
-	err = jsonUnmarshal([]byte(out), &podList)
+	err := jsonUnmarshal([]byte(out), &podList)
 	if err != nil {
 		return nil, err
 	}
 
-	// Filter out terminating pods
+	// Filter out terminating pods and pending/unscheduled pods
 	var pods []*PodResource
 	for _, pod := range podList.Items {
-		if pod.Metadata.DeletionTimestamp == "" {
+		if pod.Metadata.DeletionTimestamp == "" || pod.Status.Phase != podPhaseRunning {
 			pods = append(pods, pod)
 		}
 	}

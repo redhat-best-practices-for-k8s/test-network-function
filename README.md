@@ -56,7 +56,7 @@ The autodiscovery mechanism will create a list of all CRD names in the cluster w
 
 ### testTarget
 #### podsUnderTest / containersUnderTest
-This section is usually not required if labels defined in the section above cover all resources that should be tested. If label based discovery is not sufficient, this section can be manually populated as shown in the commented part of the [sample config](test-network-function/tnf_config.yml). However, instrusive tests need to be skipped ([see here](#disable-intrusive-tests)) for a reliable test result. The pods and containers explicitly configured here are added to the target pod/container lists populated through label matching.
+This section is usually not required if labels defined in the section above cover all resources that should be tested. If label based discovery is not sufficient, this section can be manually populated as shown in the commented part of the [sample config](test-network-function/tnf_config.yml). However, intrusive tests need to be skipped ([see here](#disable-intrusive-tests)) for a reliable test result. The pods and containers explicitly configured here are added to the target pod/container lists populated through label matching.
 
 For both configured and discovered pods/containers, the autodiscovery mechanism will attempt to identify the default network device and all the IP addresses of the pods it
 needs for network connectivity tests, though that information can be explicitly set using annotations if needed. For Pod IPs:
@@ -76,7 +76,7 @@ be seen in [cnf-certification-test-partner](https://github.com/test-network-func
 the first entry found with `"default"=true` is used. This annotation is automatically managed in OpenShift but may not
 be present in K8s.
 
-If multus IP addresses are dicovered or configured, the partner pod needs to be deployed in the same namespace as the multus network interface for the connectivity test to pass. Refer to instruction [here](#specify-the-target-namespace-for-partner-pod-deployment).
+If multus IP addresses are discovered or configured, the partner pod needs to be deployed in the same namespace as the multus network interface for the connectivity test to pass. Refer to instruction [here](#specify-the-target-namespace-for-partner-pod-deployment).
 
 If a pod is not suitable for network connectivity tests because it lacks binaries (e.g. `ping`), it should be
 given the label `test-network-function.com/skip_connectivity_tests` to exclude it from those tests. The label value is
@@ -94,7 +94,7 @@ the subscription for this CSV. If unset, the CSV name will be used.
 
 ### testPartner
 
-This section can also be discovered automatically and should be left commented out unless the parter pods are modified from the original version in [cnf-certification-test-partner](https://github.com/test-network-function/cnf-certification-test-partner/local-test-infra/)
+This section can also be discovered automatically and should be left commented out unless the partner pods are modified from the original version in [cnf-certification-test-partner](https://github.com/test-network-function/cnf-certification-test-partner/local-test-infra/)
 
 ### certifiedcontainerinfo and certifiedoperatorinfo
 
@@ -351,7 +351,7 @@ Suite|Test Spec Description|Minimum OpenShift Version
 `networking`|The networking test suite contains tests that check connectivity and networking config related best practices.|4.6.0
 `operator`|The operator test suite is designed to test basic Kubernetes Operator functionality.|4.6.0
 `platform-alteration`| verifies that key platform configuration is not modified by the CNF under test|4.6.0
-
+`observability`|  the observability test suite contains tests that check CNF logging is following best practices and that CRDs have status fields|4.6.0
 Please consult [CATALOG.md](CATALOG.md) for a detailed description of tests in each suite.
 
 

@@ -182,6 +182,11 @@ var (
 		Url:     formTestURL(common.ObservabilityTestKey, "container-logging"),
 		Version: versionOne,
 	}
+	// TestCrdsStatusSubresourceIdentifier ensures all CRDs have a valid status subresource
+	TestCrdsStatusSubresourceIdentifier = claim.Identifier{
+		Url:     formTestURL(common.ObservabilityTestKey, "crd-status"),
+		Version: versionOne,
+	}
 	// TestShudtownIdentifier ensures pre-stop lifecycle is defined
 	TestShudtownIdentifier = claim.Identifier{
 		Url:     formTestURL(common.LifecycleTestKey, "container-shutdown"),
@@ -210,11 +215,6 @@ var (
 	// TestclusterVersionIdentifier list Cluster CSIdriver Identifier retrieves Third Party CSI driver info.
 	TestclusterVersionIdentifier = claim.Identifier{
 		Url:     formTestURL(common.DiagnosticTestKey, "clusterversion"),
-		Version: versionOne,
-	}
-	// TestCrdsStatusSubresourceIdentifier ensures all CRDs have a valid status subresource
-	TestCrdsStatusSubresourceIdentifier = claim.Identifier{
-		Url:     formTestURL(common.DiagnosticTestKey, "crd-status"),
 		Version: versionOne,
 	}
 )
@@ -290,7 +290,7 @@ cannot be followed.`,
 		Identifier: TestHugepagesNotManuallyManipulated,
 		Type:       normativeResult,
 		Remediation: `HugePage settings should be configured either directly through the MachineConfigOperator or indirectly using the
-PeformanceAddonOperator.  This ensures that OpenShift is aware of the special MachineConfig requirements, and can
+PerformanceAddonOperator.  This ensures that OpenShift is aware of the special MachineConfig requirements, and can
 provision your CNF on a Node that is part of the corresponding MachineConfigSet.  Avoid making changes directly to an
 underlying Node, and let OpenShift handle the heavy lifting of configuring advanced settings.`,
 		Description: formDescription(TestHugepagesNotManuallyManipulated,
@@ -520,7 +520,7 @@ the changes for you.`,
 			`Ensure that the containers lifecycle pre-stop management feature is configured.`),
 		Remediation: `
 		It's considered best-practices to define prestop for proper management of container lifecycle.
-		The prestop can be used to gracefully stop the container and clean resources (e.g., DB connexion).
+		The prestop can be used to gracefully stop the container and clean resources (e.g., DB connection).
 		
 		The prestop can be configured using :
 		 1) Exec : executes the supplied command inside the container
@@ -528,7 +528,7 @@ the changes for you.`,
 		
 		When defined. K8s will handle shutdown of the container using the following:
 		1) K8s first execute the preStop hook inside the container.
-		2) K8s will wait for a grace perdiod.
+		2) K8s will wait for a grace period.
 		3) K8s will clean the remaining processes using KILL signal.		
 			`,
 		BestPracticeReference: bestPracticeDocV1dot2URL + " Section 6.2",
@@ -594,5 +594,13 @@ the changes for you.`,
 			`checks that all CRDs have a status subresource specification.`),
 		Remediation:           `make sure that all the CRDs have a meaningful status specification.`,
 		BestPracticeReference: bestPracticeDocV1dot2URL + " Section 6.2",
+	},
+	TestLoggingIdentifier: {
+		Identifier: TestLoggingIdentifier,
+		Type:       informativeResult,
+		Description: formDescription(TestLoggingIdentifier,
+			`check that all containers under test use standard input output and standard error when logging`),
+		Remediation:           `make sure containers are not redirecting stdout/stderr`,
+		BestPracticeReference: bestPracticeDocV1dot2URL + " Section 11.1",
 	},
 }

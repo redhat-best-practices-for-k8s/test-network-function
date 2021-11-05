@@ -21,10 +21,6 @@ GO_PACKAGES=$(shell go list ./... | grep -v vendor)
 	clean \
 	lint \
 	test \
-	build-jsontest-cli \
-	build-gradetool \
-	build-catalog-json \
-	build-catalog-md \
 	build-cnf-tests \
 	run-cnf-tests \
 	run-generic-cnf-tests \
@@ -56,9 +52,7 @@ GOLANGCI_VERSION=v1.42.1
 build:
 	make test
 	make build-cnf-tests
-	make build-jsontest-cli
-	make build-gradetool
-	make build-tnf-tool
+
 
 build-tnf-tool:
 	go build -o tnf -v cmd/tnf/main.go
@@ -74,6 +68,7 @@ clean:
 	make clean-mocks
 	rm -f ./test-network-function/test-network-function.test
 	rm -f ./test-network-function/cnf-certification-tests_junit.xml
+	rm -f ./tnf
 
 # Run configured linters
 lint:
@@ -84,21 +79,13 @@ test: mocks
 	go build ${COMMON_GO_ARGS} ./...
 	go test -coverprofile=cover.out `go list ./... | grep -v "github.com/test-network-function/test-network-function/test-network-function" | grep -v mock`
 
-# build the binary that can be used to run JSON-defined tests.
-build-jsontest-cli:
-	go build -o jsontest-cli -v cmd/generic/main.go
-
-# build the binary that can be used to run gradetool.
-build-gradetool:
-	go build -o gradetool -v cmd/gradetool/main.go
-
 # generate the test catalog in JSON
-build-catalog-json:
-	go run cmd/catalog/main.go generate json > catalog.json
+build-catalog-json: build-tnf-tool
+	./tnf generate catalog json > catalog.json
 
 # generate the test catalog in Markdown
-build-catalog-md:
-	go run cmd/catalog/main.go generate markdown > CATALOG.md
+build-catalog-md: build-tnf-tool
+	./tnf generate catalog markdown > CATALOG.md
 
 # build the CNF test binary
 build-cnf-tests:
@@ -108,22 +95,6 @@ build-cnf-tests:
 build-cnf-tests-debug:
 	PATH=${PATH}:${GOBIN} ginkgo build -gcflags "all=-N -l" -ldflags "-X github.com/test-network-function/test-network-function/test-network-function.GitCommit=${GIT_COMMIT} -X github.com/test-network-function/test-network-function/test-network-function.GitRelease=${GIT_RELEASE} -X github.com/test-network-function/test-network-function/test-network-function.GitPreviousRelease=${GIT_PREVIOUS_RELEASE} -extldflags '-z relro -z now'" ./test-network-function
 	make build-catalog-md
-
-# run all CNF tests
-run-cnf-tests: build-cnf-tests
-	./run-cnf-suites.sh diagnostic generic multus operator container
-
-# run only the generic CNF tests
-run-generic-cnf-tests: build-cnf-tests
-	./run-cnf-suites.sh diagnostic generic
-
-# Run operator CNF tests
-run-operator-tests: build-cnf-tests
-	./run-cnf-suites.sh diagnostic operator
-
-# Run container CNF tests
-run-container-tests: build-cnf-tests
-	./run-cnf-suites.sh diagnostic container
 
 # Each mock depends on one source file
 pkg/tnf/interactive/mocks/mock_spawner.go: pkg/tnf/interactive/spawner.go

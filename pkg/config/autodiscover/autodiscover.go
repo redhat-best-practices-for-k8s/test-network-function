@@ -19,16 +19,13 @@ package autodiscover
 import (
 	"fmt"
 	"os"
-	"path"
 	"strconv"
 	"time"
 
-	"github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
 	"github.com/test-network-function/test-network-function/pkg/config/configsections"
-	"github.com/test-network-function/test-network-function/pkg/tnf"
-	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/generic"
 	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
+	"github.com/test-network-function/test-network-function/pkg/utils"
 )
 
 const (
@@ -42,18 +39,7 @@ const (
 )
 
 var (
-	// PathRelativeToRoot is used to calculate relative filepaths for the `test-network-function` executable entrypoint.
-	pathRelativeToRoot = path.Join("..")
-	// TestFile is the file location of the command.json test case relative to the project root.
-	TestFile = path.Join("pkg", "tnf", "handlers", "command", "command.json")
-	// RelativeSchemaPath is the relative path to the generic-test.schema.json JSON schema.
-	relativeSchemaPath = path.Join(pathRelativeToRoot, schemaPath)
-	// pathToTestFile is the relative path to the command.json test case.
-	pathToTestFile = path.Join(pathRelativeToRoot, TestFile)
-	// schemaPath is the path to the generic-test.schema.json JSON schema relative to the project root.
-	schemaPath = path.Join("schemas", "generic-test.schema.json")
-	// commandDriver stores the csi driver JSON output.
-	commandDriver = make(map[string]interface{})
+	expectersVerboseModeEnabled = false
 )
 
 // PerformAutoDiscovery checks the environment variable to see if autodiscovery should be performed
@@ -81,46 +67,12 @@ func buildLabelQuery(label configsections.Label) string {
 	return fullLabelName
 }
 
-func executeOcGetCommand(resourceType, labelQuery, namespace string) (string, error) {
+func executeOcGetCommand(resourceType, labelQuery, namespace string) string {
 	ocCommandToExecute := fmt.Sprintf(ocCommand, resourceType, namespace, labelQuery)
-	match, err := executeOcCommand(ocCommandToExecute)
-	if err != nil {
-		log.Error("can't run command, ", ocCommandToExecute, "Error=", err)
-		return "", err
-	}
-	err = jsonUnmarshal([]byte(match), &commandDriver)
-	gomega.Expect(err).To(gomega.BeNil())
-	return match, err
-}
-
-func executeOcCommand(command string) (string, error) {
-	values := make(map[string]interface{})
-	values["COMMAND"] = command
-	values["TIMEOUT"] = ocCommandTimeOut.Nanoseconds()
-	context := interactive.GetContext()
-	tester, handler, result, err := generic.NewGenericFromMap(pathToTestFile, relativeSchemaPath, values)
-
-	gomega.Expect(err).To(gomega.BeNil())
-	gomega.Expect(result).ToNot(gomega.BeNil())
-	gomega.Expect(result.Valid()).To(gomega.BeTrue())
-	gomega.Expect(handler).ToNot(gomega.BeNil())
-	gomega.Expect(tester).ToNot(gomega.BeNil())
-
-	test, err := tnf.NewTest(context.GetExpecter(), *tester, handler, context.GetErrorChannel())
-	gomega.Expect(err).To(gomega.BeNil())
-	gomega.Expect(tester).ToNot(gomega.BeNil())
-	if err != nil {
-		return "", err
-	}
-	test.RunAndValidate()
-
-	genericTest := (*tester).(*generic.Generic)
-	gomega.Expect(genericTest).ToNot(gomega.BeNil())
-
-	matches := genericTest.Matches
-	gomega.Expect(len(matches)).To(gomega.Equal(1))
-	match := genericTest.GetMatches()[0]
-	return match.Match, nil
+	match := utils.ExecuteCommand(ocCommandToExecute, ocCommandTimeOut, interactive.GetContext(expectersVerboseModeEnabled), func() {
+		log.Error("can't run command: ", ocCommandToExecute)
+	})
+	return match
 }
 
 // getContainersByLabel builds `config.Container`s from containers in pods matching a label.
@@ -182,4 +134,9 @@ func buildContainersFromPodResource(pr *PodResource) (containers []configsection
 		containers = append(containers, container)
 	}
 	return
+}
+
+// EnableExpectersVerboseMode enables the verbose mode for expecters (Sent/Match output)
+func EnableExpectersVerboseMode() {
+	expectersVerboseModeEnabled = true
 }

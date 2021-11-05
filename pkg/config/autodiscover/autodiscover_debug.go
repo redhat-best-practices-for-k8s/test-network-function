@@ -27,6 +27,7 @@ import (
 	ds "github.com/test-network-function/test-network-function/pkg/tnf/handlers/daemonset"
 	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
+	"github.com/test-network-function/test-network-function/pkg/utils"
 )
 
 const (
@@ -60,36 +61,32 @@ func FindDebugPods(tp *configsections.TestPartner) {
 func AddDebugLabel(nodeName string) {
 	log.Info("add label", nodeLabelName, "=", nodeLabelValue, " to node ", nodeName)
 	ocCommand := fmt.Sprintf(addlabelCommand, nodeName, nodeLabelName, nodeLabelValue)
-	_, err := executeOcCommand(ocCommand)
-	if err != nil {
+	_ = utils.ExecuteCommand(ocCommand, ocCommandTimeOut, interactive.GetContext(expectersVerboseModeEnabled), func() {
 		log.Error("error in adding label to node ", nodeName)
-		return
-	}
+	})
 }
 
 // AddDebugLabel remove debug label from node
 func DeleteDebugLabel(nodeName string) {
 	log.Info("delete label", nodeLabelName, "=", nodeLabelValue, "to node ", nodeName)
 	ocCommand := fmt.Sprintf(deletelabelCommand, nodeName, nodeLabelName)
-	_, err := executeOcCommand(ocCommand)
-	if err != nil {
+	_ = utils.ExecuteCommand(ocCommand, ocCommandTimeOut, interactive.GetContext(expectersVerboseModeEnabled), func() {
 		log.Error("error in removing label from node ", nodeName)
-		return
-	}
+	})
 }
 
 // CheckDebugDaemonset checks if the debug pods are deployed properly
 // the function will try DefaultTimeout/time.Second times
-func CheckDebugDaemonset() {
+func CheckDebugDaemonset(expectedDebugPods int) {
 	gomega.Eventually(func() bool {
 		log.Debug("check debug daemonset status")
-		return checkDebugPodsReadiness()
+		return checkDebugPodsReadiness(expectedDebugPods)
 	}, 60*time.Second, 2*time.Second).Should(gomega.Equal(true)) //nolint: gomnd
 }
 
 // checkDebugPodsReadiness helper function that returns true if the daemonset debug is deployed properly
-func checkDebugPodsReadiness() bool {
-	context := interactive.GetContext()
+func checkDebugPodsReadiness(expectedDebugPods int) bool {
+	context := interactive.GetContext(expectersVerboseModeEnabled)
 	tester := ds.NewDaemonSet(DefaultTimeout, debugDaemonSet, defaultNamespace)
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 	if err != nil {
@@ -101,10 +98,10 @@ func checkDebugPodsReadiness() bool {
 		return false
 	}
 	dsStatus := tester.GetStatus()
-	if dsStatus.Desired == dsStatus.Current &&
+	if expectedDebugPods == dsStatus.Desired &&
+		dsStatus.Desired == dsStatus.Current &&
+		dsStatus.Current == dsStatus.Available &&
 		dsStatus.Available == dsStatus.Ready &&
-		dsStatus.Ready == dsStatus.Desired &&
-		dsStatus.Ready != 0 &&
 		dsStatus.Misscheduled == 0 {
 		log.Info("daemonset is ready")
 		return true

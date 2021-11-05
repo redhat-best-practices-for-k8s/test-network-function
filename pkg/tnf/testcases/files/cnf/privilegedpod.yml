@@ -10,11 +10,11 @@ testcase:
   - name: HOST_PORT_CHECK
     skiptest: true
     loop: 0
-    command: "oc get pod  %s  -n %s -o json  | jq -r '.spec.containers[%d].ports.hostPort'"
+    command: "oc get pod %s -n %s -o json | jq -r '.spec.containers[%d] | select(.ports) | .ports[].hostPort'"
     action: allow
     expectedType: "regex"
     expectedstatus:
-      - NULL_FALSE
+      - "^(<no value>)*$"
   - name: HOST_PATH_CHECK
     skiptest: true
     loop: 0

@@ -250,19 +250,13 @@ Now that you have a sample JSON test defined, you can go ahead and run your JSON
 In order to run the test, you must first make the jsontest CLI.  Issue the following command:
 
 ```shell-script
-make jsontest-cli
-```
-
-After that completes, issue the following command:
-
-```shell-script
-./jsontest run shell examples/ping.json
+./tnf jsontest shell examples/ping.json
 ```
 
 You will get something similar to the following:
 
 ```shell-script
-% ./jsontest-cli run shell examples/ping.json
+% ./tnf jsontest shell examples/ping.json
 INFO[0000] Running examples/ping.json from a local shell context
 2020/12/06 13:32:53 Sent: "ping -c 5 www.redhat.com\n"
 2020/12/06 13:32:57 Match for RE: "(?m)(\\d+) packets transmitted, (\\d+)( packets){0,1} received, (?:\\+(\\d+) errors)?.*$" found: ["5 packets transmitted, 5 packets received, 0.0% packet loss" "5" "5" " packets" ""] Buffer: "PING e3396.dscx.akamaiedge.net (23.34.95.235): 56 data bytes\n64 bytes from 23.34.95.235: icmp_seq=0 ttl=59 time=17.661 ms\n64 bytes from 23.34.95.235: icmp_seq=1 ttl=59 time=25.993 ms\n64 bytes from 23.34.95.235: icmp_seq=2 ttl=59 time=26.353 ms\n64 bytes from 23.34.95.235: icmp_seq=3 ttl=59 time=25.725 ms\n64 bytes from 23.34.95.235: icmp_seq=4 ttl=59 time=22.403 ms\n\n--- e3396.dscx.akamaiedge.net ping statistics ---\n5 packets transmitted, 5 packets received, 0.0% packet loss\nround-trip min/avg/max/stddev = 17.661/23.627/26.353/3.302 ms\n"
@@ -325,7 +319,7 @@ Note that `testResult` is 1, indicating `tnf.SUCCESS`.
 If you wish to explore the `oc` and `ssh` variants of `jsontest-cli`, please consult the following:
 
 ```shell-script
-./jsontest-cli run -h
+./jsontest -h
 ```
 
 ### Including a JSON-based test in a Ginkgo Test Suite
@@ -535,7 +529,7 @@ called once.
 
 The logic for determining the test result is up to the test writer.  This particular implementation analyzes the match
 output to determine the result.
-1) If the provided `destination` results in an `Indvalid Argument`, then `tnf.ERROR` is returned.
+1) If the provided `destination` results in an `Invalid Argument`, then `tnf.ERROR` is returned.
 2) If the ping summary regular expression matched, then:
 * `tnf.ERROR` if there were PING transmit errors
 * `tnf.SUCCESS` if a maximum of a single packet was lost
@@ -587,7 +581,7 @@ of such PTY implementations can be found in [examples/pty](./examples/pty).
 
 The current tests frequently use `jq` to process structured output from `oc -o json`. `oc` also allows use of
 [Go Templates](https://www.openshift.com/blog/customizing-oc-output-with-go-templates) for processing structured output.
-This is potentially more powerful than using `jq` as it allows building highly customised output of multiple resources
+This is potentially more powerful than using `jq` as it allows building highly customized output of multiple resources
 simultaneously without adding dependencies. Conversely `jq` is widely available and commonly used, and has been
 sufficient for all cases so far. It is up to the author of a contribution to decide which approach is best suited to the
 task at hand.
@@ -628,7 +622,7 @@ The command relays on golang templates located in [pkg/tnf/handlers/handler_temp
 The result of each test execution is included in the claim file.
 Sometimes it is convenient to add informational messages regarding the test execution.
 In order to add informational messages to your test use the function `ginkgo.GinkgoWriter`.
-This function adds an additional message that will appear in the `CapturedTestOutput` section of the claim file, together witht the output of the by directives.
+This function adds an additional message that will appear in the `CapturedTestOutput` section of the claim file, together with the output of the by directives.
 Each added message will be written to claim file even if test failed or error occurred in the middle of the test.
 
 Example usage:

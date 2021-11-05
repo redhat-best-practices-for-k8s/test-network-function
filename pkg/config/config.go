@@ -39,6 +39,7 @@ const (
 )
 
 var (
+	expectersVerboseModeEnabled = false
 	// testEnvironment is the singleton instance of `TestEnvironment`, accessed through `GetTestEnvironment`
 	testEnvironment TestEnvironment
 )
@@ -110,14 +111,11 @@ func getOcSession(pod, container, namespace string, timeout time.Duration, optio
 		gomega.Expect(err).To(gomega.BeNil())
 		// Set up a go routine which reads from the error channel
 		go func() {
-			for {
-				select {
-				case err := <-outCh:
-					log.Fatalf("OC session to container %s/%s is broken due to: %v, aborting the test run", oc.GetPodName(), oc.GetPodContainerName(), err)
-				case <-oc.GetDoneChannel():
-					log.Infof("stop watching the session with container %s/%s", oc.GetPodName(), oc.GetPodContainerName())
-					return
-				}
+			select {
+			case err := <-outCh:
+				log.Fatalf("OC session to container %s/%s is broken due to: %v, aborting the test run", oc.GetPodName(), oc.GetPodContainerName(), err)
+			case <-oc.GetDoneChannel():
+				log.Infof("stop watching the session with container %s/%s", oc.GetPodName(), oc.GetPodContainerName())
 			}
 		}()
 		ocChan <- oc
@@ -145,7 +143,7 @@ func getContainerDefaultNetworkIPAddress(oc *interactive.Oc, dev string) (string
 		oc.GetPodName(), oc.GetPodContainerName(), oc.GetPodNamespace(), result, err)
 }
 
-// TestEnvironment includes the representation of the current state of the test targets and parters as well as the test configuration
+// TestEnvironment includes the representation of the current state of the test targets and partners as well as the test configuration
 type TestEnvironment struct {
 	ContainersUnderTest  map[configsections.ContainerIdentifier]*Container
 	PartnerContainers    map[configsections.ContainerIdentifier]*Container
@@ -333,7 +331,13 @@ func (env *TestEnvironment) discoverNodes() {
 	env.NodesUnderTest = env.createNodes(env.Config.Nodes)
 	env.labelNodes()
 	if !autodiscover.IsMinikube() {
-		autodiscover.CheckDebugDaemonset()
+		expectedDebugPods := 0
+		for _, node := range env.NodesUnderTest {
+			if node.HasDebugPod() {
+				expectedDebugPods++
+			}
+		}
+		autodiscover.CheckDebugDaemonset(expectedDebugPods)
 		autodiscover.FindDebugPods(&env.Config.Partner)
 		for _, debugPod := range env.Config.Partner.ContainersDebugList {
 			env.ContainersToExcludeFromConnectivityTests[debugPod.ContainerIdentifier] = ""
@@ -349,7 +353,7 @@ func (env *TestEnvironment) discoverNodes() {
 func (env *TestEnvironment) createContainers(containerDefinitions []configsections.ContainerConfig) map[configsections.ContainerIdentifier]*Container {
 	createdContainers := make(map[configsections.ContainerIdentifier]*Container)
 	for _, c := range containerDefinitions {
-		oc := getOcSession(c.PodName, c.ContainerName, c.Namespace, DefaultTimeout, interactive.Verbose(true), interactive.SendTimeout(DefaultTimeout))
+		oc := getOcSession(c.PodName, c.ContainerName, c.Namespace, DefaultTimeout, interactive.Verbose(expectersVerboseModeEnabled), interactive.SendTimeout(DefaultTimeout))
 		var defaultIPAddress = "UNKNOWN"
 		var err error
 		if _, ok := env.ContainersToExcludeFromConnectivityTests[c.ContainerIdentifier]; !ok {
@@ -377,4 +381,11 @@ func (env *TestEnvironment) SetNeedsRefresh() {
 // GetTestEnvironment provides the current state of test environment
 func GetTestEnvironment() *TestEnvironment {
 	return &testEnvironment
+}
+
+// EnableExpectersVerboseMode enables the verbose mode for expecters (Sent/Match output)
+func EnableExpectersVerboseMode() {
+	expectersVerboseModeEnabled = true
+
+	autodiscover.EnableExpectersVerboseMode()
 }

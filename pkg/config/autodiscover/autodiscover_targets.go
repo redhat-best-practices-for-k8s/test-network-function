@@ -18,7 +18,6 @@ package autodiscover
 
 import (
 	"encoding/json"
-	"os/exec"
 	"strings"
 	"time"
 
@@ -29,6 +28,7 @@ import (
 	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
 	"github.com/test-network-function/test-network-function/pkg/tnf/testcases"
+	"github.com/test-network-function/test-network-function/pkg/utils"
 )
 
 const (
@@ -84,7 +84,7 @@ func FindTestTarget(labels []configsections.Label, target *configsections.TestTa
 func GetNodesList() (nodes map[string]configsections.Node) {
 	nodes = make(map[string]configsections.Node)
 	var nodeNames []string
-	context := interactive.GetContext()
+	context := interactive.GetContext(expectersVerboseModeEnabled)
 	tester := nodenames.NewNodeNames(DefaultTimeout, map[string]*string{configsections.MasterLabel: nil})
 	test, _ := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 	_, err := test.Run()
@@ -205,16 +205,12 @@ func getConfiguredOperatorTests() (opTests []string) {
 
 // getClusterCrdNames returns a list of crd names found in the cluster.
 func getClusterCrdNames() ([]string, error) {
-	// ToDo: Use command handler.
-	cmd := exec.Command("bash", "-c", ocGetClusterCrdNamesCommand)
-
-	out, err := cmd.Output()
-	if err != nil {
-		return nil, err
-	}
+	out := utils.ExecuteCommand(ocGetClusterCrdNamesCommand, ocCommandTimeOut, interactive.GetContext(expectersVerboseModeEnabled), func() {
+		log.Error("can't run command: ", ocGetClusterCrdNamesCommand)
+	})
 
 	var crdNamesList []string
-	err = json.Unmarshal(out, &crdNamesList)
+	err := json.Unmarshal([]byte(out), &crdNamesList)
 	if err != nil {
 		return nil, err
 	}

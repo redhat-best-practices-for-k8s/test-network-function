@@ -19,7 +19,6 @@ package platform
 import (
 	"encoding/json"
 	"fmt"
-	"path"
 	"regexp"
 	"sort"
 	"strconv"
@@ -41,7 +40,6 @@ import (
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/cnffsdiff"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/containerid"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/currentkernelcmdlineargs"
-	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/generic"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/mckernelarguments"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodemcname"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodetainted"
@@ -61,11 +59,7 @@ const (
 	HugepageszParam          = "hugepagesz"
 	DefaultHugepagesz        = "default_hugepagesz"
 	KernArgsKeyValueSplitLen = 2
-)
-
-var (
-	commandHandlerFilePath = path.Join(common.PathRelativeToRoot, "pkg", "tnf", "handlers", "command", "command.json")
-	mcGetterCommandTimeout = time.Second * 30
+	commandTimeout           = 30 * time.Second
 )
 
 type hugePagesConfig struct {
@@ -192,6 +186,7 @@ func testContainersFsDiff(env *config.TestEnvironment) {
 		testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestUnalteredBaseImageIdentifier)
 		ginkgo.It(testID, func() {
 			var badContainers []string
+			var errContainers []string
 			for _, cut := range env.ContainersUnderTest {
 				podName := cut.Oc.GetPodName()
 				containerName := cut.Oc.GetPodContainerName()
@@ -200,12 +195,21 @@ func testContainersFsDiff(env *config.TestEnvironment) {
 				ginkgo.By(fmt.Sprintf("%s(%s) should not install new packages after starting", podName, containerName))
 				nodeOc := env.NodesUnderTest[nodeName].Oc
 				test := newContainerFsDiffTest(nodeName, nodeOc, containerOC)
-				test.RunWithFailureCallback(func() {
+				var message string
+				test.RunWithCallbacks(nil, func() {
 					badContainers = append(badContainers, containerName)
-					ginkgo.By(fmt.Sprintf("pod %s container %s did update/install/modify additional packages", podName, containerName))
+					message = fmt.Sprintf("pod %s container %s did update/install/modify additional packages", podName, containerName)
+				}, func(err error) {
+					errContainers = append(errContainers, containerName)
+					message = fmt.Sprintf("Failed to check pod %s container %s for additional packages due to: %v", podName, containerName, err)
 				})
+				_, err := ginkgo.GinkgoWriter.Write([]byte(message))
+				if err != nil {
+					log.Errorf("Ginkgo writer could not write because: %s", err)
+				}
 			}
 			gomega.Expect(badContainers).To(gomega.BeNil())
+			gomega.Expect(errContainers).To(gomega.BeNil())
 		})
 	})
 }
@@ -391,6 +395,7 @@ func testTainted(env *config.TestEnvironment) {
 		ginkgo.By("Testing tainted nodes in cluster")
 
 		var taintedNodes []string
+		var errNodes []string
 		for _, node := range env.NodesUnderTest {
 			if !node.HasDebugPod() {
 				continue
@@ -399,52 +404,31 @@ func testTainted(env *config.TestEnvironment) {
 			tester := nodetainted.NewNodeTainted(common.DefaultTimeout)
 			test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 			gomega.Expect(err).To(gomega.BeNil())
-			test.RunWithFailureCallback(func() {
-				taintedNodes = append(taintedNodes, node.Name)
-			})
-			taintedBitmap, err := strconv.ParseUint(tester.Match, 10, 32) //nolint:gomnd // base 10 and uint32
 			var message string
-			if err != nil {
-				message = fmt.Sprintf("Could not decode tainted kernel causes (code=%d) for node %s\n", taintedBitmap, node.Name)
-			} else if taintedBitmap != 0 {
-				message = fmt.Sprintf("Decoded tainted kernel causes (code=%d) for node %s : %s\n", taintedBitmap, node.Name, printTainted(taintedBitmap))
-			} else {
-				message = fmt.Sprintf("Decoded tainted kernel causes (code=%d) for node %s : None\n", taintedBitmap, node.Name)
-			}
+			test.RunWithCallbacks(func() {
+				message = fmt.Sprintf("Decoded tainted kernel causes (code=0) for node %s : None\n", node.Name)
+			}, func() {
+				var taintedBitmap uint64
+				taintedBitmap, err = strconv.ParseUint(tester.Match, 10, 32) //nolint:gomnd // base 10 and uint32
+				if err != nil {
+					message = fmt.Sprintf("Could not decode tainted kernel causes (code=%d) for node %s\n", taintedBitmap, node.Name)
+				} else {
+					message = fmt.Sprintf("Decoded tainted kernel causes (code=%d) for node %s : %s\n", taintedBitmap, node.Name, printTainted(taintedBitmap))
+				}
+				taintedNodes = append(taintedNodes, node.Name)
+			}, func(e error) {
+				message = fmt.Sprintf("Failed to retrieve tainted kernel code for node %s\n", node.Name)
+				errNodes = append(errNodes, node.Name)
+			})
+
 			_, err = ginkgo.GinkgoWriter.Write([]byte(message))
 			if err != nil {
 				log.Errorf("Ginkgo writer could not write because: %s", err)
 			}
 		}
 		gomega.Expect(taintedNodes).To(gomega.BeNil())
+		gomega.Expect(errNodes).To(gomega.BeNil())
 	})
-}
-
-func runAndValidateCommand(command string, context *interactive.Context, failureCallbackFun func()) (match string) {
-	log.Debugf("Launching generic command handler for cmd: %s", command)
-
-	values := make(map[string]interface{})
-	values["COMMAND"] = command
-	values["TIMEOUT"] = mcGetterCommandTimeout.Nanoseconds()
-
-	tester, handlers, result, err := generic.NewGenericFromMap(commandHandlerFilePath, common.RelativeSchemaPath, values)
-	gomega.Expect(err).To(gomega.BeNil())
-	gomega.Expect(result).ToNot(gomega.BeNil())
-	gomega.Expect(result.Valid()).To(gomega.BeTrue())
-	gomega.Expect(handlers).ToNot(gomega.BeNil())
-	gomega.Expect(tester).ToNot(gomega.BeNil())
-
-	test, err := tnf.NewTest(context.GetExpecter(), *tester, handlers, context.GetErrorChannel())
-	gomega.Expect(test).ToNot(gomega.BeNil())
-	gomega.Expect(err).To(gomega.BeNil())
-	test.RunAndValidateWithFailureCallback(failureCallbackFun)
-
-	genericTest := (*tester).(*generic.Generic)
-	gomega.Expect(genericTest).ToNot(gomega.BeNil())
-
-	matches := genericTest.Matches
-	gomega.Expect(len(matches)).To(gomega.Equal(1))
-	return genericTest.GetMatches()[0].Match
 }
 
 func hugepageSizeToInt(s string) int {
@@ -523,7 +507,7 @@ func getNodeNumaHugePages(node *config.NodeConfig) (hugepages numaHugePagesPerSi
 	// This command must run inside the node, so we'll need the node's context to run commands inside the debug daemonset pod.
 	context := interactive.NewContext(node.Oc.GetExpecter(), node.Oc.GetErrorChannel())
 	var commandErr error
-	hugepagesCmdOut := runAndValidateCommand(cmd, context, func() {
+	hugepagesCmdOut := utils.ExecuteCommand(cmd, commandTimeout, context, func() {
 		commandErr = fmt.Errorf("failed to get node %s hugepages per numa", node.Name)
 	})
 	if commandErr != nil {
@@ -565,7 +549,7 @@ func getMachineConfig(mcName string) (machineConfig, error) {
 
 	// Local shell context is needed for the command handler.
 	context := common.GetContext()
-	mcJSON := runAndValidateCommand(fmt.Sprintf("oc get mc %s -o json", mcName), context, func() {
+	mcJSON := utils.ExecuteCommand(fmt.Sprintf("oc get mc %s -o json", mcName), commandTimeout, context, func() {
 		commandErr = fmt.Errorf("failed to get json machineconfig %s", mcName)
 	})
 	if commandErr != nil {
