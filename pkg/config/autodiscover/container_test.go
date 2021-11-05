@@ -41,9 +41,7 @@ func TestBuildContainersFromPodResource(t *testing.T) {
 	assert.Equal(t, "eth1", subjectContainers[0].DefaultNetworkDevice)
 
 	// Check correct IPs are chosen
-	assert.Equal(t, 1, len(orchestratorContainers[0].MultusIPAddresses))
-	assert.Equal(t, "1.1.1.1", orchestratorContainers[0].MultusIPAddresses[0])
-	assert.NotEqual(t, "2.2.2.2", orchestratorContainers[0].MultusIPAddresses[0])
+	assert.Equal(t, 0, len(orchestratorContainers[0].MultusIPAddresses))
 	// test-network-function.com/multusips should be used for the test subject container.
 	assert.Equal(t, 2, len(subjectContainers[0].MultusIPAddresses))
 	assert.Equal(t, "3.3.3.3", subjectContainers[0].MultusIPAddresses[0])
