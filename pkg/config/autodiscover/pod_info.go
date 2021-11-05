@@ -28,6 +28,7 @@ const (
 	cnfIPsKey                     = "multusips"
 	cniNetworksStatusKey          = "k8s.v1.cni.cncf.io/networks-status"
 	resourceTypePods              = "pods"
+	podPhaseRunning               = "Running"
 )
 
 var (
@@ -58,6 +59,7 @@ type PodResource struct {
 	} `json:"spec"`
 	Status struct {
 		PodIPs []map[string]string `json:"podIPs"`
+		Phase  string              `json:"phase"`
 	} `json:"status"`
 }
 
@@ -165,10 +167,10 @@ func GetPodsByLabel(label configsections.Label, namespace string) (*PodList, err
 		return nil, err
 	}
 
-	// Filter out terminating pods
+	// Filter out terminating pods and pending/unscheduled pods
 	var pods []*PodResource
 	for _, pod := range podList.Items {
-		if pod.Metadata.DeletionTimestamp == "" {
+		if pod.Metadata.DeletionTimestamp == "" || pod.Status.Phase != podPhaseRunning {
 			pods = append(pods, pod)
 		}
 	}

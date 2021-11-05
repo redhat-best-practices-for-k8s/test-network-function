@@ -601,7 +601,7 @@ var Catalog = map[string]TestCatalogEntry{
 	},
 	csiDriverIdentifierURL: {
 		Identifier:  CSIDriverIdentifier,
-		Description: "extracts the csi driver info in the cluser",
+		Description: "extracts the csi driver info in the cluster",
 		Type:        Normative,
 		IntrusionSettings: IntrusionSettings{
 			ModifiesSystem:           false,
