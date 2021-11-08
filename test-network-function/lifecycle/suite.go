@@ -113,9 +113,10 @@ var _ = ginkgo.Describe(common.LifecycleTestKey, func() {
 	}
 })
 
-func waitForAllDeploymentsReady(namespace string, timeout, pollingPeriod time.Duration) {
+func waitForAllDeploymentsReady(namespace string, timeout, pollingPeriod time.Duration) { //nolint:unparam // it is fine to use always the same value for timeout
 	gomega.Eventually(func() []string {
 		_, notReadyDeployments := getDeployments(namespace)
+		log.Debugf("Waiting for deployments to get ready, remaining: %d deployments", len(notReadyDeployments))
 		return notReadyDeployments
 	}, timeout, pollingPeriod).Should(gomega.HaveLen(0))
 }
@@ -149,16 +150,7 @@ func closeOcSessionsByDeployment(containers map[configsections.ContainerIdentifi
 		if cid.Namespace == deployment.Namespace && strings.HasPrefix(cid.PodName, deployment.Name+"-") {
 			log.Infof("Closing session to %s %s", cid.PodName, cid.ContainerName)
 			c.Oc.Close()
-			delete(containers, cid)
-		}
-	}
-}
-
-func closeOcSessionsByNode(containers map[configsections.ContainerIdentifier]*config.Container, nodeName string) {
-	for cid, c := range containers {
-		if cid.NodeName == nodeName {
-			log.Infof("Closing session to %s %s", cid.PodName, cid.ContainerName)
-			c.Oc.Close()
+			c.Oc = nil
 			delete(containers, cid)
 		}
 	}
@@ -309,8 +301,10 @@ func testPodsRecreation(env *config.TestEnvironment) {
 				log.Debug("node ", n.Name, " has no deployment, skip draining")
 				continue
 			}
-			closeOcSessionsByNode(env.ContainersUnderTest, n.Name)
-			closeOcSessionsByNode(env.PartnerContainers, n.Name)
+			// We need to delete all Oc sessions because the drain operation is often deleting oauth-openshift pod
+			// This result in lost connectivity oc sessions
+			env.ResetOc()
+
 			// drain node
 			drainNode(n.Name) // should go in this
 
@@ -324,6 +318,9 @@ func testPodsRecreation(env *config.TestEnvironment) {
 			}
 
 			uncordonNode(n.Name)
+
+			// wait for all deployment to be ready otherwise, pods might be unreacheable during the next discovery
+			waitForAllDeploymentsReady(env.NameSpaceUnderTest, scalingTimeout, scalingPollingPeriod)
 		}
 	})
 }
@@ -341,6 +338,9 @@ func getDeployments(namespace string) (deployments dp.DeploymentMap, notReadyDep
 	for name, d := range deployments {
 		if d.Unavailable != 0 || d.Ready != d.Replicas || d.Available != d.Replicas || d.UpToDate != d.Replicas {
 			notReadyDeployments = append(notReadyDeployments, name)
+			log.Tracef("deployment %s: not ready", name)
+		} else {
+			log.Tracef("deployment %s: ready", name)
 		}
 	}
 
@@ -352,7 +352,10 @@ func drainNode(node string) {
 	tester := dd.NewDeploymentsDrain(drainTimeout, node)
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
-	test.RunAndValidate()
+	result, err := test.Run()
+	if err != nil || result == tnf.ERROR {
+		log.Fatalf("Test skipped because of draining node failure - platform issue")
+	}
 }
 
 func uncordonNode(node string) {
