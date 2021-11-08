@@ -69,12 +69,13 @@ func FindTestTarget(labels []configsections.Label, target *configsections.TestTa
 		}
 
 		csvs, err := GetCSVsByLabel(operatorLabelName, anyLabelValue, ns)
-		if err == nil {
-			for i := range csvs.Items {
-				target.Operators = append(target.Operators, buildOperatorFromCSVResource(&csvs.Items[i]))
-			}
-		} else {
-			log.Warnf("an error (%s) occurred when looking for operaters by label", err)
+		if err != nil {
+		         log.Warnf("an error (%s) occurred when looking for operaters by label", err)
+			
+		}
+		
+		for i := range csvs.Items {
+			target.Operators = append(target.Operators, buildOperatorFromCSVResource(&csvs.Items[i]))
 		}
 
 		target.DeploymentsUnderTest = append(target.DeploymentsUnderTest, FindTestDeployments(labels, target, ns)...)
