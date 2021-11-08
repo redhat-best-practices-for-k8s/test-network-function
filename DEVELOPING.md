@@ -529,7 +529,7 @@ called once.
 
 The logic for determining the test result is up to the test writer.  This particular implementation analyzes the match
 output to determine the result.
-1) If the provided `destination` results in an `Indvalid Argument`, then `tnf.ERROR` is returned.
+1) If the provided `destination` results in an `Invalid Argument`, then `tnf.ERROR` is returned.
 2) If the ping summary regular expression matched, then:
 * `tnf.ERROR` if there were PING transmit errors
 * `tnf.SUCCESS` if a maximum of a single packet was lost
@@ -581,7 +581,7 @@ of such PTY implementations can be found in [examples/pty](./examples/pty).
 
 The current tests frequently use `jq` to process structured output from `oc -o json`. `oc` also allows use of
 [Go Templates](https://www.openshift.com/blog/customizing-oc-output-with-go-templates) for processing structured output.
-This is potentially more powerful than using `jq` as it allows building highly customised output of multiple resources
+This is potentially more powerful than using `jq` as it allows building highly customized output of multiple resources
 simultaneously without adding dependencies. Conversely `jq` is widely available and commonly used, and has been
 sufficient for all cases so far. It is up to the author of a contribution to decide which approach is best suited to the
 task at hand.
@@ -622,7 +622,7 @@ The command relays on golang templates located in [pkg/tnf/handlers/handler_temp
 The result of each test execution is included in the claim file.
 Sometimes it is convenient to add informational messages regarding the test execution.
 In order to add informational messages to your test use the function `ginkgo.GinkgoWriter`.
-This function adds an additional message that will appear in the `CapturedTestOutput` section of the claim file, together witht the output of the by directives.
+This function adds an additional message that will appear in the `CapturedTestOutput` section of the claim file, together with the output of the by directives.
 Each added message will be written to claim file even if test failed or error occurred in the middle of the test.
 
 Example usage:

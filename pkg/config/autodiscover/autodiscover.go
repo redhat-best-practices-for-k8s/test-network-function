@@ -48,11 +48,11 @@ func PerformAutoDiscovery() (doAuto bool) {
 	return !doAuto
 }
 
-func buildLabelName(labelNS, labelName string) string {
-	if labelNS == "" {
+func buildLabelName(labelPrefix, labelName string) string {
+	if labelPrefix == "" {
 		return labelName
 	}
-	return fmt.Sprintf(labelTemplate, labelNS, labelName)
+	return fmt.Sprintf(labelTemplate, labelPrefix, labelName)
 }
 
 func buildAnnotationName(annotationName string) string {

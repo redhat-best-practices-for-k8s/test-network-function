@@ -33,10 +33,10 @@ var PrivilegedPodJSON = string(`{
       "name": "HOST_PORT_CHECK",
       "skiptest": true,
       "loop": 1,
-      "command": "oc get pod %s -n %s -o json  | jq -r '.spec.containers[%d].ports.hostPort'",
+      "command": "oc get pod %s -n %s -o json | jq -r '.spec.containers[%d] | select(.ports) | .ports[].hostPort'",
       "action": "allow",
       "expectedstatus": [
-        "NULL_FALSE"
+        "^(<no value>)*$"
       ]
     },
     {
@@ -78,7 +78,9 @@ var PrivilegedPodJSON = string(`{
       "action": "deny",
       "expectedstatus": [
         "NET_ADMIN",
-        "SYS_ADMIN"
+        "SYS_ADMIN",
+        "NET_RAW",
+        "IPC_LOCK"
       ]
     },
     {
