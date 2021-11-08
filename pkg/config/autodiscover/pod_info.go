@@ -134,15 +134,17 @@ func (pr *PodResource) getPodIPs() (ips []string, err error) {
 		if err != nil {
 			return nil, pr.annotationUnmarshalError(cniNetworksStatusKey, err)
 		}
+		// If this is the default interface, skip it as it is tested separately
+		// Otherwise add all non default interfaces
 		for _, cniInterface := range cniInfo {
-			ips = append(ips, cniInterface.IPs...)
+			if !cniInterface.Default {
+				ips = append(ips, cniInterface.IPs...)
+			}
 		}
 		return
 	}
 	log.Warn("Could not establish pod IPs from annotations, please manually set the 'test-network-function.com/multusips' annotation for complete test coverage")
-	for _, ip := range pr.Status.PodIPs {
-		ips = append(ips, ip["ip"])
-	}
+
 	return
 }
 

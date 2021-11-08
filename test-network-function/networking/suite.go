@@ -110,16 +110,25 @@ func testMultusNetworkConnectivity(env *config.TestEnvironment, count int) {
 			if env.TestOrchestrator == nil {
 				ginkgo.Skip("Orchestrator is not deployed, skip this test")
 			}
+			found := false
 			for _, cut := range env.ContainersUnderTest {
 				if _, ok := env.ContainersToExcludeFromConnectivityTests[cut.ContainerIdentifier]; ok {
 					continue
 				}
+				found = true
+				if len(cut.ContainerConfiguration.MultusIPAddresses) == 0 {
+					ginkgo.Skip("No Multus IPs detected")
+				}
+
 				for _, multusIPAddress := range cut.ContainerConfiguration.MultusIPAddresses {
 					testOrchestrator := env.TestOrchestrator
 					ginkgo.By(fmt.Sprintf("a Ping is issued from %s(%s) to %s(%s) %s", testOrchestrator.Oc.GetPodName(),
 						testOrchestrator.Oc.GetPodContainerName(), cut.Oc.GetPodName(), cut.Oc.GetPodContainerName(),
 						cut.DefaultNetworkIPAddress))
 					testPing(testOrchestrator.Oc, multusIPAddress, count)
+				}
+				if !found {
+					ginkgo.Skip("No container found suitable for Multus connectivity test")
 				}
 			}
 		})

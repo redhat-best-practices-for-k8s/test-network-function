@@ -112,11 +112,12 @@ func getOcSession(pod, container, namespace string, timeout time.Duration, optio
 		gomega.Expect(err).To(gomega.BeNil())
 		// Set up a go routine which reads from the error channel
 		go func() {
+			log.Debugf("start watching the session with container %s/%s", oc.GetPodName(), oc.GetPodContainerName())
 			select {
 			case err := <-outCh:
 				log.Fatalf("OC session to container %s/%s is broken due to: %v, aborting the test run", oc.GetPodName(), oc.GetPodContainerName(), err)
 			case <-oc.GetDoneChannel():
-				log.Infof("stop watching the session with container %s/%s", oc.GetPodName(), oc.GetPodContainerName())
+				log.Debugf("stop watching the session with container %s/%s", oc.GetPodName(), oc.GetPodContainerName())
 			}
 		}()
 		ocChan <- oc
@@ -144,7 +145,7 @@ func getContainerDefaultNetworkIPAddress(oc *interactive.Oc, dev string) (string
 		oc.GetPodName(), oc.GetPodContainerName(), oc.GetPodNamespace(), result, err)
 }
 
-// TestEnvironment includes the representation of the current state of the test targets and parters as well as the test configuration
+// TestEnvironment includes the representation of the current state of the test targets and partners as well as the test configuration
 type TestEnvironment struct {
 	ContainersUnderTest  map[configsections.ContainerIdentifier]*Container
 	PartnerContainers    map[configsections.ContainerIdentifier]*Container
@@ -203,25 +204,46 @@ func (env *TestEnvironment) LoadAndRefresh() {
 	}
 }
 
+// Resets the environment during the drain test since all the connections are affected
 func (env *TestEnvironment) reset() {
 	log.Debug("clean up environment Test structure")
+	env.ResetOc()
 	env.Config.Partner = configsections.TestPartner{}
 	env.Config.TestTarget = configsections.TestTarget{}
 	env.TestOrchestrator = nil
 	// Delete Oc debug sessions before re-creating them
 	for name, node := range env.NodesUnderTest {
 		if node.HasDebugPod() {
-			node.Oc.Close()
 			autodiscover.DeleteDebugLabel(name)
+		}
+	}
+	env.NodesUnderTest = nil
+	env.Config.Nodes = nil
+	env.DebugContainers = nil
+}
+
+// Resets the environment during the intrusive tests since all the connections are affected
+func (env *TestEnvironment) ResetOc() {
+	log.Debug("Reset Oc sessions")
+	// Delete Oc debug sessions before re-creating them
+	for _, node := range env.NodesUnderTest {
+		if node.HasDebugPod() {
+			log.Infof("Closing session to node %s", node.Name)
+			node.Oc.Close()
+			node.Oc = nil
 		}
 	}
 	// Delete all remaining sessions before re-creating them
 	for _, cut := range env.ContainersUnderTest {
 		cut.Oc.Close()
+		cut.Oc = nil
 	}
-	env.NodesUnderTest = nil
-	env.Config.Nodes = nil
-	env.DebugContainers = nil
+
+	// Delete all remaining partner sessions before re-creating them
+	for _, cut := range env.PartnerContainers {
+		cut.Oc.Close()
+		cut.Oc = nil
+	}
 }
 
 func (env *TestEnvironment) doAutodiscover() {
@@ -276,7 +298,7 @@ func (env *TestEnvironment) labelNodes() {
 		if node.IsWorker() && workerNode == "" {
 			workerNode = name
 		}
-		if node.IsMaster() && node.HasDebugPod() {
+		if node.IsWorker() && node.HasDebugPod() {
 			workerNode = ""
 			break
 		}
@@ -301,7 +323,7 @@ func (env *TestEnvironment) createNodes(nodes map[string]configsections.Node) ma
 	defer log.Debug("autodiscovery: create nodes done")
 	nodesConfig := make(map[string]*NodeConfig)
 	for _, n := range nodes {
-		nodesConfig[n.Name] = &NodeConfig{Node: n, Name: n.Name, Oc: nil, deployment: false}
+		nodesConfig[n.Name] = &NodeConfig{Node: n, Name: n.Name, Oc: nil, deployment: false, debug: false}
 	}
 	for _, c := range env.ContainersUnderTest {
 		nodeName := c.ContainerConfiguration.NodeName
@@ -331,6 +353,7 @@ func (env *TestEnvironment) AttachDebugPodsToNodes() {
 func (env *TestEnvironment) discoverNodes() {
 	env.NodesUnderTest = env.createNodes(env.Config.Nodes)
 	env.labelNodes()
+
 	if !autodiscover.IsMinikube() {
 		expectedDebugPods := 0
 		for _, node := range env.NodesUnderTest {

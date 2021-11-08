@@ -41,6 +41,7 @@ var _ = ginkgo.AfterSuite(func() {
 			continue
 		}
 		node.Oc.Close()
+		node.Oc = nil
 		autodiscover.DeleteDebugLabel(name)
 	}
 })
