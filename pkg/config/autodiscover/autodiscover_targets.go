@@ -46,8 +46,8 @@ var (
 
 // FindTestTarget finds test targets from the current state of the cluster,
 // using labels and annotations, and add them to the `configsections.TestTarget` passed in.
-func FindTestTarget(labels []configsections.Label, target *configsections.TestTarget, namespace []string) {
-	for _, ns := range namespace {
+func FindTestTarget(labels []configsections.Label, target *configsections.TestTarget, namespaces []string) {
+	for _, ns := range namespaces {
 		// find pods by label
 		for _, l := range labels {
 			pods, err := GetPodsByLabel(l, ns)
@@ -70,10 +70,10 @@ func FindTestTarget(labels []configsections.Label, target *configsections.TestTa
 
 		csvs, err := GetCSVsByLabel(operatorLabelName, anyLabelValue, ns)
 		if err != nil {
-		         log.Warnf("an error (%s) occurred when looking for operaters by label", err)
-			
+			log.Warnf("an error (%s) occurred when looking for operators by label", err)
+
 		}
-		
+
 		for i := range csvs.Items {
 			target.Operators = append(target.Operators, buildOperatorFromCSVResource(&csvs.Items[i]))
 		}

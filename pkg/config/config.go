@@ -36,6 +36,7 @@ const (
 	configurationFilePathEnvironmentVariableKey = "TNF_CONFIGURATION_PATH"
 	defaultConfigurationFilePath                = "tnf_config.yml"
 	defaultTimeoutSeconds                       = 10
+	defaultNamespace                            = "default"
 )
 
 var (
@@ -245,7 +246,7 @@ func (env *TestEnvironment) doAutodiscover() {
 	for _, cid := range env.Config.Partner.ContainersDebugList {
 		env.ContainersToExcludeFromConnectivityTests[cid.ContainerIdentifier] = ""
 	}
-	autodiscover.FindTestPartner(&env.Config.Partner, env.NameSpacesUnderTest[0])
+	autodiscover.FindTestPartner(&env.Config.Partner, defaultNamespace)
 	env.PartnerContainers = env.createContainers(env.Config.Partner.ContainerConfigList)
 	env.TestOrchestrator = env.PartnerContainers[env.Config.Partner.TestOrchestratorID]
 	env.DeploymentsUnderTest = env.Config.DeploymentsUnderTest

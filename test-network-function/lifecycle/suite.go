@@ -287,7 +287,7 @@ func shutdownTest(podNamespace, podName string) {
 }
 
 func testPodsRecreation(env *config.TestEnvironment) {
-	var deployments dp.DeploymentMap
+	deployments := make(dp.DeploymentMap)
 	var notReadyDeployments []string
 
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestPodRecreationIdentifier)
@@ -324,7 +324,7 @@ func testPodsRecreation(env *config.TestEnvironment) {
 
 				// verify deployments are ready again
 				_, notReadyDeployments = getDeployments(ns)
-				if len(notReadyDeployments) != 0 {
+				if len(notReadyDeployments) > 0 {
 					uncordonNode(n.Name)
 					ginkgo.Fail(fmt.Sprintf("did not create replicas when node %s is drained", n.Name))
 				}
