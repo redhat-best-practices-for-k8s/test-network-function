@@ -111,12 +111,12 @@ func getOcSession(pod, container, namespace string, timeout time.Duration, optio
 		gomega.Expect(err).To(gomega.BeNil())
 		// Set up a go routine which reads from the error channel
 		go func() {
-			log.Infof("start watching the session with container %s/%s", oc.GetPodName(), oc.GetPodContainerName())
+			log.Debugf("start watching the session with container %s/%s", oc.GetPodName(), oc.GetPodContainerName())
 			select {
 			case err := <-outCh:
 				log.Fatalf("OC session to container %s/%s is broken due to: %v, aborting the test run", oc.GetPodName(), oc.GetPodContainerName(), err)
 			case <-oc.GetDoneChannel():
-				log.Infof("stop watching the session with container %s/%s", oc.GetPodName(), oc.GetPodContainerName())
+				log.Debugf("stop watching the session with container %s/%s", oc.GetPodName(), oc.GetPodContainerName())
 			}
 		}()
 		ocChan <- oc
@@ -221,7 +221,7 @@ func (env *TestEnvironment) reset() {
 	env.DebugContainers = nil
 }
 
-// Resets the environment during the drain test since all the connections are affected
+// Resets the environment during the intrusive tests since all the connections are affected
 func (env *TestEnvironment) ResetOc() {
 	log.Debug("Reset Oc sessions")
 	// Delete Oc debug sessions before re-creating them
