@@ -325,8 +325,10 @@ func testPodsRecreation(env *config.TestEnvironment) {
 			}
 			uncordonNode(n.Name)
 
-			// wait for all deployment to be ready otherwise, pods might be unreacheable during the next discovery
-			waitForAllDeploymentsReady(env.NameSpaceUnderTest, scalingTimeout, scalingPollingPeriod)
+			for _, ns := range env.NameSpacesUnderTest {
+				// wait for all deployment to be ready otherwise, pods might be unreacheable during the next discovery
+				waitForAllDeploymentsReady(ns, scalingTimeout, scalingPollingPeriod)
+			}
 		}
 	})
 }
