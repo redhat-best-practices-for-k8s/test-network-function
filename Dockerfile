@@ -39,20 +39,13 @@ RUN wget --directory-prefix=${TEMP_DIR} ${OC_DL_URL} && \
 # Add go and oc binary directory to $PATH
 ENV PATH=${PATH}:"/usr/local/go/bin":${GOPATH}/"bin"
 
-# Git identifier to checkout
-ARG TNF_VERSION
-ARG TNF_SRC_URL=https://github.com/test-network-function/test-network-function
-ARG GIT_CHECKOUT_TARGET=$TNF_VERSION
-
 # Git identifier to checkout for partner
 ARG TNF_PARTNER_VERSION
 ARG TNF_PARTNER_SRC_URL=https://github.com/test-network-function/cnf-certification-test-partner
 ARG GIT_PARTNER_CHECKOUT_TARGET=$TNF_PARTNER_VERSION
 
-# Clone the TNF source repository and checkout the target branch/tag/commit
-RUN git clone --no-single-branch --depth=1 ${TNF_SRC_URL} ${TNF_SRC_DIR}
-RUN git -C ${TNF_SRC_DIR} fetch origin ${GIT_CHECKOUT_TARGET}
-RUN git -C ${TNF_SRC_DIR} checkout ${GIT_CHECKOUT_TARGET}
+# Copy source code
+COPY . ${TNF_SRC_DIR}
 
 # Clone the partner source repository and checkout the target branch/tag/commit
 RUN git clone --no-single-branch --depth=1 ${TNF_PARTNER_SRC_URL} ${TNF_PARTNER_SRC_DIR}

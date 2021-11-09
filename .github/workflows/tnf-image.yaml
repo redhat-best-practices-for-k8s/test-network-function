@@ -112,8 +112,7 @@ jobs:
             -t ${REGISTRY_LOCAL}/${IMAGE_NAME}:${IMAGE_TAG} \
             -t ${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG} \
             -t ${REGISTRY}/${IMAGE_NAME}:${TNF_VERSION} \
-            --build-arg TNF_VERSION=${TNF_VERSION} \
-            --build-arg TNF_SRC_URL=${TNF_SRC_URL} .
+            .
 
       # Create a minikube cluster for testing.
 
