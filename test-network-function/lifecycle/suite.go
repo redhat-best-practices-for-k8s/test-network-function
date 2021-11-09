@@ -310,12 +310,10 @@ func testPodsRecreation(env *config.TestEnvironment) {
 			// We need to delete all Oc sessions because the drain operation is often deleting oauth-openshift pod
 			// This result in lost connectivity oc sessions
 			env.ResetOc()
-
 			// drain node
 			drainNode(n.Name) // should go in this
 			for _, ns := range env.NameSpacesUnderTest {
 				waitForAllDeploymentsReady(ns, scalingTimeout, scalingPollingPeriod)
-
 				// verify deployments are ready again
 				_, notReadyDeployments = getDeployments(ns)
 				if len(notReadyDeployments) > 0 {

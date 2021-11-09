@@ -71,7 +71,6 @@ func FindTestTarget(labels []configsections.Label, target *configsections.TestTa
 		csvs, err := GetCSVsByLabel(operatorLabelName, anyLabelValue, ns)
 		if err != nil {
 			log.Warnf("an error (%s) occurred when looking for operators by label", err)
-
 		}
 
 		for i := range csvs.Items {
