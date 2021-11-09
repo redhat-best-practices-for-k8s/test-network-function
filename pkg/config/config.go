@@ -217,6 +217,7 @@ func (env *TestEnvironment) reset() {
 			autodiscover.DeleteDebugLabel(name)
 		}
 	}
+	env.NameSpacesUnderTest = nil
 	env.NodesUnderTest = nil
 	env.Config.Nodes = nil
 	env.DebugContainers = nil
