@@ -79,7 +79,7 @@ func (deployment *DeploymentResource) GetReplicas() int {
 func (deployment *DeploymentResource) GetLabels() map[string]string {
 	return deployment.Metadata.Labels
 }
-func (deployment *DeploymentResource) IsHpa() configsections.Hpa {
+func (deployment *DeploymentResource) GetHpa() configsections.Hpa {
 	template := fmt.Sprintf("go-template='{{ range .items }}{{ if eq .spec.scaleTargetRef.name \"%s\" }}{{.spec.minReplicas}},{{.spec.maxReplicas}},{{.metadata.name}}{{ end }}{{ end }}'", deployment.GetName())
 	ocCmd := fmt.Sprintf("oc get hpa -n %s -o %s", deployment.GetNamespace(), template)
 	out := execCommandOutput(ocCmd)

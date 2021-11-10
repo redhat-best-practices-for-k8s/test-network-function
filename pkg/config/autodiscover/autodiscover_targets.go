@@ -136,7 +136,7 @@ func FindTestDeployments(targetLabels []configsections.Label, target *configsect
 					Name:      deploymentResource.GetName(),
 					Namespace: deploymentResource.GetNamespace(),
 					Replicas:  deploymentResource.GetReplicas(),
-					Hpa:       deploymentResource.IsHpa(),
+					Hpa:       deploymentResource.GetHpa(),
 				}
 
 				deployments = append(deployments, deployment)
