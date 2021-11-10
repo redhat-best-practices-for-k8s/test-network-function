@@ -193,7 +193,7 @@ func testScaling(env *config.TestEnvironment) {
 
 			closeOcSessionsByDeployment(env.ContainersUnderTest, deployment)
 			replicaCount := deployment.Replicas
-			isHpa := deployment.IsHpa()
+			isHpa := deployment.Hpa
 			if isHpa.HpaName != "" {
 				MinReplicaCount := isHpa.MinReplicas
 				MaxReplicaCount := isHpa.MaxReplicas
