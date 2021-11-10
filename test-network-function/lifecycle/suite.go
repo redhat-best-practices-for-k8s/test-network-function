@@ -158,7 +158,7 @@ func closeOcSessionsByDeployment(containers map[configsections.ContainerIdentifi
 
 // runScalingTest Runs a Scaling handler TC and waits for all the deployments to be ready.
 func runScalingTest(deployment configsections.Deployment) {
-	handler := scaling.NewScaling(common.DefaultTimeout, deployment.Namespace, deployment.Name, deployment.Replicas)
+	handler := scaling.NewScaling(common.DefaultTimeout, deployment.Namespace, deployment.Name, deployment.Replicas, false, deployment.MinReplicas, deployment.MaxReplicas)
 	test, err := tnf.NewTest(common.GetContext().GetExpecter(), handler, []reel.Handler{handler}, common.GetContext().GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
 	test.RunAndValidate()
@@ -167,6 +167,16 @@ func runScalingTest(deployment configsections.Deployment) {
 	waitForAllDeploymentsReady(deployment.Namespace, scalingTimeout, scalingPollingPeriod)
 }
 
+func runHpaScalingTest(deployment configsections.Deployment) {
+	handler := scaling.NewScaling(common.DefaultTimeout, deployment.Namespace, deployment.HpaName, deployment.Replicas, true, deployment.MinReplicas, deployment.MaxReplicas)
+	test, err := tnf.NewTest(common.GetContext().GetExpecter(), handler, []reel.Handler{handler}, common.GetContext().GetErrorChannel())
+	gomega.Expect(err).To(gomega.BeNil())
+	test.RunAndValidate()
+
+	// Wait until the deployment is ready
+	waitForAllDeploymentsReady(deployment.Namespace, scalingTimeout, scalingPollingPeriod)
+
+}
 func testScaling(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestScalingIdentifier)
 	ginkgo.It(testID, func() {
@@ -183,14 +193,27 @@ func testScaling(env *config.TestEnvironment) {
 
 			closeOcSessionsByDeployment(env.ContainersUnderTest, deployment)
 			replicaCount := deployment.Replicas
+			isHpa := deployment.IsHpa
+			if isHpa {
+				MinReplicaCount := deployment.MinReplicas
+				MaxReplicaCount := deployment.MaxReplicas
+				deployment.MinReplicas = replicaCount - 1
+				deployment.MaxReplicas = replicaCount - 1
+				runHpaScalingTest(deployment) // scale in
+				deployment.MinReplicas = MinReplicaCount
+				deployment.MaxReplicas = MaxReplicaCount
+				runScalingTest(deployment)    // scale out
+				runHpaScalingTest(deployment) // return status to what was before
 
-			// ScaleIn, removing one pod from the replicaCount
-			deployment.Replicas = replicaCount - 1
-			runScalingTest(deployment)
+			} else {
+				// ScaleIn, removing one pod from the replicaCount
+				deployment.Replicas = replicaCount - 1
+				runScalingTest(deployment)
 
-			// Scaleout, restoring the original replicaCount number
-			deployment.Replicas = replicaCount
-			runScalingTest(deployment)
+				// Scaleout, restoring the original replicaCount number
+				deployment.Replicas = replicaCount
+				runScalingTest(deployment)
+			}
 		}
 	})
 }

@@ -18,7 +18,11 @@ package configsections
 
 // Deployment defines a deployment in the cluster.
 type Deployment struct {
-	Name      string
-	Namespace string
-	Replicas  int
+	Name        string
+	Namespace   string
+	Replicas    int
+	IsHpa       bool
+	MinReplicas int
+	MaxReplicas int
+	HpaName     string
 }
