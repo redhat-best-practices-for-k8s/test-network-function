@@ -167,8 +167,8 @@ func runScalingTest(deployment configsections.Deployment) {
 	waitForAllDeploymentsReady(deployment.Namespace, scalingTimeout, scalingPollingPeriod)
 }
 
-func runHpaScalingTest(deployment configsections.Deployment, hpa configsections.Hpa) {
-	handler := scaling.NewScaling(common.DefaultTimeout, deployment.Namespace, hpa.HpaName, deployment.Replicas, true, hpa.MinReplicas, hpa.MaxReplicas)
+func runHpaScalingTest(deployment configsections.Deployment) {
+	handler := scaling.NewScaling(common.DefaultTimeout, deployment.Namespace, deployment.Hpa.HpaName, deployment.Replicas, true, deployment.Hpa.MinReplicas, deployment.Hpa.MaxReplicas)
 	test, err := tnf.NewTest(common.GetContext().GetExpecter(), handler, []reel.Handler{handler}, common.GetContext().GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
 	test.RunAndValidate()
@@ -199,13 +199,13 @@ func testScaling(env *config.TestEnvironment) {
 				MaxReplicaCount := isHpa.MaxReplicas
 				isHpa.MinReplicas = replicaCount - 1
 				isHpa.MaxReplicas = replicaCount - 1
-				runHpaScalingTest(deployment, isHpa) // scale in
+				runHpaScalingTest(deployment) // scale in
 				isHpa.MinReplicas = replicaCount
 				isHpa.MaxReplicas = replicaCount
-				runHpaScalingTest(deployment, isHpa) // scale out
+				runHpaScalingTest(deployment) // scale out
 				isHpa.MinReplicas = MinReplicaCount
 				isHpa.MaxReplicas = MaxReplicaCount
-				runHpaScalingTest(deployment, isHpa) // return status to what was before
+				runHpaScalingTest(deployment) // return status to what was before
 
 			} else {
 				// ScaleIn, removing one pod from the replicaCount
