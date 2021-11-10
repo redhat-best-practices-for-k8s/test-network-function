@@ -206,7 +206,6 @@ func testScaling(env *config.TestEnvironment) {
 				isHpa.MinReplicas = MinReplicaCount
 				isHpa.MaxReplicas = MaxReplicaCount
 				runHpaScalingTest(deployment) // return status to what was before
-
 			} else {
 				// ScaleIn, removing one pod from the replicaCount
 				deployment.Replicas = replicaCount - 1
