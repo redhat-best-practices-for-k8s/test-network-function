@@ -42,7 +42,7 @@ type Scaling struct {
 }
 
 // NewScaling creates a new Scaling handler.
-func NewScaling(timeout time.Duration, namespace, deploymentName string, replicaCount int, isHpa bool, min int, max int) *Scaling {
+func NewScaling(timeout time.Duration, namespace, deploymentName string, replicaCount int, isHpa bool, min, max int) *Scaling {
 	if isHpa {
 		command := fmt.Sprintf(hpaOcCommand, deploymentName, min, max, namespace)
 		return &Scaling{
