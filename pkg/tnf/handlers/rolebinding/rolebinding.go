@@ -40,7 +40,7 @@ type RoleBinding struct {
 
 // NewRoleBinding creates a new RoleBinding tnf.Test.
 func NewRoleBinding(timeout time.Duration, serviceAccountName, podNamespace string) *RoleBinding {
-	serviceAccountSubString := "name:" + serviceAccountName + " namespace:" + podNamespace
+	serviceAccountSubString := "name:\\b" + serviceAccountName + "\\b namespace:\\b" + podNamespace + "\\b"
 	return &RoleBinding{
 		podNamespace: podNamespace,
 		timeout:      timeout,
