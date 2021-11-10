@@ -51,7 +51,6 @@ func NewScaling(timeout time.Duration, namespace, deploymentName string, replica
 			args:    strings.Fields(command),
 			regex:   fmt.Sprintf(hpaRegex, deploymentName),
 		}
-
 	}
 	command := fmt.Sprintf(ocCommand, replicaCount, deploymentName, namespace)
 	return &Scaling{
@@ -60,7 +59,6 @@ func NewScaling(timeout time.Duration, namespace, deploymentName string, replica
 		args:    strings.Fields(command),
 		regex:   fmt.Sprintf(regex, deploymentName),
 	}
-
 }
 
 // Args returns the command line args for the test.

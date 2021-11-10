@@ -79,19 +79,19 @@ func (deployment *DeploymentResource) GetReplicas() int {
 func (deployment *DeploymentResource) GetLabels() map[string]string {
 	return deployment.Metadata.Labels
 }
-func (deployment *DeploymentResource) IsHpa() (bool, int, int, string) {
-	//template := "go-template='{{range .items}}{{.metadata.name}},{{.spec.minReplicas}}{{end}}' "
+func (deployment *DeploymentResource) IsHpa() (isHpa bool, min int, max int, hpaNmae string) {
 	template := fmt.Sprintf("go-template='{{ range .items }}{{ if eq .spec.scaleTargetRef.name \"%s\" }}{{.spec.minReplicas}},{{.spec.maxReplicas}},{{.metadata.name}}{{ end }}{{ end }}'", deployment.GetName())
 	ocCmd := fmt.Sprintf("oc get hpa -n %s -o %s", deployment.GetNamespace(), template)
 	out := execCommandOutput(ocCmd)
 	if out != "" {
 		out := strings.Split(out, ",")
-
+		isHpa := true
 		min, _ := strconv.Atoi(out[0])
 		max, _ := strconv.Atoi(out[1])
-		return true, min, max, out[2]
+		hpaNmae := out[2]
+		return isHpa, min, max, hpaNmae
 	}
-	return false, 0, 0, "nothing"
+	return false, 0, 0, ""
 }
 
 // GetTargetDeploymentsByNamespace will return all deployments that have pods with a given label.

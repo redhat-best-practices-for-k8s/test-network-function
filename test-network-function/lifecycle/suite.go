@@ -175,8 +175,8 @@ func runHpaScalingTest(deployment configsections.Deployment) {
 
 	// Wait until the deployment is ready
 	waitForAllDeploymentsReady(deployment.Namespace, scalingTimeout, scalingPollingPeriod)
-
 }
+
 func testScaling(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestScalingIdentifier)
 	ginkgo.It(testID, func() {
