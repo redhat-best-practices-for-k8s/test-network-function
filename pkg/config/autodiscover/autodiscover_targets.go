@@ -132,15 +132,10 @@ func FindTestDeployments(targetLabels []configsections.Label, target *configsect
 			log.Error("Unable to get deployment list from namespace ", namespace, ". Error: ", err)
 		} else {
 			for _, deploymentResource := range deploymentResourceList.Items {
-				IsHpa, MinReplicas, MaxReplicas, HpaName := deploymentResource.IsHpa()
 				deployment := configsections.Deployment{
-					Name:        deploymentResource.GetName(),
-					Namespace:   deploymentResource.GetNamespace(),
-					Replicas:    deploymentResource.GetReplicas(),
-					IsHpa:       IsHpa,
-					MinReplicas: MinReplicas,
-					MaxReplicas: MaxReplicas,
-					HpaName:     HpaName,
+					Name:      deploymentResource.GetName(),
+					Namespace: deploymentResource.GetNamespace(),
+					Replicas:  deploymentResource.GetReplicas(),
 				}
 
 				deployments = append(deployments, deployment)
