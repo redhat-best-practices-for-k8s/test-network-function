@@ -197,14 +197,14 @@ func testScaling(env *config.TestEnvironment) {
 			if hpa.HpaName != "" {
 				MinReplicaCount := hpa.MinReplicas
 				MaxReplicaCount := hpa.MaxReplicas
-				hpa.MinReplicas = replicaCount - 1
-				hpa.MaxReplicas = replicaCount - 1
+				deployment.Hpa.MinReplicas = replicaCount - 1
+				deployment.Hpa.MaxReplicas = replicaCount - 1
 				runHpaScalingTest(deployment) // scale in
-				hpa.MinReplicas = replicaCount
-				hpa.MaxReplicas = replicaCount
+				deployment.Hpa.MinReplicas = replicaCount
+				deployment.Hpa.MaxReplicas = replicaCount
 				runHpaScalingTest(deployment) // scale out
-				hpa.MinReplicas = MinReplicaCount
-				hpa.MaxReplicas = MaxReplicaCount
+				deployment.Hpa.MinReplicas = MinReplicaCount
+				deployment.Hpa.MaxReplicas = MaxReplicaCount
 				runHpaScalingTest(deployment) // return status to what was before
 			} else {
 				// ScaleIn, removing one pod from the replicaCount
