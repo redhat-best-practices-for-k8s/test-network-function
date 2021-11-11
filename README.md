@@ -258,7 +258,7 @@ Dependency|Minimum Version
 [GoLang](https://golang.org/dl/)|1.17
 [golangci-lint](https://golangci-lint.run/usage/install/)|1.42.1
 [jq](https://stedolan.github.io/jq/)|1.6
-[OpenShift Client](https://docs.openshift.com/container-platform/4.4/welcome/index.html)|4.4
+[OpenShift Client](https://mirror.openshift.com/pub/openshift-v4/clients/ocp/)|4.7
 
 Other binary dependencies required to run tests can be installed using the following command:
 
