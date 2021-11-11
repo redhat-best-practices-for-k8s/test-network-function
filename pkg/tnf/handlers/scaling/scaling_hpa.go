@@ -40,7 +40,7 @@ type HpAScaling struct {
 }
 
 // NewScaling creates a new Scaling handler.
-func HpaNewScaling(timeout time.Duration, namespace, hpaName string, min, max int) *HpAScaling {
+func NewHpaScaling(timeout time.Duration, namespace, hpaName string, min, max int) *HpAScaling {
 	command := fmt.Sprintf(hpaOcCommand, hpaName, min, max, namespace)
 	return &HpAScaling{
 		timeout: timeout,

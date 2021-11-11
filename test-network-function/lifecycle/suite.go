@@ -168,7 +168,7 @@ func runScalingTest(deployment configsections.Deployment) {
 }
 
 func runHpaScalingTest(deployment configsections.Deployment) {
-	handler := scaling.HpaNewScaling(common.DefaultTimeout, deployment.Namespace, deployment.Hpa.HpaName, deployment.Hpa.MinReplicas, deployment.Hpa.MaxReplicas)
+	handler := scaling.NewHpaScaling(common.DefaultTimeout, deployment.Namespace, deployment.Hpa.HpaName, deployment.Hpa.MinReplicas, deployment.Hpa.MaxReplicas)
 	test, err := tnf.NewTest(common.GetContext().GetExpecter(), handler, []reel.Handler{handler}, common.GetContext().GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
 	test.RunAndValidate()

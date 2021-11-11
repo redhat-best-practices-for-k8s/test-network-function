@@ -27,14 +27,14 @@ import (
 )
 
 func Test_HpaNewScaling(t *testing.T) {
-	handler := scaling.HpaNewScaling(testTimeoutDuration, testPodNamespace, testHpaName, testMinReplicaCount, testMaxReplicaCount)
+	handler := scaling.NewHpaScaling(testTimeoutDuration, testPodNamespace, testHpaName, testMinReplicaCount, testMaxReplicaCount)
 	assert.NotNil(t, handler)
 	assert.Equal(t, testTimeoutDuration, handler.Timeout())
 	assert.Equal(t, handler.Result(), tnf.ERROR)
 }
 
 func Test_ReelHpaFirstPositive(t *testing.T) {
-	handler := scaling.HpaNewScaling(testTimeoutDuration, testPodNamespace, testHpaName, testMinReplicaCount, testMaxReplicaCount)
+	handler := scaling.NewHpaScaling(testTimeoutDuration, testPodNamespace, testHpaName, testMinReplicaCount, testMaxReplicaCount)
 	assert.NotNil(t, handler)
 	firstStep := handler.ReelFirst()
 	re := regexp.MustCompile(firstStep.Expect[0])
@@ -44,7 +44,7 @@ func Test_ReelHpaFirstPositive(t *testing.T) {
 }
 
 func Test_ReelHpaFirstNegative(t *testing.T) {
-	handler := scaling.HpaNewScaling(testTimeoutDuration, testPodNamespace, testHpaName, testMinReplicaCount, testMaxReplicaCount)
+	handler := scaling.NewHpaScaling(testTimeoutDuration, testPodNamespace, testHpaName, testMinReplicaCount, testMaxReplicaCount)
 	assert.NotNil(t, handler)
 	firstStep := handler.ReelFirst()
 	re := regexp.MustCompile(firstStep.Expect[0])
@@ -53,7 +53,7 @@ func Test_ReelHpaFirstNegative(t *testing.T) {
 }
 
 func Test_ReelHpaMatchSuccess(t *testing.T) {
-	handler := scaling.HpaNewScaling(testTimeoutDuration, testPodNamespace, testHpaName, testMinReplicaCount, testMaxReplicaCount)
+	handler := scaling.NewHpaScaling(testTimeoutDuration, testPodNamespace, testHpaName, testMinReplicaCount, testMaxReplicaCount)
 	assert.NotNil(t, handler)
 
 	step := handler.ReelMatch("", "", testHpaInputSuccess)
@@ -63,7 +63,7 @@ func Test_ReelHpaMatchSuccess(t *testing.T) {
 
 // Just ensure there are no panics.
 func Test_ReelHpaEof(t *testing.T) {
-	handler := scaling.HpaNewScaling(testTimeoutDuration, testPodNamespace, testHpaName, testMinReplicaCount, testMaxReplicaCount)
+	handler := scaling.NewHpaScaling(testTimeoutDuration, testPodNamespace, testHpaName, testMinReplicaCount, testMaxReplicaCount)
 	assert.NotNil(t, handler)
 	handler.ReelEOF()
 }
