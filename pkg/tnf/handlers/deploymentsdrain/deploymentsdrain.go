@@ -84,6 +84,7 @@ func (dd *DeploymentsDrain) ReelFirst() *reel.Step {
 
 // ReelMatch sets result
 func (dd *DeploymentsDrain) ReelMatch(_, _, match string) *reel.Step {
+	// if the command fails to run, the error is printed only on error channel, empty string is matched"
 	if match != "" {
 		dd.result = tnf.SUCCESS
 	}
