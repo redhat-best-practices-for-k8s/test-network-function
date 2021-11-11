@@ -279,20 +279,26 @@ func shutdownTest(podNamespace, podName string) {
 }
 
 func testPodsRecreation(env *config.TestEnvironment) {
-	var deployments dp.DeploymentMap
+	deployments := make(dp.DeploymentMap)
 	var notReadyDeployments []string
 
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestPodRecreationIdentifier)
 	ginkgo.It(testID, func() {
 		ginkgo.By("Testing node draining effect of deployment")
-		ginkgo.By(fmt.Sprintf("test deployment in namespace %s", env.NameSpaceUnderTest))
-		deployments, notReadyDeployments = getDeployments(env.NameSpaceUnderTest)
-		if len(deployments) == 0 {
-			return
+		ginkgo.By(fmt.Sprintf("test deployment in namespace %s", env.NameSpacesUnderTest))
+		for _, ns := range env.NameSpacesUnderTest {
+			var dps dp.DeploymentMap
+			dps, notReadyDeployments = getDeployments(ns)
+			for dpKey, dp := range dps {
+				deployments[dpKey] = dp
+			}
+			// We require that all deployments have the desired number of replicas and are all up to date
+			if len(notReadyDeployments) != 0 {
+				ginkgo.Skip("Can not test when deployments are not ready")
+			}
 		}
-		// We require that all deployments have the desired number of replicas and are all up to date
-		if len(notReadyDeployments) != 0 {
-			ginkgo.Skip("Can not test when deployments are not ready")
+		if len(deployments) == 0 {
+			ginkgo.Skip("no valid deployment")
 		}
 		defer env.SetNeedsRefresh()
 		ginkgo.By("should create new replicas when node is drained")
@@ -304,23 +310,23 @@ func testPodsRecreation(env *config.TestEnvironment) {
 			// We need to delete all Oc sessions because the drain operation is often deleting oauth-openshift pod
 			// This result in lost connectivity oc sessions
 			env.ResetOc()
-
 			// drain node
 			drainNode(n.Name) // should go in this
-
-			waitForAllDeploymentsReady(env.NameSpaceUnderTest, scalingTimeout, scalingPollingPeriod)
-
-			// verify deployments are ready again
-			_, notReadyDeployments = getDeployments(env.NameSpaceUnderTest)
-			if len(notReadyDeployments) != 0 {
-				uncordonNode(n.Name)
-				ginkgo.Fail(fmt.Sprintf("did not create replicas when node %s is drained", n.Name))
+			for _, ns := range env.NameSpacesUnderTest {
+				waitForAllDeploymentsReady(ns, scalingTimeout, scalingPollingPeriod)
+				// verify deployments are ready again
+				_, notReadyDeployments = getDeployments(ns)
+				if len(notReadyDeployments) > 0 {
+					uncordonNode(n.Name)
+					ginkgo.Fail(fmt.Sprintf("did not create replicas when node %s is drained", n.Name))
+				}
 			}
-
 			uncordonNode(n.Name)
 
-			// wait for all deployment to be ready otherwise, pods might be unreacheable during the next discovery
-			waitForAllDeploymentsReady(env.NameSpaceUnderTest, scalingTimeout, scalingPollingPeriod)
+			for _, ns := range env.NameSpacesUnderTest {
+				// wait for all deployment to be ready otherwise, pods might be unreacheable during the next discovery
+				waitForAllDeploymentsReady(ns, scalingTimeout, scalingPollingPeriod)
+			}
 		}
 	})
 }
