@@ -41,7 +41,6 @@ type Scaling struct {
 
 // NewScaling creates a new Scaling handler.
 func NewScaling(timeout time.Duration, namespace, deploymentName string, replicaCount int) *Scaling {
-
 	command := fmt.Sprintf(ocCommand, replicaCount, deploymentName, namespace)
 	return &Scaling{
 		timeout: timeout,
