@@ -67,9 +67,12 @@ func ExecuteCommand(command string, timeout time.Duration, context *interactive.
 	log.Debugf("Executing command: %s", command)
 
 	values := make(map[string]interface{})
-	// Escapes the double quote char to make a valid json string.
-	values["COMMAND"] = strings.ReplaceAll(command, "\"", "\\\"")
+	// Escapes the double quote and new line chars to make a valid json string for the command to be executed by the handler.
+	values["COMMAND"] = strings.ReplaceAll(command, "\"", `\"`)
+	values["COMMAND"] = strings.ReplaceAll(values["COMMAND"].(string), "\n", `\\n`)
 	values["TIMEOUT"] = timeout.Nanoseconds()
+
+	log.Debugf("Command handler's COMMAND string value: %s", values["COMMAND"])
 
 	tester, handler, result, err := generic.NewGenericFromMap(commandHandlerFilePath, handlerJSONSchemaFilePath, values)
 
