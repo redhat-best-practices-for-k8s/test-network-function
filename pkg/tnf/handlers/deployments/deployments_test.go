@@ -62,10 +62,10 @@ func Test_ReelMatchSuccess(t *testing.T) {
 	assert.Len(t, newDp.GetDeployments(), testInputSuccessNumLines)
 
 	expectedDeployments := dp.DeploymentMap{
-		"cdi-apiserver":                   {1, 1, 1, 1, 0},
-		"hyperconverged-cluster-operator": {1, 0, 1, 0, 1},
-		"virt-api":                        {2, 2, 2, 2, 0},
-		"vm-import-operator":              {0, 0, 0, 0, 0},
+		"testNamespace:cdi-apiserver":                   {1, 1, 1, 1, 0},
+		"testNamespace:hyperconverged-cluster-operator": {1, 0, 1, 0, 1},
+		"testNamespace:virt-api":                        {2, 2, 2, 2, 0},
+		"testNamespace:vm-import-operator":              {0, 0, 0, 0, 0},
 	}
 	deployments := newDp.GetDeployments()
 

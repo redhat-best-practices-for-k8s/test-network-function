@@ -45,6 +45,7 @@ type DeploymentMap map[string]Deployment
 // Deployments holds information derived from running "oc -n <namespace> get deployments" on the command line.
 type Deployments struct {
 	deployments DeploymentMap
+	namespace   string
 	result      int
 	timeout     time.Duration
 	args        []string
@@ -53,8 +54,9 @@ type Deployments struct {
 // NewDeployments creates a new Deployments tnf.Test.
 func NewDeployments(timeout time.Duration, namespace string) *Deployments {
 	return &Deployments{
-		timeout: timeout,
-		result:  tnf.ERROR,
+		timeout:   timeout,
+		namespace: namespace,
+		result:    tnf.ERROR,
 		args: []string{"oc", "-n", namespace, "get", "deployments", "-o", "custom-columns=" +
 			"NAME:.metadata.name," +
 			"REPLICAS:.spec.replicas," +
@@ -114,7 +116,10 @@ func (dp *Deployments) ReelMatch(_, _, match string) *reel.Step {
 		if len(fields) != numExepctedFields {
 			return nil
 		}
-		dp.deployments[fields[0]] = Deployment{atoi(fields[1]), atoi(fields[2]), atoi(fields[3]), atoi(fields[4]), atoi(fields[5])}
+		// we can have the same deployment in different namespaces
+		// this ensures the uniqueness of the deployment in the test
+		key := dp.namespace + ":" + fields[0]
+		dp.deployments[key] = Deployment{atoi(fields[1]), atoi(fields[2]), atoi(fields[3]), atoi(fields[4]), atoi(fields[5])}
 	}
 
 	dp.result = tnf.SUCCESS
