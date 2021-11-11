@@ -31,9 +31,30 @@ import (
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/serviceaccount"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
 	"github.com/test-network-function/test-network-function/pkg/tnf/testcases"
+	"github.com/test-network-function/test-network-function/pkg/utils"
 	"github.com/test-network-function/test-network-function/test-network-function/common"
 	"github.com/test-network-function/test-network-function/test-network-function/identifiers"
 	"github.com/test-network-function/test-network-function/test-network-function/results"
+)
+
+const (
+	ocGetCrKindFormat      = "oc get crd %s -o jsonpath='{.spec.names.kind}'"
+	ocGetCrNamespaceFormat = "oc get %s -A -o go-template='{{range .items}}{{.metadata.name}},{{.metadata.namespace}}{{\"\n\"}}{{end}}'"
+)
+
+var (
+	invalidCrNamespacePrefixes = []string{
+		"istio-",
+		"aspenmesh-",
+	}
+
+	tcClaimLogPrintf = func(format string, args ...interface{}) {
+		message := fmt.Sprintf(format+"\n", args...)
+		_, err := ginkgo.GinkgoWriter.Write([]byte(message))
+		if err != nil {
+			log.Errorf("Ginkgo writer could not write msg '%s' because: %s", message, err)
+		}
+	}
 )
 
 var _ = ginkgo.Describe(common.AccessControlTestKey, func() {
@@ -130,6 +151,56 @@ func runTestOnPods(env *config.TestEnvironment, testCmd testcases.BaseTestCase, 
 	})
 }
 
+func testCrsNamespaces(crNames []string) (invalidCrs map[string][]string) {
+	invalidCrs = map[string][]string{}
+	context := common.GetContext()
+	for _, crdName := range crNames {
+		getCrKindCommand := fmt.Sprintf(ocGetCrKindFormat, crdName)
+		crdKind := utils.ExecuteCommand(getCrKindCommand, common.DefaultTimeout, context, func() {
+			tcClaimLogPrintf("CRD %s: Failed to get CR kind.", crdName)
+		})
+
+		gomega.Expect(crdKind).NotTo(gomega.BeEmpty())
+		getCrNamespaceCommand := fmt.Sprintf(ocGetCrNamespaceFormat, crdKind)
+		cmdOut := utils.ExecuteCommand(getCrNamespaceCommand, common.DefaultTimeout, context, func() {
+			tcClaimLogPrintf("CRD %s: Failed to get CRs (kind=%s)", crdName, crdKind)
+		})
+		// No CRs created for this CRD yet.
+		if cmdOut == "" {
+			continue
+		}
+		lines := strings.Split(cmdOut, "\n")
+
+		if len(lines) == 0 {
+			log.Infof("No CRs found for CRD: %s", crdName)
+			continue
+		}
+
+		ginkgo.By(fmt.Sprintf("CRD %s has %d CRs. Checking their namespaces do not have the following prefixes: %v", crdName, len(lines)-1, invalidCrNamespacePrefixes))
+		for _, line := range lines {
+			if line == "" {
+				continue
+			}
+			log.Debugf("CRD %s: Name|Namespace: %s", crdName, line)
+			lineFields := strings.Split(line, ",")
+			crName := lineFields[0]
+			namespace := lineFields[1]
+
+			for _, invalidPrefix := range invalidCrNamespacePrefixes {
+				if strings.HasPrefix(namespace, invalidPrefix) {
+					tcClaimLogPrintf("CR %s (kind=%s, crd=%s) has an invalid namespace (%s)", crName, crdKind, crdName, namespace)
+					if crNames, exists := invalidCrs[crdName]; exists {
+						invalidCrs[crdName] = append(crNames, crName)
+					} else {
+						invalidCrs[crdName] = []string{crName}
+					}
+				}
+			}
+		}
+	}
+	return invalidCrs
+}
+
 func testNamespace(env *config.TestEnvironment) {
 	ginkgo.When("test deployment namespace", func() {
 		testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestNamespaceBestPracticesIdentifier)
@@ -140,6 +211,16 @@ func testNamespace(env *config.TestEnvironment) {
 				ginkgo.By(fmt.Sprintf("Reading namespace of podnamespace= %s podname= %s, should not be 'default' or begin with openshift-", podNamespace, podName))
 				gomega.Expect(podNamespace).To(gomega.Not(gomega.Equal("default")))
 				gomega.Expect(podNamespace).To(gomega.Not(gomega.HavePrefix("openshift-")))
+			}
+
+			invalidCrs := testCrsNamespaces(env.CrdNames)
+			if len(invalidCrs) > 0 {
+				for crdName, crs := range invalidCrs {
+					for _, crName := range crs {
+						tcClaimLogPrintf("CRD %s - CR %s has an invalid namespace.", crdName, crName)
+					}
+				}
+				ginkgo.Fail("Found CRs with invalid namespaces.")
 			}
 		})
 	})
