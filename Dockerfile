@@ -52,7 +52,9 @@ ARG GIT_PARTNER_CHECKOUT_TARGET=$TNF_PARTNER_VERSION
 # Clone the TNF source repository and checkout the target branch/tag/commit
 RUN git clone --no-single-branch --depth=1 ${TNF_SRC_URL} ${TNF_SRC_DIR}
 RUN git -C ${TNF_SRC_DIR} fetch origin ${GIT_CHECKOUT_TARGET}
+RUN git -C ${TNF_SRC_DIR} fetch origin main
 RUN git -C ${TNF_SRC_DIR} checkout ${GIT_CHECKOUT_TARGET}
+RUN git -C ${TNF_SRC_DIR} checkout origin/main -- Makefile
 
 # Clone the partner source repository and checkout the target branch/tag/commit
 RUN git clone --no-single-branch --depth=1 ${TNF_PARTNER_SRC_URL} ${TNF_PARTNER_SRC_DIR}
