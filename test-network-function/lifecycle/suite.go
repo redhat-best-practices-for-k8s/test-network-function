@@ -158,7 +158,7 @@ func closeOcSessionsByDeployment(containers map[configsections.ContainerIdentifi
 
 // runScalingTest Runs a Scaling handler TC and waits for all the deployments to be ready.
 func runScalingTest(deployment configsections.Deployment) {
-	handler := scaling.NewScaling(common.DefaultTimeout, deployment.Namespace, deployment.Name, deployment.Replicas, false, 0, 0)
+	handler := scaling.NewScaling(common.DefaultTimeout, deployment.Namespace, deployment.Name, deployment.Replicas)
 	test, err := tnf.NewTest(common.GetContext().GetExpecter(), handler, []reel.Handler{handler}, common.GetContext().GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
 	test.RunAndValidate()
@@ -168,7 +168,7 @@ func runScalingTest(deployment configsections.Deployment) {
 }
 
 func runHpaScalingTest(deployment configsections.Deployment) {
-	handler := scaling.NewScaling(common.DefaultTimeout, deployment.Namespace, deployment.Hpa.HpaName, deployment.Replicas, true, deployment.Hpa.MinReplicas, deployment.Hpa.MaxReplicas)
+	handler := scaling.HpaNewScaling(common.DefaultTimeout, deployment.Namespace, deployment.Hpa.HpaName, deployment.Hpa.MinReplicas, deployment.Hpa.MaxReplicas)
 	test, err := tnf.NewTest(common.GetContext().GetExpecter(), handler, []reel.Handler{handler}, common.GetContext().GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
 	test.RunAndValidate()

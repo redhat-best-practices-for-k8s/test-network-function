@@ -27,10 +27,8 @@ import (
 )
 
 const (
-	ocCommand    = "oc scale --replicas=%d deployment %s -n %s"
-	regex        = "^deployment.*/%s scaled"
-	hpaOcCommand = "oc patch hpa %s  -p '{\"spec\":{\"minReplicas\": %d, \"maxReplicas\": %d}}' -n %s"
-	hpaRegex     = "horizontalpodautoscaler.autoscaling/%s patched"
+	ocCommand = "oc scale --replicas=%d deployment %s -n %s"
+	regex     = "^deployment.*/%s scaled"
 )
 
 // Scaling holds the Scaling handler parameters.
@@ -42,16 +40,8 @@ type Scaling struct {
 }
 
 // NewScaling creates a new Scaling handler.
-func NewScaling(timeout time.Duration, namespace, deploymentName string, replicaCount int, isHpa bool, min, max int) *Scaling {
-	if isHpa {
-		command := fmt.Sprintf(hpaOcCommand, deploymentName, min, max, namespace)
-		return &Scaling{
-			timeout: timeout,
-			result:  tnf.ERROR,
-			args:    strings.Fields(command),
-			regex:   fmt.Sprintf(hpaRegex, deploymentName),
-		}
-	}
+func NewScaling(timeout time.Duration, namespace, deploymentName string, replicaCount int) *Scaling {
+
 	command := fmt.Sprintf(ocCommand, replicaCount, deploymentName, namespace)
 	return &Scaling{
 		timeout: timeout,
