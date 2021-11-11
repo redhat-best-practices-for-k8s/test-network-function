@@ -94,11 +94,7 @@ func (deployment *DeploymentResource) GetHpa() configsections.Hpa {
 			HpaName:     hpaNmae,
 		}
 	}
-	return configsections.Hpa{
-		MinReplicas: 0,
-		MaxReplicas: 0,
-		HpaName:     "",
-	}
+	return configsections.Hpa{}
 }
 
 // GetTargetDeploymentsByNamespace will return all deployments that have pods with a given label.
