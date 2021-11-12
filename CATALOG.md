@@ -2,9 +2,11 @@
 
 test-network-function contains a variety of `Test Cases`, as well as `Test Case Building Blocks`.
 * Test Cases:  Traditional JUnit testcases, which are specified internally using `Ginkgo.It`.  Test cases often utilize several Test Case Building Blocks.
-* Test Case Building Blocks:  Self-contained building blocks, which perform a small task in the context of `oc`, `ssh`, `shell`, or some other `Expecter`.## Test Case Building Blocks Catalog
+* Test Case Building Blocks:  Self-contained building blocks, which perform a small task in the context of `oc`, `ssh`, `shell`, or some other `Expecter`.
+## Test Case Catalog
 
-A number of Test Case Building Blocks, or `tnf.Test`s, are included out of the box.  This is a summary of the available implementations:### http://test-network-function.com/testcases/access-control/cluster-role-bindings
+Test Cases are the specifications used to perform a meaningful test.  Test cases may run once, or several times against several targets.  CNF Certification includes a number of normative and informative tests to ensure CNFs follow best practices.  Here is the list of available Test Cases:
+### http://test-network-function.com/testcases/access-control/cluster-role-bindings
 
 Property|Description
 ---|---
