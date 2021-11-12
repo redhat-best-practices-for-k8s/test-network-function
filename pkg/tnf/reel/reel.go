@@ -197,7 +197,6 @@ func (r *Reel) Step(step *Step, handler Handler) error {
 		if !step.hasExpectations() {
 			return nil
 		}
-
 		if err != nil {
 			if isTimeout(err) {
 				step = handler.ReelTimeout()
@@ -210,8 +209,7 @@ func (r *Reel) Step(step *Step, handler Handler) error {
 
 				output, outputStatus := r.stripEmulatedPromptFromOutput(result.Output)
 				if outputStatus != 0 {
-					r.Err = fmt.Errorf("error executing command exit code:%d", outputStatus)
-					return r.Err
+					return fmt.Errorf("error executing command exit code:%d", outputStatus)
 				}
 				match, matchStatus := r.stripEmulatedPromptFromOutput(result.Match[0])
 				log.Debugf("command status: output=%s, match=%s, outputStatus=%d, matchStatus=%d", output, match, outputStatus, matchStatus)
@@ -227,6 +225,10 @@ func (r *Reel) Step(step *Step, handler Handler) error {
 				strippedFirstMatchRe := r.stripEmulatedRegularExpression(firstMatchRe)
 				step = handler.ReelMatch(strippedFirstMatchRe, before, match)
 			}
+		}
+		// This is for the last step
+		if r.Err != nil {
+			return r.Err
 		}
 	}
 	return nil
