@@ -63,14 +63,15 @@ The autodiscovery mechanism will create a list of all CRD names in the cluster w
 #### podsUnderTest / containersUnderTest
 The autodiscovery mechanism will attempt to identify the default network device and all the IP addresses of the pods it needs for network connectivity tests, though that information can be explicitly set using annotations if needed. For Pod IPs:
 
-The annotation test-network-function.com/multusips is the highest priority, and must contain a JSON-encoded list of IP addresses to be tested for the pod. This must be explicitly set.
-If the above is not present, the k8s.v1.cni.cncf.io/networks-status annotation is checked and all IPs from it are used. This annotation is automatically managed in OpenShift but may not be present in K8s.
-If neither of the above is present, then only known IPs associated with the pod are used (the pod .status.ips field).
+* The annotation test-network-function.com/multusips is the highest priority, and must contain a JSON-encoded list of IP addresses to be tested for the pod. This must be explicitly set.
+* If the above is not present, the k8s.v1.cni.cncf.io/networks-status annotation is checked and all IPs from it are used. This annotation is automatically managed in OpenShift but may not be present in K8s.
+* If neither of the above is present, then only known IPs associated with the pod are used (the pod .status.ips field).
+
 For Network Interfaces:
 
-The annotation test-network-function.com/defaultnetworkinterface is the highest priority, and must contain a JSON-encoded string of the primary network interface for the pod. This must be explicitly set if needed. Examples can be seen in cnf-certification-test-partner
-If the above is not present, the k8s.v1.cni.cncf.io/networks-status annotation is checked and the "interface" from the first entry found with "default"=true is used. This annotation is automatically managed in OpenShift but may not be present in K8s.
-If multus IP addresses are discovered or configured, the partner pod needs to be deployed in the same namespace as the multus network interface for the connectivity test to pass. Refer to instruction here.
+* The annotation test-network-function.com/defaultnetworkinterface is the highest priority, and must contain a JSON-encoded string of the primary network interface for the pod. This must be explicitly set if needed. Examples can be seen in cnf-certification-test-partner
+* If the above is not present, the k8s.v1.cni.cncf.io/networks-status annotation is checked and the "interface" from the first entry found with "default"=true is used. This annotation is automatically managed in OpenShift but may not be present in K8s.
+* If multus IP addresses are discovered or configured, the partner pod needs to be deployed in the same namespace as the multus network interface for the connectivity test to pass. Refer to instruction here.
 
 If a pod is not suitable for network connectivity tests because it lacks binaries (e.g. ping), it should be given the label test-network-function.com/skip_connectivity_tests to exclude it from those tests. The label value is not important, only its presence.
 
