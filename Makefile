@@ -15,6 +15,8 @@
 # development. This includes running configured linters and executing unit tests
 
 GO_PACKAGES=$(shell go list ./... | grep -v vendor)
+GOPROXY:=https://proxy.golang.org,direct
+export
 
 .PHONY:	build \
 	mocks \
