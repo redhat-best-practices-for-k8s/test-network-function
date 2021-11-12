@@ -108,7 +108,7 @@ jobs:
 
       - name: checkout the latest for the script directory in the main branch
         run: |
-          git checkout origin/test-david -- Dockerfile
+          git checkout origin/main -- Dockerfile
           
       - name: Build the `test-network-function` image
         run: |
