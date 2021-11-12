@@ -33,7 +33,7 @@ var PrivilegedPodJSON = string(`{
       "name": "HOST_PORT_CHECK",
       "skiptest": true,
       "loop": 1,
-      "command": "oc get pod %s -n %s -o json | jq -r '.spec.containers[%d] | select(.ports) | .ports[].hostPort'",
+      "command": "oc get pod %s -n %s -o go-template='{{range (index .spec.containers %d).ports }}{{if .hostPort}}{{.hostPort}}{{end}}{{end}}'",
       "action": "allow",
       "expectedstatus": [
         "^(<no value>)*$"
