@@ -210,14 +210,12 @@ func (r *Reel) Step(step *Step, handler Handler) error {
 
 				output, outputStatus := r.stripEmulatedPromptFromOutput(result.Output)
 				if outputStatus != 0 {
-					r.Err = fmt.Errorf("error executing command %d: ", outputStatus)
+					r.Err = fmt.Errorf("error executing command exit code:%d", outputStatus)
+					return r.Err
 				}
 				match, matchStatus := r.stripEmulatedPromptFromOutput(result.Match[0])
 				log.Debugf("command status: output=%s, match=%s, outputStatus=%d, matchStatus=%d", output, match, outputStatus, matchStatus)
-				// If the exit code is not zero, then fail the test
-				if outputStatus != 0 {
-					return fmt.Errorf("non-zero exit status = %d", outputStatus)
-				}
+
 				matchIndex := strings.Index(output, match)
 				var before string
 				// special case:  the match regex may be nothing at all.

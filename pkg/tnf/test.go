@@ -131,8 +131,8 @@ func (t *Test) RunAndValidateWithFailureCallback(cb func()) {
 	if testResult == FAILURE && cb != nil {
 		cb()
 	}
+	gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
 	gomega.Expect(testResult).To(gomega.Equal(SUCCESS))
-	gomega.Expect(err).To(gomega.BeNil())
 }
 
 // RunWithCallbacks runs the test, invokes the cb on failure/error/success
