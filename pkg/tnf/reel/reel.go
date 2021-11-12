@@ -23,6 +23,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/onsi/ginkgo"
 	log "github.com/sirupsen/logrus"
 
 	expect "github.com/google/goexpect"
@@ -214,6 +215,10 @@ func (r *Reel) Step(step *Step, handler Handler) error {
 				}
 				match, matchStatus := r.stripEmulatedPromptFromOutput(result.Match[0])
 				log.Debugf("command status: output=%s, match=%s, outputStatus=%d, matchStatus=%d", output, match, outputStatus, matchStatus)
+				// If the exit code is not zero, then fail the test
+				if outputStatus != 0 {
+					ginkgo.Fail(fmt.Sprintf("Failed because of non-zero exit status = %d", outputStatus))
+				}
 				matchIndex := strings.Index(output, match)
 				var before string
 				// special case:  the match regex may be nothing at all.
