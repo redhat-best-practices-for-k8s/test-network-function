@@ -19,8 +19,6 @@ package tnf
 import (
 	"time"
 
-	log "github.com/sirupsen/logrus"
-
 	expect "github.com/google/goexpect"
 	"github.com/onsi/gomega"
 	"github.com/test-network-function/test-network-function/pkg/tnf/identifier"
@@ -72,10 +70,6 @@ type Test struct {
 // Run performs a test, returning the result and any encountered errors.
 func (t *Test) Run() (int, error) {
 	err := t.runner.Run(t)
-	// if the runner fails, print the error
-	if t.runner.Err != nil {
-		log.Errorf("%s", t.runner.Err)
-	}
 	return t.tester.Result(), err
 }
 
