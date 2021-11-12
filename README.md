@@ -26,9 +26,14 @@ The Test Network Function support autodiscovery using labels and annotations. Th
 
 ### targetNameSpaces
 
-A single namespace should be specified in the [configuration file](test-network-function/tnf_config.yml). This namespace will be used by autodiscovery to find the Pods under test. To run multiple tests in different namespaces simultaneously, intrusive tests should be disabled by setting ``TNF_NON_INTRUSIVE_ONLY`` to true.
+Multiple namespaces can be specified in the [configuration file](test-network-function/tnf_config.yml). Namespaces will be used by autodiscovery to find the Pods under test.
+``` shell script
+targetNameSpaces:
+  - name: firstnamespace
+  - name: secondnamespace 
+```
 ### targetPodLabels
-The goal of this section is to specify the label to be used to identify the CNF resources under test. It's highly recommended that the labels should be defined in pod definition rather than added after pod is created, as labels added later on will be lost in case the pod gets rescheduled. In case of pods defined as part a deployment, it's best to use the same label as the one defined in the `spec.selector.matchLabels` section of the deployment yaml. The prefix field can be used to avoid naming collision with other labels.
+The goal of this section is to specify the labels to be used to identify the CNF resources under test. It's highly recommended that the labels should be defined in pod definition rather than added after pod is created, as labels added later on will be lost in case the pod gets rescheduled. In case of pods defined as part of a deployment, it's best to use the same label as the one defined in the `spec.selector.matchLabels` section of the deployment yaml. The prefix field can be used to avoid naming collision with other labels.
 ```shell script
 targetPodLabels:
   - prefix: test-network-function.com
@@ -55,6 +60,7 @@ targetCrdFilters:
 The autodiscovery mechanism will create a list of all CRD names in the cluster whose names have the suffix "group1.tnf.com" or "anydomain.com", e.g. "crd1.group1.tnf.com" or "mycrd.mygroup.anydomain.com".
 
 ### testTarget
+<<<<<<< HEAD
 #### podsUnderTest / containersUnderTest
 This section is usually not required if labels defined in the section above cover all resources that should be tested. If label based discovery is not sufficient, this section can be manually populated as shown in the commented part of the [sample config](test-network-function/tnf_config.yml). However, intrusive tests need to be skipped ([see here](#disable-intrusive-tests)) for a reliable test result. The pods and containers explicitly configured here are added to the target pod/container lists populated through label matching.
 
@@ -83,6 +89,8 @@ given the label `test-network-function.com/skip_connectivity_tests` to exclude i
 not important, only its presence. Equivalent to `excludeContainersFromConnectivityTests` in the config file.
 
 
+=======
+>>>>>>> 05200a7 (README update)
 #### operators
 
 The section can be configured as well as auto discovered. For manual configuration, see the commented part of the [sample config](test-network-function/tnf_config.yml). For autodiscovery:
@@ -132,13 +140,6 @@ export TNF_PARTNER_SRC_DIR=/home/userid/code/cnf-certification-test-partner
 ```
 
 When this variable is set, the run-cnf-suites.sh script will deploy/refresh the partner deployments/pods in the cluster before starting the test run.
-
-### Specify the target namespace for partner pod deployment
-Set this variable to deploy partner pods in a custom namespace instead of the default `tnf` namespace.
-
-```shell-script
-export TNF_PARTNER_NAMESPACE="CNF-ns"
-```
 
 ### Disconnected environment
 In disconnected environment, only specific versions of images are mirrored to the local repo. For the `oc debug` command (used by a number of tests) to work, set TNF_OC_DEBUG_IMAGE_ID:
