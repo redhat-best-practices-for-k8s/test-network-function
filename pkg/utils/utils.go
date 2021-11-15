@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"encoding/json"
 	"errors"
 	"os"
 	"path"
@@ -61,6 +62,16 @@ func CheckFileExists(filePath, name string) {
 	}
 }
 
+func escapeToJSONstringFormat(line string) (string, error) {
+	marshalled, err := json.Marshal(line)
+	if err != nil {
+		return "", err
+	}
+	s := string(marshalled)
+	// Remove double quotes and return marshalled string.
+	return s[1 : len(s)-1], nil
+}
+
 // ExecuteCommand uses the generic command handler to execute an arbitrary interactive command, returning
 // its output wihout any other check.
 func ExecuteCommand(command string, timeout time.Duration, context *interactive.Context, failureCallbackFun func()) string {
@@ -68,8 +79,9 @@ func ExecuteCommand(command string, timeout time.Duration, context *interactive.
 
 	values := make(map[string]interface{})
 	// Escapes the double quote and new line chars to make a valid json string for the command to be executed by the handler.
-	values["COMMAND"] = strings.ReplaceAll(command, "\"", `\"`)
-	values["COMMAND"] = strings.ReplaceAll(values["COMMAND"].(string), "\n", `\\n`)
+	var err error
+	values["COMMAND"], err = escapeToJSONstringFormat(command)
+	gomega.Expect(err).To(gomega.BeNil())
 	values["TIMEOUT"] = timeout.Nanoseconds()
 
 	log.Debugf("Command handler's COMMAND string value: %s", values["COMMAND"])
