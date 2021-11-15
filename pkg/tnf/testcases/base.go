@@ -341,7 +341,7 @@ func IsInFocus(focus []string, desc string) bool {
 		focusFilter = regexp.MustCompile(strings.Join(focus, "|"))
 	}
 	if focusFilter != nil {
-		matchesFocus = focusFilter.Match([]byte(desc))
+		matchesFocus = focusFilter.MatchString(desc)
 	}
 	return matchesFocus
 }
