@@ -3,7 +3,7 @@ package api_test
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"testing"
 
@@ -102,7 +102,7 @@ func (m *MockClient) Do(req *http.Request) (*http.Response, error) {
 }
 
 func getDoFunc(data string, status int) func(req *http.Request) (*http.Response, error) {
-	response := ioutil.NopCloser(bytes.NewReader([]byte(data)))
+	response := io.NopCloser(bytes.NewReader([]byte(data)))
 	defer response.Close()
 	return func(*http.Request) (*http.Response, error) {
 		return &http.Response{
