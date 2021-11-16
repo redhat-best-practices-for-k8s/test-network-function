@@ -18,7 +18,6 @@ package configsections
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"log"
 	"os"
 	"testing"
@@ -145,7 +144,7 @@ func loadFullConfig() {
 }
 
 func setup(configType string) {
-	file, err = ioutil.TempFile(".", "test-config.yml")
+	file, err = os.CreateTemp(".", "test-config.yml")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -166,7 +165,7 @@ func setup(configType string) {
 }
 
 func setupJSON(configType string) {
-	jsonFile, err = ioutil.TempFile(".", "test-json-config.json")
+	jsonFile, err = os.CreateTemp(".", "test-json-config.json")
 	if err != nil {
 		log.Fatal(err)
 	}

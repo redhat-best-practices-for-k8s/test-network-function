@@ -18,7 +18,6 @@ package configsections
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"log"
 	"os"
 	"testing"
@@ -66,7 +65,7 @@ var (
 
 // setupRequestTest writes the result of `populateRequestConfig` to a temporary file for loading in a test.
 func setupRequestTest(marshalFun marshalFunc) (tempfileName string) {
-	tempfile, err := ioutil.TempFile(".", tmpfileNameBase)
+	tempfile, err := os.CreateTemp(".", tmpfileNameBase)
 	if err != nil {
 		log.Fatal(err)
 	}

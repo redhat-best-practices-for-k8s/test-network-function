@@ -17,7 +17,6 @@
 package testcases_test
 
 import (
-	"io/ioutil"
 	"log"
 	"os"
 	"reflect"
@@ -53,7 +52,7 @@ func setup() {
 	configuredTest.Tests = []string{"HOST_NETWORK_CHECK", "HOST_PORT_CHECK", "HOST_IPC_CHECK"}
 	testConfigure.CnfTest = append(testConfigure.CnfTest, configuredTest)
 
-	file, err = ioutil.TempFile(".", testTempFile)
+	file, err = os.CreateTemp(".", testTempFile)
 	if err != nil {
 		log.Fatal(err)
 	}
