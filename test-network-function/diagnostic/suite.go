@@ -266,7 +266,7 @@ func getNodeLscpu(nodeName string) map[string]string {
 }
 
 func getNodeIfconfig(nodeName string) map[string][]string {
-	const command = "ifconfig"
+	const command = "chroot /host ifconfig"
 	const numSplitSubstrings = 2
 	result := map[string][]string{}
 	env = config.GetTestEnvironment()

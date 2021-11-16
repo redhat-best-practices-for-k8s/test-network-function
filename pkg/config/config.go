@@ -274,6 +274,7 @@ func (env *TestEnvironment) doAutodiscover() {
 	env.TestOrchestrator = env.PartnerContainers[env.Config.Partner.TestOrchestratorID]
 	env.DeploymentsUnderTest = env.Config.DeploymentsUnderTest
 	env.OperatorsUnderTest = env.Config.Operators
+	env.CrdNames = autodiscover.FindTestCrdNames(env.Config.CrdFilters)
 
 	env.discoverNodes()
 	log.Infof("Test Configuration: %+v", *env)
