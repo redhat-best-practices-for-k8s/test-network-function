@@ -63,6 +63,8 @@ func CheckFileExists(filePath, name string) {
 }
 
 func escapeToJSONstringFormat(line string) (string, error) {
+	// Newlines need manual escaping.
+	line = strings.ReplaceAll(line, "\n", "\\n")
 	marshalled, err := json.Marshal(line)
 	if err != nil {
 		return "", err
