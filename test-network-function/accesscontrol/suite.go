@@ -38,8 +38,10 @@ import (
 )
 
 const (
-	ocGetCrKindFormat      = "oc get crd %s -o jsonpath='{.spec.names.kind}'"
-	ocGetCrNamespaceFormat = "oc get %s -A -o go-template='{{range .items}}{{.metadata.name}},{{.metadata.namespace}}{{\"\n\"}}{{end}}'"
+	ocGetCrKindFormat = "oc get crd %s -o jsonpath='{.spec.names.kind}'"
+
+	// ocGetCrNamespaceFormat is the "oc get" format string to get the namespaced-only resources created for a given CRD.
+	ocGetCrNamespaceFormat = "oc get %s -A -o go-template='{{range .items}}{{if .metadata.namespace}}{{.metadata.name}},{{.metadata.namespace}}{{\"\\\\n\"}}{{end}}{{end}}'"
 )
 
 var (
@@ -151,44 +153,46 @@ func runTestOnPods(env *config.TestEnvironment, testCmd testcases.BaseTestCase, 
 	})
 }
 
+func getCrsNamespaces(crdName, crdKind string) map[string]string {
+	gomega.Expect(crdKind).NotTo(gomega.BeEmpty())
+	getCrNamespaceCommand := fmt.Sprintf(ocGetCrNamespaceFormat, crdKind)
+	cmdOut := utils.ExecuteCommand(getCrNamespaceCommand, common.DefaultTimeout, common.GetContext(), func() {
+		tcClaimLogPrintf("CRD %s: Failed to get CRs (kind=%s)", crdName, crdKind)
+	})
+	// No CRs created for this CRD yet.
+	if cmdOut == "" {
+		return map[string]string{}
+	}
+	lines := strings.Split(cmdOut, "\n")
+
+	crNamespaces := map[string]string{}
+	for _, line := range lines {
+		if line == "" {
+			// This is to filter the last line, which is always empty.
+			continue
+		}
+		lineFields := strings.Split(line, ",")
+		crNamespaces[lineFields[0]] = lineFields[1]
+	}
+
+	return crNamespaces
+}
+
 func testCrsNamespaces(crNames []string) (invalidCrs map[string][]string) {
 	invalidCrs = map[string][]string{}
-	context := common.GetContext()
 	for _, crdName := range crNames {
 		getCrKindCommand := fmt.Sprintf(ocGetCrKindFormat, crdName)
-		crdKind := utils.ExecuteCommand(getCrKindCommand, common.DefaultTimeout, context, func() {
+		crdKind := utils.ExecuteCommand(getCrKindCommand, common.DefaultTimeout, common.GetContext(), func() {
 			tcClaimLogPrintf("CRD %s: Failed to get CR kind.", crdName)
 		})
+		crNamespaces := getCrsNamespaces(crdName, crdKind)
 
-		gomega.Expect(crdKind).NotTo(gomega.BeEmpty())
-		getCrNamespaceCommand := fmt.Sprintf(ocGetCrNamespaceFormat, crdKind)
-		cmdOut := utils.ExecuteCommand(getCrNamespaceCommand, common.DefaultTimeout, context, func() {
-			tcClaimLogPrintf("CRD %s: Failed to get CRs (kind=%s)", crdName, crdKind)
-		})
-		// No CRs created for this CRD yet.
-		if cmdOut == "" {
-			continue
-		}
-		lines := strings.Split(cmdOut, "\n")
-
-		if len(lines) == 0 {
-			log.Infof("No CRs found for CRD: %s", crdName)
-			continue
-		}
-
-		ginkgo.By(fmt.Sprintf("CRD %s has %d CRs. Checking their namespaces do not have the following prefixes: %v", crdName, len(lines)-1, invalidCrNamespacePrefixes))
-		for _, line := range lines {
-			if line == "" {
-				continue
-			}
-			log.Debugf("CRD %s: Name|Namespace: %s", crdName, line)
-			lineFields := strings.Split(line, ",")
-			crName := lineFields[0]
-			namespace := lineFields[1]
-
+		ginkgo.By(fmt.Sprintf("CRD %s has %d CRs.", crdName, len(crNamespaces)))
+		for crName, namespace := range crNamespaces {
+			ginkgo.By(fmt.Sprintf("Checking CR %s - Namespace %s", crName, namespace))
 			for _, invalidPrefix := range invalidCrNamespacePrefixes {
 				if strings.HasPrefix(namespace, invalidPrefix) {
-					tcClaimLogPrintf("CR %s (kind=%s, crd=%s) has an invalid namespace (%s)", crName, crdKind, crdName, namespace)
+					tcClaimLogPrintf("CRD: %s (kind:%s) - CR %s has an invalid namespace (%s)", crdName, crdKind, crName, namespace)
 					if crNames, exists := invalidCrs[crdName]; exists {
 						invalidCrs[crdName] = append(crNames, crName)
 					} else {
@@ -213,6 +217,7 @@ func testNamespace(env *config.TestEnvironment) {
 				gomega.Expect(podNamespace).To(gomega.Not(gomega.HavePrefix("openshift-")))
 			}
 
+			ginkgo.By(fmt.Sprintf("CRs' namespaces shouldn't have the following prefixes: %v", invalidCrNamespacePrefixes))
 			invalidCrs := testCrsNamespaces(env.CrdNames)
 			if len(invalidCrs) > 0 {
 				for crdName, crs := range invalidCrs {
