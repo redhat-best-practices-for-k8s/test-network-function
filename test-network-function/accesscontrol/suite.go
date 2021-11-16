@@ -41,7 +41,7 @@ const (
 	ocGetCrKindFormat = "oc get crd %s -o jsonpath='{.spec.names.kind}'"
 
 	// ocGetCrNamespaceFormat is the "oc get" format string to get the namespaced-only resources created for a given CRD.
-	ocGetCrNamespaceFormat = "oc get %s -A -o go-template='{{range .items}}{{if .metadata.namespace}}{{.metadata.name}},{{.metadata.namespace}}{{\"\\\\n\"}}{{end}}{{end}}'"
+	ocGetCrNamespaceFormat = "oc get %s -A -o go-template='{{range .items}}{{if .metadata.namespace}}{{.metadata.name}},{{.metadata.namespace}}{{\"\n\"}}{{end}}{{end}}'"
 )
 
 var (
