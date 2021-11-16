@@ -7,31 +7,6 @@ targetPodLabels:
 targetCrdFilters:
   - nameSuffix: "group1.test.com"
   - nameSuffix: "test-network-function.com"
-# The following section does not require manual configuration as autodiscovery is on by default
-# Containers and pods will be found through matching targetPodLabels. Operators will be found if
-# labelled with "test-network-function.com/operator". Their subscription name will be read from
-# annotation named "subscription_name".
-# 
-# To add additional test targets, uncomment the section and configuree the values
-#
-# testTarget:
-#   containersUnderTest:
-#     - namespace: tnf
-#       podName: test
-#       containerName: test
-#       defaultNetworkDevice: eth0
-#       multusIpAddresses:
-#         - 10.217.0.8
-#   podsUnderTest:
-#     - name: test
-#       namespace: tnf
-#   operators:
-#     - name: etcdoperator.v0.9.4
-#       namespace: default
-#       subscriptionName: etcd
-#       autogenerate: false
-
-
 # The following section does not require manual configuration as autodiscovery is on by default.
 # Partner pods deployed automatically from the cnf-test-partner-repo should have all the labels
 # used by autodiscovery
@@ -47,11 +22,7 @@ targetCrdFilters:
 #     - namespace: tnf
 #       podName: node-master
 #       containerName: master
-#       defaultNetworkDevice: eth0
-#   fsDiffMasterContainer:
-#     namespace: tnf
-#     podName: node-master
-#     containerName: master        
+#       defaultNetworkDevice: eth0       
 #   testOrchestrator:
 #     namespace: tnf
 #     podName: partner
