@@ -132,6 +132,11 @@ func restoreDeployments(env *config.TestEnvironment) {
 			waitForAllDeploymentsReady(deployment.Namespace, scalingTimeout, scalingPollingPeriod)
 		}
 
+		if deployment.Hpa.HpaName != "" { // it have hpa and need to update the max min
+			if deployments[deployment.Name].Replicas != deployment.Replicas {
+				runHpaScalingTest(deployment)
+			}
+		}
 		if deployments[deployment.Name].Replicas != deployment.Replicas {
 			log.Warn("Deployment ", deployment.Name, " replicaCount (", deployment.Replicas, ") needs to be restored.")
 
@@ -140,6 +145,7 @@ func restoreDeployments(env *config.TestEnvironment) {
 
 			env.SetNeedsRefresh()
 		}
+
 	}
 }
 
