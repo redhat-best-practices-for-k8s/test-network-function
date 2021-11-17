@@ -133,9 +133,7 @@ func restoreDeployments(env *config.TestEnvironment) {
 		}
 
 		if deployment.Hpa.HpaName != "" { // it have hpa and need to update the max min
-			if deployments[deployment.Name].Replicas != deployment.Replicas {
-				runHpaScalingTest(deployment)
-			}
+			runHpaScalingTest(deployment)
 		}
 		if deployments[deployment.Name].Replicas != deployment.Replicas {
 			log.Warn("Deployment ", deployment.Name, " replicaCount (", deployment.Replicas, ") needs to be restored.")
@@ -145,6 +143,7 @@ func restoreDeployments(env *config.TestEnvironment) {
 
 			env.SetNeedsRefresh()
 		}
+
 	}
 }
 
@@ -200,17 +199,12 @@ func testScaling(env *config.TestEnvironment) {
 			replicaCount := deployment.Replicas
 			hpa := deployment.Hpa
 			if hpa.HpaName != "" {
-				MinReplicaCount := hpa.MinReplicas
-				MaxReplicaCount := hpa.MaxReplicas
 				deployment.Hpa.MinReplicas = replicaCount - 1
 				deployment.Hpa.MaxReplicas = replicaCount - 1
 				runHpaScalingTest(deployment) // scale in
 				deployment.Hpa.MinReplicas = replicaCount
 				deployment.Hpa.MaxReplicas = replicaCount
 				runHpaScalingTest(deployment) // scale out
-				deployment.Hpa.MinReplicas = MinReplicaCount
-				deployment.Hpa.MaxReplicas = MaxReplicaCount
-				runHpaScalingTest(deployment) // return status to what was before
 			} else {
 				// ScaleIn, removing one pod from the replicaCount
 				deployment.Replicas = replicaCount - 1
