@@ -21,4 +21,5 @@ type Deployment struct {
 	Name      string
 	Namespace string
 	Replicas  int
+	Hpa       Hpa
 }

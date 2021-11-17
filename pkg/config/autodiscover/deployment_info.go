@@ -19,6 +19,8 @@ package autodiscover
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
+	"strings"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/test-network-function/test-network-function/pkg/config/configsections"
@@ -76,6 +78,23 @@ func (deployment *DeploymentResource) GetReplicas() int {
 // GetLabels returns a map with the deployment's metadata section's labels.
 func (deployment *DeploymentResource) GetLabels() map[string]string {
 	return deployment.Metadata.Labels
+}
+func (deployment *DeploymentResource) GetHpa() configsections.Hpa {
+	template := fmt.Sprintf("go-template='{{ range .items }}{{ if eq .spec.scaleTargetRef.name %q }}{{.spec.minReplicas}},{{.spec.maxReplicas}},{{.metadata.name}}{{ end }}{{ end }}'", deployment.GetName())
+	ocCmd := fmt.Sprintf("oc get hpa -n %s -o %s", deployment.GetNamespace(), template)
+	out := execCommandOutput(ocCmd)
+	if out != "" {
+		out := strings.Split(out, ",")
+		min, _ := strconv.Atoi(out[0])
+		max, _ := strconv.Atoi(out[1])
+		hpaNmae := out[2]
+		return configsections.Hpa{
+			MinReplicas: min,
+			MaxReplicas: max,
+			HpaName:     hpaNmae,
+		}
+	}
+	return configsections.Hpa{}
 }
 
 // GetTargetDeploymentsByNamespace will return all deployments that have pods with a given label.
