@@ -145,7 +145,6 @@ func restoreDeployments(env *config.TestEnvironment) {
 
 			env.SetNeedsRefresh()
 		}
-
 	}
 }
 
