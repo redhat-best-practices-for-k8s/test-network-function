@@ -38,7 +38,8 @@ import (
 )
 
 const (
-	ocGetCrKindFormat = "oc get crd %s -o jsonpath='{.spec.names.kind}'"
+	// ocGetCrPluralNameFormat is the CR name to use with "oc get <resource_name>".
+	ocGetCrPluralNameFormat = "oc get crd %s -o jsonpath='{.spec.names.plural}'"
 
 	// ocGetCrNamespaceFormat is the "oc get" format string to get the namespaced-only resources created for a given CRD.
 	ocGetCrNamespaceFormat = "oc get %s -A -o go-template='{{range .items}}{{if .metadata.namespace}}{{.metadata.name}},{{.metadata.namespace}}{{\"\n\"}}{{end}}{{end}}'"
@@ -46,6 +47,8 @@ const (
 
 var (
 	invalidCrNamespacePrefixes = []string{
+		"default",
+		"openshift-",
 		"istio-",
 		"aspenmesh-",
 	}
@@ -181,18 +184,18 @@ func getCrsNamespaces(crdName, crdKind string) map[string]string {
 func testCrsNamespaces(crNames []string) (invalidCrs map[string][]string) {
 	invalidCrs = map[string][]string{}
 	for _, crdName := range crNames {
-		getCrKindCommand := fmt.Sprintf(ocGetCrKindFormat, crdName)
-		crdKind := utils.ExecuteCommand(getCrKindCommand, common.DefaultTimeout, common.GetContext(), func() {
-			tcClaimLogPrintf("CRD %s: Failed to get CR kind.", crdName)
+		getCrPluralNameCommand := fmt.Sprintf(ocGetCrPluralNameFormat, crdName)
+		crdPluralName := utils.ExecuteCommand(getCrPluralNameCommand, common.DefaultTimeout, common.GetContext(), func() {
+			tcClaimLogPrintf("CRD %s: Failed to get CR plural name.", crdName)
 		})
-		crNamespaces := getCrsNamespaces(crdName, crdKind)
+		crNamespaces := getCrsNamespaces(crdName, crdPluralName)
 
-		ginkgo.By(fmt.Sprintf("CRD %s has %d CRs.", crdName, len(crNamespaces)))
+		ginkgo.By(fmt.Sprintf("CRD %s has %d CRs (plural name: %s).", crdName, len(crNamespaces), crdPluralName))
 		for crName, namespace := range crNamespaces {
 			ginkgo.By(fmt.Sprintf("Checking CR %s - Namespace %s", crName, namespace))
 			for _, invalidPrefix := range invalidCrNamespacePrefixes {
 				if strings.HasPrefix(namespace, invalidPrefix) {
-					tcClaimLogPrintf("CRD: %s (kind:%s) - CR %s has an invalid namespace (%s)", crdName, crdKind, crName, namespace)
+					tcClaimLogPrintf("CRD: %s (kind:%s) - CR %s has an invalid namespace (%s)", crdName, crdPluralName, crName, namespace)
 					if crNames, exists := invalidCrs[crdName]; exists {
 						invalidCrs[crdName] = append(crNames, crName)
 					} else {
