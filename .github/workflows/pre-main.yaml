@@ -170,7 +170,7 @@ jobs:
         run: ./run-tnf-container.sh ${{ env.TESTING_CMD_PARAMS }} -f access-control lifecycle platform observablility networking affiliated-certification operator
 
       - name: 'Test: Delete HPA from pods and Run the scaling test'
-        run : oc delete hpa test -n tnf && ./run-cnf-suites.sh --focus lifecycle --skip lifecycle-pod-scheduling lifecycle-pod-termination-grace-period lifecycle-container-shutdown lifecycle-pod-high-availability lifecycle-pod-recreation  lifecycle-pod-owner-type 
+        run : oc delete hpa test -n tnf && ./run-cnf-suites.sh --focus lifecycle --skip lifecycle-pod-scheduling lifecycle-pod-termination-grace-period lifecycle-container-shutdown lifecycle-pod-high-availability lifecycle-pod-recreation lifecycle-pod-owner-type 
 
       # Push the new unstable TNF image to Quay.io.
 
