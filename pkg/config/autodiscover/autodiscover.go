@@ -84,6 +84,18 @@ func executeOcGetAllCommand(resourceType, labelQuery string) string {
 	return match
 }
 
+// getContainersByLabel builds `config.Container`s from containers in pods matching a label.
+func getContainersByLabel(label configsections.Label) (containers []configsections.ContainerConfig, err error) {
+	pods, err := GetPodsByLabel(label)
+	if err != nil {
+		return nil, err
+	}
+	for i := range pods.Items {
+		containers = append(containers, buildContainersFromPodResource(pods.Items[i])...)
+	}
+	return containers, nil
+}
+
 // getContainersByLabelByNamespace builds `config.Container`s from containers in pods matching a label.
 func getContainersByLabelByNamespace(label configsections.Label, namespace string) (containers []configsections.ContainerConfig, err error) {
 	pods, err := GetPodsByLabelByNamespace(label, namespace)
@@ -99,6 +111,18 @@ func getContainersByLabelByNamespace(label configsections.Label, namespace strin
 // getContainerIdentifiersByLabelByNamespace builds `config.ContainerIdentifier`s from containers in pods matching a label.
 func getContainerIdentifiersByLabelByNamespace(label configsections.Label, namespace string) (containerIDs []configsections.ContainerIdentifier, err error) {
 	containers, err := getContainersByLabelByNamespace(label, namespace)
+	if err != nil {
+		return nil, err
+	}
+	for _, c := range containers {
+		containerIDs = append(containerIDs, c.ContainerIdentifier)
+	}
+	return containerIDs, nil
+}
+
+// getContainerIdentifiersByLabelByNamespace builds `config.ContainerIdentifier`s from containers in pods matching a label.
+func getContainerIdentifiersByLabel(label configsections.Label) (containerIDs []configsections.ContainerIdentifier, err error) {
+	containers, err := getContainersByLabel(label)
 	if err != nil {
 		return nil, err
 	}

@@ -67,25 +67,28 @@ func FindTestTarget(labels []configsections.Label, target *configsections.TestTa
 			log.Warnf("failed to query by label: %v %v", l, err)
 		}
 	}
+	// Containers to exclude from connectivity tests are optional
+	identifiers, err := getContainerIdentifiersByLabel(configsections.Label{Prefix: tnfLabelPrefix, Name: skipConnectivityTestsLabel, Value: anyLabelValue})
+	for _, id := range identifiers {
+		if ns[id.Namespace] {
+			target.ExcludeContainersFromConnectivityTests = append(target.ExcludeContainersFromConnectivityTests, id)
+		}
+	}
 
+	if err != nil {
+		log.Warnf("an error (%s) occurred when getting the containers to exclude from connectivity tests. Attempting to continue", err)
+	}
+	csvs, err := GetCSVsByLabel(operatorLabelName, anyLabelValue)
+	if err != nil {
+		log.Warnf("an error (%s) occurred when looking for operators by label", err)
+	}
+
+	for _, csv := range csvs.Items {
+		if ns[csv.Metadata.Namespace] {
+			target.Operators = append(target.Operators, buildOperatorFromCSVResource(&csv))
+		}
+	}
 	for _, ns := range namespaces {
-
-		// Containers to exclude from connectivity tests are optional
-		identifiers, err := getContainerIdentifiersByLabelByNamespace(configsections.Label{Prefix: tnfLabelPrefix, Name: skipConnectivityTestsLabel, Value: anyLabelValue}, ns)
-		target.ExcludeContainersFromConnectivityTests = append(target.ExcludeContainersFromConnectivityTests, identifiers...)
-
-		if err != nil {
-			log.Warnf("an error (%s) occurred when getting the containers to exclude from connectivity tests. Attempting to continue", err)
-		}
-
-		csvs, err := GetCSVsByLabelByNamespace(operatorLabelName, anyLabelValue, ns)
-		if err != nil {
-			log.Warnf("an error (%s) occurred when looking for operators by label", err)
-		}
-
-		for i := range csvs.Items {
-			target.Operators = append(target.Operators, buildOperatorFromCSVResource(&csvs.Items[i]))
-		}
 
 		target.DeploymentsUnderTest = append(target.DeploymentsUnderTest, FindTestDeployments(labels, target, ns)...)
 	}

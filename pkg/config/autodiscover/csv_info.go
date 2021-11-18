@@ -83,3 +83,20 @@ func GetCSVsByLabelByNamespace(labelName, labelValue, namespace string) (*CSVLis
 
 	return &csvList, nil
 }
+
+// GetCSVsByLabel will return all CSVs with a given label value. If `labelValue` is an empty string, all CSVs with that
+// label will be returned, regardless of the labels value.
+func GetCSVsByLabel(labelName, labelValue string) (*CSVList, error) {
+	out := executeOcGetAllCommand(resourceTypeCSV, buildLabelQuery(configsections.Label{Prefix: tnfLabelPrefix, Name: labelName, Value: labelValue}))
+
+	log.Debug("JSON output for all pods labeled with: ", labelName)
+	log.Debug("Command: ", out)
+
+	var csvList CSVList
+	err := jsonUnmarshal([]byte(out), &csvList)
+	if err != nil {
+		return nil, err
+	}
+
+	return &csvList, nil
+}
