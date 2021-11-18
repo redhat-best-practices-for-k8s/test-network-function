@@ -50,7 +50,7 @@ func FindTestTarget(labels []configsections.Label, target *configsections.TestTa
 	for _, ns := range namespaces {
 		// find pods by label
 		for _, l := range labels {
-			pods, err := GetPodsByLabel(l, ns)
+			pods, err := GetPodsByLabelByNamespace(l, ns)
 			if err == nil {
 				for i := range pods.Items {
 					target.PodsUnderTest = append(target.PodsUnderTest, buildPodUnderTest(pods.Items[i]))
@@ -61,7 +61,7 @@ func FindTestTarget(labels []configsections.Label, target *configsections.TestTa
 			}
 		}
 		// Containers to exclude from connectivity tests are optional
-		identifiers, err := getContainerIdentifiersByLabel(configsections.Label{Prefix: tnfLabelPrefix, Name: skipConnectivityTestsLabel, Value: anyLabelValue}, ns)
+		identifiers, err := getContainerIdentifiersByLabelByNamespace(configsections.Label{Prefix: tnfLabelPrefix, Name: skipConnectivityTestsLabel, Value: anyLabelValue}, ns)
 		target.ExcludeContainersFromConnectivityTests = append(target.ExcludeContainersFromConnectivityTests, identifiers...)
 
 		if err != nil {

@@ -75,9 +75,9 @@ func executeOcGetCommand(resourceType, labelQuery, namespace string) string {
 	return match
 }
 
-// getContainersByLabel builds `config.Container`s from containers in pods matching a label.
-func getContainersByLabel(label configsections.Label, namespace string) (containers []configsections.ContainerConfig, err error) {
-	pods, err := GetPodsByLabel(label, namespace)
+// getContainersByLabelByNamespace builds `config.Container`s from containers in pods matching a label.
+func getContainersByLabelByNamespace(label configsections.Label, namespace string) (containers []configsections.ContainerConfig, err error) {
+	pods, err := GetPodsByLabelByNamespace(label, namespace)
 	if err != nil {
 		return nil, err
 	}
@@ -87,9 +87,9 @@ func getContainersByLabel(label configsections.Label, namespace string) (contain
 	return containers, nil
 }
 
-// getContainerIdentifiersByLabel builds `config.ContainerIdentifier`s from containers in pods matching a label.
-func getContainerIdentifiersByLabel(label configsections.Label, namespace string) (containerIDs []configsections.ContainerIdentifier, err error) {
-	containers, err := getContainersByLabel(label, namespace)
+// getContainerIdentifiersByLabelByNamespace builds `config.ContainerIdentifier`s from containers in pods matching a label.
+func getContainerIdentifiersByLabelByNamespace(label configsections.Label, namespace string) (containerIDs []configsections.ContainerIdentifier, err error) {
+	containers, err := getContainersByLabelByNamespace(label, namespace)
 	if err != nil {
 		return nil, err
 	}
@@ -99,10 +99,10 @@ func getContainerIdentifiersByLabel(label configsections.Label, namespace string
 	return containerIDs, nil
 }
 
-// getContainerByLabel returns exactly one container with the given label. If any other number of containers is found
+// getContainerByLabelByNamespace returns exactly one container with the given label. If any other number of containers is found
 // then an error is returned along with an empty `config.Container`.
-func getContainerByLabel(label configsections.Label, namespace string) (container configsections.ContainerConfig, err error) {
-	containers, err := getContainersByLabel(label, namespace)
+func getContainerByLabelByNamespace(label configsections.Label, namespace string) (container configsections.ContainerConfig, err error) {
+	containers, err := getContainersByLabelByNamespace(label, namespace)
 	if err != nil {
 		return container, err
 	}
