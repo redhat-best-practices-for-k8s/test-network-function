@@ -47,19 +47,29 @@ var (
 // FindTestTarget finds test targets from the current state of the cluster,
 // using labels and annotations, and add them to the `configsections.TestTarget` passed in.
 func FindTestTarget(labels []configsections.Label, target *configsections.TestTarget, namespaces []string) {
-	for _, ns := range namespaces {
-		// find pods by label
-		for _, l := range labels {
-			pods, err := GetPodsByLabelByNamespace(l, ns)
-			if err == nil {
-				for i := range pods.Items {
-					target.PodsUnderTest = append(target.PodsUnderTest, buildPodUnderTest(pods.Items[i]))
-					target.ContainerConfigList = append(target.ContainerConfigList, buildContainersFromPodResource(pods.Items[i])...)
+
+	ns := make(map[string]bool)
+	for _, n := range namespaces {
+		ns[n] = true
+	}
+	for _, l := range labels {
+		pods, err := GetPodsByLabel(l)
+		if err == nil {
+			for _, pod := range pods.Items {
+				if ns[pod.Metadata.Namespace] {
+					target.PodsUnderTest = append(target.PodsUnderTest, buildPodUnderTest(pod))
+					target.ContainerConfigList = append(target.ContainerConfigList, buildContainersFromPodResource(pod)...)
+				} else {
+					target.NonValidPods = append(target.NonValidPods, buildPodUnderTest(pod))
 				}
-			} else {
-				log.Warnf("failed to query by label: %v %v", l, err)
 			}
+		} else {
+			log.Warnf("failed to query by label: %v %v", l, err)
 		}
+	}
+
+	for _, ns := range namespaces {
+
 		// Containers to exclude from connectivity tests are optional
 		identifiers, err := getContainerIdentifiersByLabelByNamespace(configsections.Label{Prefix: tnfLabelPrefix, Name: skipConnectivityTestsLabel, Value: anyLabelValue}, ns)
 		target.ExcludeContainersFromConnectivityTests = append(target.ExcludeContainersFromConnectivityTests, identifiers...)

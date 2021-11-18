@@ -153,10 +153,37 @@ func (pr *PodResource) annotationUnmarshalError(annotationKey string, err error)
 		err, annotationKey, pr.Metadata.Namespace, pr.Metadata.Name)
 }
 
-// GetPodsByLabelByNamespace will return all pods with a given label value. If `labelValue` is an empty string, all pods with that
+// GetPodsByLabelByNamespace will return all pods with a given label value in provided namespace.
+// If `labelValue` is an empty string, all pods with that
 // label will be returned, regardless of the labels value.
 func GetPodsByLabelByNamespace(label configsections.Label, namespace string) (*PodList, error) {
 	out := executeOcGetCommand(resourceTypePods, buildLabelQuery(label), namespace)
+
+	log.Debug("JSON output for all pods labeled with: ", label)
+	log.Debug("Command: ", out)
+
+	var podList PodList
+	err := jsonUnmarshal([]byte(out), &podList)
+	if err != nil {
+		return nil, err
+	}
+
+	// Filter out terminating pods and pending/unscheduled pods
+	var pods []*PodResource
+	for _, pod := range podList.Items {
+		if pod.Metadata.DeletionTimestamp == "" || pod.Status.Phase != podPhaseRunning {
+			pods = append(pods, pod)
+		}
+	}
+	podList.Items = pods
+	return &podList, nil
+}
+
+// GetPodsByLabelByNamespace will return all pods with a given label value.
+// If `labelValue` is an empty string, all pods with that
+// label will be returned, regardless of the labels value.
+func GetPodsByLabel(label configsections.Label) (*PodList, error) {
+	out := executeOcGetAllCommand(resourceTypePods, buildLabelQuery(label))
 
 	log.Debug("JSON output for all pods labeled with: ", label)
 	log.Debug("Command: ", out)
