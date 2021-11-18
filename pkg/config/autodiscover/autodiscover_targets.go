@@ -78,7 +78,7 @@ func FindTestTarget(labels []configsections.Label, target *configsections.TestTa
 			log.Warnf("an error (%s) occurred when getting the containers to exclude from connectivity tests. Attempting to continue", err)
 		}
 
-		csvs, err := GetCSVsByLabel(operatorLabelName, anyLabelValue, ns)
+		csvs, err := GetCSVsByLabelByNamespace(operatorLabelName, anyLabelValue, ns)
 		if err != nil {
 			log.Warnf("an error (%s) occurred when looking for operators by label", err)
 		}
