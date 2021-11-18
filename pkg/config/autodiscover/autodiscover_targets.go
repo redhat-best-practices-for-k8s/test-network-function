@@ -174,6 +174,7 @@ func FindTestDeploymentsByLabelByNamespace(targetLabels []configsections.Label, 
 					Name:      deploymentResource.GetName(),
 					Namespace: deploymentResource.GetNamespace(),
 					Replicas:  deploymentResource.GetReplicas(),
+					Hpa:       deploymentResource.GetHpa(),
 				}
 
 				deployments = append(deployments, deployment)

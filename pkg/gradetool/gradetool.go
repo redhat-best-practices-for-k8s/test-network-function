@@ -19,7 +19,7 @@ package gradetool
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path"
 
 	"github.com/test-network-function/test-network-function-claim/pkg/claim"
@@ -102,7 +102,7 @@ func NewGradeResult(gradeName string) GradeResult {
 }
 
 func generateTestResultsKey(id identifier.Identifier) string {
-	return fmt.Sprintf("{\"url\":\"%s\",\"version\":\"%s\"}", id.URL, id.SemanticVersion)
+	return fmt.Sprintf("{\"url\":%q,\"version\":%q}", id.URL, id.SemanticVersion)
 }
 
 func doGrading(policy Policy, results map[string]interface{}) (interface{}, error) {
@@ -171,7 +171,7 @@ func generateOutput(outputObj interface{}, outputPath string) error {
 	if err != nil {
 		return err
 	}
-	err = ioutil.WriteFile(outputPath, outputBytes, outputFilePermissions)
+	err = os.WriteFile(outputPath, outputBytes, outputFilePermissions)
 	if err != nil {
 		return err
 	}
@@ -206,7 +206,7 @@ func validatePolicySchema(policyPath string) error {
 }
 
 func unmarshalFromFile(jsonPath string, obj interface{}) error {
-	jsonBytes, err := ioutil.ReadFile(jsonPath)
+	jsonBytes, err := os.ReadFile(jsonPath)
 	if err != nil {
 		return err
 	}
