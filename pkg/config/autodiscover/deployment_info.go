@@ -94,3 +94,20 @@ func GetTargetDeploymentsByNamespace(namespace string, targetLabel configsection
 
 	return &deploymentList, nil
 }
+
+// GetTargetDeploymentsByLabel will return all deployments that have pods with a given label.
+func GetTargetDeploymentsByLabel(targetLabel configsections.Label) (*DeploymentList, error) {
+	labelQuery := fmt.Sprintf("\"%s\"==\"%s\"", buildLabelName(targetLabel.Prefix, targetLabel.Name), targetLabel.Value)
+	jqArgs := fmt.Sprintf("'[.items[] | select(.spec.template.metadata.labels.%s)]'", labelQuery)
+	ocCmd := fmt.Sprintf("oc get %s -A -o json | jq %s", resourceTypeDeployment, jqArgs)
+
+	out := execCommandOutput(ocCmd)
+
+	var deploymentList DeploymentList
+	err := jsonUnmarshal([]byte(out), &deploymentList.Items)
+	if err != nil {
+		return nil, err
+	}
+
+	return &deploymentList, nil
+}

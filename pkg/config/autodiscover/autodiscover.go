@@ -108,19 +108,7 @@ func getContainersByLabelByNamespace(label configsections.Label, namespace strin
 	return containers, nil
 }
 
-// getContainerIdentifiersByLabelByNamespace builds `config.ContainerIdentifier`s from containers in pods matching a label.
-func getContainerIdentifiersByLabelByNamespace(label configsections.Label, namespace string) (containerIDs []configsections.ContainerIdentifier, err error) {
-	containers, err := getContainersByLabelByNamespace(label, namespace)
-	if err != nil {
-		return nil, err
-	}
-	for _, c := range containers {
-		containerIDs = append(containerIDs, c.ContainerIdentifier)
-	}
-	return containerIDs, nil
-}
-
-// getContainerIdentifiersByLabelByNamespace builds `config.ContainerIdentifier`s from containers in pods matching a label.
+// getContainerIdentifiersByLabel builds `config.ContainerIdentifier`s from containers in pods matching a label.
 func getContainerIdentifiersByLabel(label configsections.Label) (containerIDs []configsections.ContainerIdentifier, err error) {
 	containers, err := getContainersByLabel(label)
 	if err != nil {
