@@ -90,7 +90,7 @@ func FindTestTarget(labels []configsections.Label, target *configsections.TestTa
 	}
 	for _, ns := range namespaces {
 
-		target.DeploymentsUnderTest = append(target.DeploymentsUnderTest, FindTestDeployments(labels, target, ns)...)
+		target.DeploymentsUnderTest = append(target.DeploymentsUnderTest, FindTestDeploymentsByLabelByNamespace(labels, target, ns)...)
 	}
 	target.Nodes = GetNodesList()
 }
@@ -138,9 +138,9 @@ func GetNodesList() (nodes map[string]configsections.Node) {
 	return nodes
 }
 
-// FindTestDeployments uses the containers' namespace to get its parent deployment. Filters out non CNF test deployments,
+// FindTestDeploymentsByLabelByNamespace uses the containers' namespace to get its parent deployment. Filters out non CNF test deployments,
 // currently partner and fs_diff ones.
-func FindTestDeployments(targetLabels []configsections.Label, target *configsections.TestTarget, namespace string) (deployments []configsections.Deployment) {
+func FindTestDeploymentsByLabelByNamespace(targetLabels []configsections.Label, target *configsections.TestTarget, namespace string) (deployments []configsections.Deployment) {
 	for _, label := range targetLabels {
 		deploymentResourceList, err := GetTargetDeploymentsByNamespace(namespace, label)
 		if err != nil {
