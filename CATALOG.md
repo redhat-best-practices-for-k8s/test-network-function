@@ -560,7 +560,7 @@ Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`oc`
 
-### http://test-network-function.com/tests/nodehugepages
+### http://test-network-function.com/tests/nodeselector
 Property|Description
 ---|---
 Version|v1.0.0

@@ -790,7 +790,7 @@ var OwnersIdentifier = Identifier{
 
 // NodeSelectorIdentifier is the Identifier used to represent the generic NodeSelector test.
 var NodeSelectorIdentifier = Identifier{
-	URL:             nodehugepagesIdentifierURL,
+	URL:             nodeselectorIdentifierURL,
 	SemanticVersion: versionOne,
 }
 
