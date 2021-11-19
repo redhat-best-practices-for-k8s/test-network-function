@@ -232,12 +232,14 @@ func testNamespace(env *config.TestEnvironment) {
 				ginkgo.Fail("One or more namespaces have an invalid prefix.")
 			}
 
-			for _, podUnderTest := range env.PodsUnderTest {
-				podName := podUnderTest.Name
-				podNamespace := podUnderTest.Namespace
-				ginkgo.By(fmt.Sprintf("Reading namespace of podnamespace= %s podname= %s, should not be 'default' or begin with openshift-", podNamespace, podName))
-				gomega.Expect(podNamespace).To(gomega.Not(gomega.Equal("default")))
-				gomega.Expect(podNamespace).To(gomega.Not(gomega.HavePrefix("openshift-")))
+			ginkgo.By(fmt.Sprintf("CNF pods' should belong to any of the configured namespaces: %v", env.NameSpacesUnderTest))
+			nonValidPods := len(env.Config.NonValidPods)
+			if nonValidPods > 0 {
+				for _, invalidPod := range env.Config.NonValidPods {
+					tcClaimLogPrintf("Pod %s has invalid namespace %s", invalidPod.Name, invalidPod.Namespace)
+				}
+
+				ginkgo.Fail(fmt.Sprintf("%d pods under belong to invalid namespaces.", nonValidPods))
 			}
 
 			ginkgo.By(fmt.Sprintf("CRs from autodiscovered CRDs should belong to the configured namespaces: %v", env.NameSpacesUnderTest))
