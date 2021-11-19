@@ -45,7 +45,7 @@ const (
 // using labels and annotations to populate the data, if it's not fully configured
 func FindDebugPods(tp *configsections.TestPartner) {
 	label := configsections.Label{Name: debugLabelName, Value: debugLabelValue}
-	pods, err := GetPodsByLabel(label, defaultNamespace)
+	pods, err := GetPodsByLabelByNamespace(label, defaultNamespace)
 	if err != nil {
 		log.Panic("can't find debug pods")
 	}

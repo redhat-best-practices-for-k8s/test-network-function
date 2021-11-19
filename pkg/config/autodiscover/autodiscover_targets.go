@@ -46,38 +46,52 @@ var (
 
 // FindTestTarget finds test targets from the current state of the cluster,
 // using labels and annotations, and add them to the `configsections.TestTarget` passed in.
+//nolint:funlen
 func FindTestTarget(labels []configsections.Label, target *configsections.TestTarget, namespaces []string) {
-	for _, ns := range namespaces {
-		// find pods by label
-		for _, l := range labels {
-			pods, err := GetPodsByLabel(l, ns)
-			if err == nil {
-				for i := range pods.Items {
-					target.PodsUnderTest = append(target.PodsUnderTest, buildPodUnderTest(pods.Items[i]))
-					target.ContainerConfigList = append(target.ContainerConfigList, buildContainersFromPodResource(pods.Items[i])...)
+	ns := make(map[string]bool)
+	for _, n := range namespaces {
+		ns[n] = true
+	}
+	for _, l := range labels {
+		pods, err := GetPodsByLabel(l)
+		if err == nil {
+			for _, pod := range pods.Items {
+				if ns[pod.Metadata.Namespace] {
+					target.PodsUnderTest = append(target.PodsUnderTest, buildPodUnderTest(pod))
+					target.ContainerConfigList = append(target.ContainerConfigList, buildContainersFromPodResource(pod)...)
+				} else {
+					target.NonValidPods = append(target.NonValidPods, buildPodUnderTest(pod))
 				}
-			} else {
-				log.Warnf("failed to query by label: %v %v", l, err)
 			}
+		} else {
+			log.Warnf("failed to query by label: %v %v", l, err)
 		}
-		// Containers to exclude from connectivity tests are optional
-		identifiers, err := getContainerIdentifiersByLabel(configsections.Label{Prefix: tnfLabelPrefix, Name: skipConnectivityTestsLabel, Value: anyLabelValue}, ns)
-		target.ExcludeContainersFromConnectivityTests = append(target.ExcludeContainersFromConnectivityTests, identifiers...)
-
-		if err != nil {
-			log.Warnf("an error (%s) occurred when getting the containers to exclude from connectivity tests. Attempting to continue", err)
+	}
+	// Containers to exclude from connectivity tests are optional
+	identifiers, err := getContainerIdentifiersByLabel(configsections.Label{Prefix: tnfLabelPrefix, Name: skipConnectivityTestsLabel, Value: anyLabelValue})
+	for _, id := range identifiers {
+		if ns[id.Namespace] {
+			target.ExcludeContainersFromConnectivityTests = append(target.ExcludeContainersFromConnectivityTests, id)
 		}
-
-		csvs, err := GetCSVsByLabel(operatorLabelName, anyLabelValue, ns)
-		if err != nil {
-			log.Warnf("an error (%s) occurred when looking for operators by label", err)
+	}
+	if err != nil {
+		log.Warnf("an error (%s) occurred when getting the containers to exclude from connectivity tests. Attempting to continue", err)
+	}
+	csvs, err := GetCSVsByLabel(operatorLabelName, anyLabelValue)
+	if err != nil {
+		log.Warnf("an error (%s) occurred when looking for operators by label", err)
+	}
+	for _, csv := range csvs.Items {
+		if ns[csv.Metadata.Namespace] {
+			csv := csv
+			target.Operators = append(target.Operators, buildOperatorFromCSVResource(&csv))
 		}
-
-		for i := range csvs.Items {
-			target.Operators = append(target.Operators, buildOperatorFromCSVResource(&csvs.Items[i]))
+	}
+	dps := FindTestDeploymentsByLabel(labels, target)
+	for _, dp := range dps {
+		if ns[dp.Namespace] {
+			target.DeploymentsUnderTest = append(target.DeploymentsUnderTest, dp)
 		}
-
-		target.DeploymentsUnderTest = append(target.DeploymentsUnderTest, FindTestDeployments(labels, target, ns)...)
 	}
 	target.Nodes = GetNodesList()
 }
@@ -125,9 +139,31 @@ func GetNodesList() (nodes map[string]configsections.Node) {
 	return nodes
 }
 
-// FindTestDeployments uses the containers' namespace to get its parent deployment. Filters out non CNF test deployments,
+// FindTestDeploymentsByLabel uses the containers' namespace to get its parent deployment. Filters out non CNF test deployments,
 // currently partner and fs_diff ones.
-func FindTestDeployments(targetLabels []configsections.Label, target *configsections.TestTarget, namespace string) (deployments []configsections.Deployment) {
+func FindTestDeploymentsByLabel(targetLabels []configsections.Label, target *configsections.TestTarget) (deployments []configsections.Deployment) {
+	for _, label := range targetLabels {
+		deploymentResourceList, err := GetTargetDeploymentsByLabel(label)
+		if err != nil {
+			log.Error("Unable to get deployment list  Error: ", err)
+		} else {
+			for _, deploymentResource := range deploymentResourceList.Items {
+				deployment := configsections.Deployment{
+					Name:      deploymentResource.GetName(),
+					Namespace: deploymentResource.GetNamespace(),
+					Replicas:  deploymentResource.GetReplicas(),
+				}
+
+				deployments = append(deployments, deployment)
+			}
+		}
+	}
+	return deployments
+}
+
+// FindTestDeploymentsByLabelByNamespace uses the containers' namespace to get its parent deployment. Filters out non CNF test deployments,
+// currently partner and fs_diff ones.
+func FindTestDeploymentsByLabelByNamespace(targetLabels []configsections.Label, target *configsections.TestTarget, namespace string) (deployments []configsections.Deployment) {
 	for _, label := range targetLabels {
 		deploymentResourceList, err := GetTargetDeploymentsByNamespace(namespace, label)
 		if err != nil {

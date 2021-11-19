@@ -38,7 +38,7 @@ func IsMinikube() bool {
 // using labels and annotations to populate the data, if it's not fully configured
 func FindTestPartner(tp *configsections.TestPartner, namespace string) {
 	if tp.TestOrchestratorID.ContainerName == "" {
-		orchestrator, err := getContainerByLabel(configsections.Label{Prefix: tnfLabelPrefix, Name: genericLabelName, Value: orchestratorValue}, namespace)
+		orchestrator, err := getContainerByLabelByNamespace(configsections.Label{Prefix: tnfLabelPrefix, Name: genericLabelName, Value: orchestratorValue}, namespace)
 		if err != nil {
 			log.Errorf("failed to identify a single test orchestrator container: %s", err)
 			return
