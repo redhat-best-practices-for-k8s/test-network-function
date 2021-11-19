@@ -124,7 +124,7 @@ func testMultusNetworkConnectivity(env *config.TestEnvironment, count int) {
 					testOrchestrator := env.TestOrchestrator
 					ginkgo.By(fmt.Sprintf("a Ping is issued from %s(%s) to %s(%s) %s", testOrchestrator.Oc.GetPodName(),
 						testOrchestrator.Oc.GetPodContainerName(), cut.Oc.GetPodName(), cut.Oc.GetPodContainerName(),
-						cut.DefaultNetworkIPAddress))
+						multusIPAddress))
 					testPing(testOrchestrator.Oc, multusIPAddress, count)
 				}
 				if !found {
