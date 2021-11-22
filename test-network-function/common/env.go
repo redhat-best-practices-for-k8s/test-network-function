@@ -57,7 +57,7 @@ func GetContext() *interactive.Context {
 
 // IsMinikube returns true when the env var is set, OCP only test would be skipped based on this flag
 func IsMinikube() bool {
-	b, _ := strconv.ParseBool(os.Getenv("TNF_MINIKUBE_ONLY"))
+	b, _ := strconv.ParseBool(os.Getenv("TNF_NON_OCP_CLUSTER"))
 	return b
 }
 
