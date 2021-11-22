@@ -228,29 +228,31 @@ func testNamespace(env *config.TestEnvironment) {
 					}
 				}
 			}
-			if len(failedNamespaces) > 0 {
-				ginkgo.Fail("One or more namespaces have an invalid prefix.")
+			failedNamespacesNum := len(failedNamespaces)
+			if failedNamespacesNum > 0 {
+				ginkgo.Fail(fmt.Sprintf("Found %d namespaces with an invalid prefix.", failedNamespacesNum))
 			}
 
 			ginkgo.By(fmt.Sprintf("CNF pods' should belong to any of the configured namespaces: %v", env.NameSpacesUnderTest))
-			nonValidPods := len(env.Config.NonValidPods)
-			if nonValidPods > 0 {
+			nonValidPodsNum := len(env.Config.NonValidPods)
+			if nonValidPodsNum > 0 {
 				for _, invalidPod := range env.Config.NonValidPods {
 					tcClaimLogPrintf("Pod %s has invalid namespace %s", invalidPod.Name, invalidPod.Namespace)
 				}
 
-				ginkgo.Fail(fmt.Sprintf("%d pods under belong to invalid namespaces.", nonValidPods))
+				ginkgo.Fail(fmt.Sprintf("Found %d pods under test belonging to invalid namespaces.", nonValidPodsNum))
 			}
 
 			ginkgo.By(fmt.Sprintf("CRs from autodiscovered CRDs should belong to the configured namespaces: %v", env.NameSpacesUnderTest))
 			invalidCrs := testCrsNamespaces(env.CrdNames, env.NameSpacesUnderTest)
-			if len(invalidCrs) > 0 {
+			invalidCrsNum := len(invalidCrs)
+			if invalidCrsNum > 0 {
 				for crdName, crs := range invalidCrs {
 					for _, crName := range crs {
 						tcClaimLogPrintf("CRD %s - CR %s has an invalid namespace.", crdName, crName)
 					}
 				}
-				ginkgo.Fail("Found CRs with invalid namespaces.")
+				ginkgo.Fail(fmt.Sprintf("Found %d CRs belonging to invalid namespaces.", invalidCrsNum))
 			}
 		})
 	})
