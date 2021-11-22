@@ -146,7 +146,7 @@ var _ = ginkgo.Describe(common.PlatformAlterationTestKey, func() {
 		})
 		ginkgo.ReportAfterEach(results.RecordResult)
 		// use this boolean to turn off tests that require OS packages
-		if !common.IsMinikube() {
+		if !common.IsNonOcpCluster() {
 			testContainersFsDiff(env)
 			testTainted(env)
 			testHugepages(env)

@@ -356,7 +356,7 @@ func (env *TestEnvironment) discoverNodes() {
 	env.NodesUnderTest = env.createNodes(env.Config.Nodes)
 	env.labelNodes()
 
-	if !autodiscover.IsMinikube() {
+	if !autodiscover.IsNonOcpCluster() {
 		expectedDebugPods := 0
 		for _, node := range env.NodesUnderTest {
 			if node.HasDebugPod() {
