@@ -21,7 +21,7 @@ var GatherPodFactsJSON = string(`{
   "testcase": [
     {
       "name": "NAME",
-      "skiptest": false,
+      "skiptest": true,
       "command": "oc get pod %s -n %s -o json | jq -r '.metadata.name'",
       "action": "allow",
       "resulttype": "string",
@@ -33,7 +33,8 @@ var GatherPodFactsJSON = string(`{
     {
       "name": "imagePullPolicy",
       "skiptest": false,
-      "command": "oc get pod %s -n %s -o json  | jq -r '.spec.containers[0].imagePullPolicy'",
+      "loop": 1,
+      "command": "oc get pod %s -n %s -o json  | jq -r '.spec.containers[%d].imagePullPolicy'",
       "action": "allow",
       "resulttype": "string",
       "expectedtype": "string",
@@ -43,7 +44,7 @@ var GatherPodFactsJSON = string(`{
     },
     {
       "name": "CONTAINER_COUNT",
-      "skiptest": false,
+      "skiptest": true,
       "command": "oc get pod %s -n %s -o json | jq -r '.spec.containers | length'",
       "action": "allow",
       "resulttype": "integer",
@@ -54,7 +55,7 @@ var GatherPodFactsJSON = string(`{
     },
     {
       "name": "SERVICE_ACCOUNT_NAME",
-      "skiptest": false,
+      "skiptest": true,
       "command": "oc get pod %s -n %s -o json | jq -r '.spec.serviceAccountName'",
       "action": "allow",
       "resulttype": "string",
