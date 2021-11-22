@@ -31,4 +31,3 @@ testcase:
     expectedType: "string"
     expectedstatus:
       - "IfNotPresent"
-      
