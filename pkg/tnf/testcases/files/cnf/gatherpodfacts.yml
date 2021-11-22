@@ -25,7 +25,8 @@ testcase:
       - "ALLOW_ALL"
   - name: "imagePullPolicy"
     skiptest: false
-    command: "oc get pod %s -n %s -o json  | jq -r '.spec.containers[0].imagePullPolicy'"
+    loop: 1
+    command: "oc get pod %s -n %s -o json  | jq -r '.spec.containers[%d].imagePullPolicy'"
     action: "allow"
     resulttype: "string"
     expectedType: "string"
