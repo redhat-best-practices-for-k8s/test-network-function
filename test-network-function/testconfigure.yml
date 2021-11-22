@@ -12,6 +12,9 @@ cnftest:
   - name: "PRIVILEGED_ROLE"
     tests:
       - "CLUSTER_ROLE_BINDING_BY_SA"
+  - name: "GATHER_FACTS_POD"
+    tests: 
+      - "imagePullPolicytest"
 operatortest:
   - name: "OPERATOR_STATUS"
     tests:

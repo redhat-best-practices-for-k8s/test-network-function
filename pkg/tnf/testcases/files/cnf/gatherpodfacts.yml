@@ -23,3 +23,11 @@ testcase:
     expectedType: "regex"
     expectedstatus:
       - "ALLOW_ALL"
+  - name: "imagePullPolicy"
+    skiptest: false
+    command: "oc get pod %s -n %s -o json  | jq -r '.spec.containers[0].imagePullPolicy'"
+    action: "allow"
+    resulttype: "string"
+    expectedType: "string"
+    expectedstatus:
+      - "IfNotPresent"

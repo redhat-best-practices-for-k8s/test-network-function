@@ -31,6 +31,17 @@ var GatherPodFactsJSON = string(`{
       ]
     },
     {
+      "name": "imagePullPolicy",
+      "skiptest": false,
+      "command": "oc get pod %s -n %s -o json  | jq -r '.spec.containers[0].imagePullPolicy'",
+      "action": "allow",
+      "resulttype": "string",
+      "expectedtype": "string",
+      "expectedstatus": [
+        "IfNotPresent"
+      ]
+    },
+    {
       "name": "CONTAINER_COUNT",
       "skiptest": false,
       "command": "oc get pod %s -n %s -o json | jq -r '.spec.containers | length'",
