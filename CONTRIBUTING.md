@@ -6,16 +6,11 @@ conduct themselves in a professional and respectful manner.
 
 ## Peer review
 
-Although this is an open source project, a review is required from one of the following committers prior to merging a
-Pull Request:
+Although this is an open source project, an approval is required from at least two of the
+[CNF Cert team members with write privileges]https://github.com/orgs/test-network-function/teams/cnfcert/members)
+prior to merging a Pull Request.
 
-* Ryan Goulding (rgoulding@redhat.com)
-* Charlie Wheeler-Robinson (cwheeler@redhat.com)
-* David Spence (dspence@redhat.com)
-
-This list is expected to grow over time.
-
-*No Self Review is allowed.*  Each Pull Request should be peer reviewed prior to merge.
+*No Self Review is allowed.*  Each Pull Request will be peer reviewed prior to merge.
 
 ## Workflow
 
@@ -42,7 +37,7 @@ multiple small commits where possible.  As always, you should ensure that tests 
 Request.  To run the unit tests issue the following command:
 
 ```bash
-make unit-tests
+make test
 ```
 
 Changes are more likely to be accepted if they are made up of small and self-contained commits, which leads on to
@@ -57,7 +52,7 @@ was made.  Commit messages are again something that has been widely written abou
 here.
 
 Contributors should follow [these seven rules](https://chris.beams.io/posts/git-commit/#seven-rules) and keep individual
-commits focussed (`git add -p` will help with this).
+commits focused (`git add -p` will help with this).
 
 ## Test Implementation guidelines
 
@@ -81,7 +76,7 @@ As always, you should ensure that tests should pass prior to submitting a Pull R
 following command:
 
 ```bash
-make unit-tests
+make test
 ```
 ## Configuration guidelines
 
@@ -108,12 +103,12 @@ that the accompanying documentation and guides are updated to include that infor
 
 Ensure `goimports` has been run against all Pull Requests prior to submission.
 
-In addition, te `test-network-function` project committers expect all Pull Requests have no linting errors when the
+In addition, the `test-network-function` project committers expect all Pull Requests have no linting errors when the
 configured linters are used.  Please ensure you run `make lint` and resolve any issues in your changes before submitting
 your PR.  Disabled linting must be justified.
 
 Finally, all contributions should follow the guidance of [Effective Go](https://golang.org/doc/effective_go.html)
-unless there is a clear and considered reason not to.  Contribution are more likely to be accepted quickly if any
+unless there is a clear and considered reason not to.  Contributions are more likely to be accepted quickly if any
 divergence from the guidelines is justified before someone has to ask about it.
 
 ## Mock guidelines
