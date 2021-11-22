@@ -80,6 +80,9 @@ type TestTarget struct {
 	DeploymentsUnderTest []Deployment `yaml:"deploymentsUnderTest" json:"deploymentsUnderTest"`
 	// PodsUnderTest is the list of the pods that needs to be tested. Each entry is a single pod to be tested.
 	PodsUnderTest []Pod `yaml:"podsUnderTest,omitempty" json:"podsUnderTest,omitempty"`
+	// NonValidPods contains a list of pods that share the same labels with Pods Under Test
+	// without belonging to namespaces under test
+	NonValidPods []Pod
 	// ContainerConfigList is the list of containers that needs to be tested.
 	ContainerConfigList []ContainerConfig `yaml:"containersUnderTest" json:"containersUnderTest"`
 	// ExcludeContainersFromConnectivityTests excludes specific containers from network connectivity tests.  This is particularly useful for containers that don't have ping available.
