@@ -63,6 +63,7 @@ const (
 	clusterVersionIdentifierURL           = "http://test-network-function.com/tests/clusterVersion"
 	crdStatusExistenceIdentifierURL       = "http://test-network-function.com/tests/crdStatusExistence"
 	daemonSetIdentifierURL                = "http://test-network-function.com/tests/daemonset"
+	automountserviceIdentifierURL         = "http://test-network-function.com/tests/automountservice"
 	versionOne                            = "v1.0.0"
 )
 
@@ -661,6 +662,18 @@ var Catalog = map[string]TestCatalogEntry{
 			dependencies.OcBinaryName,
 		},
 	},
+	automountserviceIdentifierURL: {
+		Identifier:  AutomountServiceIdentifier,
+		Description: "check if automount service account token is set to false",
+		Type:        Normative,
+		IntrusionSettings: IntrusionSettings{
+			ModifiesSystem:           false,
+			ModificationIsPersistent: false,
+		},
+		BinaryDependencies: []string{
+			dependencies.OcBinaryName,
+		},
+	},
 }
 
 // CommandIdentifier is  the Identifier used to represent the generic command test case.
@@ -923,5 +936,9 @@ var CrdStatusExistenceIdentifier = Identifier{
 
 var DaemonSetIdentifier = Identifier{
 	URL:             daemonSetIdentifierURL,
+	SemanticVersion: versionOne,
+}
+var AutomountServiceIdentifier = Identifier{
+	URL:             automountserviceIdentifierURL,
 	SemanticVersion: versionOne,
 }
