@@ -35,6 +35,7 @@ const (
 	// anyLabelValue is the value that will allow any value for a label when building the label query.
 	anyLabelValue    = ""
 	ocCommand        = "oc get %s -n %s -o json -l %s"
+	ocAllCommand     = "oc get %s -A -o json -l %s"
 	ocCommandTimeOut = time.Second * 10
 )
 
@@ -75,9 +76,29 @@ func executeOcGetCommand(resourceType, labelQuery, namespace string) string {
 	return match
 }
 
+func executeOcGetAllCommand(resourceType, labelQuery string) string {
+	ocCommandToExecute := fmt.Sprintf(ocAllCommand, resourceType, labelQuery)
+	match := utils.ExecuteCommand(ocCommandToExecute, ocCommandTimeOut, interactive.GetContext(expectersVerboseModeEnabled), func() {
+		log.Error("can't run command: ", ocCommandToExecute)
+	})
+	return match
+}
+
 // getContainersByLabel builds `config.Container`s from containers in pods matching a label.
-func getContainersByLabel(label configsections.Label, namespace string) (containers []configsections.ContainerConfig, err error) {
-	pods, err := GetPodsByLabel(label, namespace)
+func getContainersByLabel(label configsections.Label) (containers []configsections.ContainerConfig, err error) {
+	pods, err := GetPodsByLabel(label)
+	if err != nil {
+		return nil, err
+	}
+	for i := range pods.Items {
+		containers = append(containers, buildContainersFromPodResource(pods.Items[i])...)
+	}
+	return containers, nil
+}
+
+// getContainersByLabelByNamespace builds `config.Container`s from containers in pods matching a label.
+func getContainersByLabelByNamespace(label configsections.Label, namespace string) (containers []configsections.ContainerConfig, err error) {
+	pods, err := GetPodsByLabelByNamespace(label, namespace)
 	if err != nil {
 		return nil, err
 	}
@@ -88,8 +109,8 @@ func getContainersByLabel(label configsections.Label, namespace string) (contain
 }
 
 // getContainerIdentifiersByLabel builds `config.ContainerIdentifier`s from containers in pods matching a label.
-func getContainerIdentifiersByLabel(label configsections.Label, namespace string) (containerIDs []configsections.ContainerIdentifier, err error) {
-	containers, err := getContainersByLabel(label, namespace)
+func getContainerIdentifiersByLabel(label configsections.Label) (containerIDs []configsections.ContainerIdentifier, err error) {
+	containers, err := getContainersByLabel(label)
 	if err != nil {
 		return nil, err
 	}
@@ -99,10 +120,10 @@ func getContainerIdentifiersByLabel(label configsections.Label, namespace string
 	return containerIDs, nil
 }
 
-// getContainerByLabel returns exactly one container with the given label. If any other number of containers is found
+// getContainerByLabelByNamespace returns exactly one container with the given label. If any other number of containers is found
 // then an error is returned along with an empty `config.Container`.
-func getContainerByLabel(label configsections.Label, namespace string) (container configsections.ContainerConfig, err error) {
-	containers, err := getContainersByLabel(label, namespace)
+func getContainerByLabelByNamespace(label configsections.Label, namespace string) (container configsections.ContainerConfig, err error) {
+	containers, err := getContainersByLabelByNamespace(label, namespace)
 	if err != nil {
 		return container, err
 	}

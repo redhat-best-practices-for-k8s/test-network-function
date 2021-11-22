@@ -132,6 +132,9 @@ func restoreDeployments(env *config.TestEnvironment) {
 			waitForAllDeploymentsReady(deployment.Namespace, scalingTimeout, scalingPollingPeriod)
 		}
 
+		if deployment.Hpa.HpaName != "" { // it have hpa and need to update the max min
+			runHpaScalingTest(deployment)
+		}
 		if deployments[deployment.Name].Replicas != deployment.Replicas {
 			log.Warn("Deployment ", deployment.Name, " replicaCount (", deployment.Replicas, ") needs to be restored.")
 
@@ -167,6 +170,16 @@ func runScalingTest(deployment configsections.Deployment) {
 	waitForAllDeploymentsReady(deployment.Namespace, scalingTimeout, scalingPollingPeriod)
 }
 
+func runHpaScalingTest(deployment configsections.Deployment) {
+	handler := scaling.NewHpaScaling(common.DefaultTimeout, deployment.Namespace, deployment.Hpa.HpaName, deployment.Hpa.MinReplicas, deployment.Hpa.MaxReplicas)
+	test, err := tnf.NewTest(common.GetContext().GetExpecter(), handler, []reel.Handler{handler}, common.GetContext().GetErrorChannel())
+	gomega.Expect(err).To(gomega.BeNil())
+	test.RunAndValidate()
+
+	// Wait until the deployment is ready
+	waitForAllDeploymentsReady(deployment.Namespace, scalingTimeout, scalingPollingPeriod)
+}
+
 func testScaling(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestScalingIdentifier)
 	ginkgo.It(testID, func() {
@@ -183,14 +196,23 @@ func testScaling(env *config.TestEnvironment) {
 
 			closeOcSessionsByDeployment(env.ContainersUnderTest, deployment)
 			replicaCount := deployment.Replicas
+			hpa := deployment.Hpa
+			if hpa.HpaName != "" {
+				deployment.Hpa.MinReplicas = replicaCount - 1
+				deployment.Hpa.MaxReplicas = replicaCount - 1
+				runHpaScalingTest(deployment) // scale in
+				deployment.Hpa.MinReplicas = replicaCount
+				deployment.Hpa.MaxReplicas = replicaCount
+				runHpaScalingTest(deployment) // scale out
+			} else {
+				// ScaleIn, removing one pod from the replicaCount
+				deployment.Replicas = replicaCount - 1
+				runScalingTest(deployment)
 
-			// ScaleIn, removing one pod from the replicaCount
-			deployment.Replicas = replicaCount - 1
-			runScalingTest(deployment)
-
-			// Scaleout, restoring the original replicaCount number
-			deployment.Replicas = replicaCount
-			runScalingTest(deployment)
+				// Scaleout, restoring the original replicaCount number
+				deployment.Replicas = replicaCount
+				runScalingTest(deployment)
+			}
 		}
 	})
 }

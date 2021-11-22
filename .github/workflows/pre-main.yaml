@@ -166,11 +166,13 @@ jobs:
       - name: 'Test: Run diagnostic test suite in a TNF container'
         run: ./run-tnf-container.sh ${{ env.TESTING_CMD_PARAMS }} -f diagnostic
 
+      - name: 'Test: Delete HPA from pods and Run the scaling test'
+        run: oc delete hpa test -n tnf
+
       - name: 'Test: Run generic test suite in a TNF container'
         run: ./run-tnf-container.sh ${{ env.TESTING_CMD_PARAMS }} -f access-control lifecycle platform observablility networking affiliated-certification operator
-
+        
       # Push the new unstable TNF image to Quay.io.
-
       - name: (if on main and upstream) Authenticate against Quay.io
         if: ${{ github.ref == 'refs/heads/main' && github.repository_owner == 'test-network-function' }}
         uses: docker/login-action@v1
