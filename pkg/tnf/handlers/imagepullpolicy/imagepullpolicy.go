@@ -43,8 +43,8 @@ const (
 
 // NewImagepullpolicy returns a new Imagepullpolicy handler struct.
 // TODO: Add needed parameters to this function and initialize the handler properly.
-func NewImagepullpolicy(timeout time.Duration, namespace, PodName string, index int) *Imagepullpolicy {
-	command := fmt.Sprintf(ocCommand, PodName, namespace, index)
+func NewImagepullpolicy(timeout time.Duration, namespace, podName string, index int) *Imagepullpolicy {
+	command := fmt.Sprintf(ocCommand, podName, namespace, index)
 	return &Imagepullpolicy{
 		timeout: timeout,
 		result:  tnf.ERROR,
@@ -59,14 +59,14 @@ func (imagepullpolicy *Imagepullpolicy) Args() []string {
 }
 
 // GetIdentifier returns the tnf.Test specific identifier.
-func (h *Imagepullpolicy) GetIdentifier() identifier.Identifier {
+func (imagepullpolicy *Imagepullpolicy) GetIdentifier() identifier.Identifier {
 	// Return the Imagepullpolicy handler identifier.
 	return identifier.ImagePullPolicyIdentifier
 }
 
 // Timeout returns the timeout for the test.
-func (h *Imagepullpolicy) Timeout() time.Duration {
-	return h.timeout
+func (imagepullpolicy *Imagepullpolicy) Timeout() time.Duration {
+	return imagepullpolicy.timeout
 }
 
 // Result returns the test result.
