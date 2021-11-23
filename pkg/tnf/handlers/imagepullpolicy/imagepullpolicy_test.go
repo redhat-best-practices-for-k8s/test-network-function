@@ -26,10 +26,6 @@ import (
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/imagepullpolicy"
 )
 
-const (
-// adding special variable
-)
-
 // Test_NewImagepullpolicy is the unit test for NewImagepullpolicy().
 func Test_NewImagepullpolicy(t *testing.T) {
 	handler := imagepullpolicy.NewImagepullpolicy(testTimeoutDuration, testPodNamespace, testPodName, testContainerCount)
