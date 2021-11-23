@@ -59,14 +59,14 @@ func (imagepullpolicy *Imagepullpolicy) Args() []string {
 }
 
 // GetIdentifier returns the tnf.Test specific identifier.
-func (imagepullpolicy *Imagepullpolicy) GetIdentifier() identifier.Identifier {
+func (h *Imagepullpolicy) GetIdentifier() identifier.Identifier {
 	// Return the Imagepullpolicy handler identifier.
 	return identifier.ImagePullPolicyIdentifier
 }
 
 // Timeout returns the timeout for the test.
-func (imagepullpolicy *Imagepullpolicy) Timeout() time.Duration {
-	return imagepullpolicy.timeout
+func (h *Imagepullpolicy) Timeout() time.Duration {
+	return h.timeout
 }
 
 // Result returns the test result.

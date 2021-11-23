@@ -14,10 +14,9 @@
 // with this program; if not, write to the Free Software Foundation, Inc.,
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-package imagepullpolicy
+package imagepullpolicy_test
 
 import (
-	"fmt"
 	"regexp"
 	"testing"
 	"time"
@@ -101,5 +100,5 @@ const (
 )
 
 var (
-	testInputSuccess = fmt.Sprintf("ifNotPresent")
+	testInputSuccess = "ifNotPresent"
 )
