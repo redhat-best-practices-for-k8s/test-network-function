@@ -96,5 +96,5 @@ const (
 )
 
 var (
-	testInputSuccess = "ifNotPresent"
+	testInputSuccess = "IfNotPresent"
 )
