@@ -33,6 +33,7 @@ const (
 	roleBindingIdentifierURL              = "http://test-network-function.com/tests/rolebinding"
 	clusterRoleBindingIdentifierURL       = "http://test-network-function.com/tests/clusterrolebinding"
 	nodePortIdentifierURL                 = "http://test-network-function.com/tests/nodeport"
+	ImagePullPolicyIdentifierURL          = "http://test-network-function.com/tests/imagepullpolicy"
 	nodeNamesIdentifierURL                = "http://test-network-function.com/tests/nodenames"
 	nodeTaintedIdentifierURL              = "http://test-network-function.com/tests/nodetainted"
 	gracePeriodIdentifierURL              = "http://test-network-function.com/tests/gracePeriod"
@@ -276,6 +277,18 @@ var Catalog = map[string]TestCatalogEntry{
 		BinaryDependencies: []string{
 			dependencies.OcBinaryName,
 			dependencies.GrepBinaryName,
+		},
+	},
+	ImagePullPolicyIdentifierURL: {
+		Identifier:  ImagePullPolicyIdentifier,
+		Description: "A generic test used to get Image Pull Policy type.",
+		Type:        Normative,
+		IntrusionSettings: IntrusionSettings{
+			ModifiesSystem:           false,
+			ModificationIsPersistent: false,
+		},
+		BinaryDependencies: []string{
+			dependencies.OcBinaryName,
 		},
 	},
 	nodeNamesIdentifierURL: {
@@ -731,6 +744,11 @@ var ClusterRoleBindingIdentifier = Identifier{
 // NodePortIdentifier is the Identifier used to represent the generic NodePort test.
 var NodePortIdentifier = Identifier{
 	URL:             nodePortIdentifierURL,
+	SemanticVersion: versionOne,
+}
+
+var ImagePullPolicyIdentifier = Identifier{
+	URL:             ImagePullPolicyIdentifierURL,
 	SemanticVersion: versionOne,
 }
 

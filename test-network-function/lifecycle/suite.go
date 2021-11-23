@@ -38,6 +38,7 @@ import (
 	dp "github.com/test-network-function/test-network-function/pkg/tnf/handlers/deployments"
 	dd "github.com/test-network-function/test-network-function/pkg/tnf/handlers/deploymentsdrain"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/graceperiod"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/imagepullpolicy"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodeselector"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/owners"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
@@ -94,6 +95,8 @@ var _ = ginkgo.Describe(common.LifecycleTestKey, func() {
 		})
 
 		ginkgo.ReportAfterEach(results.RecordResult)
+
+		testImagePolicy(env)
 
 		testNodeSelector(env)
 
@@ -477,5 +480,25 @@ func testOwner(env *config.TestEnvironment) {
 			gomega.Expect(err).To(gomega.BeNil())
 			test.RunAndValidate()
 		}
+	})
+}
+
+func testImagePolicy(env *config.TestEnvironment) {
+	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestPodDeploymentBestPracticesIdentifier)
+	ginkgo.It(testID, func() {
+		ginkgo.By("Testing image pull policy")
+		context := common.GetContext()
+		for _, podUnderTest := range env.PodsUnderTest {
+			podName := podUnderTest.Name
+			podNamespace := podUnderTest.Namespace
+			podContainerCount := podUnderTest.ContainerCount
+			for i := 0; i < podContainerCount; i++ {
+				tester := imagepullpolicy.NewImagepullpolicy(common.DefaultTimeout, podNamespace, podName, i)
+				test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
+				gomega.Expect(err).To(gomega.BeNil())
+				test.RunAndValidate()
+			}
+		}
+		ginkgo.By("Testing image pull policy")
 	})
 }
