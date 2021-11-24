@@ -77,7 +77,7 @@ func TestLogging_GetIdentifier(t *testing.T) {
 	assert.Equal(t, identifier.ImagePullPolicyIdentifier, (*test).GetIdentifier())
 }
 
-func TestLogging_ReelFirst(t *testing.T) {
+func TestImagePullPolicy_ReelFirst(t *testing.T) {
 	_, handlers, jsonParseResult, err := createTest()
 
 	assert.Nil(t, err)
@@ -93,7 +93,7 @@ func TestLogging_ReelFirst(t *testing.T) {
 	assert.Equal(t, testTimeoutDuration, step.Timeout)
 }
 
-func TestLogging_ReelEof(t *testing.T) {
+func TestImagePullPolicy_ReelEof(t *testing.T) {
 	_, handlers, jsonParseResult, err := createTest()
 
 	assert.Nil(t, err)
@@ -106,7 +106,7 @@ func TestLogging_ReelEof(t *testing.T) {
 	handler.ReelEOF()
 }
 
-func TestLogging_ReelTimeout(t *testing.T) {
+func TestImagePullPolicy_ReelTimeout(t *testing.T) {
 	_, handlers, jsonParseResult, err := createTest()
 
 	assert.Nil(t, err)
@@ -118,7 +118,7 @@ func TestLogging_ReelTimeout(t *testing.T) {
 	assert.Nil(t, handler.ReelTimeout())
 }
 
-func TestLogging_ReelMatch(t *testing.T) {
+func TestImagePullPolicy_ReelMatch(t *testing.T) {
 	tester, handlers, jsonParseResult, err := createTest()
 
 	assert.Nil(t, err)
