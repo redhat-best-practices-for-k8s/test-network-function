@@ -45,7 +45,6 @@ var (
 	testPodNameSpace     = "testnamespace"
 	testPodName          = "testPodname"
 	testContainerNum     = 0
-	testInputError       = "Always"
 	testInputSuccess     = "IfNotPresent"
 )
 
@@ -131,9 +130,4 @@ func TestImagePullPolicy_ReelMatch(t *testing.T) {
 
 	assert.Nil(t, step)
 	assert.Equal(t, tnf.SUCCESS, (*tester).Result())
-
-	step = handler.ReelMatch(expectedFailPattern, "", testInputError)
-
-	assert.Nil(t, step)
-	assert.Equal(t, tnf.FAILURE, (*tester).Result())
 }
