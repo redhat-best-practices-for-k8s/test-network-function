@@ -38,9 +38,8 @@ var (
 	genericTestSchemaFile = path.Join("schemas", "generic-test.schema.json")
 	imagepullFilename     = "imagepullpolicy.json"
 	/* #nosec G101 */
-	expectedPassPattern  = "(?m)[1-9]"
-	expectedFailPattern  = "(?m)[0]"
-	expectedErrPattern   = "(?m).*"
+	expectedPassPattern  = "(?m)Always"
+	expectedFailPattern  = "(?m)IfNotPresent"
 	pathRelativeToRoot   = path.Join("..", "..", "..", "..")
 	pathToTestSchemaFile = path.Join(pathRelativeToRoot, genericTestSchemaFile)
 	testPodNameSpace     = "testnamespace"
@@ -90,7 +89,7 @@ func TestLogging_ReelFirst(t *testing.T) {
 	step := handler.ReelFirst()
 	expectedCommand := fmt.Sprintf("oc get pod %s -n %s -o json  | jq -r '.spec.containers[%d].imagePullPolicy'", testPodName, testPodNameSpace, testContainerNum)
 	assert.Equal(t, expectedCommand, step.Execute)
-	assert.Contains(t, step.Expect, expectedPassPattern, expectedFailPattern, expectedErrPattern)
+	assert.Contains(t, step.Expect, expectedPassPattern, expectedFailPattern)
 	assert.Equal(t, testTimeoutDuration, step.Timeout)
 }
 
