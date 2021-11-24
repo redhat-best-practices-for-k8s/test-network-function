@@ -75,6 +75,10 @@ var (
 
 	// relativePodTestPath is the relative path to the podantiaffinity.json test case.
 	relativePodTestPath = path.Join(common.PathRelativeToRoot, podAntiAffinityTestPath)
+
+	// relativeimagepullpolicyTestPath is the relative path to the imagepullpolicy.json test case.
+	imagepullpolicyTestPath         = path.Join("pkg", "tnf", "handlers", "imagepullpolicy", "imagepullpolicy.json")
+	relativeimagepullpolicyTestPath = path.Join(common.PathRelativeToRoot, imagepullpolicyTestPath)
 )
 
 var drainTimeout = time.Duration(drainTimeoutMinutes) * time.Minute
@@ -485,15 +489,11 @@ func testOwner(env *config.TestEnvironment) {
 func testImagePolicy(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestPodDeploymentBestPracticesIdentifier)
 	ginkgo.It(testID, func() {
-		imagepullpolicyTestPath := path.Join("pkg", "tnf", "handlers", "imagepullpolicy", "imagepullpolicy.json")
-		// relativeLoggingTestPath is the relative path to the logging.json test case.
-		relativeimagepullpolicyTestPath := path.Join(common.PathRelativeToRoot, imagepullpolicyTestPath)
 		context := common.GetContext()
 		contnum := 0
 		prevpod := ""
 		for _, cut := range env.ContainersUnderTest {
 			values := make(map[string]interface{})
-			//prevpod := cut.ContainerIdentifier.PodName
 			values["POD_NAMESPACE"] = cut.ContainerIdentifier.Namespace
 			values["POD_NAME"] = cut.ContainerIdentifier.PodName
 			if prevpod != cut.ContainerIdentifier.PodName {
@@ -518,23 +518,3 @@ func testImagePolicy(env *config.TestEnvironment) {
 		}
 	})
 }
-
-/*func testImagePolicy(env *config.TestEnvironment) {
-	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestPodDeploymentBestPracticesIdentifier)
-	ginkgo.It(testID, func() {
-		ginkgo.By("Testing image pull policy")
-		context := common.GetContext()
-		for _, podUnderTest := range env.PodsUnderTest {
-			podName := podUnderTest.Name
-			podNamespace := podUnderTest.Namespace
-			podContainerCount := podUnderTest.ContainerCount
-			for i := 0; i < podContainerCount; i++ {
-				tester := imagepullpolicy.NewImagepullpolicy(common.DefaultTimeout, podNamespace, podName, i)
-				test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
-				gomega.Expect(err).To(gomega.BeNil())
-				test.RunAndValidate()
-			}
-		}
-		ginkgo.By("Testing image pull policy")
-	})
-}*/
