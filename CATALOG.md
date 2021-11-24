@@ -460,6 +460,16 @@ Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`grep`, `cut`, `oc`, `grep`
 
+### http://test-network-function.com/tests/imagepullpolicy
+Property|Description
+---|---
+Version|v1.0.0
+Description|A generic test used to get Image Pull Policy type.
+Result Type|normative
+Intrusive|false
+Modifications Persist After Test|false
+Runtime Binaries Required|`oc`
+
 ### http://test-network-function.com/tests/ipaddr
 Property|Description
 ---|---
