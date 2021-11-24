@@ -36,7 +36,7 @@ const (
 
 var (
 	genericTestSchemaFile = path.Join("schemas", "generic-test.schema.json")
-	imagepullFilename     = "imagepullolicy.json"
+	imagepullFilename     = "imagepullpolicy.json"
 	/* #nosec G101 */
 	expectedPassPattern  = "(?m)[1-9]"
 	expectedFailPattern  = "(?m)[0]"
