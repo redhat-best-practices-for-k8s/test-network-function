@@ -38,8 +38,8 @@ var (
 	genericTestSchemaFile = path.Join("schemas", "generic-test.schema.json")
 	imagepullFilename     = "imagepullpolicy.json"
 	/* #nosec G101 */
-	expectedPassPattern  = "(?m)Always"
-	expectedFailPattern  = "(?m)IfNotPresent"
+	expectedPassPattern  = "(?m)IfNotPresent"
+	expectedFailPattern  = "(?m)Always"
 	pathRelativeToRoot   = path.Join("..", "..", "..", "..")
 	pathToTestSchemaFile = path.Join(pathRelativeToRoot, genericTestSchemaFile)
 	testPodNameSpace     = "testnamespace"
@@ -57,7 +57,7 @@ func createTest() (*tnf.Tester, []reel.Handler, *gojsonschema.Result, error) {
 	return generic.NewGenericFromMap(imagepullFilename, pathToTestSchemaFile, values)
 }
 
-func TestLogging_Args(t *testing.T) {
+func TestImagePullPolicy_Args(t *testing.T) {
 	test, handlers, jsonParseResult, err := createTest()
 
 	assert.Nil(t, err)
@@ -67,7 +67,7 @@ func TestLogging_Args(t *testing.T) {
 	assert.Nil(t, (*test).Args())
 }
 
-func TestLogging_GetIdentifier(t *testing.T) {
+func TestImagePullPolicy_GetIdentifier(t *testing.T) {
 	test, handlers, jsonParseResult, err := createTest()
 
 	assert.Nil(t, err)
