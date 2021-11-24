@@ -26,10 +26,6 @@
       {
         "pattern": "(?m)Never",
         "defaultResult": 2
-      },
-      {
-        "pattern": "(?m)",
-        "defaultResult": 1
       }
     ]
   }
