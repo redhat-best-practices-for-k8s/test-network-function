@@ -323,7 +323,7 @@ func testAutomountService(env *config.TestEnvironment) {
 				log.Errorf("Ginkgo writer could not write because: %s", err)
 			}
 		}
-		gomega.Expect(msg).To(gomega.BeNil())
+		gomega.Expect(msg).To(gomega.BeEmpty())
 	})
 }
 

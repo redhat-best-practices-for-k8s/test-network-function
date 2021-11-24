@@ -45,8 +45,9 @@ type Automountservice struct {
 }
 
 const (
-	saRegex = "automountServiceAccountToken: (.+)"
-	False   = "false"
+	saRegex = `(?m)"automountServiceAccountToken": (.+)`
+	False   = "false,"
+	True    = "true,"
 )
 
 // NewAutomountservice returns a new Automountservice handler struct.
@@ -60,9 +61,9 @@ func NewAutomountservice(options ...func(*Automountservice)) *Automountservice {
 		o(as)
 	}
 	if as.podCheck {
-		as.args = []string{"oc", "-n", as.namespace, "get", "pods", as.podname, "-o", "yaml"}
+		as.args = []string{"oc", "-n", as.namespace, "get", "pods", as.podname, "-o", "json", "|", "jq", "-r", ".spec"}
 	} else {
-		as.args = []string{"oc", "-n", as.namespace, "get", "serviceaccounts", as.serviceaccount, "-o", "yaml"}
+		as.args = []string{"oc", "-n", as.namespace, "get", "serviceaccounts", as.serviceaccount, "-o", "json"}
 	}
 	return as
 }
@@ -138,7 +139,7 @@ func (as *Automountservice) ReelMatch(_, _, match string) *reel.Step {
 	}
 	if matched[saMatchIdx] == False {
 		as.token = TokenIsFalse
-	} else {
+	} else if matched[saMatchIdx] == True {
 		as.token = TokenIsTrue
 	}
 	return nil

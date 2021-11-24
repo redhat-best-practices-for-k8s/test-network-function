@@ -1,0 +1,116 @@
+{
+  "affinity": {
+    "podAntiAffinity": {
+      "requiredDuringSchedulingIgnoredDuringExecution": [
+        {
+          "labelSelector": {
+            "matchExpressions": [
+              {
+                "key": "app",
+                "operator": "In",
+                "values": [
+                  "test"
+                ]
+              }
+            ]
+          },
+          "topologyKey": "kubernetes.io/hostname"
+        }
+      ]
+    }
+  },
+  "automountServiceAccountToken": false,
+  "containers": [
+    {
+      "command": [
+        "/bin/bash",
+        "-c",
+        "echo 'logs' && tail -f /dev/null"
+      ],
+      "image": "quay.io/testnetworkfunction/cnf-test-partner:latest",
+      "imagePullPolicy": "IfNotPresent",
+      "lifecycle": {
+        "preStop": {
+          "exec": {
+            "command": [
+              "/bin/sh",
+              "-c",
+              "killall -0 tail"
+            ]
+          }
+        }
+      },
+      "name": "test",
+      "ports": [
+        {
+          "containerPort": 8080,
+          "name": "testport",
+          "protocol": "TCP"
+        }
+      ],
+      "resources": {
+        "limits": {
+          "cpu": "250m",
+          "memory": "512Mi"
+        },
+        "requests": {
+          "cpu": "250m",
+          "memory": "512Mi"
+        }
+      },
+      "securityContext": {
+        "capabilities": {
+          "drop": [
+            "KILL",
+            "MKNOD",
+            "SETGID",
+            "SETUID"
+          ]
+        },
+        "runAsUser": 1000700000
+      },
+      "terminationMessagePath": "/dev/termination-log",
+      "terminationMessagePolicy": "File"
+    }
+  ],
+  "dnsPolicy": "ClusterFirst",
+  "enableServiceLinks": true,
+  "imagePullSecrets": [
+    {
+      "name": "default-dockercfg-ckml7"
+    }
+  ],
+  "nodeName": "worker-1.clus0.t5g.lab.eng.rdu2.redhat.com",
+  "preemptionPolicy": "PreemptLowerPriority",
+  "priority": 0,
+  "restartPolicy": "Always",
+  "schedulerName": "default-scheduler",
+  "securityContext": {
+    "fsGroup": 1000700000,
+    "seLinuxOptions": {
+      "level": "s0:c26,c25"
+    }
+  },
+  "serviceAccount": "default",
+  "serviceAccountName": "default",
+  "terminationGracePeriodSeconds": 30,
+  "tolerations": [
+    {
+      "effect": "NoExecute",
+      "key": "node.kubernetes.io/not-ready",
+      "operator": "Exists",
+      "tolerationSeconds": 300
+    },
+    {
+      "effect": "NoExecute",
+      "key": "node.kubernetes.io/unreachable",
+      "operator": "Exists",
+      "tolerationSeconds": 300
+    },
+    {
+      "effect": "NoSchedule",
+      "key": "node.kubernetes.io/memory-pressure",
+      "operator": "Exists"
+    }
+  ]
+}

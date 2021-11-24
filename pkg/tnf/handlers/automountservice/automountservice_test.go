@@ -17,6 +17,9 @@
 package automountservice_test
 
 import (
+	"fmt"
+	"os"
+	"path"
 	"regexp"
 	"testing"
 	"time"
@@ -29,31 +32,39 @@ import (
 
 const (
 	// adding special variable
-	testTimeoutDuration     = time.Second * 2
-	testServiceAccount      = "default"
-	testNamespace           = "tnf"
-	testPodname             = "test"
-	testServiceAccount1Yaml = `apiVersion: v1
-automountServiceAccountToken: false
-imagePullSecrets:
-- name: default-dockercfg-wczhp
-kind: ServiceAccount
-metadata:
-  creationTimestamp: "2021-11-03T16:56:49Z"
-  name: default
-  namespace: salah
-  resourceVersion: "186554188"
-  uid: 3dd99c2c-c6fe-4858-bf0b-bfab1af80b95
-secrets:
-- name: default-token-qwfxb
-- name: default-dockercfg-wczhp`
-	testServiceAccount2Yaml = `apiVersion: v1
-automountServiceAccountToken: true`
-	testServiceAccount3Yaml = `apiVersion: v1
-imagePullSecrets:
-- name: default-dockercfg-xqpcb
-kind: ServiceAccount`
+	testTimeoutDuration = time.Second * 2
+	testServiceAccount  = "default"
+	testNamespace       = "tnf"
+	testPodname         = "test"
+	testDataDirectory   = "testData"
+	testDataFileSuffix  = ".yaml"
 )
+
+type testCase struct {
+	token  int
+	status int
+	count  int
+}
+
+var testCases = map[string]testCase{
+	"podFalse":  {as.TokenIsFalse, tnf.SUCCESS, 2},
+	"podTrue":   {as.TokenIsTrue, tnf.SUCCESS, 2},
+	"podNotSet": {as.TokenNotSet, tnf.SUCCESS, 0},
+	"saFalse":   {as.TokenIsFalse, tnf.SUCCESS, 2},
+	"saTrue":    {as.TokenIsTrue, tnf.SUCCESS, 2},
+	"saNotSet":  {as.TokenNotSet, tnf.SUCCESS, 0},
+}
+
+func getMockOutputFilename(testName string) string {
+	return path.Join(testDataDirectory, fmt.Sprintf("%s%s", testName, testDataFileSuffix))
+}
+
+func getMockOutput(t *testing.T, testName string) string {
+	fileName := getMockOutputFilename(testName)
+	b, err := os.ReadFile(fileName)
+	assert.Nil(t, err)
+	return string(b)
+}
 
 // Test_NewAutomountService is the unit test for NewAutomountService().
 func Test_NewAutomountService(t *testing.T) {
@@ -81,11 +92,11 @@ func TestAutomountservice_ReelEOF(t *testing.T) {
 
 func Test_Automountservice_Args(t *testing.T) {
 	test := as.NewAutomountservice(as.WithNamespace(testNamespace), as.WithServiceAccount(testServiceAccount))
-	args := []string{"oc", "-n", testNamespace, "get", "serviceaccounts", testServiceAccount, "-o", "yaml"}
+	args := []string{"oc", "-n", testNamespace, "get", "serviceaccounts", testServiceAccount, "-o", "json"}
 	assert.ElementsMatch(t, args, test.Args())
 
 	test = as.NewAutomountservice(as.WithNamespace(testNamespace), as.WithPodname(testPodname))
-	args = []string{"oc", "-n", testNamespace, "get", "pods", testPodname, "-o", "yaml"}
+	args = []string{"oc", "-n", testNamespace, "get", "pods", testPodname, "-o", "json", "|", "jq", "-r", ".spec"}
 	assert.ElementsMatch(t, args, test.Args())
 }
 
@@ -99,34 +110,27 @@ func TestAutomountservice_ReelTimeout(t *testing.T) {
 
 // Test_Automountservice_ReelMatch is the unit test for Automountservice_ReelMatch().
 func TestAutomountservice_ReelMatch(t *testing.T) {
-	test := as.NewAutomountservice()
-	assert.NotNil(t, test)
-	firstStep := test.ReelFirst()
-	// validate regular expression when serviceaccount is set to false
-	re := regexp.MustCompile(firstStep.Expect[0])
-	matches := re.FindStringSubmatch(testServiceAccount1Yaml)
-	assert.Len(t, matches, 2)
-	// validate reel match
-	step := test.ReelMatch("", "", matches[0])
-	assert.Nil(t, step)
-	assert.Equal(t, tnf.SUCCESS, test.Result())
-	assert.Equal(t, as.TokenIsFalse, test.Token())
-
-	// validate regular expression when serviceaccount is set to true
-	matches = re.FindStringSubmatch(testServiceAccount2Yaml)
-	assert.Len(t, matches, 2)
-	// validate reel match
-	step = test.ReelMatch("", "", matches[0])
-	assert.Nil(t, step)
-	assert.Equal(t, tnf.SUCCESS, test.Result())
-	assert.Equal(t, as.TokenIsTrue, test.Token())
-	// validate regular expression when serviceaccount is not set
-	test = as.NewAutomountservice()
-	matches = re.FindStringSubmatch(testServiceAccount3Yaml)
-	assert.Len(t, matches, 0)
-	// validate reel match
-	step = test.ReelMatch("", "", "")
-	assert.Nil(t, step)
-	assert.Equal(t, tnf.SUCCESS, test.Result())
-	assert.Equal(t, as.TokenNotSet, test.Token())
+	for filename, testcase := range testCases {
+		matchMock := getMockOutput(t, filename)
+		test := as.NewAutomountservice()
+		assert.NotNil(t, test)
+		firstStep := test.ReelFirst()
+		// validate regular expression when serviceaccount is set to false
+		re := regexp.MustCompile(firstStep.Expect[0])
+		//fmt.Println("matchmock \n", matchMock)
+		matches := re.FindStringSubmatch(matchMock)
+		fmt.Println("-----")
+		for i := 0; i < len(matches); i++ {
+			fmt.Println("i=", i, " matches= ", matches[i])
+		}
+		fmt.Println("-----")
+		assert.Len(t, matches, testcase.count)
+		if len(matches) == 0 {
+			matches = []string{""}
+		}
+		step := test.ReelMatch("", "", matches[0])
+		assert.Nil(t, step)
+		assert.Equal(t, tnf.SUCCESS, test.Result())
+		assert.Equal(t, test.Token(), testcase.token)
+	}
 }
