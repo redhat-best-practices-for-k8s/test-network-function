@@ -17,84 +17,124 @@
 package imagepullpolicy_test
 
 import (
-	"regexp"
+	"fmt"
+	"path"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
-	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/imagepullpolicy"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/generic"
+	"github.com/test-network-function/test-network-function/pkg/tnf/identifier"
+	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
+	"github.com/xeipuuv/gojsonschema"
 )
 
-// Test_NewImagepullpolicy is the unit test for NewImagepullpolicy().
-func Test_NewImagepullpolicy(t *testing.T) {
-	handler := imagepullpolicy.NewImagepullpolicy(testTimeoutDuration, testPodNamespace, testPodName, testContainerCount)
-	assert.NotNil(t, handler)
-	assert.Equal(t, testTimeoutDuration, handler.Timeout())
-	assert.Equal(t, handler.Result(), tnf.ERROR)
-	// Todo: Write test.
-}
-
-func Test_ReelFirstPositive(t *testing.T) {
-	handler := imagepullpolicy.NewImagepullpolicy(testTimeoutDuration, testPodNamespace, testPodName, testContainerCount)
-	assert.NotNil(t, handler)
-	firstStep := handler.ReelFirst()
-	re := regexp.MustCompile(firstStep.Expect[0])
-
-	matches := re.FindStringSubmatch(testInputSuccess)
-	assert.Len(t, matches, 1)
-}
-
-func Test_ReelFirstNegative(t *testing.T) {
-	handler := imagepullpolicy.NewImagepullpolicy(testTimeoutDuration, testPodNamespace, testPodName, testContainerCount)
-	assert.NotNil(t, handler)
-	firstStep := handler.ReelFirst()
-	re := regexp.MustCompile(firstStep.Expect[0])
-	matches := re.FindStringSubmatch(testInputError)
-	assert.Len(t, matches, 0)
-}
-
-// Test_Imagepullpolicy_Args is the unit test for Imagepullpolicy_Args().
-func TestImagepullpolicy_Args(t *testing.T) {
-	// Todo: Write test.
-}
-
-// Test_Imagepullpolicy_GetIdentifier is the unit test for Imagepullpolicy_GetIdentifier().
-func TestImagepullpolicy_GetIdentifier(t *testing.T) {
-	// Todo: Write test.
-}
-
-// Test_Imagepullpolicy_ReelFirst is the unit test for Imagepullpolicy_ReelFirst().
-func TestImagepullpolicy_ReelFirst(t *testing.T) {
-	// Todo: Write test.
-}
-
-// Test_Imagepullpolicy_ReelEOF is the unit test for Imagepullpolicy_ReelEOF().
-func TestImagepullpolicy_ReelEOF(t *testing.T) {
-	handler := imagepullpolicy.NewImagepullpolicy(testTimeoutDuration, testPodNamespace, testPodName, testContainerCount)
-	assert.NotNil(t, handler)
-	handler.ReelEOF()
-	// Todo: Write test.
-}
-
-// Test_Imagepullpolicy_ReelTimeout is the unit test for Imagepullpolicy}_ReelTimeout().
-func TestImagepullpolicy_ReelTimeout(t *testing.T) {
-	// Todo: Write test.
-}
-
-// Test_Imagepullpolicy_ReelMatch is the unit test for Imagepullpolicy_ReelMatch().
-func TestImagepullpolicy_ReelMatch(t *testing.T) {
-	// Todo: Write test.
-}
-
 const (
-	testTimeoutDuration = time.Second * 1
-	testContainerCount  = 1
-	testInputError      = "Always"
-	testPodNamespace    = "testPodNamespace"
-	testPodName         = "testPodName"
+	testTimeoutDuration = time.Second * 5
 )
 
 var (
-	testInputSuccess = "IfNotPresent"
+	genericTestSchemaFile = path.Join("schemas", "generic-test.schema.json")
+	imagepullFilename     = "imagepullolicy.json"
+	/* #nosec G101 */
+	expectedPassPattern  = "(?m)[1-9]"
+	expectedFailPattern  = "(?m)[0]"
+	expectedErrPattern   = "(?m).*"
+	pathRelativeToRoot   = path.Join("..", "..", "..", "..")
+	pathToTestSchemaFile = path.Join(pathRelativeToRoot, genericTestSchemaFile)
+	testPodNameSpace     = "testnamespace"
+	testPodName          = "testPodname"
+	testContainerNum     = 0
+	testInputError       = "Always"
+	testInputSuccess     = "IfNotPresent"
 )
+
+func createTest() (*tnf.Tester, []reel.Handler, *gojsonschema.Result, error) {
+	values := make(map[string]interface{})
+	values["POD_NAMESPACE"] = testPodNameSpace
+	values["POD_NAME"] = testPodName
+	values["CONTAINER_NUM"] = testContainerNum
+	return generic.NewGenericFromMap(imagepullFilename, pathToTestSchemaFile, values)
+}
+
+func TestLogging_Args(t *testing.T) {
+	test, handlers, jsonParseResult, err := createTest()
+
+	assert.Nil(t, err)
+	assert.True(t, jsonParseResult.Valid())
+	assert.NotNil(t, handlers)
+
+	assert.Nil(t, (*test).Args())
+}
+
+func TestLogging_GetIdentifier(t *testing.T) {
+	test, handlers, jsonParseResult, err := createTest()
+
+	assert.Nil(t, err)
+	assert.True(t, jsonParseResult.Valid())
+	assert.NotNil(t, handlers)
+
+	assert.Equal(t, identifier.ImagePullPolicyIdentifier, (*test).GetIdentifier())
+}
+
+func TestLogging_ReelFirst(t *testing.T) {
+	_, handlers, jsonParseResult, err := createTest()
+
+	assert.Nil(t, err)
+	assert.True(t, jsonParseResult.Valid())
+	assert.NotNil(t, handlers)
+
+	assert.Equal(t, 1, len(handlers))
+	handler := handlers[0]
+	step := handler.ReelFirst()
+	expectedCommand := fmt.Sprintf("oc get pod %s -n %s -o json  | jq -r '.spec.containers[%d].imagePullPolicy'", testPodName, testPodNameSpace, testContainerNum)
+	assert.Equal(t, expectedCommand, step.Execute)
+	assert.Contains(t, step.Expect, expectedPassPattern, expectedFailPattern, expectedErrPattern)
+	assert.Equal(t, testTimeoutDuration, step.Timeout)
+}
+
+func TestLogging_ReelEof(t *testing.T) {
+	_, handlers, jsonParseResult, err := createTest()
+
+	assert.Nil(t, err)
+	assert.True(t, jsonParseResult.Valid())
+	assert.NotNil(t, handlers)
+
+	assert.Equal(t, 1, len(handlers))
+	handler := handlers[0]
+	// just ensure there isn't a panic
+	handler.ReelEOF()
+}
+
+func TestLogging_ReelTimeout(t *testing.T) {
+	_, handlers, jsonParseResult, err := createTest()
+
+	assert.Nil(t, err)
+	assert.True(t, jsonParseResult.Valid())
+	assert.NotNil(t, handlers)
+
+	assert.Equal(t, 1, len(handlers))
+	handler := handlers[0]
+	assert.Nil(t, handler.ReelTimeout())
+}
+
+func TestLogging_ReelMatch(t *testing.T) {
+	tester, handlers, jsonParseResult, err := createTest()
+
+	assert.Nil(t, err)
+	assert.True(t, jsonParseResult.Valid())
+	assert.NotNil(t, handlers)
+
+	assert.Equal(t, 1, len(handlers))
+	handler := handlers[0]
+	step := handler.ReelMatch(expectedPassPattern, "", testInputSuccess)
+
+	assert.Nil(t, step)
+	assert.Equal(t, tnf.SUCCESS, (*tester).Result())
+
+	step = handler.ReelMatch(expectedFailPattern, "", testInputError)
+
+	assert.Nil(t, step)
+	assert.Equal(t, tnf.FAILURE, (*tester).Result())
+}
