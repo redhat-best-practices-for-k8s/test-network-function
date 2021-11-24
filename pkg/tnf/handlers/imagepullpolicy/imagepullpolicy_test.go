@@ -40,12 +40,15 @@ var (
 	/* #nosec G101 */
 	expectedPassPattern  = "(?m)IfNotPresent"
 	expectedFailPattern  = "(?m)Always"
+	expectedErrPattern   = "(?m)"
 	pathRelativeToRoot   = path.Join("..", "..", "..", "..")
 	pathToTestSchemaFile = path.Join(pathRelativeToRoot, genericTestSchemaFile)
 	testPodNameSpace     = "testnamespace"
 	testPodName          = "testPodname"
 	testContainerNum     = 0
 	testInputSuccess     = "IfNotPresent"
+	testInputFilure      = "Always"
+	testInputErr         = ""
 )
 
 func createTest() (*tnf.Tester, []reel.Handler, *gojsonschema.Result, error) {
@@ -130,4 +133,12 @@ func TestImagePullPolicy_ReelMatch(t *testing.T) {
 
 	assert.Nil(t, step)
 	assert.Equal(t, tnf.SUCCESS, (*tester).Result())
+	step = handler.ReelMatch(expectedFailPattern, "", testInputFilure)
+
+	assert.Nil(t, step)
+	assert.Equal(t, tnf.FAILURE, (*tester).Result())
+	step = handler.ReelMatch(expectedErrPattern, "", testInputErr)
+
+	assert.Nil(t, step)
+	assert.Equal(t, tnf.ERROR, (*tester).Result())
 }
