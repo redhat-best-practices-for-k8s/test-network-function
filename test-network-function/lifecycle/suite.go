@@ -487,7 +487,7 @@ func testOwner(env *config.TestEnvironment) {
 }
 
 func testImagePolicy(env *config.TestEnvironment) {
-	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestPodDeploymentBestPracticesIdentifier)
+	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestImagePullPolicyIdentifier)
 	ginkgo.It(testID, func() {
 		context := common.GetContext()
 		contnum := 0

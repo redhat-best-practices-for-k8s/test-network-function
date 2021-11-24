@@ -147,6 +147,11 @@ var (
 		Url:     formTestURL(common.LifecycleTestKey, "pod-owner-type"),
 		Version: versionOne,
 	}
+	// TestImagePullPolicyIdentifier ensures represent image pull policy practices.
+	TestImagePullPolicyIdentifier = claim.Identifier{
+		Url:     formTestURL(common.LifecycleTestKey, "image-pull-policy"),
+		Version: versionOne,
+	}
 	// TestPodRecreationIdentifier ensures recreation best practices.
 	TestPodRecreationIdentifier = claim.Identifier{
 		Url:     formTestURL(common.LifecycleTestKey, "pod-recreation"),
