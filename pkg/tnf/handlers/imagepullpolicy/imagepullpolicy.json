@@ -8,12 +8,12 @@
     "testTimeout": 5000000000,
     "reelFirstStep": {
       "execute": "oc get pod {{.POD_NAME}} -n {{.POD_NAMESPACE}} -o json  | jq -r '.spec.containers[{{.CONTAINER_NUM}}].imagePullPolicy'",
-      "expect":["(?m)Always"],
+      "expect":["(?m)IfNotPresent"],
       "timeout": 5000000000
     },
     "resultContexts":[
       {
-        "pattern": "(?m)Always",
+        "pattern": "(?m)IfNotPresent",
         "defaultResult": 1
       }
     ]
