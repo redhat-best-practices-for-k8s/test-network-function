@@ -170,7 +170,7 @@ var (
 	}
 	//
 	TestPodAutomountServiceAccountIdentifier = claim.Identifier{
-		Url:     formTestURL(common.AccessControlTestKey, "pod-automount-service"),
+		Url:     formTestURL(common.AccessControlTestKey, "pod-automount-service-account-token"),
 		Version: versionOne,
 	}
 	// TestServicesDoNotUseNodeportsIdentifier ensures Services don't utilize NodePorts.

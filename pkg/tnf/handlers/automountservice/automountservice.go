@@ -76,14 +76,14 @@ func WithNamespace(ns string) func(*Automountservice) {
 }
 
 //
-// WithTimeout specify the namespace
+// WithTimeout specify the timeout of the test
 func WithTimeout(t time.Duration) func(*Automountservice) {
 	return func(as *Automountservice) {
 		as.timeout = t
 	}
 }
 
-// WithPodname specify the namespace
+// WithPodname specify the podname to test
 func WithPodname(ns string) func(*Automountservice) {
 	return func(as *Automountservice) {
 		as.podname = ns
@@ -91,7 +91,7 @@ func WithPodname(ns string) func(*Automountservice) {
 	}
 }
 
-// WithPodname specify the namespace
+// WithServiceAccount specify the serviceaccount to check
 func WithServiceAccount(sa string) func(*Automountservice) {
 	return func(as *Automountservice) {
 		as.serviceaccount = sa
