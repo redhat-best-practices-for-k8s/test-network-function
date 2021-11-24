@@ -38,7 +38,6 @@ import (
 	dp "github.com/test-network-function/test-network-function/pkg/tnf/handlers/deployments"
 	dd "github.com/test-network-function/test-network-function/pkg/tnf/handlers/deploymentsdrain"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/graceperiod"
-	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/imagepullpolicy"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodeselector"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/owners"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
@@ -486,6 +485,43 @@ func testOwner(env *config.TestEnvironment) {
 func testImagePolicy(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestPodDeploymentBestPracticesIdentifier)
 	ginkgo.It(testID, func() {
+		imagepullpolicyTestPath := path.Join("pkg", "tnf", "handlers", "imagepullpolicy", "imagepullpolicy.json")
+		// relativeLoggingTestPath is the relative path to the logging.json test case.
+		relativeimagepullpolicyTestPath := path.Join(common.PathRelativeToRoot, imagepullpolicyTestPath)
+		context := common.GetContext()
+		contnum := 0
+		prevpod := ""
+		for _, cut := range env.ContainersUnderTest {
+			values := make(map[string]interface{})
+			//prevpod := cut.ContainerIdentifier.PodName
+			values["POD_NAMESPACE"] = cut.ContainerIdentifier.Namespace
+			values["POD_NAME"] = cut.ContainerIdentifier.PodName
+			if prevpod != cut.ContainerIdentifier.PodName {
+				prevpod = cut.ContainerIdentifier.PodName
+				contnum = 0
+			} else {
+				contnum++
+			}
+			values["CONTAINER_NUM"] = contnum
+			tester, handlers, result, err := generic.NewGenericFromMap(relativeimagepullpolicyTestPath, common.RelativeSchemaPath, values)
+			gomega.Expect(err).To(gomega.BeNil())
+			gomega.Expect(result).ToNot(gomega.BeNil())
+			gomega.Expect(result.Valid()).To(gomega.BeTrue())
+			gomega.Expect(handlers).ToNot(gomega.BeNil())
+			gomega.Expect(handlers).ToNot(gomega.BeNil())
+			gomega.Expect(tester).ToNot(gomega.BeNil())
+			test, err := tnf.NewTest(context.GetExpecter(), *tester, handlers, context.GetErrorChannel())
+			gomega.Expect(err).To(gomega.BeNil())
+			gomega.Expect(test).ToNot(gomega.BeNil())
+
+			test.RunAndValidate()
+		}
+	})
+}
+
+/*func testImagePolicy(env *config.TestEnvironment) {
+	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestPodDeploymentBestPracticesIdentifier)
+	ginkgo.It(testID, func() {
 		ginkgo.By("Testing image pull policy")
 		context := common.GetContext()
 		for _, podUnderTest := range env.PodsUnderTest {
@@ -501,4 +537,4 @@ func testImagePolicy(env *config.TestEnvironment) {
 		}
 		ginkgo.By("Testing image pull policy")
 	})
-}
+}*/

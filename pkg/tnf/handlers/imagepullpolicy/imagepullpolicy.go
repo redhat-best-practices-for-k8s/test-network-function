@@ -38,7 +38,7 @@ type Imagepullpolicy struct {
 
 const (
 	ocCommand = "oc get pod %s -n %s -o json  | jq -r '.spec.containers[%d].imagePullPolicy'"
-	regex     = "IfNotPresent"
+	regex     = "Always"
 )
 
 // NewImagepullpolicy returns a new Imagepullpolicy handler struct.

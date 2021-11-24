@@ -1,0 +1,21 @@
+{
+    "identifier" : {
+      "url" :  "http://test-network-function.com/tests/Imagepullpolicy",
+      "version": "v1.0.0"
+    },
+    "description": "A generic test used to get Image Pull Policy type",
+    "testResult": 0,
+    "testTimeout": 5000000000,
+    "reelFirstStep": {
+      "execute": "oc get pod {{.POD_NAME}} -n {{.POD_NAMESPACE}} -o json  | jq -r '.spec.containers[{{.CONTAINER_NUM}}].imagePullPolicy'",
+      "expect":["(?m)Always"],
+      "timeout": 5000000000
+    },
+    "resultContexts":[
+      {
+        "pattern": "(?m)Always",
+        "defaultResult": 1
+      }
+    ]
+  }
+  
