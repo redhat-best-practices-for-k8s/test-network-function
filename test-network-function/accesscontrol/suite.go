@@ -156,29 +156,34 @@ func runTestOnPods(env *config.TestEnvironment, testCmd testcases.BaseTestCase, 
 	})
 }
 
-func getCrsNamespaces(crdName, crdKind string) map[string]string {
+func getCrsNamespaces(crdName, crdKind string) (map[string]string, error) {
+	const expectedNumFields = 2
+	const crNameFieldIdx = 0
+	const namespaceFieldIdx = 0
+
 	gomega.Expect(crdKind).NotTo(gomega.BeEmpty())
 	getCrNamespaceCommand := fmt.Sprintf(ocGetCrNamespaceFormat, crdKind)
 	cmdOut := utils.ExecuteCommand(getCrNamespaceCommand, common.DefaultTimeout, common.GetContext(), func() {
 		tcClaimLogPrintf("CRD %s: Failed to get CRs (kind=%s)", crdName, crdKind)
 	})
-	// No CRs created for this CRD yet.
-	if cmdOut == "" {
-		return map[string]string{}
-	}
-	lines := strings.Split(cmdOut, "\n")
 
 	crNamespaces := map[string]string{}
-	for _, line := range lines {
-		if line == "" {
-			// This is to filter the last line, which is always empty.
-			continue
-		}
-		lineFields := strings.Split(line, ",")
-		crNamespaces[lineFields[0]] = lineFields[1]
+
+	if cmdOut == "" {
+		// Filter out empty (0 CRs) output.
+		return crNamespaces, nil
 	}
 
-	return crNamespaces
+	lines := strings.Split(cmdOut, "\n")
+	for _, line := range lines {
+		lineFields := strings.Split(line, ",")
+		if len(lineFields) != expectedNumFields {
+			return crNamespaces, fmt.Errorf("failed to parse output line %s", line)
+		}
+		crNamespaces[lineFields[crNameFieldIdx]] = lineFields[namespaceFieldIdx]
+	}
+
+	return crNamespaces, nil
 }
 
 func testCrsNamespaces(crNames, configNamespaces []string) (invalidCrs map[string][]string) {
@@ -188,7 +193,11 @@ func testCrsNamespaces(crNames, configNamespaces []string) (invalidCrs map[strin
 		crdPluralName := utils.ExecuteCommand(getCrPluralNameCommand, common.DefaultTimeout, common.GetContext(), func() {
 			tcClaimLogPrintf("CRD %s: Failed to get CR plural name.", crdName)
 		})
-		crNamespaces := getCrsNamespaces(crdName, crdPluralName)
+
+		crNamespaces, err := getCrsNamespaces(crdName, crdPluralName)
+		if err != nil {
+			ginkgo.Fail(fmt.Sprintf("Failed to get CRs for CRD %s - Error: %v", crdName, err))
+		}
 
 		ginkgo.By(fmt.Sprintf("CRD %s has %d CRs (plural name: %s).", crdName, len(crNamespaces), crdPluralName))
 		for crName, namespace := range crNamespaces {
@@ -197,6 +206,7 @@ func testCrsNamespaces(crNames, configNamespaces []string) (invalidCrs map[strin
 			for _, configNamespace := range configNamespaces {
 				if namespace == configNamespace {
 					found = true
+					break
 				}
 			}
 
@@ -228,14 +238,14 @@ func testNamespace(env *config.TestEnvironment) {
 					}
 				}
 			}
-			failedNamespacesNum := len(failedNamespaces)
-			if failedNamespacesNum > 0 {
+
+			if failedNamespacesNum := len(failedNamespaces); failedNamespacesNum > 0 {
 				ginkgo.Fail(fmt.Sprintf("Found %d namespaces with an invalid prefix.", failedNamespacesNum))
 			}
 
 			ginkgo.By(fmt.Sprintf("CNF pods' should belong to any of the configured namespaces: %v", env.NameSpacesUnderTest))
-			nonValidPodsNum := len(env.Config.NonValidPods)
-			if nonValidPodsNum > 0 {
+
+			if nonValidPodsNum := len(env.Config.NonValidPods); nonValidPodsNum > 0 {
 				for _, invalidPod := range env.Config.NonValidPods {
 					tcClaimLogPrintf("Pod %s has invalid namespace %s", invalidPod.Name, invalidPod.Namespace)
 				}
@@ -245,8 +255,8 @@ func testNamespace(env *config.TestEnvironment) {
 
 			ginkgo.By(fmt.Sprintf("CRs from autodiscovered CRDs should belong to the configured namespaces: %v", env.NameSpacesUnderTest))
 			invalidCrs := testCrsNamespaces(env.CrdNames, env.NameSpacesUnderTest)
-			invalidCrsNum := len(invalidCrs)
-			if invalidCrsNum > 0 {
+
+			if invalidCrsNum := len(invalidCrs); invalidCrsNum > 0 {
 				for crdName, crs := range invalidCrs {
 					for _, crName := range crs {
 						tcClaimLogPrintf("CRD %s - CR %s has an invalid namespace.", crdName, crName)
