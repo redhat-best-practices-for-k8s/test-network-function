@@ -432,6 +432,14 @@ ClusterRoleBindings, if possible.`,
 			`tests that CNF Pod(s) are deployed as part of a ReplicaSet(s)/StatefulSet(s).`),
 		BestPracticeReference: bestPracticeDocV1dot2URL + " Section 6.3.3 and 6.3.8",
 	},
+	TestImagePullPolicyIdentifier: {
+		Identifier:  TestPodDeploymentBestPracticesIdentifier,
+		Type:        normativeResult,
+		Remediation: `Ensure that the containers under test are using IfNotPresent as Image Pull Policy.`,
+		Description: formDescription(TestImagePullPolicyIdentifier,
+			`Ensure that the containers under test are using IfNotPresent as Image Pull Policy..`),
+		BestPracticeReference: bestPracticeDocV1dot2URL + " Section 6.3.3 and 6.3.8",
+	},
 
 	TestPodRoleBindingsBestPracticesIdentifier: {
 		Identifier:  TestPodRoleBindingsBestPracticesIdentifier,
