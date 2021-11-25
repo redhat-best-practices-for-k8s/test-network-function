@@ -122,7 +122,7 @@ Version|v1.0.0
 Description|http://test-network-function.com/testcases/lifecycle/image-pull-policy Ensure that the containers under test are using IfNotPresent as Image Pull Policy..
 Result Type|normative
 Suggested Remediation|Ensure that the containers under test are using IfNotPresent as Image Pull Policy.
-Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.3.3 and 6.3.8
+Best Practice Reference|https://docs.google.com/document/d/1wRHMk1ZYUSVmgp_4kxvqjVOKwolsZ5hDXjr5MLy-wbg/edit#  Section 15.6
 ### http://test-network-function.com/testcases/lifecycle/pod-high-availability
 
 Property|Description
