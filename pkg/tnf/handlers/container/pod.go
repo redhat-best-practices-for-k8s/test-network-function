@@ -116,7 +116,6 @@ func (p *Pod) ReelMatch(_, _, match string) *reel.Step {
 				return nil // should be in allowed list
 			}
 		}
-
 	} else {
 		for _, status := range p.ExpectStatus {
 			re := regexp.MustCompile(testcases.GetOutRegExp(testcases.RegExType(status)))
