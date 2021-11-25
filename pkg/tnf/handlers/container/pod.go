@@ -100,7 +100,8 @@ func (p *Pod) ReelMatch(_, _, match string) *reel.Step {
 			p.result = tnf.SUCCESS
 			return nil
 		}
-		replacer := strings.NewReplacer(`[`, ``, "\"", ``, `]`, ``, `, `, `,`)
+		replacer := strings.NewReplacer(`[`, ``, "\"", ``, `]`, ``, `, `, `,`, "\n", ``, "\t", ``, ` `, ``)
+
 		match = replacer.Replace(match)
 		f := func(c rune) bool {
 			return c == ','
@@ -115,6 +116,7 @@ func (p *Pod) ReelMatch(_, _, match string) *reel.Step {
 				return nil // should be in allowed list
 			}
 		}
+
 	} else {
 		for _, status := range p.ExpectStatus {
 			re := regexp.MustCompile(testcases.GetOutRegExp(testcases.RegExType(status)))
