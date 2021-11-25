@@ -29,8 +29,8 @@ const (
 	orchestratorValue = "orchestrator"
 )
 
-func IsMinikube() bool {
-	minikube, _ := strconv.ParseBool(os.Getenv("TNF_MINIKUBE_ONLY"))
+func IsNonOcpCluster() bool {
+	minikube, _ := strconv.ParseBool(os.Getenv("TNF_NON_OCP_CLUSTER"))
 	return minikube
 }
 

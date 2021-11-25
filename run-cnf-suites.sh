@@ -26,23 +26,23 @@ while [[ $1 == -* ]]; do
 		-h|--help|-\?) usage; exit 0;;
 		-o) if (($# > 1)); then
 				  OUTPUT_LOC=$2; shift
-			  else
-				  echo "-o requires an argument" 1>&2
-				  exit 1
-			  fi ;;
-    -s|--skip)
-        while (( "$#" >= 2 )) && ! [[ $2 = --* ]] && ! [[ $2 = -* ]] ; do
-          SKIP="$2|$SKIP"
-          shift
-        done;;
+			else
+				echo "-o requires an argument" 1>&2
+				exit 1
+			fi ;;
+		-s|--skip)
+        	while (( "$#" >= 2 )) && ! [[ $2 = --* ]] && ! [[ $2 = -* ]] ; do
+    			SKIP="$2|$SKIP"
+          		shift
+        	done;;
 		-f|--focus)
-        while (( "$#" >= 2 )) && ! [[ $2 = --* ]]  && ! [[ $2 = -* ]] ; do
-          FOCUS="$2|$FOCUS"
-          shift
-        done;;
-    -*) echo "invalid option: $1" 1>&2; usage_error;;
+    	    while (( "$#" >= 2 )) && ! [[ $2 = --* ]]  && ! [[ $2 = -* ]] ; do
+        		FOCUS="$2|$FOCUS"
+        		shift
+        	done;;
+    	-*) echo "invalid option: $1" 1>&2; usage_error;;
 	esac
-  shift
+	shift
 done
 # specify Junit report file name.
 GINKGO_ARGS="-junit $OUTPUT_LOC -claimloc $OUTPUT_LOC --ginkgo.junit-report $OUTPUT_LOC/cnf-certification-tests_junit.xml -ginkgo.v -test.v"
@@ -54,6 +54,12 @@ GINKGO_ARGS="-junit $OUTPUT_LOC -claimloc $OUTPUT_LOC --ginkgo.junit-report $OUT
 FOCUS=${FOCUS%?}  # strip the trailing "|" from the concatenation
 SKIP=${SKIP%?} # strip the trailing "|" from the concatenation
 
+res=`oc version | grep  Server`
+if [ -z "$res" ]
+then
+   echo "Minikube or similar detected"
+   export TNF_NON_OCP_CLUSTER=true
+fi
 # Run cnf-feature-deploy test container if not running inside a container
 # cgroup file doesn't exist on MacOS. Consider that as not running in container as well
 if [[ ! -f "/proc/1/cgroup" ]] || grep -q init\.scope /proc/1/cgroup; then
@@ -76,4 +82,5 @@ SKIP_STRING=""
 if [ -n "$SKIP" ]; then
 	SKIP_STRING=-ginkgo.skip="$SKIP"
 fi
+
 cd ./test-network-function && ./test-network-function.test -ginkgo.focus="$FOCUS" $SKIP_STRING ${GINKGO_ARGS}

@@ -86,7 +86,7 @@ the subscription for this CSV. If unset, the CSV name will be used.
 
 ### testPartner
 
-This section can also be discovered automatically and should be left commented out unless the partner pods are modified from the original version in [cnf-certification-test-partner](https://github.com/test-network-function/cnf-certification-test-partner/local-test-infra/)
+This section can also be discovered automatically and should be left commented out unless the partner pods are modified from the original version in [cnf-certification-test-partner](https://github.com/test-network-function/cnf-certification-test-partner/tree/main/test-partner)
 
 ### certifiedcontainerinfo and certifiedoperatorinfo
 
@@ -94,13 +94,6 @@ The `certifiedcontainerinfo` and `certifiedoperatorinfo` sections contain inform
 to be checked for certification status on Red Hat catalogs.
 
 ## Runtime environement variables
-### Turn off openshift required tests
-When test on CNFs that run on k8s only environment, execute shell command below before compile tool and run test shell script.
-
-```shell script
-export TNF_MINIKUBE_ONLY=true
-```
-
 ### Disable intrusive tests
 If you would like to skip intrusive tests which may disrupt cluster operations, issue the following:
 
@@ -190,10 +183,6 @@ The autodiscovery first looks for paths in the `$KUBECONFIG` environment variabl
 ```
 
 See [General tests](#general-tests) for a list of available keywords.
-
-*Note*: The `run-tnf-container.sh` script performs autodiscovery of selected TNF environment variables.  
-Currently supported environment variables include:
-- `TNF_MINIKUBE_ONLY`
 
 ### Running using `docker` instead of `podman`
 
