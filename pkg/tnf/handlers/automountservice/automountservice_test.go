@@ -117,7 +117,6 @@ func TestAutomountservice_ReelMatch(t *testing.T) {
 		firstStep := test.ReelFirst()
 		// validate regular expression when serviceaccount is set to false
 		re := regexp.MustCompile(firstStep.Expect[0])
-		//fmt.Println("matchmock \n", matchMock)
 		matches := re.FindStringSubmatch(matchMock)
 		fmt.Println("-----")
 		for i := 0; i < len(matches); i++ {
