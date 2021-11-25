@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-if [ "$TNF_RUN_CFD_TEST" == "true" ] && [ "$TNF_MINIKUBE_ONLY" != "true" ]; then
+if [ "$TNF_RUN_CFD_TEST" == "true" ]; then
 
 	export TNF_IMAGE_NAME=cnf-tests
 	export TNF_IMAGE_TAG="${TNF_CFD_IMAGE_TAG:-4.6}"

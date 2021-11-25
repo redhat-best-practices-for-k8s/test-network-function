@@ -36,6 +36,7 @@ const (
 	configurationFilePathEnvironmentVariableKey = "TNF_CONFIGURATION_PATH"
 	defaultConfigurationFilePath                = "tnf_config.yml"
 	defaultTimeoutSeconds                       = 10
+	defaultNamespace                            = "default"
 )
 
 var (
@@ -111,11 +112,12 @@ func getOcSession(pod, container, namespace string, timeout time.Duration, optio
 		gomega.Expect(err).To(gomega.BeNil())
 		// Set up a go routine which reads from the error channel
 		go func() {
+			log.Debugf("start watching the session with container %s/%s", oc.GetPodName(), oc.GetPodContainerName())
 			select {
 			case err := <-outCh:
 				log.Fatalf("OC session to container %s/%s is broken due to: %v, aborting the test run", oc.GetPodName(), oc.GetPodContainerName(), err)
 			case <-oc.GetDoneChannel():
-				log.Infof("stop watching the session with container %s/%s", oc.GetPodName(), oc.GetPodContainerName())
+				log.Debugf("stop watching the session with container %s/%s", oc.GetPodName(), oc.GetPodContainerName())
 			}
 		}()
 		ocChan <- oc
@@ -151,7 +153,7 @@ type TestEnvironment struct {
 	PodsUnderTest        []configsections.Pod
 	DeploymentsUnderTest []configsections.Deployment
 	OperatorsUnderTest   []configsections.Operator
-	NameSpaceUnderTest   string
+	NameSpacesUnderTest  []string
 	CrdNames             []string
 	NodesUnderTest       map[string]*NodeConfig
 
@@ -202,35 +204,57 @@ func (env *TestEnvironment) LoadAndRefresh() {
 	}
 }
 
+// Resets the environment during the drain test since all the connections are affected
 func (env *TestEnvironment) reset() {
 	log.Debug("clean up environment Test structure")
+	env.ResetOc()
 	env.Config.Partner = configsections.TestPartner{}
 	env.Config.TestTarget = configsections.TestTarget{}
 	env.TestOrchestrator = nil
 	// Delete Oc debug sessions before re-creating them
 	for name, node := range env.NodesUnderTest {
 		if node.HasDebugPod() {
-			node.Oc.Close()
 			autodiscover.DeleteDebugLabel(name)
 		}
 	}
-	// Delete all remaining sessions before re-creating them
-	for _, cut := range env.ContainersUnderTest {
-		cut.Oc.Close()
-	}
+	env.NameSpacesUnderTest = nil
 	env.NodesUnderTest = nil
 	env.Config.Nodes = nil
 	env.DebugContainers = nil
 }
 
+// Resets the environment during the intrusive tests since all the connections are affected
+func (env *TestEnvironment) ResetOc() {
+	log.Debug("Reset Oc sessions")
+	// Delete Oc debug sessions before re-creating them
+	for _, node := range env.NodesUnderTest {
+		if node.HasDebugPod() {
+			log.Infof("Closing session to node %s", node.Name)
+			node.Oc.Close()
+			node.Oc = nil
+		}
+	}
+	// Delete all remaining sessions before re-creating them
+	for _, cut := range env.ContainersUnderTest {
+		cut.Oc.Close()
+		cut.Oc = nil
+	}
+
+	// Delete all remaining partner sessions before re-creating them
+	for _, cut := range env.PartnerContainers {
+		cut.Oc.Close()
+		cut.Oc = nil
+	}
+}
+
 func (env *TestEnvironment) doAutodiscover() {
 	log.Debug("start auto discovery")
-	if len(env.Config.TargetNameSpaces) != 1 {
-		log.Fatal("a single namespace should be specified in config file")
+	for _, ns := range env.Config.TargetNameSpaces {
+		env.NameSpacesUnderTest = append(env.NameSpacesUnderTest, ns.Name)
 	}
-	env.NameSpaceUnderTest = env.Config.TargetNameSpaces[0].Name
+
 	if autodiscover.PerformAutoDiscovery() {
-		autodiscover.FindTestTarget(env.Config.TargetPodLabels, &env.Config.TestTarget, env.NameSpaceUnderTest)
+		autodiscover.FindTestTarget(env.Config.TargetPodLabels, &env.Config.TestTarget, env.NameSpacesUnderTest)
 	}
 
 	env.ContainersToExcludeFromConnectivityTests = make(map[configsections.ContainerIdentifier]interface{})
@@ -245,11 +269,12 @@ func (env *TestEnvironment) doAutodiscover() {
 	for _, cid := range env.Config.Partner.ContainersDebugList {
 		env.ContainersToExcludeFromConnectivityTests[cid.ContainerIdentifier] = ""
 	}
-	autodiscover.FindTestPartner(&env.Config.Partner, env.NameSpaceUnderTest)
+	autodiscover.FindTestPartner(&env.Config.Partner, defaultNamespace)
 	env.PartnerContainers = env.createContainers(env.Config.Partner.ContainerConfigList)
 	env.TestOrchestrator = env.PartnerContainers[env.Config.Partner.TestOrchestratorID]
 	env.DeploymentsUnderTest = env.Config.DeploymentsUnderTest
 	env.OperatorsUnderTest = env.Config.Operators
+	env.CrdNames = autodiscover.FindTestCrdNames(env.Config.CrdFilters)
 
 	env.discoverNodes()
 	log.Infof("Test Configuration: %+v", *env)
@@ -275,7 +300,7 @@ func (env *TestEnvironment) labelNodes() {
 		if node.IsWorker() && workerNode == "" {
 			workerNode = name
 		}
-		if node.IsMaster() && node.HasDebugPod() {
+		if node.IsWorker() && node.HasDebugPod() {
 			workerNode = ""
 			break
 		}
@@ -300,7 +325,7 @@ func (env *TestEnvironment) createNodes(nodes map[string]configsections.Node) ma
 	defer log.Debug("autodiscovery: create nodes done")
 	nodesConfig := make(map[string]*NodeConfig)
 	for _, n := range nodes {
-		nodesConfig[n.Name] = &NodeConfig{Node: n, Name: n.Name, Oc: nil, deployment: false}
+		nodesConfig[n.Name] = &NodeConfig{Node: n, Name: n.Name, Oc: nil, deployment: false, debug: false}
 	}
 	for _, c := range env.ContainersUnderTest {
 		nodeName := c.ContainerConfiguration.NodeName
@@ -330,7 +355,8 @@ func (env *TestEnvironment) AttachDebugPodsToNodes() {
 func (env *TestEnvironment) discoverNodes() {
 	env.NodesUnderTest = env.createNodes(env.Config.Nodes)
 	env.labelNodes()
-	if !autodiscover.IsMinikube() {
+
+	if !autodiscover.IsNonOcpCluster() {
 		expectedDebugPods := 0
 		for _, node := range env.NodesUnderTest {
 			if node.HasDebugPod() {

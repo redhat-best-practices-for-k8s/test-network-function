@@ -214,7 +214,7 @@ func testOcpVersion() {
 }
 
 func testCniPlugins() {
-	if common.IsMinikube() {
+	if common.IsNonOcpCluster() {
 		ginkgo.Skip("can't use 'oc debug' in minikube")
 	}
 	// get name of a master node
@@ -227,7 +227,7 @@ func testCniPlugins() {
 }
 
 func testNodesHwInfo() {
-	if common.IsMinikube() {
+	if common.IsNonOcpCluster() {
 		ginkgo.Skip("can't use 'oc debug' in minikube")
 	}
 	env = config.GetTestEnvironment()
@@ -266,7 +266,7 @@ func getNodeLscpu(nodeName string) map[string]string {
 }
 
 func getNodeIfconfig(nodeName string) map[string][]string {
-	const command = "ifconfig"
+	const command = "chroot /host ifconfig"
 	const numSplitSubstrings = 2
 	result := map[string][]string{}
 	env = config.GetTestEnvironment()
@@ -320,7 +320,7 @@ func getNodeLspci(nodeName string) []string {
 
 // check CSI driver info in cluster
 func listClusterCSIInfo() {
-	if common.IsMinikube() {
+	if common.IsNonOcpCluster() {
 		ginkgo.Skip("CSI is not checked in minikube")
 	}
 	context := common.GetContext()

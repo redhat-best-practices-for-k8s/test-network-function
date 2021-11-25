@@ -124,7 +124,7 @@ func testMultusNetworkConnectivity(env *config.TestEnvironment, count int) {
 					testOrchestrator := env.TestOrchestrator
 					ginkgo.By(fmt.Sprintf("a Ping is issued from %s(%s) to %s(%s) %s", testOrchestrator.Oc.GetPodName(),
 						testOrchestrator.Oc.GetPodContainerName(), cut.Oc.GetPodName(), cut.Oc.GetPodContainerName(),
-						cut.DefaultNetworkIPAddress))
+						multusIPAddress))
 					testPing(testOrchestrator.Oc, multusIPAddress, count)
 				}
 				if !found {
@@ -151,10 +151,12 @@ func testNodePort(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestServicesDoNotUseNodeportsIdentifier)
 	ginkgo.It(testID, func() {
 		context := common.GetContext()
-		ginkgo.By(fmt.Sprintf("Testing services in namespace %s", env.NameSpaceUnderTest))
-		tester := nodeport.NewNodePort(common.DefaultTimeout, env.NameSpaceUnderTest)
-		test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
-		gomega.Expect(err).To(gomega.BeNil())
-		test.RunAndValidate()
+		for _, ns := range env.NameSpacesUnderTest {
+			ginkgo.By(fmt.Sprintf("Testing services in namespace %s", ns))
+			tester := nodeport.NewNodePort(common.DefaultTimeout, ns)
+			test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
+			gomega.Expect(err).To(gomega.BeNil())
+			test.RunAndValidate()
+		}
 	})
 }

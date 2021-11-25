@@ -21,7 +21,6 @@ env:
   IMAGE_NAME: testnetworkfunction/test-network-function
   IMAGE_TAG: latest
   TNF_CONTAINER_CLIENT: docker
-  TNF_MINIKUBE_ONLY: true
   TNF_NON_INTRUSIVE_ONLY: false
   TNF_DISABLE_CONFIG_AUTODISCOVER: false
   TNF_CONFIG_DIR: /tmp/tnf/config
@@ -37,7 +36,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        branch: [3.0.x]
+        branch: [3.1.x]
     env:
       SHELL: /bin/bash
       KUBECONFIG: '/home/runner/.kube/config'

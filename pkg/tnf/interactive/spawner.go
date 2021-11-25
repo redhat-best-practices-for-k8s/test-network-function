@@ -122,6 +122,11 @@ func (e *ExecSpawnFunc) StderrPipe() (io.Reader, error) {
 	return e.cmd.StderrPipe()
 }
 
+// Wait wraps exec.Cmd.Wait.
+func (e *ExecSpawnFunc) Close() error {
+	return e.cmd.Process.Kill()
+}
+
 // Spawner provides an interface for creating interactive sessions such as oc, ssh, or shell.
 type Spawner interface {
 	// Spawn creates the interactive session.

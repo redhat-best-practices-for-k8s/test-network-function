@@ -3,7 +3,7 @@ package api
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 
 	log "github.com/sirupsen/logrus"
@@ -94,7 +94,7 @@ func (api CertAPIClient) GetOperatorBundleIDByPackageName(org, name string) (ima
 
 // getRequest a http call to rest api, returns byte array or error
 func (api CertAPIClient) getRequest(url string) (response []byte, err error) {
-	req, err := http.NewRequest(http.MethodGet, url, nil) //nolint:noctx
+	req, err := http.NewRequest(http.MethodGet, url, http.NoBody) //nolint:noctx
 	if err != nil {
 		return nil, err
 	}
@@ -107,7 +107,7 @@ func (api CertAPIClient) getRequest(url string) (response []byte, err error) {
 		err = GetContainer404Error()
 		return
 	}
-	if response, err = ioutil.ReadAll(resp.Body); err != nil {
+	if response, err = io.ReadAll(resp.Body); err != nil {
 		err = GetContainer404Error()
 		return
 	}
