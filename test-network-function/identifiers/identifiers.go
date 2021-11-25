@@ -313,7 +313,7 @@ how to exclude a particular container from ICMPv4 connectivity tests, consult:
 		Description: formDescription(TestICMPv4ConnectivityIdentifier,
 			`checks that each CNF Container is able to communicate via ICMPv4 on the Default OpenShift network.  This
 test case requires the Deployment of the
-[CNF Certification Test Partner](https://github.com/test-network-function/cnf-certification-test-partner/blob/main/test-partner/partner.yaml).
+[CNF Certification Test Partner](https://github.com/test-network-function/cnf-certification-test-partner/blob/main/test-partner/partner-deployment.yaml).
 The test ensures that all CNF containers respond to ICMPv4 requests from the Partner Pod, and vice-versa.
 `),
 		BestPracticeReference: bestPracticeDocV1dot2URL + " Section 6.2",

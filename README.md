@@ -26,9 +26,14 @@ The Test Network Function support autodiscovery using labels and annotations. Th
 
 ### targetNameSpaces
 
-A single namespace should be specified in the [configuration file](test-network-function/tnf_config.yml). This namespace will be used by autodiscovery to find the Pods under test. To run multiple tests in different namespaces simultaneously, intrusive tests should be disabled by setting ``TNF_NON_INTRUSIVE_ONLY`` to true.
+Multiple namespaces can be specified in the [configuration file](test-network-function/tnf_config.yml). Namespaces will be used by autodiscovery to find the Pods under test.
+``` shell script
+targetNameSpaces:
+  - name: firstnamespace
+  - name: secondnamespace 
+```
 ### targetPodLabels
-The goal of this section is to specify the label to be used to identify the CNF resources under test. It's highly recommended that the labels should be defined in pod definition rather than added after pod is created, as labels added later on will be lost in case the pod gets rescheduled. In case of pods defined as part a deployment, it's best to use the same label as the one defined in the `spec.selector.matchLabels` section of the deployment yaml. The prefix field can be used to avoid naming collision with other labels.
+The goal of this section is to specify the labels to be used to identify the CNF resources under test. It's highly recommended that the labels should be defined in pod definition rather than added after pod is created, as labels added later on will be lost in case the pod gets rescheduled. In case of pods defined as part of a deployment, it's best to use the same label as the one defined in the `spec.selector.matchLabels` section of the deployment yaml. The prefix field can be used to avoid naming collision with other labels.
 ```shell script
 targetPodLabels:
   - prefix: test-network-function.com
@@ -56,32 +61,19 @@ The autodiscovery mechanism will create a list of all CRD names in the cluster w
 
 ### testTarget
 #### podsUnderTest / containersUnderTest
-This section is usually not required if labels defined in the section above cover all resources that should be tested. If label based discovery is not sufficient, this section can be manually populated as shown in the commented part of the [sample config](test-network-function/tnf_config.yml). However, intrusive tests need to be skipped ([see here](#disable-intrusive-tests)) for a reliable test result. The pods and containers explicitly configured here are added to the target pod/container lists populated through label matching.
+The autodiscovery mechanism will attempt to identify the default network device and all the IP addresses of the pods it needs for network connectivity tests, though that information can be explicitly set using annotations if needed. For Pod IPs:
 
-For both configured and discovered pods/containers, the autodiscovery mechanism will attempt to identify the default network device and all the IP addresses of the pods it
-needs for network connectivity tests, though that information can be explicitly set using annotations if needed. For Pod IPs:
-
-* The annotation `test-network-function.com/multusips` is the highest priority, and must contain a JSON-encoded list of
-IP addresses to be tested for the pod. This must be explicitly set.
-* If the above is not present, the `k8s.v1.cni.cncf.io/networks-status` annotation is checked and all IPs from it are
-used. This annotation is automatically managed in OpenShift but may not be present in K8s.
-* If neither of the above is present, then only known IPs associated with the pod are used (the pod `.status.ips` field).
+* The annotation test-network-function.com/multusips is the highest priority, and must contain a JSON-encoded list of IP addresses to be tested for the pod. This must be explicitly set.
+* If the above is not present, the k8s.v1.cni.cncf.io/networks-status annotation is checked and all IPs from it are used. This annotation is automatically managed in OpenShift but may not be present in K8s.
+* If neither of the above is present, then only known IPs associated with the pod are used (the pod .status.ips field).
 
 For Network Interfaces:
 
-* The annotation `test-network-function.com/defaultnetworkinterface` is the highest priority, and must contain a
-JSON-encoded string of the primary network interface for the pod. This must be explicitly set if needed. Examples can
-be seen in [cnf-certification-test-partner](https://github.com/test-network-function/cnf-certification-test-partner/local-test-infra/local-pod-under-test/local-partner-pod.yaml)
-* If the above is not present, the `k8s.v1.cni.cncf.io/networks-status` annotation is checked and the `"interface"` from
-the first entry found with `"default"=true` is used. This annotation is automatically managed in OpenShift but may not
-be present in K8s.
+* The annotation test-network-function.com/defaultnetworkinterface is the highest priority, and must contain a JSON-encoded string of the primary network interface for the pod. This must be explicitly set if needed. Examples can be seen in cnf-certification-test-partner
+* If the above is not present, the k8s.v1.cni.cncf.io/networks-status annotation is checked and the "interface" from the first entry found with "default"=true is used. This annotation is automatically managed in OpenShift but may not be present in K8s.
+* If multus IP addresses are discovered or configured, the partner pod needs to be deployed in the same namespace as the multus network interface for the connectivity test to pass. Refer to instruction here.
 
-If multus IP addresses are discovered or configured, the partner pod needs to be deployed in the same namespace as the multus network interface for the connectivity test to pass. Refer to instruction [here](#specify-the-target-namespace-for-partner-pod-deployment).
-
-If a pod is not suitable for network connectivity tests because it lacks binaries (e.g. `ping`), it should be
-given the label `test-network-function.com/skip_connectivity_tests` to exclude it from those tests. The label value is
-not important, only its presence. Equivalent to `excludeContainersFromConnectivityTests` in the config file.
-
+If a pod is not suitable for network connectivity tests because it lacks binaries (e.g. ping), it should be given the label test-network-function.com/skip_connectivity_tests to exclude it from those tests. The label value is not important, only its presence.
 
 #### operators
 
@@ -94,7 +86,7 @@ the subscription for this CSV. If unset, the CSV name will be used.
 
 ### testPartner
 
-This section can also be discovered automatically and should be left commented out unless the partner pods are modified from the original version in [cnf-certification-test-partner](https://github.com/test-network-function/cnf-certification-test-partner/local-test-infra/)
+This section can also be discovered automatically and should be left commented out unless the partner pods are modified from the original version in [cnf-certification-test-partner](https://github.com/test-network-function/cnf-certification-test-partner/tree/main/test-partner)
 
 ### certifiedcontainerinfo and certifiedoperatorinfo
 
@@ -102,13 +94,6 @@ The `certifiedcontainerinfo` and `certifiedoperatorinfo` sections contain inform
 to be checked for certification status on Red Hat catalogs.
 
 ## Runtime environement variables
-### Turn off openshift required tests
-When test on CNFs that run on k8s only environment, execute shell command below before compile tool and run test shell script.
-
-```shell script
-export TNF_MINIKUBE_ONLY=true
-```
-
 ### Disable intrusive tests
 If you would like to skip intrusive tests which may disrupt cluster operations, issue the following:
 
@@ -132,13 +117,6 @@ export TNF_PARTNER_SRC_DIR=/home/userid/code/cnf-certification-test-partner
 ```
 
 When this variable is set, the run-cnf-suites.sh script will deploy/refresh the partner deployments/pods in the cluster before starting the test run.
-
-### Specify the target namespace for partner pod deployment
-Set this variable to deploy partner pods in a custom namespace instead of the default `tnf` namespace.
-
-```shell-script
-export TNF_PARTNER_NAMESPACE="CNF-ns"
-```
 
 ### Disconnected environment
 In disconnected environment, only specific versions of images are mirrored to the local repo. For the `oc debug` command (used by a number of tests) to work, set TNF_OC_DEBUG_IMAGE_ID:
@@ -206,10 +184,6 @@ The autodiscovery first looks for paths in the `$KUBECONFIG` environment variabl
 
 See [General tests](#general-tests) for a list of available keywords.
 
-*Note*: The `run-tnf-container.sh` script performs autodiscovery of selected TNF environment variables.  
-Currently supported environment variables include:
-- `TNF_MINIKUBE_ONLY`
-
 ### Running using `docker` instead of `podman`
 
 By default, `run-container.sh` utilizes `podman`.  However, you can configure an alternate container virtualization
@@ -256,9 +230,9 @@ At a minimum, the following dependencies must be installed *prior* to running `m
 Dependency|Minimum Version
 ---|---
 [GoLang](https://golang.org/dl/)|1.17
-[golangci-lint](https://golangci-lint.run/usage/install/)|1.42.1
+[golangci-lint](https://golangci-lint.run/usage/install/)|1.43.0
 [jq](https://stedolan.github.io/jq/)|1.6
-[OpenShift Client](https://docs.openshift.com/container-platform/4.4/welcome/index.html)|4.4
+[OpenShift Client](https://mirror.openshift.com/pub/openshift-v4/clients/ocp/)|4.7
 
 Other binary dependencies required to run tests can be installed using the following command:
 

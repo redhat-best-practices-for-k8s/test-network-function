@@ -2,9 +2,11 @@
 
 test-network-function contains a variety of `Test Cases`, as well as `Test Case Building Blocks`.
 * Test Cases:  Traditional JUnit testcases, which are specified internally using `Ginkgo.It`.  Test cases often utilize several Test Case Building Blocks.
-* Test Case Building Blocks:  Self-contained building blocks, which perform a small task in the context of `oc`, `ssh`, `shell`, or some other `Expecter`.## Test Case Building Blocks Catalog
+* Test Case Building Blocks:  Self-contained building blocks, which perform a small task in the context of `oc`, `ssh`, `shell`, or some other `Expecter`.
+## Test Case Catalog
 
-A number of Test Case Building Blocks, or `tnf.Test`s, are included out of the box.  This is a summary of the available implementations:### http://test-network-function.com/testcases/access-control/cluster-role-bindings
+Test Cases are the specifications used to perform a meaningful test.  Test cases may run once, or several times against several targets.  CNF Certification includes a number of normative and informative tests to ensure CNFs follow best practices.  Here is the list of available Test Cases:
+### http://test-network-function.com/testcases/access-control/cluster-role-bindings
 
 Property|Description
 ---|---
@@ -171,7 +173,7 @@ Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/site
 Property|Description
 ---|---
 Version|v1.0.0
-Description|http://test-network-function.com/testcases/networking/icmpv4-connectivity checks that each CNF Container is able to communicate via ICMPv4 on the Default OpenShift network.  This test case requires the Deployment of the [CNF Certification Test Partner](https://github.com/test-network-function/cnf-certification-test-partner/blob/main/test-partner/partner.yaml). The test ensures that all CNF containers respond to ICMPv4 requests from the Partner Pod, and vice-versa. 
+Description|http://test-network-function.com/testcases/networking/icmpv4-connectivity checks that each CNF Container is able to communicate via ICMPv4 on the Default OpenShift network.  This test case requires the Deployment of the [CNF Certification Test Partner](https://github.com/test-network-function/cnf-certification-test-partner/blob/main/test-partner/partner-deployment.yaml). The test ensures that all CNF containers respond to ICMPv4 requests from the Partner Pod, and vice-versa. 
 Result Type|normative
 Suggested Remediation|Ensure that the CNF is able to communicate via the Default OpenShift network.  In some rare cases, CNFs may require routing table changes in order to communicate over the Default network.  In other cases, if the Container base image does not provide the "ip" or "ping" binaries, this test may not be applicable.  For instructions on how to exclude a particular container from ICMPv4 connectivity tests, consult: [README.md](https://github.com/test-network-function/test-network-function#issue-161-some-containers-under-test-do-not-contain-ping-or-ip-binary-utilities).
 Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2
@@ -558,7 +560,7 @@ Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`oc`
 
-### http://test-network-function.com/tests/nodehugepages
+### http://test-network-function.com/tests/nodeselector
 Property|Description
 ---|---
 Version|v1.0.0
