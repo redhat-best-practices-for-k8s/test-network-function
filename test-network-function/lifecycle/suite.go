@@ -478,13 +478,7 @@ func testImagePolicy(env *config.TestEnvironment) {
 			values["POD_NAME"] = podUnderTest.Name
 			for i := 0; i < ContainerCount; i++ {
 				values["CONTAINER_NUM"] = i
-				tester, handlers, result, err := generic.NewGenericFromMap(relativeimagepullpolicyTestPath, common.RelativeSchemaPath, values)
-				gomega.Expect(err).To(gomega.BeNil())
-				gomega.Expect(result).ToNot(gomega.BeNil())
-				gomega.Expect(result.Valid()).To(gomega.BeTrue())
-				gomega.Expect(handlers).ToNot(gomega.BeNil())
-				gomega.Expect(handlers).ToNot(gomega.BeNil())
-				gomega.Expect(tester).ToNot(gomega.BeNil())
+				tester, handlers := utils.NewGenericTestAndValidate(relativeimagepullpolicyTestPath, common.RelativeSchemaPath, values)
 				test, err := tnf.NewTest(context.GetExpecter(), *tester, handlers, context.GetErrorChannel())
 				gomega.Expect(err).To(gomega.BeNil())
 				gomega.Expect(test).ToNot(gomega.BeNil())
