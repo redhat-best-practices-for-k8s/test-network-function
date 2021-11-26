@@ -31,6 +31,7 @@ const (
 	normativeResult          = "normative"
 	url                      = "http://test-network-function.com/testcases"
 	versionOne               = "v1.0.0"
+	bestPracticeDocV1dot3URL = "https://docs.google.com/document/d/1wRHMk1ZYUSVmgp_4kxvqjVOKwolsZ5hDXjr5MLy-wbg/edit#"
 )
 
 // TestCaseDescription describes a JUnit test case.
@@ -145,6 +146,11 @@ var (
 	// TestPodDeploymentBestPracticesIdentifier ensures a CNF follows best Deployment practices.
 	TestPodDeploymentBestPracticesIdentifier = claim.Identifier{
 		Url:     formTestURL(common.LifecycleTestKey, "pod-owner-type"),
+		Version: versionOne,
+	}
+	// TestImagePullPolicyIdentifier ensures represent image pull policy practices.
+	TestImagePullPolicyIdentifier = claim.Identifier{
+		Url:     formTestURL(common.LifecycleTestKey, "image-pull-policy"),
 		Version: versionOne,
 	}
 	// TestPodRecreationIdentifier ensures recreation best practices.
@@ -426,6 +432,14 @@ ClusterRoleBindings, if possible.`,
 		Description: formDescription(TestPodDeploymentBestPracticesIdentifier,
 			`tests that CNF Pod(s) are deployed as part of a ReplicaSet(s)/StatefulSet(s).`),
 		BestPracticeReference: bestPracticeDocV1dot2URL + " Section 6.3.3 and 6.3.8",
+	},
+	TestImagePullPolicyIdentifier: {
+		Identifier:  TestImagePullPolicyIdentifier,
+		Type:        normativeResult,
+		Remediation: `Ensure that the containers under test are using IfNotPresent as Image Pull Policy.`,
+		Description: formDescription(TestImagePullPolicyIdentifier,
+			`Ensure that the containers under test are using IfNotPresent as Image Pull Policy..`),
+		BestPracticeReference: bestPracticeDocV1dot3URL + "  Section 15.6",
 	},
 
 	TestPodRoleBindingsBestPracticesIdentifier: {

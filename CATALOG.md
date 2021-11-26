@@ -114,6 +114,15 @@ Description|http://test-network-function.com/testcases/lifecycle/container-shutd
 Result Type|normative
 Suggested Remediation| 		It's considered best-practices to define prestop for proper management of container lifecycle. 		The prestop can be used to gracefully stop the container and clean resources (e.g., DB connection). 		 		The prestop can be configured using : 		 1) Exec : executes the supplied command inside the container 		 2) HTTP : executes HTTP request against the specified endpoint. 		 		When defined. K8s will handle shutdown of the container using the following: 		1) K8s first execute the preStop hook inside the container. 		2) K8s will wait for a grace period. 		3) K8s will clean the remaining processes using KILL signal.		 			
 Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2
+### http://test-network-function.com/testcases/lifecycle/image-pull-policy
+
+Property|Description
+---|---
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/lifecycle/image-pull-policy Ensure that the containers under test are using IfNotPresent as Image Pull Policy..
+Result Type|normative
+Suggested Remediation|Ensure that the containers under test are using IfNotPresent as Image Pull Policy.
+Best Practice Reference|https://docs.google.com/document/d/1wRHMk1ZYUSVmgp_4kxvqjVOKwolsZ5hDXjr5MLy-wbg/edit#  Section 15.6
 ### http://test-network-function.com/testcases/lifecycle/pod-high-availability
 
 Property|Description
@@ -459,6 +468,16 @@ Result Type|normative
 Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`grep`, `cut`, `oc`, `grep`
+
+### http://test-network-function.com/tests/imagepullpolicy
+Property|Description
+---|---
+Version|v1.0.0
+Description|A generic test used to get Image Pull Policy type.
+Result Type|normative
+Intrusive|false
+Modifications Persist After Test|false
+Runtime Binaries Required|`oc`
 
 ### http://test-network-function.com/tests/ipaddr
 Property|Description
