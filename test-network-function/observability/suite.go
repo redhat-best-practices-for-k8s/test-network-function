@@ -26,8 +26,8 @@ import (
 	"github.com/test-network-function/test-network-function/pkg/config"
 	"github.com/test-network-function/test-network-function/pkg/config/configsections"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
-	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/generic"
 	"github.com/test-network-function/test-network-function/pkg/tnf/testcases"
+	"github.com/test-network-function/test-network-function/pkg/utils"
 	"github.com/test-network-function/test-network-function/test-network-function/common"
 	"github.com/test-network-function/test-network-function/test-network-function/identifiers"
 	"github.com/test-network-function/test-network-function/test-network-function/results"
@@ -82,13 +82,7 @@ func loggingTest(c configsections.ContainerIdentifier) {
 	values["POD_NAMESPACE"] = c.Namespace
 	values["POD_NAME"] = c.PodName
 	values["CONTAINER_NAME"] = c.ContainerName
-	tester, handlers, result, err := generic.NewGenericFromMap(relativeLoggingTestPath, common.RelativeSchemaPath, values)
-	gomega.Expect(err).To(gomega.BeNil())
-	gomega.Expect(result).ToNot(gomega.BeNil())
-	gomega.Expect(result.Valid()).To(gomega.BeTrue())
-	gomega.Expect(handlers).ToNot(gomega.BeNil())
-	gomega.Expect(handlers).ToNot(gomega.BeNil())
-	gomega.Expect(tester).ToNot(gomega.BeNil())
+	tester, handlers := utils.NewGenericTestAndValidate(relativeLoggingTestPath, common.RelativeSchemaPath, values)
 	test, err := tnf.NewTest(context.GetExpecter(), *tester, handlers, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
 	gomega.Expect(test).ToNot(gomega.BeNil())
@@ -108,13 +102,7 @@ func testCrds() {
 			values["CRD_NAME"] = crdName
 			values["TIMEOUT"] = testCrdsTimeout.Nanoseconds()
 
-			tester, handlers, result, err := generic.NewGenericFromMap(relativeCrdTestPath, common.RelativeSchemaPath, values)
-			gomega.Expect(err).To(gomega.BeNil())
-			gomega.Expect(result).ToNot(gomega.BeNil())
-			gomega.Expect(result.Valid()).To(gomega.BeTrue())
-			gomega.Expect(handlers).ToNot(gomega.BeNil())
-			gomega.Expect(tester).ToNot(gomega.BeNil())
-
+			tester, handlers := utils.NewGenericTestAndValidate(relativeCrdTestPath, common.RelativeSchemaPath, values)
 			test, err := tnf.NewTest(context.GetExpecter(), *tester, handlers, context.GetErrorChannel())
 			gomega.Expect(test).ToNot(gomega.BeNil())
 			gomega.Expect(err).To(gomega.BeNil())

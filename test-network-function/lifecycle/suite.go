@@ -24,9 +24,9 @@ import (
 
 	"github.com/test-network-function/test-network-function/pkg/config"
 	"github.com/test-network-function/test-network-function/pkg/config/configsections"
-	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/generic"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/scaling"
 	"github.com/test-network-function/test-network-function/pkg/tnf/testcases"
+	"github.com/test-network-function/test-network-function/pkg/utils"
 
 	"github.com/test-network-function/test-network-function/test-network-function/common"
 	"github.com/test-network-function/test-network-function/test-network-function/identifiers"
@@ -292,13 +292,7 @@ func shutdownTest(podNamespace, podName string) {
 	values["POD_NAMESPACE"] = podNamespace
 	values["POD_NAME"] = podName
 	values["GO_TEMPLATE_PATH"] = relativeShutdownTestDirectoryPath
-	tester, handlers, result, err := generic.NewGenericFromMap(relativeShutdownTestPath, common.RelativeSchemaPath, values)
-	gomega.Expect(err).To(gomega.BeNil())
-	gomega.Expect(result).ToNot(gomega.BeNil())
-	gomega.Expect(result.Valid()).To(gomega.BeTrue())
-	gomega.Expect(handlers).ToNot(gomega.BeNil())
-	gomega.Expect(handlers).ToNot(gomega.BeNil())
-	gomega.Expect(tester).ToNot(gomega.BeNil())
+	tester, handlers := utils.NewGenericTestAndValidate(relativeShutdownTestPath, common.RelativeSchemaPath, values)
 	test, err := tnf.NewTest(context.GetExpecter(), *tester, handlers, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
 	gomega.Expect(test).ToNot(gomega.BeNil())
@@ -396,14 +390,7 @@ func uncordonNode(node string) {
 	context := common.GetContext()
 	values := make(map[string]interface{})
 	values["NODE"] = node
-	tester, handlers, result, err := generic.NewGenericFromMap(relativeNodesTestPath, common.RelativeSchemaPath, values)
-	gomega.Expect(err).To(gomega.BeNil())
-	gomega.Expect(result).ToNot(gomega.BeNil())
-	gomega.Expect(result.Valid()).To(gomega.BeTrue())
-	gomega.Expect(handlers).ToNot(gomega.BeNil())
-	gomega.Expect(len(handlers)).To(gomega.Equal(1))
-	gomega.Expect(tester).ToNot(gomega.BeNil())
-
+	tester, handlers := utils.NewGenericTestAndValidate(relativeNodesTestPath, common.RelativeSchemaPath, values)
 	test, err := tnf.NewTest(context.GetExpecter(), *tester, handlers, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
 	gomega.Expect(test).ToNot(gomega.BeNil())
@@ -436,13 +423,7 @@ func podAntiAffinity(deployment, podNamespace string, replica int) {
 	values := make(map[string]interface{})
 	values["DEPLOYMENT_NAME"] = deployment
 	values["DEPLOYMENT_NAMESPACE"] = podNamespace
-	tester, handlers, result, err := generic.NewGenericFromMap(relativePodTestPath, common.RelativeSchemaPath, values)
-	gomega.Expect(err).To(gomega.BeNil())
-	gomega.Expect(result).ToNot(gomega.BeNil())
-	gomega.Expect(result.Valid()).To(gomega.BeTrue())
-	gomega.Expect(handlers).ToNot(gomega.BeNil())
-	gomega.Expect(len(handlers)).To(gomega.Equal(1))
-	gomega.Expect(tester).ToNot(gomega.BeNil())
+	tester, handlers := utils.NewGenericTestAndValidate(relativePodTestPath, common.RelativeSchemaPath, values)
 	test, err := tnf.NewTest(context.GetExpecter(), *tester, handlers, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
 	gomega.Expect(test).ToNot(gomega.BeNil())
@@ -497,13 +478,7 @@ func testImagePolicy(env *config.TestEnvironment) {
 			values["POD_NAME"] = podUnderTest.Name
 			for i := 0; i < ContainerCount; i++ {
 				values["CONTAINER_NUM"] = i
-				tester, handlers, result, err := generic.NewGenericFromMap(relativeimagepullpolicyTestPath, common.RelativeSchemaPath, values)
-				gomega.Expect(err).To(gomega.BeNil())
-				gomega.Expect(result).ToNot(gomega.BeNil())
-				gomega.Expect(result.Valid()).To(gomega.BeTrue())
-				gomega.Expect(handlers).ToNot(gomega.BeNil())
-				gomega.Expect(handlers).ToNot(gomega.BeNil())
-				gomega.Expect(tester).ToNot(gomega.BeNil())
+				tester, handlers := utils.NewGenericTestAndValidate(relativeimagepullpolicyTestPath, common.RelativeSchemaPath, values)
 				test, err := tnf.NewTest(context.GetExpecter(), *tester, handlers, context.GetErrorChannel())
 				gomega.Expect(err).To(gomega.BeNil())
 				gomega.Expect(test).ToNot(gomega.BeNil())
