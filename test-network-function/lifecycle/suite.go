@@ -490,31 +490,26 @@ func testImagePolicy(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestImagePullPolicyIdentifier)
 	ginkgo.It(testID, func() {
 		context := common.GetContext()
-		contnum := 0
-		prevpod := ""
-		for _, cut := range env.ContainersUnderTest {
+		for _, podUnderTest := range env.PodsUnderTest {
 			values := make(map[string]interface{})
-			values["POD_NAMESPACE"] = cut.ContainerIdentifier.Namespace
-			values["POD_NAME"] = cut.ContainerIdentifier.PodName
-			if prevpod != cut.ContainerIdentifier.PodName {
-				prevpod = cut.ContainerIdentifier.PodName
-				contnum = 0
-			} else {
-				contnum++
-			}
-			values["CONTAINER_NUM"] = contnum
-			tester, handlers, result, err := generic.NewGenericFromMap(relativeimagepullpolicyTestPath, common.RelativeSchemaPath, values)
-			gomega.Expect(err).To(gomega.BeNil())
-			gomega.Expect(result).ToNot(gomega.BeNil())
-			gomega.Expect(result.Valid()).To(gomega.BeTrue())
-			gomega.Expect(handlers).ToNot(gomega.BeNil())
-			gomega.Expect(handlers).ToNot(gomega.BeNil())
-			gomega.Expect(tester).ToNot(gomega.BeNil())
-			test, err := tnf.NewTest(context.GetExpecter(), *tester, handlers, context.GetErrorChannel())
-			gomega.Expect(err).To(gomega.BeNil())
-			gomega.Expect(test).ToNot(gomega.BeNil())
+			ContainerCount := podUnderTest.ContainerCount
+			values["POD_NAMESPACE"] = podUnderTest.Namespace
+			values["POD_NAME"] = podUnderTest.Name
+			for i := 0; i < ContainerCount; i++ {
+				values["CONTAINER_NUM"] = i
+				tester, handlers, result, err := generic.NewGenericFromMap(relativeimagepullpolicyTestPath, common.RelativeSchemaPath, values)
+				gomega.Expect(err).To(gomega.BeNil())
+				gomega.Expect(result).ToNot(gomega.BeNil())
+				gomega.Expect(result.Valid()).To(gomega.BeTrue())
+				gomega.Expect(handlers).ToNot(gomega.BeNil())
+				gomega.Expect(handlers).ToNot(gomega.BeNil())
+				gomega.Expect(tester).ToNot(gomega.BeNil())
+				test, err := tnf.NewTest(context.GetExpecter(), *tester, handlers, context.GetErrorChannel())
+				gomega.Expect(err).To(gomega.BeNil())
+				gomega.Expect(test).ToNot(gomega.BeNil())
 
-			test.RunAndValidate()
+				test.RunAndValidate()
+			}
 		}
 	})
 }
