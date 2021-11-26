@@ -86,7 +86,7 @@ the subscription for this CSV. If unset, the CSV name will be used.
 
 ### testPartner
 
-This section can also be discovered automatically and should be left commented out unless the partner pods are modified from the original version in [cnf-certification-test-partner](https://github.com/test-network-function/cnf-certification-test-partner/local-test-infra/)
+This section can also be discovered automatically and should be left commented out unless the partner pods are modified from the original version in [cnf-certification-test-partner](https://github.com/test-network-function/cnf-certification-test-partner/tree/main/test-partner)
 
 ### certifiedcontainerinfo and certifiedoperatorinfo
 
