@@ -55,7 +55,7 @@ func (scaling *Scaling) Args() []string {
 	return scaling.args
 }
 
-// GetIdentifier returns the tnf.Test specific identifiesa.
+// GetIdentifier returns the tnf.Test specific identifier.
 func (scaling *Scaling) GetIdentifier() identifier.Identifier {
 	return identifier.ScalingIdentifier
 }

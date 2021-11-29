@@ -67,7 +67,7 @@ func (dn *DeploymentsNodes) Args() []string {
 	return dn.args
 }
 
-// GetIdentifier returns the tnf.Test specific identifiesa.
+// GetIdentifier returns the tnf.Test specific identifier.
 func (dn *DeploymentsNodes) GetIdentifier() identifier.Identifier {
 	return identifier.DeploymentsNodesIdentifier
 }
