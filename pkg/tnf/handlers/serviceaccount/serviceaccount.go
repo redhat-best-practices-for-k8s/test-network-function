@@ -51,7 +51,7 @@ func (sa *ServiceAccount) Args() []string {
 	return sa.args
 }
 
-// GetIdentifier returns the tnf.Test specific identifiesa.
+// GetIdentifier returns the tnf.Test specific identifier.
 func (sa *ServiceAccount) GetIdentifier() identifier.Identifier {
 	return identifier.ServiceAccountIdentifier
 }
