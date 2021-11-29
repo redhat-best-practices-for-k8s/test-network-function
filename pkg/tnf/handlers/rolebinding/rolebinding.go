@@ -62,7 +62,7 @@ func (rb *RoleBinding) Args() []string {
 	return rb.args
 }
 
-// GetIdentifier returns the tnf.Test specific identifiesa.
+// GetIdentifier returns the tnf.Test specific identifier.
 func (rb *RoleBinding) GetIdentifier() identifier.Identifier {
 	return identifier.RoleBindingIdentifier
 }

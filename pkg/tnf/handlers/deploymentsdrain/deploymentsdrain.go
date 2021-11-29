@@ -59,7 +59,7 @@ func (dd *DeploymentsDrain) Args() []string {
 	return dd.args
 }
 
-// GetIdentifier returns the tnf.Test specific identifiesa.
+// GetIdentifier returns the tnf.Test specific identifier.
 func (dd *DeploymentsDrain) GetIdentifier() identifier.Identifier {
 	return identifier.DeploymentsDrainIdentifier
 }
