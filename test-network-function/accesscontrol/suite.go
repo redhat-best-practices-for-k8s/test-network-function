@@ -31,9 +31,35 @@ import (
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/serviceaccount"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
 	"github.com/test-network-function/test-network-function/pkg/tnf/testcases"
+	"github.com/test-network-function/test-network-function/pkg/utils"
 	"github.com/test-network-function/test-network-function/test-network-function/common"
 	"github.com/test-network-function/test-network-function/test-network-function/identifiers"
 	"github.com/test-network-function/test-network-function/test-network-function/results"
+)
+
+const (
+	// ocGetCrPluralNameFormat is the CR name to use with "oc get <resource_name>".
+	ocGetCrPluralNameFormat = "oc get crd %s -o jsonpath='{.spec.names.plural}'"
+
+	// ocGetCrNamespaceFormat is the "oc get" format string to get the namespaced-only resources created for a given CRD.
+	ocGetCrNamespaceFormat = "oc get %s -A -o go-template='{{range .items}}{{if .metadata.namespace}}{{.metadata.name}},{{.metadata.namespace}}{{\"\n\"}}{{end}}{{end}}'"
+)
+
+var (
+	invalidNamespacePrefixes = []string{
+		"default",
+		"openshift-",
+		"istio-",
+		"aspenmesh-",
+	}
+
+	tcClaimLogPrintf = func(format string, args ...interface{}) {
+		message := fmt.Sprintf(format+"\n", args...)
+		_, err := ginkgo.GinkgoWriter.Write([]byte(message))
+		if err != nil {
+			log.Errorf("Ginkgo writer could not write msg '%s' because: %s", message, err)
+		}
+	}
 )
 
 var _ = ginkgo.Describe(common.AccessControlTestKey, func() {
@@ -130,16 +156,113 @@ func runTestOnPods(env *config.TestEnvironment, testCmd testcases.BaseTestCase, 
 	})
 }
 
+func getCrsNamespaces(crdName, crdKind string) (map[string]string, error) {
+	const expectedNumFields = 2
+	const crNameFieldIdx = 0
+	const namespaceFieldIdx = 0
+
+	gomega.Expect(crdKind).NotTo(gomega.BeEmpty())
+	getCrNamespaceCommand := fmt.Sprintf(ocGetCrNamespaceFormat, crdKind)
+	cmdOut := utils.ExecuteCommand(getCrNamespaceCommand, common.DefaultTimeout, common.GetContext(), func() {
+		tcClaimLogPrintf("CRD %s: Failed to get CRs (kind=%s)", crdName, crdKind)
+	})
+
+	crNamespaces := map[string]string{}
+
+	if cmdOut == "" {
+		// Filter out empty (0 CRs) output.
+		return crNamespaces, nil
+	}
+
+	lines := strings.Split(cmdOut, "\n")
+	for _, line := range lines {
+		lineFields := strings.Split(line, ",")
+		if len(lineFields) != expectedNumFields {
+			return crNamespaces, fmt.Errorf("failed to parse output line %s", line)
+		}
+		crNamespaces[lineFields[crNameFieldIdx]] = lineFields[namespaceFieldIdx]
+	}
+
+	return crNamespaces, nil
+}
+
+func testCrsNamespaces(crNames, configNamespaces []string) (invalidCrs map[string][]string) {
+	invalidCrs = map[string][]string{}
+	for _, crdName := range crNames {
+		getCrPluralNameCommand := fmt.Sprintf(ocGetCrPluralNameFormat, crdName)
+		crdPluralName := utils.ExecuteCommand(getCrPluralNameCommand, common.DefaultTimeout, common.GetContext(), func() {
+			tcClaimLogPrintf("CRD %s: Failed to get CR plural name.", crdName)
+		})
+
+		crNamespaces, err := getCrsNamespaces(crdName, crdPluralName)
+		if err != nil {
+			ginkgo.Fail(fmt.Sprintf("Failed to get CRs for CRD %s - Error: %v", crdName, err))
+		}
+
+		ginkgo.By(fmt.Sprintf("CRD %s has %d CRs (plural name: %s).", crdName, len(crNamespaces), crdPluralName))
+		for crName, namespace := range crNamespaces {
+			ginkgo.By(fmt.Sprintf("Checking CR %s - Namespace %s", crName, namespace))
+			found := false
+			for _, configNamespace := range configNamespaces {
+				if namespace == configNamespace {
+					found = true
+					break
+				}
+			}
+
+			if !found {
+				tcClaimLogPrintf("CRD: %s (kind:%s) - CR %s has an invalid namespace (%s)", crdName, crdPluralName, crName, namespace)
+				if crNames, exists := invalidCrs[crdName]; exists {
+					invalidCrs[crdName] = append(crNames, crName)
+				} else {
+					invalidCrs[crdName] = []string{crName}
+				}
+			}
+		}
+	}
+	return invalidCrs
+}
+
 func testNamespace(env *config.TestEnvironment) {
-	ginkgo.When("test deployment namespace", func() {
+	ginkgo.When("test CNF namespaces", func() {
 		testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestNamespaceBestPracticesIdentifier)
 		ginkgo.It(testID, func() {
-			for _, podUnderTest := range env.PodsUnderTest {
-				podName := podUnderTest.Name
-				podNamespace := podUnderTest.Namespace
-				ginkgo.By(fmt.Sprintf("Reading namespace of podnamespace= %s podname= %s, should not be 'default' or begin with openshift-", podNamespace, podName))
-				gomega.Expect(podNamespace).To(gomega.Not(gomega.Equal("default")))
-				gomega.Expect(podNamespace).To(gomega.Not(gomega.HavePrefix("openshift-")))
+			ginkgo.By(fmt.Sprintf("CNF resources' namespaces should not have any of the following prefixes: %v", invalidNamespacePrefixes))
+			var failedNamespaces []string
+			for _, namespace := range env.NameSpacesUnderTest {
+				ginkgo.By(fmt.Sprintf("Checking namespace %s", namespace))
+				for _, invalidPrefix := range invalidNamespacePrefixes {
+					if strings.HasPrefix(namespace, invalidPrefix) {
+						tcClaimLogPrintf("Namespace %s has invalid prefix %s", namespace, invalidPrefix)
+						failedNamespaces = append(failedNamespaces, namespace)
+					}
+				}
+			}
+
+			if failedNamespacesNum := len(failedNamespaces); failedNamespacesNum > 0 {
+				ginkgo.Fail(fmt.Sprintf("Found %d namespaces with an invalid prefix.", failedNamespacesNum))
+			}
+
+			ginkgo.By(fmt.Sprintf("CNF pods' should belong to any of the configured namespaces: %v", env.NameSpacesUnderTest))
+
+			if nonValidPodsNum := len(env.Config.NonValidPods); nonValidPodsNum > 0 {
+				for _, invalidPod := range env.Config.NonValidPods {
+					tcClaimLogPrintf("Pod %s has invalid namespace %s", invalidPod.Name, invalidPod.Namespace)
+				}
+
+				ginkgo.Fail(fmt.Sprintf("Found %d pods under test belonging to invalid namespaces.", nonValidPodsNum))
+			}
+
+			ginkgo.By(fmt.Sprintf("CRs from autodiscovered CRDs should belong to the configured namespaces: %v", env.NameSpacesUnderTest))
+			invalidCrs := testCrsNamespaces(env.CrdNames, env.NameSpacesUnderTest)
+
+			if invalidCrsNum := len(invalidCrs); invalidCrsNum > 0 {
+				for crdName, crs := range invalidCrs {
+					for _, crName := range crs {
+						tcClaimLogPrintf("CRD %s - CR %s has an invalid namespace.", crdName, crName)
+					}
+				}
+				ginkgo.Fail(fmt.Sprintf("Found %d CRs belonging to invalid namespaces.", invalidCrsNum))
 			}
 		})
 	})

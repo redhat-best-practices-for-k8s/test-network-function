@@ -65,7 +65,7 @@ func (ver *TestMetadata) GetVersions() ClusterVersion {
 	return ver.versions
 }
 
-// GetIdentifier returns the tnf.Test specific identifiesa.
+// GetIdentifier returns the tnf.Test specific identifier.
 func (ver *TestMetadata) GetIdentifier() identifier.Identifier {
 	return identifier.ClusterVersionIdentifier
 }

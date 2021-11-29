@@ -31,6 +31,7 @@ const (
 	normativeResult          = "normative"
 	url                      = "http://test-network-function.com/testcases"
 	versionOne               = "v1.0.0"
+	bestPracticeDocV1dot3URL = "https://docs.google.com/document/d/1wRHMk1ZYUSVmgp_4kxvqjVOKwolsZ5hDXjr5MLy-wbg/edit#"
 )
 
 // TestCaseDescription describes a JUnit test case.
@@ -145,6 +146,11 @@ var (
 	// TestPodDeploymentBestPracticesIdentifier ensures a CNF follows best Deployment practices.
 	TestPodDeploymentBestPracticesIdentifier = claim.Identifier{
 		Url:     formTestURL(common.LifecycleTestKey, "pod-owner-type"),
+		Version: versionOne,
+	}
+	// TestImagePullPolicyIdentifier ensures represent image pull policy practices.
+	TestImagePullPolicyIdentifier = claim.Identifier{
+		Url:     formTestURL(common.LifecycleTestKey, "image-pull-policy"),
 		Version: versionOne,
 	}
 	// TestPodRecreationIdentifier ensures recreation best practices.
@@ -322,13 +328,13 @@ The test ensures that all CNF containers respond to ICMPv4 requests from the Par
 	TestNamespaceBestPracticesIdentifier: {
 		Identifier: TestNamespaceBestPracticesIdentifier,
 		Type:       normativeResult,
-		Remediation: `Ensure that your CNF utilizes a CNF-specific namespace.  Additionally, the CNF-specific namespace
-should not start with "openshift-", except in rare cases.`,
+		Remediation: `Ensure that your CNF utilizes namespaces declared in the yaml config file. Additionally,
+the namespaces should not start with "default, openshift-, istio- or aspenmesh-", except in rare cases.`,
 		Description: formDescription(TestNamespaceBestPracticesIdentifier,
-			`tests that CNFs utilize a CNF-specific namespace, and that the namespace does not start with "openshift-".
-OpenShift may host a variety of CNF and software applications, and multi-tenancy of such applications is supported
-through namespaces.  As such, each CNF should be a good neighbor, and utilize an appropriate, unique namespace.`),
-		BestPracticeReference: bestPracticeDocV1dot2URL + " Section 6.2",
+			`tests that all CNF's resources (PUTs and CRs) belong to valid namespaces. A valid namespace meets
+the following conditions: (1) It was declared in the yaml config file under the targetNameSpaces
+tag. (2) It doesn't have any of the following prefixes: default, openshift-, istio- and aspenmesh-`),
+		BestPracticeReference: bestPracticeDocV1dot2URL + " Section 6.2, 16.3.8 & 16.3.9",
 	},
 
 	TestNonDefaultGracePeriodIdentifier: {
@@ -426,6 +432,14 @@ ClusterRoleBindings, if possible.`,
 		Description: formDescription(TestPodDeploymentBestPracticesIdentifier,
 			`tests that CNF Pod(s) are deployed as part of a ReplicaSet(s)/StatefulSet(s).`),
 		BestPracticeReference: bestPracticeDocV1dot2URL + " Section 6.3.3 and 6.3.8",
+	},
+	TestImagePullPolicyIdentifier: {
+		Identifier:  TestImagePullPolicyIdentifier,
+		Type:        normativeResult,
+		Remediation: `Ensure that the containers under test are using IfNotPresent as Image Pull Policy.`,
+		Description: formDescription(TestImagePullPolicyIdentifier,
+			`Ensure that the containers under test are using IfNotPresent as Image Pull Policy..`),
+		BestPracticeReference: bestPracticeDocV1dot3URL + "  Section 15.6",
 	},
 
 	TestPodRoleBindingsBestPracticesIdentifier: {
