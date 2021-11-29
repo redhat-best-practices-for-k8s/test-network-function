@@ -71,7 +71,7 @@ func (nn *NodeNames) Args() []string {
 	return nn.args
 }
 
-// GetIdentifier returns the tnf.Test specific identifiesa.
+// GetIdentifier returns the tnf.Test specific identifier.
 func (nn *NodeNames) GetIdentifier() identifier.Identifier {
 	return identifier.NodeNamesIdentifier
 }
