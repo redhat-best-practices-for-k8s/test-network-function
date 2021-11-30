@@ -17,7 +17,6 @@
 package cnf
 
 // PrivilegedPodJSON test templates for privileged pods
-//nolint:lll
 var PrivilegedPodJSON = string(`{
   "testcase": [
     {
