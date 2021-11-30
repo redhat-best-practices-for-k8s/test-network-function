@@ -52,7 +52,7 @@ func (nt *NodeTainted) Args() []string {
 	return nt.args
 }
 
-// GetIdentifier returns the tnf.Test specific identifiesa.
+// GetIdentifier returns the tnf.Test specific identifier.
 func (nt *NodeTainted) GetIdentifier() identifier.Identifier {
 	return identifier.NodeTaintedIdentifier
 }

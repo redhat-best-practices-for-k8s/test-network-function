@@ -21,7 +21,7 @@ import (
 	"path"
 	"strings"
 
-	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/generic"
+	"github.com/test-network-function/test-network-function/pkg/utils"
 
 	"github.com/test-network-function/test-network-function/test-network-function/common"
 	"github.com/test-network-function/test-network-function/test-network-function/identifiers"
@@ -50,8 +50,8 @@ var (
 	// pathRelativeToRoot is used to calculate relative filepaths for the `test-network-function` executable entrypoint.
 	pathRelativeToRoot = path.Join("..")
 
-	// relativeNodesTestPath is the relative path to the nodes.json test case.
-	relativeNodesTestPath = path.Join(pathRelativeToRoot, checkSubscriptionTestPath)
+	// relativecheckSubscriptionTestPath is the relative path to the nodes.json test case.
+	relativecheckSubscriptionTestPath = path.Join(pathRelativeToRoot, checkSubscriptionTestPath)
 
 	// relativeSchemaPath is the relative path to the generic-test.schema.json JSON schema.
 	relativeSchemaPath = path.Join(pathRelativeToRoot, schemaPath)
@@ -95,13 +95,7 @@ func testOperatorIsInstalledViaOLM(subscriptionName, subscriptionNamespace strin
 	values := make(map[string]interface{})
 	values["SUBSCRIPTION_NAME"] = subscriptionName
 	values["SUBSCRIPTION_NAMESPACE"] = subscriptionNamespace
-	tester, handlers, result, err := generic.NewGenericFromMap(relativeNodesTestPath, relativeSchemaPath, values)
-	gomega.Expect(err).To(gomega.BeNil())
-	gomega.Expect(result).ToNot(gomega.BeNil())
-	gomega.Expect(result.Valid()).To(gomega.BeTrue())
-	gomega.Expect(handlers).ToNot(gomega.BeNil())
-	gomega.Expect(len(handlers)).To(gomega.Equal(1))
-	gomega.Expect(tester).ToNot(gomega.BeNil())
+	tester, handlers := utils.NewGenericTestAndValidate(relativecheckSubscriptionTestPath, relativeSchemaPath, values)
 	context := common.GetContext()
 	test, err := tnf.NewTest(context.GetExpecter(), *tester, handlers, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())

@@ -55,7 +55,7 @@ func (hpascaling *HpAScaling) Args() []string {
 	return hpascaling.args
 }
 
-// GetIdentifier returns the tnf.Test specific identifiesa.
+// GetIdentifier returns the tnf.Test specific identifier.
 func (hpascaling *HpAScaling) GetIdentifier() identifier.Identifier {
 	return identifier.ScalingIdentifier
 }

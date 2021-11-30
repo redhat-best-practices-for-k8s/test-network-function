@@ -14,6 +14,7 @@ import (
 	"github.com/test-network-function/test-network-function/pkg/tnf"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/generic"
 	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
+	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
 )
 
 var (
@@ -88,15 +89,8 @@ func ExecuteCommand(command string, timeout time.Duration, context *interactive.
 
 	log.Debugf("Command handler's COMMAND string value: %s", values["COMMAND"])
 
-	tester, handler, result, err := generic.NewGenericFromMap(commandHandlerFilePath, handlerJSONSchemaFilePath, values)
-
-	gomega.Expect(err).To(gomega.BeNil())
-	gomega.Expect(result).ToNot(gomega.BeNil())
-	gomega.Expect(result.Valid()).To(gomega.BeTrue())
-	gomega.Expect(handler).ToNot(gomega.BeNil())
-	gomega.Expect(tester).ToNot(gomega.BeNil())
-
-	test, err := tnf.NewTest(context.GetExpecter(), *tester, handler, context.GetErrorChannel())
+	tester, handlers := NewGenericTestAndValidate(commandHandlerFilePath, handlerJSONSchemaFilePath, values)
+	test, err := tnf.NewTest(context.GetExpecter(), *tester, handlers, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
 	gomega.Expect(tester).ToNot(gomega.BeNil())
 
@@ -109,4 +103,17 @@ func ExecuteCommand(command string, timeout time.Duration, context *interactive.
 	gomega.Expect(len(matches)).To(gomega.Equal(1))
 	match := genericTest.GetMatches()[0]
 	return match.Match
+}
+
+// NewGenericTestAndValidate creates a generic handler from the json template with the var map and validate the outcome
+func NewGenericTestAndValidate(templateFile, schemaPath string, values map[string]interface{}) (*tnf.Tester, []reel.Handler) {
+	tester, handlers, result, err := generic.NewGenericFromMap(templateFile, handlerJSONSchemaFilePath, values)
+
+	gomega.Expect(err).To(gomega.BeNil())
+	gomega.Expect(result).ToNot(gomega.BeNil())
+	gomega.Expect(result.Valid()).To(gomega.BeTrue())
+	gomega.Expect(handlers).ToNot(gomega.BeNil())
+	gomega.Expect(tester).ToNot(gomega.BeNil())
+
+	return tester, handlers
 }

@@ -57,7 +57,7 @@ func (ow *Owners) Args() []string {
 	return ow.args
 }
 
-// GetIdentifier returns the tnf.Test specific identifiesa.
+// GetIdentifier returns the tnf.Test specific identifier.
 func (ow *Owners) GetIdentifier() identifier.Identifier {
 	return identifier.OwnersIdentifier
 }
