@@ -34,7 +34,7 @@ var PrivilegedPodJSON = string(`{
       "name": "HOST_PORT_CHECK",
       "skiptest": true,
       "loop": 1,
-      "command": "oc get pod %s -n %s -o go-template='{{$putName := .metadata.name}}{{$cut := (index .spec.containers %d)}}{{range $cut.ports }}{{if .hostPort}}PUT {{$putName}} - CUT {{$cut.name}} has declared hostPort {{.hostPort}}{{\"\\n\"}}{{end}}{{end}}'",
+      "command": "oc get pod %s -n %s -o go-template='{{range (index .spec.containers %d).ports }}{{.hostPort}}{{end}}'",
       "action": "allow",
       "expectedstatus": [
         "^(<no value>)*$"
@@ -44,7 +44,7 @@ var PrivilegedPodJSON = string(`{
       "name": "HOST_PATH_CHECK",
       "skiptest": true,
        "loop": 0,
-      "command": "oc get pods %s -n %s -o go-template='{{ range .spec.volumes}}{{.hostPath.path}}{{end}}'",
+      "command": "oc get pods %s -n %s -o go-template='{{range .spec.volumes}}{{.hostPath.path}}{{end}}'",
       "action": "allow",
       "expectedstatus": [
         "^(<no value>)*$"

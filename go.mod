@@ -2,7 +2,7 @@ module github.com/test-network-function/test-network-function
 
 go 1.17
 
-replace github.com/google/goexpect => /data/goexpect
+replace github.com/google/goexpect => github.com/test-network-function/goexpect v0.0.1
 
 require (
 	github.com/Masterminds/semver/v3 v3.1.1
@@ -28,7 +28,6 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
-	github.com/jun-rh/goexpect v0.0.0-20211129181108-599ba0069c01 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20180127040702-4e3ac2762d5f // indirect

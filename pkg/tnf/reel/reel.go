@@ -210,9 +210,10 @@ func (r *Reel) Step(step *Step, handler Handler) error {
 					return fmt.Errorf("error executing command exit code:%d", outputStatus)
 				}
 				match, matchStatus := r.stripEmulatedPromptFromOutput(result.Match[0])
-				log.Debugf("command status: output=%s, match=%s, outputStatus=%d, matchStatus=%d", output, match, outputStatus, matchStatus)
+				pattern, _ := batcher[result.Idx].Cases()[result.CaseIdx].RE()
+				log.Debugf("command status: output=%s, match=%s, outputStatus=%d, matchStatus=%d, caseIndex=%d, pattern=%s", output, match, outputStatus, matchStatus, result.CaseIdx, pattern.String())
 
-				if result.CaseIdx != len(batcher[0].Cases())-1 {
+				if result.CaseIdx != len(batcher[result.Idx].Cases())-1 {
 					matchIndex := strings.Index(output, match)
 					var before string
 					// special case:  the match regex may be nothing at all.
