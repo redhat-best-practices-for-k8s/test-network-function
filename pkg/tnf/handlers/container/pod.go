@@ -100,14 +100,15 @@ func (p *Pod) ReelMatch(_, _, match string) *reel.Step {
 			p.result = tnf.SUCCESS
 			return nil
 		}
-		replacer := strings.NewReplacer(`[`, ``, "\"", ``, `]`, ``, `, `, `,`)
+		replacer := strings.NewReplacer(`[`, ``, "\"", ``, `]`, ``, "\n", ``, "\t", ``)
+
 		match = replacer.Replace(match)
 		f := func(c rune) bool {
 			return c == ','
 		}
 		matchSlice := strings.FieldsFunc(match, f)
 		for _, status := range matchSlice {
-			if contains(p.ExpectStatus, status) {
+			if contains(p.ExpectStatus, strings.Trim(status, " ")) {
 				if p.Action == testcases.Deny { // Single deny match is failure.
 					return nil
 				}
