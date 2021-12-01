@@ -290,28 +290,43 @@ func testAutomountService(env *config.TestEnvironment) {
 			serviceAccountName := podUnderTest.ServiceAccount
 			gomega.Expect(serviceAccountName).ToNot(gomega.BeEmpty())
 			context := common.GetContext()
-			tester := automountservice.NewAutomountservice(automountservice.WithNamespace(podNamespace), automountservice.WithServiceAccount(serviceAccountName))
+			tester := automountservice.NewAutomountService(automountservice.WithNamespace(podNamespace), automountservice.WithServiceAccount(serviceAccountName))
 			test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 			gomega.Expect(err).To(gomega.BeNil())
 			test.RunAndValidate()
 			serviceAccountToken := tester.Token()
-			tester = automountservice.NewAutomountservice(automountservice.WithNamespace(podNamespace), automountservice.WithPodname(podName))
+			tester = automountservice.NewAutomountService(automountservice.WithNamespace(podNamespace), automountservice.WithPodname(podName))
 			test, err = tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 			gomega.Expect(err).To(gomega.BeNil())
 			test.RunAndValidate()
 			podToken := tester.Token()
+			// The token can be specified in the pod directly
+			// or it can be specified in the service account of the pod
+			// if no service account is configured, then the pod will use the configuration
+			// of the default service account in that namespace
+			// the token defined in the pod has takes precedence
 			// the test would pass iif token is explicitly set to false
+
+			// if the token is set to true in the pod, the test would fail right away
 			if podToken == automountservice.TokenIsTrue {
 				msg = append(msg, fmt.Sprintf("Pod %s:%s is configured with automountServiceAccountToken set to true ", podNamespace, podName))
 				continue
 			}
+			// The pod token is false means the pod is configured properly
+			// The pod is not configured and the service account is configured with false means
+			// the pod will inherit the behavior `false` and the test would pass
 			if podToken == automountservice.TokenIsFalse || serviceAccountToken == automountservice.TokenIsFalse {
 				// properly configured
 				continue
 			}
+			// the service account is configured with true means all the pods
+			// using this service account are not configured properly, register the error
+			// message and fail
 			if serviceAccountToken == automountservice.TokenIsTrue {
 				msg = append(msg, fmt.Sprintf("serviceaccount %s:%s is configured with automountServiceAccountToken set to true, impacting pod %s ", podNamespace, serviceAccountName, podName))
 			}
+			// the token should be set explicitly to false, otherwise, it's a failure
+			// register the error message and check the next pod
 			if serviceAccountToken == automountservice.TokenNotSet {
 				msg = append(msg, fmt.Sprintf("serviceaccount %s:%s is not configured with automountServiceAccountToken set to false, impacting pod %s ", podNamespace, serviceAccountName, podName))
 			}

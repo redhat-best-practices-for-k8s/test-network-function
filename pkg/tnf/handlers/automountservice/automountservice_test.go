@@ -26,6 +26,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/automountservice"
 	as "github.com/test-network-function/test-network-function/pkg/tnf/handlers/automountservice"
 	"github.com/test-network-function/test-network-function/pkg/tnf/identifier"
 )
@@ -68,41 +69,41 @@ func getMockOutput(t *testing.T, testName string) string {
 
 // Test_NewAutomountService is the unit test for NewAutomountService().
 func Test_NewAutomountService(t *testing.T) {
-	automount := as.NewAutomountservice(as.WithNamespace(testNamespace), as.WithServiceAccount(testServiceAccount))
+	automount := as.NewAutomountService(as.WithNamespace(testNamespace), as.WithServiceAccount(testServiceAccount))
 	assert.NotNil(t, automount)
 	assert.Equal(t, automount.Result(), tnf.ERROR)
 	// test creating with pod
-	automount = as.NewAutomountservice(as.WithNamespace(testNamespace), as.WithPodname(testPodname))
+	automount = as.NewAutomountService(as.WithNamespace(testNamespace), as.WithPodname(testPodname))
 	assert.NotNil(t, automount)
 	assert.Equal(t, automount.Result(), tnf.ERROR)
 }
 
 // Test_Automountservice_GetIdentifier is the unit test for Automountservice_GetIdentifier().
 func TestAutomountservice_GetIdentifier(t *testing.T) {
-	test := as.NewAutomountservice()
+	test := as.NewAutomountService()
 	assert.Equal(t, identifier.AutomountServiceIdentifier, test.GetIdentifier())
 }
 
 // Test_Automountservice_ReelEOF is the unit test for Automountservice_ReelEOF().
 func TestAutomountservice_ReelEOF(t *testing.T) {
-	test := as.NewAutomountservice()
+	test := as.NewAutomountService()
 	assert.NotNil(t, test)
 	test.ReelEOF()
 }
 
 func Test_Automountservice_Args(t *testing.T) {
-	test := as.NewAutomountservice(as.WithNamespace(testNamespace), as.WithServiceAccount(testServiceAccount))
+	test := as.NewAutomountService(as.WithNamespace(testNamespace), as.WithServiceAccount(testServiceAccount))
 	args := []string{"oc", "-n", testNamespace, "get", "serviceaccounts", testServiceAccount, "-o", "json"}
 	assert.ElementsMatch(t, args, test.Args())
 
-	test = as.NewAutomountservice(as.WithNamespace(testNamespace), as.WithPodname(testPodname))
+	test = as.NewAutomountService(as.WithNamespace(testNamespace), as.WithPodname(testPodname))
 	args = []string{"oc", "-n", testNamespace, "get", "pods", testPodname, "-o", "json", "|", "jq", "-r", ".spec"}
 	assert.ElementsMatch(t, args, test.Args())
 }
 
-// Test_Automountservice_ReelTimeout is the unit test for Automountservice}_ReelTimeout().
+// Test_Automountservice_ReelTimeout is the unit test for automountservice}_ReelTimeout().
 func TestAutomountservice_ReelTimeout(t *testing.T) {
-	test := as.NewAutomountservice(as.WithTimeout(testTimeoutDuration))
+	test := as.NewAutomountService(as.WithTimeout(testTimeoutDuration))
 	assert.NotNil(t, test)
 	assert.Equal(t, testTimeoutDuration, test.Timeout())
 	test.ReelTimeout()
@@ -112,11 +113,11 @@ func TestAutomountservice_ReelTimeout(t *testing.T) {
 func TestAutomountservice_ReelMatch(t *testing.T) {
 	for filename, testcase := range testCases {
 		matchMock := getMockOutput(t, filename)
-		test := as.NewAutomountservice()
+		test := as.NewAutomountService()
 		assert.NotNil(t, test)
-		firstStep := test.ReelFirst()
+		//firstStep := test.ReelFirst()
 		// validate regular expression when serviceaccount is set to false
-		re := regexp.MustCompile(firstStep.Expect[0])
+		re := regexp.MustCompile(automountservice.SaRegex)
 		matches := re.FindStringSubmatch(matchMock)
 		fmt.Println("-----")
 		for i := 0; i < len(matches); i++ {

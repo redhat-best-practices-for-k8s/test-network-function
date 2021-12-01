@@ -32,27 +32,30 @@ const (
 	TokenNotSet  int = 3
 )
 
-// Automountservice is the reel handler struct.
-type Automountservice struct {
-	result         int
-	podCheck       bool
-	namespace      string
-	serviceaccount string
-	podname        string
-	timeout        time.Duration
-	args           []string
-	token          int
+// automountservice is the reel handler struct.
+type AutomountService struct {
+	result              int
+	namespace           string
+	isNamespaceSet      bool
+	serviceaccount      string
+	isServiceAccountSet bool
+	podname             string
+	isPodnameSet        bool
+	timeout             time.Duration
+	args                []string
+	token               int
 }
 
 const (
-	saRegex = `(?m)"automountServiceAccountToken": (.+)`
-	False   = "false,"
-	True    = "true,"
+	allRegex = `(?m).+`
+	SaRegex  = `(?m)"automountServiceAccountToken": (.+)`
+	False    = "false,"
+	True     = "true,"
 )
 
-// NewAutomountservice returns a new Automountservice handler struct.
-func NewAutomountservice(options ...func(*Automountservice)) *Automountservice {
-	as := &Automountservice{
+// NewAutomountService returns a new automountservice handler struct.
+func NewAutomountService(options ...func(*AutomountService)) *AutomountService {
+	as := &AutomountService{
 		timeout: common.DefaultTimeout,
 		result:  tnf.ERROR,
 		token:   TokenNotSet,
@@ -60,7 +63,13 @@ func NewAutomountservice(options ...func(*Automountservice)) *Automountservice {
 	for _, o := range options {
 		o(as)
 	}
-	if as.podCheck {
+	// to have a valid constructor we need to define
+	// namespace and podname Or namespace and serviceaccount
+	if !as.isNamespaceSet && (as.isPodnameSet == !as.isServiceAccountSet) {
+		return nil
+	}
+
+	if as.isPodnameSet {
 		as.args = []string{"oc", "-n", as.namespace, "get", "pods", as.podname, "-o", "json", "|", "jq", "-r", ".spec"}
 	} else {
 		as.args = []string{"oc", "-n", as.namespace, "get", "serviceaccounts", as.serviceaccount, "-o", "json"}
@@ -69,70 +78,70 @@ func NewAutomountservice(options ...func(*Automountservice)) *Automountservice {
 }
 
 // WithNamespace specify the namespace
-func WithNamespace(ns string) func(*Automountservice) {
-	return func(as *Automountservice) {
+func WithNamespace(ns string) func(*AutomountService) {
+	return func(as *AutomountService) {
 		as.namespace = ns
+		as.isNamespaceSet = true
 	}
 }
 
-//
 // WithTimeout specify the timeout of the test
-func WithTimeout(t time.Duration) func(*Automountservice) {
-	return func(as *Automountservice) {
+func WithTimeout(t time.Duration) func(*AutomountService) {
+	return func(as *AutomountService) {
 		as.timeout = t
 	}
 }
 
 // WithPodname specify the podname to test
-func WithPodname(ns string) func(*Automountservice) {
-	return func(as *Automountservice) {
+func WithPodname(ns string) func(*AutomountService) {
+	return func(as *AutomountService) {
 		as.podname = ns
-		as.podCheck = true
+		as.isPodnameSet = true
 	}
 }
 
 // WithServiceAccount specify the serviceaccount to check
-func WithServiceAccount(sa string) func(*Automountservice) {
-	return func(as *Automountservice) {
+func WithServiceAccount(sa string) func(*AutomountService) {
+	return func(as *AutomountService) {
 		as.serviceaccount = sa
-		as.podCheck = false
+		as.isServiceAccountSet = true
 	}
 }
 
-// Args returns the initial execution/send command strings for handler Automountservice.
-func (as *Automountservice) Args() []string {
+// Args returns the initial execution/send command strings for handler automountservice.
+func (as *AutomountService) Args() []string {
 	return as.args
 }
 
 // GetIdentifier returns the tnf.Test specific identifier.
-func (as *Automountservice) GetIdentifier() identifier.Identifier {
+func (as *AutomountService) GetIdentifier() identifier.Identifier {
 	return identifier.AutomountServiceIdentifier
 }
 
 // Timeout returns the timeout for the test.
-func (as *Automountservice) Timeout() time.Duration {
+func (as *AutomountService) Timeout() time.Duration {
 	return as.timeout
 }
 
 // Result returns the test result.
-func (as *Automountservice) Result() int {
+func (as *AutomountService) Result() int {
 	return as.result
 }
 
-// ReelFirst returns a reel step for handler Automountservice.
-func (as *Automountservice) ReelFirst() *reel.Step {
+// ReelFirst returns a reel step for handler automountservice.
+func (as *AutomountService) ReelFirst() *reel.Step {
 	return &reel.Step{
-		Expect:  []string{saRegex},
+		Expect:  []string{allRegex},
 		Timeout: as.timeout,
 	}
 }
 
-// ReelMatch parses the Automountservice output and set the test result on match.
-func (as *Automountservice) ReelMatch(_, _, match string) *reel.Step {
+// ReelMatch parses the automountservice output and set the test result on match.
+func (as *AutomountService) ReelMatch(_, _, match string) *reel.Step {
 	numExpectedMatches := 2
 	saMatchIdx := 1
 	as.result = tnf.SUCCESS
-	re := regexp.MustCompile(saRegex)
+	re := regexp.MustCompile(SaRegex)
 	matched := re.FindStringSubmatch(match)
 	if len(matched) < numExpectedMatches {
 		return nil
@@ -145,16 +154,16 @@ func (as *Automountservice) ReelMatch(_, _, match string) *reel.Step {
 	return nil
 }
 
-// ReelTimeout function for Automountservice will be called by the reel FSM when a expect timeout occurs.
-func (as *Automountservice) ReelTimeout() *reel.Step {
+// ReelTimeout function for automountservice will be called by the reel FSM when a expect timeout occurs.
+func (as *AutomountService) ReelTimeout() *reel.Step {
 	return nil
 }
 
-// ReelEOF function for Automountservice will be called by the reel FSM when a EOF is read.
-func (as *Automountservice) ReelEOF() {
+// ReelEOF function for automountservice will be called by the reel FSM when a EOF is read.
+func (as *AutomountService) ReelEOF() {
 }
 
 // Token return the value of automountServiceAccountToken for this test
-func (as *Automountservice) Token() int {
+func (as *AutomountService) Token() int {
 	return as.token
 }
