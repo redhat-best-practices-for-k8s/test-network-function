@@ -153,7 +153,8 @@ jobs:
           path: |
             test-network-function/*.xml
             test-network-function/claim.json
-            script/results.html
+            test-network-function/claimjson.js
+            test-network-function/results.html
 
       # Perform smoke tests using a TNF container.
 
@@ -190,7 +191,8 @@ jobs:
           path: |
             ${{ env.TNF_OUTPUT_DIR }}/*.xml
             ${{ env.TNF_OUTPUT_DIR }}/claim.json
-            script/results.html
+            ${{ env.TNF_OUTPUT_DIR }}/claimjson.js
+            ${{ env.TNF_OUTPUT_DIR }}/results.html
 
       # Push the new unstable TNF image to Quay.io.
       - name: (if on main and upstream) Authenticate against Quay.io

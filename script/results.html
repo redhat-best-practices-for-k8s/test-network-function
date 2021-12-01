@@ -229,8 +229,17 @@
             $(text).appendTo($(element))    
         }
     </script>
-
+    <!-- This will load the initial JSON file, if present. It may fail. -->
+    <script src="./claimjson.js"></script>
     <script>
+        // Load initial json, if available
+        if (typeof initialjson !== 'undefined') {
+            fillConfig(initialjson.claim.configurations, '#config-table')
+            fillConfig(initialjson.claim.nodes, '#nodes-table')
+            fillMetadata(initialjson.claim.metadata, '#metadata-table')
+            fillVersions(initialjson.claim.versions, '#versions-table')
+            fillResults(initialjson.claim.results, '#results-table')
+        }
         const inputElement = document.getElementById("formFile");
         inputElement.addEventListener("change", handleFiles, false);
         function handleFiles() {
