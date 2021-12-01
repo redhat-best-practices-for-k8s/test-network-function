@@ -136,8 +136,6 @@ github.com/google/go-cmp v0.5.3/go.mod h1:v8dTdLbMG2kIc/vJvl+f65V22dbkXbowE6jgT/
 github.com/google/go-cmp v0.5.4/go.mod h1:v8dTdLbMG2kIc/vJvl+f65V22dbkXbowE6jgT/gNBxE=
 github.com/google/go-cmp v0.5.5 h1:Khx7svrCpmxxtHBq5j2mp/xVjsi8hQMfNLvJFAlrGgU=
 github.com/google/go-cmp v0.5.5/go.mod h1:v8dTdLbMG2kIc/vJvl+f65V22dbkXbowE6jgT/gNBxE=
-github.com/google/goexpect v0.0.0-20210330220015-096e5d1cbd97 h1:/nu0LtOLsZMlqfk6i50C5fmo5cp5WfciWggZYlwGNAg=
-github.com/google/goexpect v0.0.0-20210330220015-096e5d1cbd97/go.mod h1:n1ej5+FqyEytMt/mugVDZLIiqTMO+vsrgY+kM6ohzN0=
 github.com/google/gofuzz v1.0.0/go.mod h1:dBl0BpW6vV/+mYPU4Po3pmUjxk6FQPldtuIdl/M65Eg=
 github.com/google/goterm v0.0.0-20190703233501-fc88cf888a3f h1:5CjVwnuUcp5adK4gmY6i72gpVFVnZDP2h5TmPScB6u4=
 github.com/google/goterm v0.0.0-20190703233501-fc88cf888a3f/go.mod h1:nOFQdrUlIlx6M6ODdSpBj1NVA+VgLC6kmw60mkw34H4=
@@ -262,6 +260,8 @@ github.com/stretchr/testify v1.6.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/
 github.com/stretchr/testify v1.7.0 h1:nwc3DEeHmmLAfoZucVR881uASk0Mfjw8xYJ99tb5CcY=
 github.com/stretchr/testify v1.7.0/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/subosito/gotenv v1.2.0/go.mod h1:N0PQaV/YGNqwC0u51sEeR/aUtSLEXKX9iv69rRypqCw=
+github.com/test-network-function/goexpect v0.0.1 h1:eX+QxxHNXKPQubIZZ1qI/GsN/owXCqtoRCS72JdBQVs=
+github.com/test-network-function/goexpect v0.0.1/go.mod h1:hpGtPP1qpC3lzxn0akwYH3/TdDl/XW6SSmyMivkdleI=
 github.com/test-network-function/test-network-function-claim v1.0.5 h1:6MSI0hX/6Z5JTHIxg2n+IQF8qBHAKxvZRdwpdMW8eC8=
 github.com/test-network-function/test-network-function-claim v1.0.5/go.mod h1:jPVWu2/YQ0JbY3LHcL+BuZ48VjBLeUaNzh3QqWip4CE=
 github.com/xeipuuv/gojsonpointer v0.0.0-20180127040702-4e3ac2762d5f h1:J9EGpcZtP0E/raorCMxlFGSTBrsSlaDGf3jU/qvAE2c=
