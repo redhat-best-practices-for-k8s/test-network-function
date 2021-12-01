@@ -26,7 +26,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
-	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/automountservice"
 	as "github.com/test-network-function/test-network-function/pkg/tnf/handlers/automountservice"
 	"github.com/test-network-function/test-network-function/pkg/tnf/identifier"
 )
@@ -115,9 +114,8 @@ func TestAutomountservice_ReelMatch(t *testing.T) {
 		matchMock := getMockOutput(t, filename)
 		test := as.NewAutomountService()
 		assert.NotNil(t, test)
-		//firstStep := test.ReelFirst()
 		// validate regular expression when serviceaccount is set to false
-		re := regexp.MustCompile(automountservice.SaRegex)
+		re := regexp.MustCompile(as.SaRegex)
 		matches := re.FindStringSubmatch(matchMock)
 		fmt.Println("-----")
 		for i := 0; i < len(matches); i++ {

@@ -278,6 +278,8 @@ func testServiceAccount(env *config.TestEnvironment) {
 		}
 	})
 }
+
+//nolint:funlen
 func testAutomountService(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestPodAutomountServiceAccountIdentifier)
 	ginkgo.It(testID, func() {
@@ -306,7 +308,6 @@ func testAutomountService(env *config.TestEnvironment) {
 			// of the default service account in that namespace
 			// the token defined in the pod has takes precedence
 			// the test would pass iif token is explicitly set to false
-
 			// if the token is set to true in the pod, the test would fail right away
 			if podToken == automountservice.TokenIsTrue {
 				msg = append(msg, fmt.Sprintf("Pod %s:%s is configured with automountServiceAccountToken set to true ", podNamespace, podName))
@@ -316,7 +317,6 @@ func testAutomountService(env *config.TestEnvironment) {
 			// The pod is not configured and the service account is configured with false means
 			// the pod will inherit the behavior `false` and the test would pass
 			if podToken == automountservice.TokenIsFalse || serviceAccountToken == automountservice.TokenIsFalse {
-				// properly configured
 				continue
 			}
 			// the service account is configured with true means all the pods
@@ -331,7 +331,6 @@ func testAutomountService(env *config.TestEnvironment) {
 				msg = append(msg, fmt.Sprintf("serviceaccount %s:%s is not configured with automountServiceAccountToken set to false, impacting pod %s ", podNamespace, serviceAccountName, podName))
 			}
 		}
-
 		if len(msg) > 0 {
 			_, err := ginkgo.GinkgoWriter.Write([]byte(strings.Join(msg, "")))
 			if err != nil {
