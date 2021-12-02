@@ -2,6 +2,8 @@ module github.com/test-network-function/test-network-function
 
 go 1.17
 
+replace github.com/google/goexpect => github.com/test-network-function/goexpect v0.0.1
+
 require (
 	github.com/Masterminds/semver/v3 v3.1.1
 	github.com/basgys/goxml2json v1.1.0

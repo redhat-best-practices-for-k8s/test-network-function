@@ -9,7 +9,7 @@
     "testTimeout": {{ .TIMEOUT }},
     "reelFirstStep": {
       "execute": "{{ .COMMAND }}",
-      "expect":[ "(?m).*"],
+      "expect": ["(?m).*"],
       "timeout": {{ .TIMEOUT }}
     },
     "resultContexts":[

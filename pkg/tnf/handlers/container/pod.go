@@ -71,7 +71,7 @@ func (p *Pod) Result() int {
 // ReelFirst returns a step which expects an pod status for the given pod.
 func (p *Pod) ReelFirst() *reel.Step {
 	return &reel.Step{
-		Expect:  []string{testcases.GetOutRegExp(testcases.AllowAll)},
+		Expect:  []string{testcases.GetOutRegExp(testcases.AllowEmpty)},
 		Timeout: p.timeout,
 	}
 }
