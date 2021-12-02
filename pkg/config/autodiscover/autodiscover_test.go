@@ -81,6 +81,7 @@ func TestGetContainersByLabel(t *testing.T) {
 						ContainerName: "coredns",
 						NodeName:      "minikube",
 					},
+					MultusIPAddressesPerNet: map[string][]string{},
 				},
 			},
 		},
@@ -92,12 +93,10 @@ func TestGetContainersByLabel(t *testing.T) {
 			expectedOutput: []configsections.ContainerConfig(nil),
 		},
 	}
-
 	origCommand := executeOcGetAllCommand
 	defer func() {
 		executeOcGetAllCommand = origCommand
 	}()
-
 	for _, tc := range testCases {
 		executeOcGetAllCommand = func(resourceType, labelQuery string) string {
 			file, _ := os.ReadFile(tc.filename)

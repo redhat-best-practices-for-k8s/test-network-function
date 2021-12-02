@@ -28,6 +28,7 @@ import (
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
+	"github.com/test-network-function/test-network-function/pkg/config/configsections"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodeport"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/ping"
@@ -39,6 +40,17 @@ import (
 const (
 	defaultNumPings = 5
 )
+
+type netTestContext struct {
+	testerContainerOc         *interactive.Oc
+	testerContainerIdentifier configsections.ContainerIdentifier
+	ipSource                  string
+	ipDestTargets             []ipDest
+}
+type ipDest struct {
+	ip                        string
+	targetContainerIdentifier configsections.ContainerIdentifier
+}
 
 //
 // All actual test code belongs below here.  Utilities belong above.
@@ -72,69 +84,88 @@ var _ = ginkgo.Describe(common.NetworkingTestKey, func() {
 	}
 })
 
+// processContainerIpsPerNet takes a container ip addresses for a given network attachment's network and uses it as a test target.
+// The first container in the loop is selected as the test initiator. the Oc context of the container is used to initiate the pings
+func processContainerIpsPerNet(containerID configsections.ContainerIdentifier, netKey string, ipAddress []string, netsUnderTest map[string]netTestContext, containerOc *interactive.Oc) {
+	if len(ipAddress) == 0 {
+		// if no multus addresses found, skip this container
+		tnf.ClaimFilePrintf("Skipping container %s, Network %s because no multus IPs are present", containerID.PodName, netKey)
+		return
+	}
+	// Create an entry at "key" if it is not present
+	if _, ok := netsUnderTest[netKey]; !ok {
+		netsUnderTest[netKey] = netTestContext{}
+	}
+	// get a copy of the content
+	entry := netsUnderTest[netKey]
+	// Then modify the copy
+	firstIPIndex := 0
+	if entry.testerContainerOc == nil {
+		tnf.ClaimFilePrintf("Pod %s, container %s selected to initiate ping tests", containerID.PodName, containerID.ContainerName)
+		entry.testerContainerIdentifier = containerID
+		entry.testerContainerOc = containerOc
+		// if multiple interfaces are present for this network on this container/pod, pick the first one as the tester source ip
+		entry.ipSource = ipAddress[firstIPIndex]
+		// do no include tester's IP in the list of destination IPs to ping
+		firstIPIndex++
+	}
+
+	for _, aIP := range ipAddress[firstIPIndex:] {
+		ipDestEntry := ipDest{}
+		ipDestEntry.targetContainerIdentifier = containerID
+		ipDestEntry.ip = aIP
+		entry.ipDestTargets = append(entry.ipDestTargets, ipDestEntry)
+	}
+
+	// Then reassign map entry
+	netsUnderTest[netKey] = entry
+}
+func runNetworkingTests(netsUnderTest map[string]netTestContext, count int) {
+	for _, netUnderTest := range netsUnderTest {
+		for _, aDestIP := range netUnderTest.ipDestTargets {
+			ginkgo.By(fmt.Sprintf("a Ping is issued from %s(%s) %s to %s(%s) %s",
+				netUnderTest.testerContainerIdentifier.PodName,
+				netUnderTest.testerContainerIdentifier.ContainerName,
+				netUnderTest.ipSource, aDestIP.targetContainerIdentifier.PodName,
+				aDestIP.targetContainerIdentifier.ContainerName,
+				aDestIP.ip))
+			testPing(netUnderTest.testerContainerOc, aDestIP.ip, count)
+		}
+	}
+}
 func testDefaultNetworkConnectivity(env *config.TestEnvironment, count int) {
-	ginkgo.When("Testing network connectivity", func() {
+	ginkgo.When("Testing Default network connectivity", func() {
 		testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestICMPv4ConnectivityIdentifier)
 		ginkgo.It(testID, func() {
-			if env.TestOrchestrator == nil {
-				ginkgo.Skip("Orchestrator is not deployed, skip this test")
-			}
-			found := false
+			netsUnderTest := make(map[string]netTestContext)
 			for _, cut := range env.ContainersUnderTest {
 				if _, ok := env.ContainersToExcludeFromConnectivityTests[cut.ContainerIdentifier]; ok {
-					tnf.ClaimFilePrintf("Skipping container %s because it is excluded from connectivity tests (default)", cut.ContainerConfiguration.PodName)
-
+					tnf.ClaimFilePrintf("Skipping container %s because it is excluded from connectivity tests (default interface)", cut.ContainerConfiguration.PodName)
 					continue
 				}
-				found = true
-				context := cut.Oc
-				testOrchestrator := env.TestOrchestrator
-				ginkgo.By(fmt.Sprintf("a Ping is issued from %s(%s) to %s(%s) %s", testOrchestrator.Oc.GetPodName(),
-					testOrchestrator.Oc.GetPodContainerName(), cut.Oc.GetPodName(), cut.Oc.GetPodContainerName(),
-					cut.DefaultNetworkIPAddress))
-				testPing(testOrchestrator.Oc, cut.DefaultNetworkIPAddress, count)
-				ginkgo.By(fmt.Sprintf("a Ping is issued from %s(%s) to %s(%s) %s", cut.Oc.GetPodName(),
-					cut.Oc.GetPodContainerName(), testOrchestrator.Oc.GetPodName(), testOrchestrator.Oc.GetPodContainerName(),
-					testOrchestrator.DefaultNetworkIPAddress))
-				testPing(context, testOrchestrator.DefaultNetworkIPAddress, count)
+				netKey := "default" //nolint:goconst // only used once
+				defaultIPAddress := []string{cut.DefaultNetworkIPAddress}
+				processContainerIpsPerNet(cut.ContainerIdentifier, netKey, defaultIPAddress, netsUnderTest, cut.Oc)
 			}
-			if !found {
-				ginkgo.Skip("No container found suitable for connectivity test")
-			}
+			runNetworkingTests(netsUnderTest, count)
 		})
 	})
 }
-
 func testMultusNetworkConnectivity(env *config.TestEnvironment, count int) {
-	ginkgo.When("Testing network connectivity", func() {
+	ginkgo.When("Testing Multus network connectivity", func() {
 		testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestICMPv4ConnectivityIdentifier)
 		ginkgo.It(testID, func() {
-			if env.TestOrchestrator == nil {
-				ginkgo.Skip("Orchestrator is not deployed, skip this test")
-			}
-			found := false
+			netsUnderTest := make(map[string]netTestContext)
 			for _, cut := range env.ContainersUnderTest {
 				if _, ok := env.ContainersToExcludeFromConnectivityTests[cut.ContainerIdentifier]; ok {
-					tnf.ClaimFilePrintf("Skipping container %s because it is excluded from connectivity tests (multus)", cut.ContainerConfiguration.PodName)
+					tnf.ClaimFilePrintf("Skipping container %s because it is excluded from connectivity tests (multus interface)", cut.ContainerConfiguration.PodName)
 					continue
 				}
-				if len(cut.ContainerConfiguration.MultusIPAddresses) == 0 {
-					tnf.ClaimFilePrintf("Skipping container %s for multus test because no multus IPs are present", cut.ContainerConfiguration.PodName)
-					continue
-				}
-				found = true
-
-				for _, multusIPAddress := range cut.ContainerConfiguration.MultusIPAddresses {
-					testOrchestrator := env.TestOrchestrator
-					ginkgo.By(fmt.Sprintf("a Ping is issued from %s(%s) to %s(%s) %s", testOrchestrator.Oc.GetPodName(),
-						testOrchestrator.Oc.GetPodContainerName(), cut.Oc.GetPodName(), cut.Oc.GetPodContainerName(),
-						multusIPAddress))
-					testPing(testOrchestrator.Oc, multusIPAddress, count)
+				for netKey, multusIPAddress := range cut.ContainerConfiguration.MultusIPAddressesPerNet {
+					processContainerIpsPerNet(cut.ContainerIdentifier, netKey, multusIPAddress, netsUnderTest, cut.Oc)
 				}
 			}
-			if !found {
-				ginkgo.Skip("No container found suitable for Multus connectivity test")
-			}
+			runNetworkingTests(netsUnderTest, count)
 		})
 	})
 }

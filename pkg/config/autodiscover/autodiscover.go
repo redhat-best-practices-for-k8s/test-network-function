@@ -146,7 +146,8 @@ func buildContainersFromPodResource(pr *PodResource) (containers []configsection
 		if err != nil {
 			log.Warnf("error encountered getting default network device: %s", err)
 		}
-		container.MultusIPAddresses, err = pr.getPodIPs()
+
+		container.MultusIPAddressesPerNet, err = pr.getPodIPsPerNet()
 		if err != nil {
 			log.Warnf("error encountered getting multus IPs: %s", err)
 			err = nil

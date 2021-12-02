@@ -23,27 +23,19 @@ import (
 )
 
 func TestBuildContainersFromPodResource(t *testing.T) {
-	orchestratorPod := loadPodResource(testOrchestratorFilePath)
-	orchestratorContainers := buildContainersFromPodResource(&orchestratorPod)
-	assert.Equal(t, 1, len(orchestratorContainers))
-
 	subjectPod := loadPodResource(testSubjectFilePath)
 	subjectContainers := buildContainersFromPodResource(&subjectPod)
 	assert.Equal(t, 1, len(subjectContainers))
 
-	assert.Equal(t, "tnf", orchestratorContainers[0].Namespace)
-	assert.Equal(t, "I'mAPodName", orchestratorContainers[0].PodName)
-	assert.Equal(t, "I'mAContainer", orchestratorContainers[0].ContainerName)
+	assert.Equal(t, "tnf", subjectContainers[0].Namespace)
+	assert.Equal(t, "I'mAPodName", subjectContainers[0].PodName)
+	assert.Equal(t, "I'mAContainer", subjectContainers[0].ContainerName)
 
 	// Check correct order of precedence for network devices
-	assert.Equal(t, "eth0", orchestratorContainers[0].DefaultNetworkDevice)
-	assert.NotEqual(t, "LowerPriorityInterface", orchestratorContainers[0].DefaultNetworkDevice)
-	assert.Equal(t, "eth1", subjectContainers[0].DefaultNetworkDevice)
+	assert.Equal(t, "eth0", subjectContainers[0].DefaultNetworkDevice)
 
-	// Check correct IPs are chosen
-	assert.Equal(t, 0, len(orchestratorContainers[0].MultusIPAddresses))
 	// test-network-function.com/multusips should be used for the test subject container.
-	assert.Equal(t, 2, len(subjectContainers[0].MultusIPAddresses))
-	assert.Equal(t, "3.3.3.3", subjectContainers[0].MultusIPAddresses[0])
-	assert.Equal(t, "4.4.4.4", subjectContainers[0].MultusIPAddresses[1])
+	assert.Equal(t, 2, len(subjectContainers[0].MultusIPAddressesPerNet))
+	assert.Equal(t, "3.3.3.3", subjectContainers[0].MultusIPAddressesPerNet["default/macvlan-conf1"][0])
+	assert.Equal(t, "4.4.4.4", subjectContainers[0].MultusIPAddressesPerNet["default/macvlan-conf2"][0])
 }

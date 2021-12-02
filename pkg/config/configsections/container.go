@@ -29,6 +29,6 @@ type ContainerConfig struct {
 	ContainerIdentifier `yaml:",inline"`
 	// OpenShift Default network interface name (i.e., eth0)
 	DefaultNetworkDevice string `yaml:"defaultNetworkDevice" json:"defaultNetworkDevice"`
-	// MultusIPAddresses are the overlay IPs.
-	MultusIPAddresses []string `yaml:"multusIpAddresses" json:"multusIpAddresses"`
+	// MultusIPAddressesPerNet are the overlay IPs.
+	MultusIPAddressesPerNet map[string][]string `yaml:"multusIpAddressesPerNet" json:"multusIpAddressesPerNet"`
 }
