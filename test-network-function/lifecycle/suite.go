@@ -334,21 +334,16 @@ func testPodsRecreation(env *config.TestEnvironment) {
 			env.ResetOc()
 			// drain node
 			drainNode(n.Name) // should go in this
+			// Ensure the node is uncordoned even if we have a failure in waitForAllDeploymentsReady
+			defer uncordonNode(n.Name)
 			for _, ns := range env.NameSpacesUnderTest {
 				waitForAllDeploymentsReady(ns, scalingTimeout, scalingPollingPeriod)
-				// verify deployments are ready again
-				_, notReadyDeployments = getDeployments(ns)
-				if len(notReadyDeployments) > 0 {
-					uncordonNode(n.Name)
-					ginkgo.Fail(fmt.Sprintf("did not create replicas when node %s is drained", n.Name))
-				}
 			}
 			uncordonNode(n.Name)
-
-			for _, ns := range env.NameSpacesUnderTest {
-				// wait for all deployment to be ready otherwise, pods might be unreacheable during the next discovery
-				waitForAllDeploymentsReady(ns, scalingTimeout, scalingPollingPeriod)
-			}
+		}
+		for _, ns := range env.NameSpacesUnderTest {
+			// wait for all deployment to be ready otherwise, pods might be unreacheable during the next discovery
+			waitForAllDeploymentsReady(ns, scalingTimeout, scalingPollingPeriod)
 		}
 	})
 }
