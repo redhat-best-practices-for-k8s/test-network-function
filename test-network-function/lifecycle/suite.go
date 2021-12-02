@@ -300,6 +300,19 @@ func shutdownTest(podNamespace, podName string) {
 	test.RunAndValidate()
 }
 
+func testNodeDrain(env *config.TestEnvironment, nodeName string) {
+	// We need to delete all Oc sessions because the drain operation is often deleting oauth-openshift pod
+	// This results in lost connectivity for oc sessions
+	env.ResetOc()
+	// drain node
+	drainNode(nodeName)
+	// Ensure the node is uncordoned before exiting the function
+	defer uncordonNode(nodeName)
+	for _, ns := range env.NameSpacesUnderTest {
+		waitForAllDeploymentsReady(ns, scalingTimeout, scalingPollingPeriod)
+	}
+}
+
 func testPodsRecreation(env *config.TestEnvironment) {
 	deployments := make(dp.DeploymentMap)
 	var notReadyDeployments []string
@@ -329,20 +342,10 @@ func testPodsRecreation(env *config.TestEnvironment) {
 				log.Debug("node ", n.Name, " has no deployment, skip draining")
 				continue
 			}
-			// We need to delete all Oc sessions because the drain operation is often deleting oauth-openshift pod
-			// This result in lost connectivity oc sessions
-			env.ResetOc()
-			// drain node
-			drainNode(n.Name) // should go in this
-			// Ensure the node is uncordoned even if we have a failure in waitForAllDeploymentsReady
-			defer uncordonNode(n.Name)
-			for _, ns := range env.NameSpacesUnderTest {
-				waitForAllDeploymentsReady(ns, scalingTimeout, scalingPollingPeriod)
-			}
-			uncordonNode(n.Name)
+			testNodeDrain(env, n.Name)
 		}
+		// Once all tests are done, wait for all deployments to be ready. Otherwise, pods might be unreacheable during the next discovery
 		for _, ns := range env.NameSpacesUnderTest {
-			// wait for all deployment to be ready otherwise, pods might be unreacheable during the next discovery
 			waitForAllDeploymentsReady(ns, scalingTimeout, scalingPollingPeriod)
 		}
 	})
