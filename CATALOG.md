@@ -33,6 +33,15 @@ Description|http://test-network-function.com/testcases/access-control/namespace 
 Result Type|normative
 Suggested Remediation|Ensure that your CNF utilizes namespaces declared in the yaml config file. Additionally, the namespaces should not start with "default, openshift-, istio- or aspenmesh-", except in rare cases.
 Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2, 16.3.8 & 16.3.9
+### http://test-network-function.com/testcases/access-control/pod-automount-service-account-token
+
+Property|Description
+---|---
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/access-control/pod-automount-service-account-token check that all pods under test have automountServiceAccountToken set to false
+Result Type|normative
+Suggested Remediation|check that pod has automountServiceAccountToken set to false or pod is attached to service account which has automountServiceAccountToken set to false
+Best Practice Reference|
 ### http://test-network-function.com/testcases/access-control/pod-role-bindings
 
 Property|Description
@@ -289,7 +298,17 @@ Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/site
 
 ## Test Case Building Blocks Catalog
 
-A number of Test Case Building Blocks, or `tnf.Test`s, are included out of the box.  This is a summary of the available implementations:### http://test-network-function.com/tests/clusterVersion
+A number of Test Case Building Blocks, or `tnf.Test`s, are included out of the box.  This is a summary of the available implementations:### http://test-network-function.com/tests/automountservice
+Property|Description
+---|---
+Version|v1.0.0
+Description|check if automount service account token is set to false
+Result Type|normative
+Intrusive|false
+Modifications Persist After Test|false
+Runtime Binaries Required|`oc`
+
+### http://test-network-function.com/tests/clusterVersion
 Property|Description
 ---|---
 Version|v1.0.0

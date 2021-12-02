@@ -25,10 +25,10 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/test-network-function/test-network-function/pkg/config"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/automountservice"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/clusterrolebinding"
 	containerpkg "github.com/test-network-function/test-network-function/pkg/tnf/handlers/container"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/rolebinding"
-	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/serviceaccount"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
 	"github.com/test-network-function/test-network-function/pkg/tnf/testcases"
 	"github.com/test-network-function/test-network-function/pkg/utils"
@@ -301,6 +301,7 @@ func testRoles(env *config.TestEnvironment) {
 	testServiceAccount(env)
 	testRoleBindings(env)
 	testClusterRoleBindings(env)
+	testAutomountService(env)
 }
 
 func testServiceAccount(env *config.TestEnvironment) {
@@ -308,17 +309,69 @@ func testServiceAccount(env *config.TestEnvironment) {
 	ginkgo.It(testID, func() {
 		ginkgo.By("Should have a valid ServiceAccount name")
 		for _, podUnderTest := range env.PodsUnderTest {
+			ginkgo.By(fmt.Sprintf("Testing pod service account %s %s", podUnderTest.Namespace, podUnderTest.Name))
+			serviceAccountName := podUnderTest.ServiceAccount
+			gomega.Expect(serviceAccountName).ToNot(gomega.BeEmpty())
+		}
+	})
+}
+
+//nolint:funlen
+func testAutomountService(env *config.TestEnvironment) {
+	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestPodAutomountServiceAccountIdentifier)
+	ginkgo.It(testID, func() {
+		ginkgo.By("Should have automountServiceAccountToken set to false")
+		msg := []string{}
+		for _, podUnderTest := range env.PodsUnderTest {
+			ginkgo.By(fmt.Sprintf("check the existence of pod service account %s (ns= %s )", podUnderTest.Namespace, podUnderTest.Name))
 			podName := podUnderTest.Name
 			podNamespace := podUnderTest.Namespace
+			serviceAccountName := podUnderTest.ServiceAccount
+			gomega.Expect(serviceAccountName).ToNot(gomega.BeEmpty())
 			context := common.GetContext()
-			ginkgo.By(fmt.Sprintf("Testing pod service account %s %s", podNamespace, podName))
-			tester := serviceaccount.NewServiceAccount(common.DefaultTimeout, podName, podNamespace)
+			tester := automountservice.NewAutomountService(automountservice.WithNamespace(podNamespace), automountservice.WithServiceAccount(serviceAccountName))
 			test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 			gomega.Expect(err).To(gomega.BeNil())
 			test.RunAndValidate()
-			serviceAccountName := tester.GetServiceAccountName()
-			gomega.Expect(serviceAccountName).ToNot(gomega.BeEmpty())
+			serviceAccountToken := tester.Token()
+			tester = automountservice.NewAutomountService(automountservice.WithNamespace(podNamespace), automountservice.WithPodname(podName))
+			test, err = tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
+			gomega.Expect(err).To(gomega.BeNil())
+			test.RunAndValidate()
+			podToken := tester.Token()
+			// The token can be specified in the pod directly
+			// or it can be specified in the service account of the pod
+			// if no service account is configured, then the pod will use the configuration
+			// of the default service account in that namespace
+			// the token defined in the pod has takes precedence
+			// the test would pass iif token is explicitly set to false
+			// if the token is set to true in the pod, the test would fail right away
+			if podToken == automountservice.TokenIsTrue {
+				msg = append(msg, fmt.Sprintf("Pod %s:%s is configured with automountServiceAccountToken set to true ", podNamespace, podName))
+				continue
+			}
+			// The pod token is false means the pod is configured properly
+			// The pod is not configured and the service account is configured with false means
+			// the pod will inherit the behavior `false` and the test would pass
+			if podToken == automountservice.TokenIsFalse || serviceAccountToken == automountservice.TokenIsFalse {
+				continue
+			}
+			// the service account is configured with true means all the pods
+			// using this service account are not configured properly, register the error
+			// message and fail
+			if serviceAccountToken == automountservice.TokenIsTrue {
+				msg = append(msg, fmt.Sprintf("serviceaccount %s:%s is configured with automountServiceAccountToken set to true, impacting pod %s ", podNamespace, serviceAccountName, podName))
+			}
+			// the token should be set explicitly to false, otherwise, it's a failure
+			// register the error message and check the next pod
+			if serviceAccountToken == automountservice.TokenNotSet {
+				msg = append(msg, fmt.Sprintf("serviceaccount %s:%s is not configured with automountServiceAccountToken set to false, impacting pod %s ", podNamespace, serviceAccountName, podName))
+			}
 		}
+		if len(msg) > 0 {
+			tnf.ClaimFilePrintf(strings.Join(msg, ""))
+		}
+		gomega.Expect(msg).To(gomega.BeEmpty())
 	})
 }
 
@@ -354,7 +407,7 @@ func testClusterRoleBindings(env *config.TestEnvironment) {
 			podNamespace := podUnderTest.Namespace
 			serviceAccountName := podUnderTest.ServiceAccount
 			context := common.GetContext()
-			ginkgo.By(fmt.Sprintf("Testing cluster role  bidning  %s %s", podNamespace, podName))
+			ginkgo.By(fmt.Sprintf("Testing cluster role  binding  %s %s", podNamespace, podName))
 			if serviceAccountName == "" {
 				ginkgo.Skip("Can not test when serviceAccountName is empty. Please check previous tests for failures")
 			}

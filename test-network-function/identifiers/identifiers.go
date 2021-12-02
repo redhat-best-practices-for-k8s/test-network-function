@@ -168,6 +168,11 @@ var (
 		Url:     formTestURL(common.AccessControlTestKey, "pod-service-account"),
 		Version: versionOne,
 	}
+	//
+	TestPodAutomountServiceAccountIdentifier = claim.Identifier{
+		Url:     formTestURL(common.AccessControlTestKey, "pod-automount-service-account-token"),
+		Version: versionOne,
+	}
 	// TestServicesDoNotUseNodeportsIdentifier ensures Services don't utilize NodePorts.
 	TestServicesDoNotUseNodeportsIdentifier = claim.Identifier{
 		Url:     formTestURL(common.NetworkingTestKey, "service-type"),
@@ -616,5 +621,12 @@ the changes for you.`,
 			`check that all containers under test use standard input output and standard error when logging`),
 		Remediation:           `make sure containers are not redirecting stdout/stderr`,
 		BestPracticeReference: bestPracticeDocV1dot2URL + " Section 11.1",
+	},
+	TestPodAutomountServiceAccountIdentifier: {
+		Identifier: TestPodAutomountServiceAccountIdentifier,
+		Type:       normativeResult,
+		Description: formDescription(TestPodAutomountServiceAccountIdentifier,
+			`check that all pods under test have automountServiceAccountToken set to false`),
+		Remediation: `check that pod has automountServiceAccountToken set to false or pod is attached to service account which has automountServiceAccountToken set to false`,
 	},
 }
