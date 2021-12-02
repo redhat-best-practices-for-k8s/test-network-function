@@ -323,7 +323,7 @@ func testAutomountService(env *config.TestEnvironment) {
 		ginkgo.By("Should have automountServiceAccountToken set to false")
 		msg := []string{}
 		for _, podUnderTest := range env.PodsUnderTest {
-			ginkgo.By(fmt.Sprintf("check the existence of pod service account %s %s", podUnderTest.Namespace, podUnderTest.Name))
+			ginkgo.By(fmt.Sprintf("check the existence of pod service account %s (ns= %s )", podUnderTest.Namespace, podUnderTest.Name))
 			podName := podUnderTest.Name
 			podNamespace := podUnderTest.Namespace
 			serviceAccountName := podUnderTest.ServiceAccount
@@ -369,10 +369,7 @@ func testAutomountService(env *config.TestEnvironment) {
 			}
 		}
 		if len(msg) > 0 {
-			_, err := ginkgo.GinkgoWriter.Write([]byte(strings.Join(msg, "")))
-			if err != nil {
-				log.Errorf("Ginkgo writer could not write because: %s", err)
-			}
+			tnf.ClaimFilePrintf(strings.Join(msg, ""))
 		}
 		gomega.Expect(msg).To(gomega.BeEmpty())
 	})
