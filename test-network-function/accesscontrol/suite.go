@@ -93,15 +93,31 @@ var _ = ginkgo.Describe(common.AccessControlTestKey, func() {
 	}
 })
 
+type failedTcInfo struct {
+	tc           string
+	containerIdx int
+	ns           string
+}
+
+func addFailedTcInfo(failedTcs map[string][]failedTcInfo, tc, pod, ns string, containerIdx int) {
+	if tcs, exists := failedTcs[pod]; exists {
+		tcs = append(tcs, failedTcInfo{tc: tc, containerIdx: containerIdx, ns: ns})
+		failedTcs[pod] = tcs
+	} else {
+		failedTcs[pod] = []failedTcInfo{{tc: tc, containerIdx: containerIdx, ns: ns}}
+	}
+}
+
 //nolint:gocritic,funlen // ignore hugeParam error. Pointers to loop iterator vars are bad and `testCmd` is likely to be such.
 func runTestOnPods(env *config.TestEnvironment, testCmd testcases.BaseTestCase, testType string) {
+	const noContainerIdx = -1
 	testID := identifiers.XformToGinkgoItIdentifierExtended(identifiers.TestHostResourceIdentifier, testCmd.Name)
 	ginkgo.It(testID, func() {
 		context := common.GetContext()
+		failedTcs := map[string][]failedTcInfo{} // maps a pod name to a slice of failed TCs
 		for _, podUnderTest := range env.PodsUnderTest {
 			podName := podUnderTest.Name
 			podNamespace := podUnderTest.Namespace
-			ginkgo.By(fmt.Sprintf("Reading namespace of podnamespace= %s podname= %s", podNamespace, podName))
 			if testCmd.ExpectedType == testcases.Function {
 				for _, val := range testCmd.ExpectedStatus {
 					testCmd.ExpectedStatusFn(podName, testcases.StatusFunctionType(val))
@@ -125,25 +141,46 @@ func runTestOnPods(env *config.TestEnvironment, testCmd testcases.BaseTestCase, 
 			if count > 0 {
 				count := 0
 				for count < podUnderTest.ContainerCount {
+					ginkgo.By(fmt.Sprintf("Executing TC %s on pod %s (ns %s), container index %d", testCmd.Name, podNamespace, podName, count))
 					argsCount := append(args, count)
-					cmdArgs := strings.Split(fmt.Sprintf(testCmd.Command, argsCount...), " ")
+					cmd := fmt.Sprintf(testCmd.Command, argsCount...)
+					cmdArgs := strings.Split(cmd, " ")
 					cnfInTest := containerpkg.NewPod(cmdArgs, podUnderTest.Name, podUnderTest.Namespace, testCmd.ExpectedStatus, testCmd.ResultType, testCmd.Action, common.DefaultTimeout)
 					gomega.Expect(cnfInTest).ToNot(gomega.BeNil())
 					test, err := tnf.NewTest(context.GetExpecter(), cnfInTest, []reel.Handler{cnfInTest}, context.GetErrorChannel())
 					gomega.Expect(err).To(gomega.BeNil())
 					gomega.Expect(test).ToNot(gomega.BeNil())
-					test.RunAndValidate()
+					test.RunWithCallbacks(nil, func() {
+						tnf.ClaimFilePrintf("FAILURE: Command sent: %s, Expectations: %v", cmd, testCmd.ExpectedStatus)
+						addFailedTcInfo(failedTcs, testCmd.Name, podName, podNamespace, count)
+					}, func(e error) {
+						tnf.ClaimFilePrintf("ERROR: Command sent: %s, Expectations: %v, Error: %v", cmd, testCmd.ExpectedStatus, e)
+						addFailedTcInfo(failedTcs, testCmd.Name, podName, podNamespace, count)
+					})
 					count++
 				}
 			} else {
-				cmdArgs := strings.Split(fmt.Sprintf(testCmd.Command, args...), " ")
+				ginkgo.By(fmt.Sprintf("Executing TC %s on pod %s (ns %s)", testCmd.Name, podNamespace, podName))
+				cmd := fmt.Sprintf(testCmd.Command, args...)
+				cmdArgs := strings.Split(cmd, " ")
 				podTest := containerpkg.NewPod(cmdArgs, podUnderTest.Name, podUnderTest.Namespace, testCmd.ExpectedStatus, testCmd.ResultType, testCmd.Action, common.DefaultTimeout)
 				gomega.Expect(podTest).ToNot(gomega.BeNil())
 				test, err := tnf.NewTest(context.GetExpecter(), podTest, []reel.Handler{podTest}, context.GetErrorChannel())
 				gomega.Expect(err).To(gomega.BeNil())
 				gomega.Expect(test).ToNot(gomega.BeNil())
-				test.RunAndValidate()
+				test.RunWithCallbacks(nil, func() {
+					tnf.ClaimFilePrintf("FAILURE: Command sent: %s, Expectations: %v", cmd, testCmd.ExpectedStatus)
+					addFailedTcInfo(failedTcs, testCmd.Name, podName, podNamespace, noContainerIdx)
+				}, func(e error) {
+					tnf.ClaimFilePrintf("ERROR: Command sent: %s, Expectations: %v, Error: %v", cmd, testCmd.ExpectedStatus, e)
+					addFailedTcInfo(failedTcs, testCmd.Name, podName, podNamespace, noContainerIdx)
+				})
 			}
+		}
+
+		if n := len(failedTcs); n > 0 {
+			log.Debugf("Failed TCs: %+v", failedTcs)
+			ginkgo.Fail(fmt.Sprintf("%d pods failed the test.", n))
 		}
 	})
 }
