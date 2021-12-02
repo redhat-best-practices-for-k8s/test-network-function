@@ -151,10 +151,10 @@ func runTestOnPods(env *config.TestEnvironment, testCmd testcases.BaseTestCase, 
 					gomega.Expect(err).To(gomega.BeNil())
 					gomega.Expect(test).ToNot(gomega.BeNil())
 					test.RunWithCallbacks(nil, func() {
-						tnf.ClaimFilePrintf("Command sent: %s, Expectations: %v", cmd, testCmd.ExpectedStatus)
+						tnf.ClaimFilePrintf("FAILURE: Command sent: %s, Expectations: %v", cmd, testCmd.ExpectedStatus)
 						addFailedTcInfo(failedTcs, testCmd.Name, podName, podNamespace, count)
 					}, func(e error) {
-						tnf.ClaimFilePrintf("Command sent: %s, Expectations: %v, Error: %v", cmd, testCmd.ExpectedStatus, e)
+						tnf.ClaimFilePrintf("ERROR: Command sent: %s, Expectations: %v, Error: %v", cmd, testCmd.ExpectedStatus, e)
 						addFailedTcInfo(failedTcs, testCmd.Name, podName, podNamespace, count)
 					})
 					count++
@@ -169,10 +169,10 @@ func runTestOnPods(env *config.TestEnvironment, testCmd testcases.BaseTestCase, 
 				gomega.Expect(err).To(gomega.BeNil())
 				gomega.Expect(test).ToNot(gomega.BeNil())
 				test.RunWithCallbacks(nil, func() {
-					tnf.ClaimFilePrintf("Command sent: %s, Expectations: %v", cmd, testCmd.ExpectedStatus)
+					tnf.ClaimFilePrintf("FAILURE: Command sent: %s, Expectations: %v", cmd, testCmd.ExpectedStatus)
 					addFailedTcInfo(failedTcs, testCmd.Name, podName, podNamespace, noContainerIdx)
 				}, func(e error) {
-					tnf.ClaimFilePrintf("Command sent: %s, Expectations: %v, Error: %v", cmd, testCmd.ExpectedStatus, e)
+					tnf.ClaimFilePrintf("ERROR: Command sent: %s, Expectations: %v, Error: %v", cmd, testCmd.ExpectedStatus, e)
 					addFailedTcInfo(failedTcs, testCmd.Name, podName, podNamespace, noContainerIdx)
 				})
 			}
