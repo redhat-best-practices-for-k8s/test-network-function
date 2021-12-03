@@ -301,13 +301,17 @@ func shutdownTest(podNamespace, podName string) {
 }
 
 func testNodeDrain(env *config.TestEnvironment, nodeName string) {
-	// We need to delete all Oc sessions because the drain operation is often deleting oauth-openshift pod
-	// This results in lost connectivity for oc sessions
-	env.ResetOc()
+
 	// drain node
 	drainNode(nodeName)
-	// Ensure the node is uncordoned before exiting the function
-	defer uncordonNode(nodeName)
+	// Ensure the node is uncordoned before exiting the function,
+	// and all deployments are ready
+	defer func() {
+		uncordonNode(nodeName)
+		for _, ns := range env.NameSpacesUnderTest {
+			waitForAllDeploymentsReady(ns, scalingTimeout, scalingPollingPeriod)
+		}
+	}()
 	for _, ns := range env.NameSpacesUnderTest {
 		waitForAllDeploymentsReady(ns, scalingTimeout, scalingPollingPeriod)
 	}
@@ -337,16 +341,15 @@ func testPodsRecreation(env *config.TestEnvironment) {
 		}
 		defer env.SetNeedsRefresh()
 		ginkgo.By("should create new replicas when node is drained")
+		// We need to delete all Oc sessions because the drain operation is often deleting oauth-openshift pod
+		// This results in lost connectivity for oc sessions
+		env.ResetOc()
 		for _, n := range env.NodesUnderTest {
 			if !n.HasDeployment() {
 				log.Debug("node ", n.Name, " has no deployment, skip draining")
 				continue
 			}
 			testNodeDrain(env, n.Name)
-		}
-		// Once all tests are done, wait for all deployments to be ready. Otherwise, pods might be unreacheable during the next discovery
-		for _, ns := range env.NameSpacesUnderTest {
-			waitForAllDeploymentsReady(ns, scalingTimeout, scalingPollingPeriod)
 		}
 	})
 }
