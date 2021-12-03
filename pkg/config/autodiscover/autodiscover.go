@@ -21,6 +21,7 @@ import (
 	"os"
 	"strconv"
 	"time"
+	"strings"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/test-network-function/test-network-function/pkg/config/configsections"
@@ -142,6 +143,12 @@ func buildContainersFromPodResource(pr *PodResource) (containers []configsection
 		container.PodName = pr.Metadata.Name
 		container.ContainerName = containerResource.Name
 		container.NodeName = pr.Spec.NodeName
+		// This is to have access to the pod namespace
+		for _, cs := range pr.Status.ContainerStatuses{
+			if cs.Name == container.ContainerName {
+				container.ContainerUID = strings.TrimPrefix(cs.ContainerID,"cri-o://")
+			}
+	  }
 		container.DefaultNetworkDevice, err = pr.getDefaultNetworkDeviceFromAnnotations()
 		if err != nil {
 			log.Warnf("error encountered getting default network device: %s", err)

@@ -123,20 +123,20 @@ func (p *Ping) GetStats() (transmitted, received, errors int) {
 
 // Command returns command line args for pinging `host` with `count` requests, or indefinitely if `count` is not
 // positive.
-func Command(host string, count int) []string {
+func Command(containerPID,host string, count int) []string {
 	if count > 0 {
-		return []string{dependencies.PingBinaryName, "-c", strconv.Itoa(count), host}
+		return []string{"nsenter -t "+containerPID+" -n ", dependencies.PingBinaryName, "-c", strconv.Itoa(count), host}
 	}
-	return []string{dependencies.PingBinaryName, host}
+	return []string{"nsenter -t "+containerPID+" -n ",dependencies.PingBinaryName, host}
 }
 
 // NewPing creates a new `Ping` test which pings `hosts` with `count` requests, or indefinitely if `count` is not
 // positive, and executes within `timeout` seconds.
-func NewPing(timeout time.Duration, host string, count int) *Ping {
+func NewPing(timeout time.Duration,containerPID, host string, count int) *Ping {
 	return &Ping{
 		result:  tnf.ERROR,
 		timeout: timeout,
-		args:    Command(host, count),
+		args:    Command(containerPID,host, count),
 	}
 }
 

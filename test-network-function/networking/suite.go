@@ -35,6 +35,7 @@ import (
 	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
 	"github.com/test-network-function/test-network-function/test-network-function/results"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodedebug"
 )
 
 const (
@@ -42,7 +43,7 @@ const (
 )
 
 type netTestContext struct {
-	testerContainerOc         *interactive.Oc
+	testerContainerNodeOc         *interactive.Oc
 	testerContainerIdentifier configsections.ContainerIdentifier
 	ipSource                  string
 	ipDestTargets             []ipDest
@@ -86,7 +87,11 @@ var _ = ginkgo.Describe(common.NetworkingTestKey, func() {
 
 // processContainerIpsPerNet takes a container ip addresses for a given network attachment's network and uses it as a test target.
 // The first container in the loop is selected as the test initiator. the Oc context of the container is used to initiate the pings
-func processContainerIpsPerNet(containerID configsections.ContainerIdentifier, netKey string, ipAddress []string, netsUnderTest map[string]netTestContext, containerOc *interactive.Oc) {
+func processContainerIpsPerNet(containerID configsections.ContainerIdentifier,
+	 netKey string, 
+	 ipAddress []string,
+	  netsUnderTest map[string]netTestContext, 
+		containerNodeOc *interactive.Oc) {
 	if len(ipAddress) == 0 {
 		// if no multus addresses found, skip this container
 		tnf.ClaimFilePrintf("Skipping container %s, Network %s because no multus IPs are present", containerID.PodName, netKey)
@@ -100,10 +105,10 @@ func processContainerIpsPerNet(containerID configsections.ContainerIdentifier, n
 	entry := netsUnderTest[netKey]
 	// Then modify the copy
 	firstIPIndex := 0
-	if entry.testerContainerOc == nil {
+	if entry.testerContainerNodeOc == nil {
 		tnf.ClaimFilePrintf("Pod %s, container %s selected to initiate ping tests", containerID.PodName, containerID.ContainerName)
 		entry.testerContainerIdentifier = containerID
-		entry.testerContainerOc = containerOc
+		entry.testerContainerNodeOc = containerNodeOc
 		// if multiple interfaces are present for this network on this container/pod, pick the first one as the tester source ip
 		entry.ipSource = ipAddress[firstIPIndex]
 		// do no include tester's IP in the list of destination IPs to ping
@@ -129,7 +134,11 @@ func runNetworkingTests(netsUnderTest map[string]netTestContext, count int) {
 				netUnderTest.ipSource, aDestIP.targetContainerIdentifier.PodName,
 				aDestIP.targetContainerIdentifier.ContainerName,
 				aDestIP.ip))
-			testPing(netUnderTest.testerContainerOc, aDestIP.ip, count)
+			testPing(netUnderTest.testerContainerNodeOc,
+				netUnderTest.testerContainerIdentifier.NodeName,
+				netUnderTest.testerContainerIdentifier.ContainerUID,
+				aDestIP.ip,
+				count)
 		}
 	}
 }
@@ -137,15 +146,20 @@ func testDefaultNetworkConnectivity(env *config.TestEnvironment, count int) {
 	ginkgo.When("Testing Default network connectivity", func() {
 		testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestICMPv4ConnectivityIdentifier)
 		ginkgo.It(testID, func() {
+
+
 			netsUnderTest := make(map[string]netTestContext)
 			for _, cut := range env.ContainersUnderTest {
+
+				
+
 				if _, ok := env.ContainersToExcludeFromConnectivityTests[cut.ContainerIdentifier]; ok {
 					tnf.ClaimFilePrintf("Skipping container %s because it is excluded from connectivity tests (default interface)", cut.ContainerConfiguration.PodName)
 					continue
 				}
 				netKey := "default" //nolint:goconst // only used once
 				defaultIPAddress := []string{cut.DefaultNetworkIPAddress}
-				processContainerIpsPerNet(cut.ContainerIdentifier, netKey, defaultIPAddress, netsUnderTest, cut.Oc)
+				processContainerIpsPerNet(cut.ContainerIdentifier, netKey, defaultIPAddress, netsUnderTest, env.NodesUnderTest[cut.ContainerConfiguration.NodeName].Oc)
 			}
 			runNetworkingTests(netsUnderTest, count)
 		})
@@ -171,10 +185,12 @@ func testMultusNetworkConnectivity(env *config.TestEnvironment, count int) {
 }
 
 // Test that a container can ping a target IP address.
-func testPing(initiatingPodOc *interactive.Oc, targetPodIPAddress string, count int) {
-	log.Infof("Sending ICMP traffic(%s to %s)", initiatingPodOc.GetPodName(), targetPodIPAddress)
-	pingTester := ping.NewPing(common.DefaultTimeout, targetPodIPAddress, count)
-	test, err := tnf.NewTest(initiatingPodOc.GetExpecter(), pingTester, []reel.Handler{pingTester}, initiatingPodOc.GetErrorChannel())
+func testPing(initiatingPodNodeOc *interactive.Oc,nodeName,containerID, targetPodIPAddress string, count int) {
+	log.Infof("Sending ICMP traffic(%s to %s)", initiatingPodNodeOc.GetPodName(), targetPodIPAddress)
+	runCommandInNode(nodeName,"dnf install iputils -y")
+	containrPID:=getContainerPID(nodeName,containerID)
+	pingTester := ping.NewPing(common.DefaultTimeout, containrPID,targetPodIPAddress, count)
+	test, err := tnf.NewTest(initiatingPodNodeOc.GetExpecter(), pingTester, []reel.Handler{pingTester}, initiatingPodNodeOc.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
 	test.RunAndValidate()
 	transmitted, received, errors := pingTester.GetStats()
@@ -194,4 +210,26 @@ func testNodePort(env *config.TestEnvironment) {
 			test.RunAndValidate()
 		}
 	})
+}
+
+
+func runCommandInContainerNameSpace(nodeName, containerID, command string) string  {
+	containrPID:=getContainerPID(nodeName,containerID)
+	nodeCommand := "nsenter -t "+containrPID+" -n "+command
+	return runCommandInNode(nodeName, nodeCommand )
+}
+func getContainerPID(nodeName, containerID string) string  {
+	command := "chroot /host crictl inspect --output go-template --template '{{.info.pid}}' "+containerID+" 2>/dev/null"
+	return runCommandInNode(nodeName, command )
+}
+func runCommandInNode(nodeName, command string) string  {
+	
+	nodes := config.GetTestEnvironment().NodesUnderTest
+	context := nodes[nodeName].Oc
+	tester := nodedebug.NewNodeDebug(common.DefaultTimeout, nodeName, command, true, true)
+	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
+	gomega.Expect(err).To(gomega.BeNil())
+	test.RunAndValidate()
+	//gomega.Expect(len(tester.Processed) == 1).To(gomega.BeTrue())
+	return tester.Processed[0]
 }
