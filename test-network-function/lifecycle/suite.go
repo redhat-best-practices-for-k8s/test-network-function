@@ -301,7 +301,6 @@ func shutdownTest(podNamespace, podName string) {
 }
 
 func testNodeDrain(env *config.TestEnvironment, nodeName string) {
-
 	// drain node
 	drainNode(nodeName)
 	// Ensure the node is uncordoned before exiting the function,
