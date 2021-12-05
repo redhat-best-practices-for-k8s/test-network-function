@@ -194,7 +194,7 @@ func getCrsNamespaces(crdName, crdKind string) (map[string]string, error) {
 	getCrNamespaceCommand := fmt.Sprintf(ocGetCrNamespaceFormat, crdKind)
 	cmdOut := utils.ExecuteCommand(getCrNamespaceCommand, common.DefaultTimeout, common.GetContext(), func() {
 		tnf.ClaimFilePrintf("CRD %s: Failed to get CRs (kind=%s)", crdName, crdKind)
-	})
+	}, "")
 
 	crNamespaces := map[string]string{}
 
@@ -221,7 +221,7 @@ func testCrsNamespaces(crNames, configNamespaces []string) (invalidCrs map[strin
 		getCrPluralNameCommand := fmt.Sprintf(ocGetCrPluralNameFormat, crdName)
 		crdPluralName := utils.ExecuteCommand(getCrPluralNameCommand, common.DefaultTimeout, common.GetContext(), func() {
 			tnf.ClaimFilePrintf("CRD %s: Failed to get CR plural name.", crdName)
-		})
+		}, "")
 
 		crNamespaces, err := getCrsNamespaces(crdName, crdPluralName)
 		if err != nil {
