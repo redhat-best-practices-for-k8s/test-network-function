@@ -29,10 +29,19 @@ Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/site
 Property|Description
 ---|---
 Version|v1.0.0
-Description|http://test-network-function.com/testcases/access-control/namespace tests that CNFs utilize a CNF-specific namespace, and that the namespace does not start with "openshift-". OpenShift may host a variety of CNF and software applications, and multi-tenancy of such applications is supported through namespaces.  As such, each CNF should be a good neighbor, and utilize an appropriate, unique namespace.
+Description|http://test-network-function.com/testcases/access-control/namespace tests that all CNF's resources (PUTs and CRs) belong to valid namespaces. A valid namespace meets the following conditions: (1) It was declared in the yaml config file under the targetNameSpaces tag. (2) It doesn't have any of the following prefixes: default, openshift-, istio- and aspenmesh-
 Result Type|normative
-Suggested Remediation|Ensure that your CNF utilizes a CNF-specific namespace.  Additionally, the CNF-specific namespace should not start with "openshift-", except in rare cases.
-Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2
+Suggested Remediation|Ensure that your CNF utilizes namespaces declared in the yaml config file. Additionally, the namespaces should not start with "default, openshift-, istio- or aspenmesh-", except in rare cases.
+Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2, 16.3.8 & 16.3.9
+### http://test-network-function.com/testcases/access-control/pod-automount-service-account-token
+
+Property|Description
+---|---
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/access-control/pod-automount-service-account-token check that all pods under test have automountServiceAccountToken set to false
+Result Type|normative
+Suggested Remediation|check that pod has automountServiceAccountToken set to false or pod is attached to service account which has automountServiceAccountToken set to false
+Best Practice Reference|
 ### http://test-network-function.com/testcases/access-control/pod-role-bindings
 
 Property|Description
@@ -114,6 +123,15 @@ Description|http://test-network-function.com/testcases/lifecycle/container-shutd
 Result Type|normative
 Suggested Remediation| 		It's considered best-practices to define prestop for proper management of container lifecycle. 		The prestop can be used to gracefully stop the container and clean resources (e.g., DB connection). 		 		The prestop can be configured using : 		 1) Exec : executes the supplied command inside the container 		 2) HTTP : executes HTTP request against the specified endpoint. 		 		When defined. K8s will handle shutdown of the container using the following: 		1) K8s first execute the preStop hook inside the container. 		2) K8s will wait for a grace period. 		3) K8s will clean the remaining processes using KILL signal.		 			
 Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2
+### http://test-network-function.com/testcases/lifecycle/image-pull-policy
+
+Property|Description
+---|---
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/lifecycle/image-pull-policy Ensure that the containers under test are using IfNotPresent as Image Pull Policy..
+Result Type|normative
+Suggested Remediation|Ensure that the containers under test are using IfNotPresent as Image Pull Policy.
+Best Practice Reference|https://docs.google.com/document/d/1wRHMk1ZYUSVmgp_4kxvqjVOKwolsZ5hDXjr5MLy-wbg/edit#  Section 15.6
 ### http://test-network-function.com/testcases/lifecycle/pod-high-availability
 
 Property|Description
@@ -173,7 +191,7 @@ Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/site
 Property|Description
 ---|---
 Version|v1.0.0
-Description|http://test-network-function.com/testcases/networking/icmpv4-connectivity checks that each CNF Container is able to communicate via ICMPv4 on the Default OpenShift network.  This test case requires the Deployment of the [CNF Certification Test Partner](https://github.com/test-network-function/cnf-certification-test-partner/blob/main/test-partner/partner.yaml). The test ensures that all CNF containers respond to ICMPv4 requests from the Partner Pod, and vice-versa. 
+Description|http://test-network-function.com/testcases/networking/icmpv4-connectivity checks that each CNF Container is able to communicate via ICMPv4 on the Default OpenShift network.  This test case requires the Deployment of the [CNF Certification Test Partner](https://github.com/test-network-function/cnf-certification-test-partner/blob/main/test-partner/partner-deployment.yaml). The test ensures that all CNF containers respond to ICMPv4 requests from the Partner Pod, and vice-versa. 
 Result Type|normative
 Suggested Remediation|Ensure that the CNF is able to communicate via the Default OpenShift network.  In some rare cases, CNFs may require routing table changes in order to communicate over the Default network.  In other cases, if the Container base image does not provide the "ip" or "ping" binaries, this test may not be applicable.  For instructions on how to exclude a particular container from ICMPv4 connectivity tests, consult: [README.md](https://github.com/test-network-function/test-network-function#issue-161-some-containers-under-test-do-not-contain-ping-or-ip-binary-utilities).
 Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2
@@ -280,7 +298,17 @@ Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/site
 
 ## Test Case Building Blocks Catalog
 
-A number of Test Case Building Blocks, or `tnf.Test`s, are included out of the box.  This is a summary of the available implementations:### http://test-network-function.com/tests/clusterVersion
+A number of Test Case Building Blocks, or `tnf.Test`s, are included out of the box.  This is a summary of the available implementations:### http://test-network-function.com/tests/automountservice
+Property|Description
+---|---
+Version|v1.0.0
+Description|check if automount service account token is set to false
+Result Type|normative
+Intrusive|false
+Modifications Persist After Test|false
+Runtime Binaries Required|`oc`
+
+### http://test-network-function.com/tests/clusterVersion
 Property|Description
 ---|---
 Version|v1.0.0
@@ -459,6 +487,16 @@ Result Type|normative
 Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`grep`, `cut`, `oc`, `grep`
+
+### http://test-network-function.com/tests/imagepullpolicy
+Property|Description
+---|---
+Version|v1.0.0
+Description|A generic test used to get Image Pull Policy type.
+Result Type|normative
+Intrusive|false
+Modifications Persist After Test|false
+Runtime Binaries Required|`oc`
 
 ### http://test-network-function.com/tests/ipaddr
 Property|Description

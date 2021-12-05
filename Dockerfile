@@ -74,6 +74,8 @@ RUN make install-tools && \
 #  Extract what's needed to run at a seperate location
 RUN mkdir ${TNF_BIN_DIR} && \
 	cp run-cnf-suites.sh ${TNF_DIR} && \
+    mkdir ${TNF_DIR}/script && \
+    cp script/results.html ${TNF_DIR}/script && \
 	# copy all JSON files to allow tests to run
 	cp --parents `find -name \*.json*` ${TNF_DIR} && \
   # copy all go template files to allow tests to run

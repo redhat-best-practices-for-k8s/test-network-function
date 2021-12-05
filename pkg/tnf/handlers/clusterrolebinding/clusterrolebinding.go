@@ -60,7 +60,7 @@ func (crb *ClusterRoleBinding) Args() []string {
 	return crb.args
 }
 
-// GetIdentifier returns the tnf.Test specific identifiesa.
+// GetIdentifier returns the tnf.Test specific identifier.
 func (crb *ClusterRoleBinding) GetIdentifier() identifier.Identifier {
 	return identifier.ClusterRoleBindingIdentifier
 }

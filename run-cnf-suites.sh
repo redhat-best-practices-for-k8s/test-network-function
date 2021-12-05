@@ -20,6 +20,7 @@ usage_error() {
 
 FOCUS=""
 SKIP=""
+BASEDIR=$(dirname $(realpath $0))
 # Parge args beginning with "-"
 while [[ $1 == -* ]]; do
 	case "$1" in
@@ -46,6 +47,17 @@ while [[ $1 == -* ]]; do
 done
 # specify Junit report file name.
 GINKGO_ARGS="-junit $OUTPUT_LOC -claimloc $OUTPUT_LOC --ginkgo.junit-report $OUTPUT_LOC/cnf-certification-tests_junit.xml -ginkgo.v -test.v"
+
+# Make sure the HTML output is copied to the output directory,
+# even in case of a test failure
+function html_output() {
+    if [ -f ${OUTPUT_LOC}/claim.json ]; then
+        echo -n "var initialjson=" > ${OUTPUT_LOC}/claimjson.js
+        cat ${OUTPUT_LOC}/claim.json >>  ${OUTPUT_LOC}/claimjson.js
+    fi
+    cp ${BASEDIR}/script/results.html ${OUTPUT_LOC}
+}
+trap html_output EXIT
 
 
 # If no focus is set then display usage and quit with a non-zero exit code.

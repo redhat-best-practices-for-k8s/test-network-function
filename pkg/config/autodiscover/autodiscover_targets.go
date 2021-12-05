@@ -161,29 +161,6 @@ func FindTestDeploymentsByLabel(targetLabels []configsections.Label, target *con
 	return deployments
 }
 
-// FindTestDeploymentsByLabelByNamespace uses the containers' namespace to get its parent deployment. Filters out non CNF test deployments,
-// currently partner and fs_diff ones.
-func FindTestDeploymentsByLabelByNamespace(targetLabels []configsections.Label, target *configsections.TestTarget, namespace string) (deployments []configsections.Deployment) {
-	for _, label := range targetLabels {
-		deploymentResourceList, err := GetTargetDeploymentsByNamespace(namespace, label)
-		if err != nil {
-			log.Error("Unable to get deployment list from namespace ", namespace, ". Error: ", err)
-		} else {
-			for _, deploymentResource := range deploymentResourceList.Items {
-				deployment := configsections.Deployment{
-					Name:      deploymentResource.GetName(),
-					Namespace: deploymentResource.GetNamespace(),
-					Replicas:  deploymentResource.GetReplicas(),
-					Hpa:       deploymentResource.GetHpa(),
-				}
-
-				deployments = append(deployments, deployment)
-			}
-		}
-	}
-	return deployments
-}
-
 // buildPodUnderTest builds a single `configsections.Pod` from a PodResource
 func buildPodUnderTest(pr *PodResource) (podUnderTest configsections.Pod) {
 	var err error

@@ -60,7 +60,7 @@ func TestPod_ReelFirst(t *testing.T) {
 	c := container.NewPod(args, name, namespace, stringExpectedStatus, testcases.StringType, testcases.Allow, testTimeoutDuration)
 	step := c.ReelFirst()
 	assert.Equal(t, "", step.Execute)
-	assert.Equal(t, []string{testcases.GetOutRegExp(testcases.AllowAll)}, step.Expect)
+	assert.Equal(t, []string{testcases.GetOutRegExp(testcases.AllowEmpty)}, step.Expect)
 	assert.Equal(t, testTimeoutDuration, step.Timeout)
 }
 
