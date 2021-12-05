@@ -31,4 +31,5 @@ type ContainerConfig struct {
 	DefaultNetworkDevice string `yaml:"defaultNetworkDevice" json:"defaultNetworkDevice"`
 	// MultusIPAddresses are the overlay IPs.
 	MultusIPAddresses []string `yaml:"multusIpAddresses" json:"multusIpAddresses"`
+	HasPing           bool
 }

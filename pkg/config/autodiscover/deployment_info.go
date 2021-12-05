@@ -34,10 +34,10 @@ const (
 
 var (
 	jsonUnmarshal     = json.Unmarshal
-	execCommandOutput = func(command string) string {
+	execCommandOutput = func(command string, runValidate string) string {
 		return utils.ExecuteCommand(command, ocCommandTimeOut, interactive.GetContext(expectersVerboseModeEnabled), func() {
 			log.Error("can't run command: ", command)
-		})
+		}, runValidate)
 	}
 )
 
@@ -82,7 +82,7 @@ func (deployment *DeploymentResource) GetLabels() map[string]string {
 func (deployment *DeploymentResource) GetHpa() configsections.Hpa {
 	template := fmt.Sprintf("go-template='{{ range .items }}{{ if eq .spec.scaleTargetRef.name %q }}{{.spec.minReplicas}},{{.spec.maxReplicas}},{{.metadata.name}}{{ end }}{{ end }}'", deployment.GetName())
 	ocCmd := fmt.Sprintf("oc get hpa -n %s -o %s", deployment.GetNamespace(), template)
-	out := execCommandOutput(ocCmd)
+	out := execCommandOutput(ocCmd, "")
 	if out != "" {
 		out := strings.Split(out, ",")
 		min, _ := strconv.Atoi(out[0])
@@ -103,7 +103,7 @@ func GetTargetDeploymentsByNamespace(namespace string, targetLabel configsection
 	jqArgs := fmt.Sprintf("'[.items[] | select(.spec.template.metadata.labels.%s)]'", labelQuery)
 	ocCmd := fmt.Sprintf("oc get %s -n %s -o json | jq %s", resourceTypeDeployment, namespace, jqArgs)
 
-	out := execCommandOutput(ocCmd)
+	out := execCommandOutput(ocCmd, "")
 
 	var deploymentList DeploymentList
 	err := jsonUnmarshal([]byte(out), &deploymentList.Items)
@@ -120,7 +120,7 @@ func GetTargetDeploymentsByLabel(targetLabel configsections.Label) (*DeploymentL
 	jqArgs := fmt.Sprintf("'[.items[] | select(.spec.template.metadata.labels.%s)]'", labelQuery)
 	ocCmd := fmt.Sprintf("oc get %s -A -o json | jq %s", resourceTypeDeployment, jqArgs)
 
-	out := execCommandOutput(ocCmd)
+	out := execCommandOutput(ocCmd, "")
 
 	var deploymentList DeploymentList
 	err := jsonUnmarshal([]byte(out), &deploymentList.Items)

@@ -246,7 +246,7 @@ func getConfiguredOperatorTests() (opTests []string) {
 func getClusterCrdNames() ([]string, error) {
 	out := utils.ExecuteCommand(ocGetClusterCrdNamesCommand, ocCommandTimeOut, interactive.GetContext(expectersVerboseModeEnabled), func() {
 		log.Error("can't run command: ", ocGetClusterCrdNamesCommand)
-	})
+	}, "")
 
 	var crdNamesList []string
 	err := json.Unmarshal([]byte(out), &crdNamesList)

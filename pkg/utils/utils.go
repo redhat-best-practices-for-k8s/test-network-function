@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
@@ -76,7 +77,7 @@ func escapeToJSONstringFormat(line string) (string, error) {
 
 // ExecuteCommand uses the generic command handler to execute an arbitrary interactive command, returning
 // its output wihout any other check.
-func ExecuteCommand(command string, timeout time.Duration, context *interactive.Context, failureCallbackFun func()) string {
+func ExecuteCommand(command string, timeout time.Duration, context *interactive.Context, failureCallbackFun func(), runopt string) string {
 	log.Debugf("Executing command: %s", command)
 
 	values := make(map[string]interface{})
@@ -99,9 +100,28 @@ func ExecuteCommand(command string, timeout time.Duration, context *interactive.
 	test, err := tnf.NewTest(context.GetExpecter(), *tester, handler, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
 	gomega.Expect(tester).ToNot(gomega.BeNil())
-
-	test.RunAndValidateWithFailureCallback(failureCallbackFun)
-
+	testok := false
+	if runopt == "" {
+		testok = true
+		test.RunAndValidateWithFailureCallback(failureCallbackFun)
+	} else {
+		var message string
+		test.RunWithCallbacks(func() {
+			testok = true
+			message = "sucsses to run the test\n"
+		}, func() {
+			message = "fail with running the test \n"
+		}, func(e error) {
+			message = "Failed to with running the test \n"
+		})
+		_, err = ginkgo.GinkgoWriter.Write([]byte(message))
+		if err != nil {
+			log.Errorf("Ginkgo writer could not write because: %s", err)
+		}
+	}
+	if !testok {
+		return ""
+	}
 	genericTest := (*tester).(*generic.Generic)
 	gomega.Expect(genericTest).ToNot(gomega.BeNil())
 

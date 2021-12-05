@@ -80,24 +80,29 @@ func testDefaultNetworkConnectivity(env *config.TestEnvironment, count int) {
 				ginkgo.Skip("Orchestrator is not deployed, skip this test")
 			}
 			found := false
+			containerping := false
+
 			for _, cut := range env.ContainersUnderTest {
 				if _, ok := env.ContainersToExcludeFromConnectivityTests[cut.ContainerIdentifier]; ok {
 					continue
 				}
-				found = true
-				context := cut.Oc
-				testOrchestrator := env.TestOrchestrator
-				ginkgo.By(fmt.Sprintf("a Ping is issued from %s(%s) to %s(%s) %s", testOrchestrator.Oc.GetPodName(),
-					testOrchestrator.Oc.GetPodContainerName(), cut.Oc.GetPodName(), cut.Oc.GetPodContainerName(),
-					cut.DefaultNetworkIPAddress))
-				testPing(testOrchestrator.Oc, cut.DefaultNetworkIPAddress, count)
-				ginkgo.By(fmt.Sprintf("a Ping is issued from %s(%s) to %s(%s) %s", cut.Oc.GetPodName(),
-					cut.Oc.GetPodContainerName(), testOrchestrator.Oc.GetPodName(), testOrchestrator.Oc.GetPodContainerName(),
-					testOrchestrator.DefaultNetworkIPAddress))
-				testPing(context, testOrchestrator.DefaultNetworkIPAddress, count)
+				if cut.ContainerConfiguration.HasPing {
+					containerping = true
+					found = true
+					context := cut.Oc
+					testOrchestrator := env.TestOrchestrator
+					ginkgo.By(fmt.Sprintf("a Ping is issued from %s(%s) to %s(%s) %s", testOrchestrator.Oc.GetPodName(),
+						testOrchestrator.Oc.GetPodContainerName(), cut.Oc.GetPodName(), cut.Oc.GetPodContainerName(),
+						cut.DefaultNetworkIPAddress))
+					testPing(testOrchestrator.Oc, cut.DefaultNetworkIPAddress, count)
+					ginkgo.By(fmt.Sprintf("a Ping is issued from %s(%s) to %s(%s) %s", cut.Oc.GetPodName(),
+						cut.Oc.GetPodContainerName(), testOrchestrator.Oc.GetPodName(), testOrchestrator.Oc.GetPodContainerName(),
+						testOrchestrator.DefaultNetworkIPAddress))
+					testPing(context, testOrchestrator.DefaultNetworkIPAddress, count)
+				}
 			}
-			if !found {
-				ginkgo.Skip("No container found suitable for connectivity test")
+			if !found || !containerping {
+				ginkgo.Skip("No container found suitable for connectivity test or no ping installed")
 			}
 		})
 	})
@@ -142,6 +147,7 @@ func testPing(initiatingPodOc *interactive.Oc, targetPodIPAddress string, count 
 	test, err := tnf.NewTest(initiatingPodOc.GetExpecter(), pingTester, []reel.Handler{pingTester}, initiatingPodOc.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
 	test.RunAndValidate()
+	ginkgo.By("err err err err err err err err errerr err err err err err")
 	transmitted, received, errors := pingTester.GetStats()
 	gomega.Expect(received).To(gomega.Equal(transmitted))
 	gomega.Expect(errors).To(gomega.BeZero())

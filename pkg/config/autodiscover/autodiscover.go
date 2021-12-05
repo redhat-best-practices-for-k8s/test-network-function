@@ -72,7 +72,7 @@ func executeOcGetCommand(resourceType, labelQuery, namespace string) string {
 	ocCommandToExecute := fmt.Sprintf(ocCommand, resourceType, namespace, labelQuery)
 	match := utils.ExecuteCommand(ocCommandToExecute, ocCommandTimeOut, interactive.GetContext(expectersVerboseModeEnabled), func() {
 		log.Error("can't run command: ", ocCommandToExecute)
-	})
+	}, "")
 	return match
 }
 
@@ -80,7 +80,7 @@ func executeOcGetAllCommand(resourceType, labelQuery string) string {
 	ocCommandToExecute := fmt.Sprintf(ocAllCommand, resourceType, labelQuery)
 	match := utils.ExecuteCommand(ocCommandToExecute, ocCommandTimeOut, interactive.GetContext(expectersVerboseModeEnabled), func() {
 		log.Error("can't run command: ", ocCommandToExecute)
-	})
+	}, "")
 	return match
 }
 
@@ -151,6 +151,7 @@ func buildContainersFromPodResource(pr *PodResource) (containers []configsection
 			log.Warnf("error encountered getting multus IPs: %s", err)
 			err = nil
 		}
+		container.HasPing = CheckPing()
 
 		containers = append(containers, container)
 	}
@@ -160,4 +161,9 @@ func buildContainersFromPodResource(pr *PodResource) (containers []configsection
 // EnableExpectersVerboseMode enables the verbose mode for expecters (Sent/Match output)
 func EnableExpectersVerboseMode() {
 	expectersVerboseModeEnabled = true
+}
+func CheckPing() bool {
+	ocCmd := "which ping "
+	out := execCommandOutput(ocCmd, "runvalidate")
+	return out != ""
 }

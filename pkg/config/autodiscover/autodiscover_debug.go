@@ -63,7 +63,7 @@ func AddDebugLabel(nodeName string) {
 	ocCommand := fmt.Sprintf(addlabelCommand, nodeName, nodeLabelName, nodeLabelValue)
 	_ = utils.ExecuteCommand(ocCommand, ocCommandTimeOut, interactive.GetContext(expectersVerboseModeEnabled), func() {
 		log.Error("error in adding label to node ", nodeName)
-	})
+	}, "")
 }
 
 // AddDebugLabel remove debug label from node
@@ -72,7 +72,7 @@ func DeleteDebugLabel(nodeName string) {
 	ocCommand := fmt.Sprintf(deletelabelCommand, nodeName, nodeLabelName)
 	_ = utils.ExecuteCommand(ocCommand, ocCommandTimeOut, interactive.GetContext(expectersVerboseModeEnabled), func() {
 		log.Error("error in removing label from node ", nodeName)
-	})
+	}, "")
 }
 
 // CheckDebugDaemonset checks if the debug pods are deployed properly

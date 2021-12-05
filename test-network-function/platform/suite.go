@@ -509,7 +509,7 @@ func getNodeNumaHugePages(node *config.NodeConfig) (hugepages numaHugePagesPerSi
 	var commandErr error
 	hugepagesCmdOut := utils.ExecuteCommand(cmd, commandTimeout, context, func() {
 		commandErr = fmt.Errorf("failed to get node %s hugepages per numa", node.Name)
-	})
+	}, "")
 	if commandErr != nil {
 		return numaHugePagesPerSize{}, commandErr
 	}
@@ -551,7 +551,7 @@ func getMachineConfig(mcName string) (machineConfig, error) {
 	context := common.GetContext()
 	mcJSON := utils.ExecuteCommand(fmt.Sprintf("oc get mc %s -o json", mcName), commandTimeout, context, func() {
 		commandErr = fmt.Errorf("failed to get json machineconfig %s", mcName)
-	})
+	}, "")
 	if commandErr != nil {
 		return machineConfig{}, commandErr
 	}
