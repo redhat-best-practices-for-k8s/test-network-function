@@ -27,6 +27,12 @@ var (
 	handlerJSONSchemaFilePath = path.Join(pathRelativeToRoot, "schemas", "generic-test.schema.json")
 )
 
+const (
+	sucssesmsg = "sucsses to run the test\n"
+	failmsg    = "fail with running the test \n"
+	errmsg     = "Failed to with running the test \n"
+)
+
 // ArgListToMap takes a list of strings of the form "key=value" and translate it into a map
 // of the form {key: value}
 func ArgListToMap(lst []string) map[string]string {
@@ -102,11 +108,11 @@ func ExecuteCommand(command string, timeout time.Duration, context *interactive.
 		var message string
 		test.RunWithCallbacks(func() {
 			testok = true
-			message = "sucsses to run the test\n"
+			message = sucssesmsg
 		}, func() {
-			message = "fail with running the test \n"
+			message = failmsg
 		}, func(e error) {
-			message = "Failed to with running the test \n"
+			message = errmsg
 		})
 		_, err = ginkgo.GinkgoWriter.Write([]byte(message))
 		if err != nil {

@@ -163,7 +163,6 @@ func EnableExpectersVerboseMode() {
 	expectersVerboseModeEnabled = true
 }
 func CheckPing() bool {
-	ocCmd := "which ping "
-	out := execCommandOutput(ocCmd, "runvalidate")
+	out := execCommandOutput("which ping", "runvalidate")
 	return out != ""
 }
