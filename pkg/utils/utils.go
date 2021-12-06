@@ -13,6 +13,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/generic"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodedebug"
 	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
 )
@@ -24,6 +25,10 @@ var (
 	commandHandlerFilePath = path.Join(pathRelativeToRoot, "pkg", "tnf", "handlers", "command", "command.json")
 	// handlerJSONSchemaFilePath is the file location of the json handlers generic schema.
 	handlerJSONSchemaFilePath = path.Join(pathRelativeToRoot, "schemas", "generic-test.schema.json")
+)
+
+const (
+	timeoutPid = 5*time.Second
 )
 
 // ArgListToMap takes a list of strings of the form "key=value" and translate it into a map
@@ -116,4 +121,31 @@ func NewGenericTestAndValidate(templateFile, schemaPath string, values map[strin
 	gomega.Expect(tester).ToNot(gomega.BeNil())
 
 	return tester, handlers
+}
+
+
+
+func RunCommandInContainerNameSpace(nodeName string, nodeOc *interactive.Oc, containerID, command string, timeout time.Duration, isNonOcp bool) string  {
+	containrPID:=GetContainerPID(nodeName,nodeOc,containerID, isNonOcp)
+	nodeCommand := "nsenter -t "+containrPID+" -n "+command
+	return RunCommandInNode(nodeName, nodeOc, nodeCommand , timeout)
+}
+
+
+func GetContainerPID(nodeName string, nodeOc *interactive.Oc, containerID string, isNonOcp bool) string  {
+	command:=""
+	if isNonOcp {
+		command = "chroot /host docker inspect -f '{{.State.Pid}}' "+containerID+" 2>/dev/null"
+	}else{
+		command = "chroot /host crictl inspect --output go-template --template '{{.info.pid}}' "+containerID+" 2>/dev/null"
+	}
+  return RunCommandInNode(nodeName, nodeOc, command, timeoutPid)
+}
+func RunCommandInNode(nodeName string, nodeOc *interactive.Oc, command string, timeout time.Duration ) string  {
+	context := nodeOc
+	tester := nodedebug.NewNodeDebug(timeout, nodeName, command, true, true)
+	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
+	gomega.Expect(err).To(gomega.BeNil())
+	test.RunAndValidate()
+	return tester.Raw
 }

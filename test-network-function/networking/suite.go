@@ -35,7 +35,8 @@ import (
 	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
 	"github.com/test-network-function/test-network-function/test-network-function/results"
-	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodedebug"
+	"github.com/test-network-function/test-network-function/pkg/utils"
+
 )
 
 const (
@@ -159,7 +160,11 @@ func testDefaultNetworkConnectivity(env *config.TestEnvironment, count int) {
 				}
 				netKey := "default" //nolint:goconst // only used once
 				defaultIPAddress := []string{cut.DefaultNetworkIPAddress}
-				processContainerIpsPerNet(cut.ContainerIdentifier, netKey, defaultIPAddress, netsUnderTest, env.NodesUnderTest[cut.ContainerConfiguration.NodeName].Oc)
+				gomega.Expect(env).To(gomega.Not(gomega.BeNil()))
+				gomega.Expect(env.NodesUnderTest[cut.ContainerConfiguration.NodeName] ).To(gomega.Not(gomega.BeNil()))
+				gomega.Expect(env.NodesUnderTest[cut.ContainerConfiguration.NodeName].Oc ).To(gomega.Not(gomega.BeNil()))
+				nodeOc := env.NodesUnderTest[cut.ContainerConfiguration.NodeName].Oc
+				processContainerIpsPerNet(cut.ContainerIdentifier, netKey, defaultIPAddress, netsUnderTest, nodeOc)
 			}
 			runNetworkingTests(netsUnderTest, count)
 		})
@@ -176,7 +181,11 @@ func testMultusNetworkConnectivity(env *config.TestEnvironment, count int) {
 					continue
 				}
 				for netKey, multusIPAddress := range cut.ContainerConfiguration.MultusIPAddressesPerNet {
-					processContainerIpsPerNet(cut.ContainerIdentifier, netKey, multusIPAddress, netsUnderTest, cut.Oc)
+					gomega.Expect(env).To(gomega.Not(gomega.BeNil()))
+					gomega.Expect(env.NodesUnderTest[cut.ContainerConfiguration.NodeName] ).To(gomega.Not(gomega.BeNil()))
+					gomega.Expect(env.NodesUnderTest[cut.ContainerConfiguration.NodeName].Oc ).To(gomega.Not(gomega.BeNil()))
+					nodeOc := env.NodesUnderTest[cut.ContainerConfiguration.NodeName].Oc
+					processContainerIpsPerNet(cut.ContainerIdentifier, netKey, multusIPAddress, netsUnderTest, nodeOc)
 				}
 			}
 			runNetworkingTests(netsUnderTest, count)
@@ -187,9 +196,14 @@ func testMultusNetworkConnectivity(env *config.TestEnvironment, count int) {
 // Test that a container can ping a target IP address.
 func testPing(initiatingPodNodeOc *interactive.Oc,nodeName,containerID, targetPodIPAddress string, count int) {
 	log.Infof("Sending ICMP traffic(%s to %s)", initiatingPodNodeOc.GetPodName(), targetPodIPAddress)
-	runCommandInNode(nodeName,"dnf install iputils -y")
-	containrPID:=getContainerPID(nodeName,containerID)
-	pingTester := ping.NewPing(common.DefaultTimeout, containrPID,targetPodIPAddress, count)
+	env := config.GetTestEnvironment()
+	gomega.Expect(env).To(gomega.Not(gomega.BeNil()))
+	gomega.Expect(env.NodesUnderTest[nodeName] ).To(gomega.Not(gomega.BeNil()))
+	gomega.Expect(env.NodesUnderTest[nodeName].Oc ).To(gomega.Not(gomega.BeNil()))
+  nodeOc := env.NodesUnderTest[nodeName].Oc
+	//utils.RunCommandInNode(nodeName,nodeOc,"dnf install iputils -y", common.DefaultTimeout)
+	containerPID:=utils.GetContainerPID(nodeName,nodeOc,containerID,common.IsNonOcpCluster())
+	pingTester := ping.NewPing(common.DefaultTimeout, containerPID,targetPodIPAddress, count)
 	test, err := tnf.NewTest(initiatingPodNodeOc.GetExpecter(), pingTester, []reel.Handler{pingTester}, initiatingPodNodeOc.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
 	test.RunAndValidate()
@@ -210,26 +224,4 @@ func testNodePort(env *config.TestEnvironment) {
 			test.RunAndValidate()
 		}
 	})
-}
-
-
-func runCommandInContainerNameSpace(nodeName, containerID, command string) string  {
-	containrPID:=getContainerPID(nodeName,containerID)
-	nodeCommand := "nsenter -t "+containrPID+" -n "+command
-	return runCommandInNode(nodeName, nodeCommand )
-}
-func getContainerPID(nodeName, containerID string) string  {
-	command := "chroot /host crictl inspect --output go-template --template '{{.info.pid}}' "+containerID+" 2>/dev/null"
-	return runCommandInNode(nodeName, command )
-}
-func runCommandInNode(nodeName, command string) string  {
-	
-	nodes := config.GetTestEnvironment().NodesUnderTest
-	context := nodes[nodeName].Oc
-	tester := nodedebug.NewNodeDebug(common.DefaultTimeout, nodeName, command, true, true)
-	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
-	gomega.Expect(err).To(gomega.BeNil())
-	test.RunAndValidate()
-	//gomega.Expect(len(tester.Processed) == 1).To(gomega.BeTrue())
-	return tester.Processed[0]
 }

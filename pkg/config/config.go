@@ -356,7 +356,7 @@ func (env *TestEnvironment) discoverNodes() {
 	env.NodesUnderTest = env.createNodes(env.Config.Nodes)
 	env.labelNodes()
 
-	if !autodiscover.IsNonOcpCluster() {
+	//if !autodiscover.IsNonOcpCluster() {
 		expectedDebugPods := 0
 		for _, node := range env.NodesUnderTest {
 			if node.HasDebugPod() {
@@ -369,7 +369,7 @@ func (env *TestEnvironment) discoverNodes() {
 			env.ContainersToExcludeFromConnectivityTests[debugPod.ContainerIdentifier] = ""
 		}
 		env.DebugContainers = env.createContainers(env.Config.Partner.ContainersDebugList)
-	}
+	//}
 
 	env.AttachDebugPodsToNodes()
 }

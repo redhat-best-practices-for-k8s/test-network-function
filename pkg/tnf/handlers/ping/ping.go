@@ -125,9 +125,9 @@ func (p *Ping) GetStats() (transmitted, received, errors int) {
 // positive.
 func Command(containerPID,host string, count int) []string {
 	if count > 0 {
-		return []string{"nsenter -t "+containerPID+" -n ", dependencies.PingBinaryName, "-c", strconv.Itoa(count), host}
+		return []string{"chroot /host nsenter -t "+containerPID+" -n ", dependencies.PingBinaryName, "-c", strconv.Itoa(count), host}
 	}
-	return []string{"nsenter -t "+containerPID+" -n ",dependencies.PingBinaryName, host}
+	return []string{"chroot /host nsenter -t "+containerPID+" -n ",dependencies.PingBinaryName, host}
 }
 
 // NewPing creates a new `Ping` test which pings `hosts` with `count` requests, or indefinitely if `count` is not
