@@ -4,12 +4,14 @@ testTarget:
       podName: test
       containerName: test
       defaultNetworkDevice: eth0
+      hasPing: true
       multusIpAddresses:
         - 10.217.0.8
     - namespace: default
       podName: partner
       containerName: partner
       defaultNetworkDevice: eth0
+      hasPing: true
       multusIpAddresses:
         - 10.217.0.29
   operators:
@@ -35,6 +37,7 @@ testPartner:
       podName: partner
       containerName: partner
       defaultNetworkDevice: eth0
+      hasPing: true
       multusIpAddresses:
         - 10.217.0.29
   testOrchestrator:

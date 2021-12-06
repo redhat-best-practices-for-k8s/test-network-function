@@ -22,6 +22,7 @@ type ContainerIdentifier struct {
 	PodName       string `yaml:"podName" json:"podName"`
 	ContainerName string `yaml:"containerName" json:"containerName"`
 	NodeName      string `yaml:"nodeName" json:"nodeName"`
+	HasPing       bool   `yaml:"hasPing" json:"hasPing"`
 }
 
 // ContainerConfig contains the payload of container facets.
@@ -31,5 +32,4 @@ type ContainerConfig struct {
 	DefaultNetworkDevice string `yaml:"defaultNetworkDevice" json:"defaultNetworkDevice"`
 	// MultusIPAddresses are the overlay IPs.
 	MultusIPAddresses []string `yaml:"multusIpAddresses" json:"multusIpAddresses"`
-	HasPing           bool
 }

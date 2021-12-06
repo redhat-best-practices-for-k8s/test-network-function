@@ -88,7 +88,7 @@ func testDefaultNetworkConnectivity(env *config.TestEnvironment, count int) {
 
 					continue
 				}
-				if cut.ContainerConfiguration.HasPing {
+				if cut.ContainerIdentifier.HasPing {
 					containerping = true
 					found = true
 					context := cut.Oc

@@ -34,7 +34,7 @@ func TestBuildContainersFromPodResource(t *testing.T) {
 	assert.Equal(t, "tnf", orchestratorContainers[0].Namespace)
 	assert.Equal(t, "I'mAPodName", orchestratorContainers[0].PodName)
 	assert.Equal(t, "I'mAContainer", orchestratorContainers[0].ContainerName)
-
+	assert.Equal(t, true, orchestratorContainers[0].HasPing)
 	// Check correct order of precedence for network devices
 	assert.Equal(t, "eth0", orchestratorContainers[0].DefaultNetworkDevice)
 	assert.NotEqual(t, "LowerPriorityInterface", orchestratorContainers[0].DefaultNetworkDevice)

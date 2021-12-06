@@ -21,7 +21,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/onsi/ginkgo"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
 	"github.com/test-network-function/test-network-function/pkg/tnf/dependencies"
 	"github.com/test-network-function/test-network-function/pkg/tnf/identifier"
@@ -98,13 +97,11 @@ func (p *Ping) ReelMatch(_, _, match string) *reel.Step {
 		p.errors, _ = strconv.Atoi(matched[4])
 		switch {
 		case p.transmitted == 0 || p.errors > 0:
-			ginkgo.By("err err err err err err err err errerr err err err err err")
-			p.result = tnf.SUCCESS
+			p.result = tnf.ERROR
 		case p.received > 0 && (p.transmitted-p.received) <= 1:
 			p.result = tnf.SUCCESS
 		default:
-			ginkgo.By("err err err err err err err err errerr err err err err err")
-			p.result = tnf.SUCCESS
+			p.result = tnf.FAILURE
 		}
 	}
 	return nil
