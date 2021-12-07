@@ -301,6 +301,7 @@ func shutdownTest(podNamespace, podName string) {
 }
 
 func testNodeDrain(env *config.TestEnvironment, nodeName string) {
+	ginkgo.By(fmt.Sprintf("Testing node drain for %s\n", nodeName))
 	// drain node
 	drainNode(nodeName)
 	// Ensure the node is uncordoned before exiting the function,
@@ -313,6 +314,13 @@ func testNodeDrain(env *config.TestEnvironment, nodeName string) {
 	}()
 	for _, ns := range env.NameSpacesUnderTest {
 		waitForAllDeploymentsReady(ns, scalingTimeout, scalingPollingPeriod)
+	}
+	// If we got this far, all deployments are ready after draining the node
+	msg := fmt.Sprintf("Node drain for %s succeeded\n", nodeName)
+	log.Info(msg)
+	_, err := ginkgo.GinkgoWriter.Write([]byte(msg))
+	if err != nil {
+		log.Errorf("Ginkgo writer could not write because: %s", err)
 	}
 }
 
