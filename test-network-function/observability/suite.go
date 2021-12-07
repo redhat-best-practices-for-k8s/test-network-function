@@ -82,7 +82,7 @@ func loggingTest(c configsections.ContainerIdentifier) {
 	values["POD_NAMESPACE"] = c.Namespace
 	values["POD_NAME"] = c.PodName
 	values["CONTAINER_NAME"] = c.ContainerName
-	tester, handlers := utils.NewGenericTestAndValidate(relativeLoggingTestPath, common.RelativeSchemaPath, values)
+	tester, handlers := utils.NewGenericTesterAndValidate(relativeLoggingTestPath, common.RelativeSchemaPath, values)
 	test, err := tnf.NewTest(context.GetExpecter(), *tester, handlers, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
 	gomega.Expect(test).ToNot(gomega.BeNil())
@@ -102,7 +102,7 @@ func testCrds() {
 			values["CRD_NAME"] = crdName
 			values["TIMEOUT"] = testCrdsTimeout.Nanoseconds()
 
-			tester, handlers := utils.NewGenericTestAndValidate(relativeCrdTestPath, common.RelativeSchemaPath, values)
+			tester, handlers := utils.NewGenericTesterAndValidate(relativeCrdTestPath, common.RelativeSchemaPath, values)
 			test, err := tnf.NewTest(context.GetExpecter(), *tester, handlers, context.GetErrorChannel())
 			gomega.Expect(test).ToNot(gomega.BeNil())
 			gomega.Expect(err).To(gomega.BeNil())

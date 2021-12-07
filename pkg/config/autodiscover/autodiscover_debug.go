@@ -61,7 +61,7 @@ func FindDebugPods(tp *configsections.TestPartner) {
 func AddDebugLabel(nodeName string) {
 	log.Info("add label", nodeLabelName, "=", nodeLabelValue, " to node ", nodeName)
 	ocCommand := fmt.Sprintf(addlabelCommand, nodeName, nodeLabelName, nodeLabelValue)
-	_ = utils.ExecuteCommand(ocCommand, ocCommandTimeOut, interactive.GetContext(expectersVerboseModeEnabled), func() {
+	_ = utils.ExecuteCommandAndValidate(ocCommand, ocCommandTimeOut, interactive.GetContext(expectersVerboseModeEnabled), func() {
 		log.Error("error in adding label to node ", nodeName)
 	})
 }
@@ -70,7 +70,7 @@ func AddDebugLabel(nodeName string) {
 func DeleteDebugLabel(nodeName string) {
 	log.Info("delete label", nodeLabelName, "=", nodeLabelValue, "to node ", nodeName)
 	ocCommand := fmt.Sprintf(deletelabelCommand, nodeName, nodeLabelName)
-	_ = utils.ExecuteCommand(ocCommand, ocCommandTimeOut, interactive.GetContext(expectersVerboseModeEnabled), func() {
+	_ = utils.ExecuteCommandAndValidate(ocCommand, ocCommandTimeOut, interactive.GetContext(expectersVerboseModeEnabled), func() {
 		log.Error("error in removing label from node ", nodeName)
 	})
 }
