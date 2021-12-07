@@ -147,7 +147,7 @@ func buildContainersFromPodResource(pr *PodResource) (containers []configsection
 		for _, cs := range pr.Status.ContainerStatuses {
 			if cs.Name == container.ContainerName {
 				container.ContainerUID = strings.TrimPrefix(cs.ContainerID, "cri-o://")
-				container.ContainerUID = strings.TrimPrefix(cs.ContainerID, "docker://")
+				container.ContainerUID = strings.TrimPrefix(container.ContainerUID, "docker://")
 			}
 		}
 		container.DefaultNetworkDevice, err = pr.getDefaultNetworkDeviceFromAnnotations()

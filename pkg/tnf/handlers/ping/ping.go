@@ -25,6 +25,7 @@ import (
 	"github.com/test-network-function/test-network-function/pkg/tnf/dependencies"
 	"github.com/test-network-function/test-network-function/pkg/tnf/identifier"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
+	"github.com/test-network-function/test-network-function/pkg/utils"
 )
 
 // Ping provides a ping test implemented using command line tool `ping`.
@@ -123,24 +124,37 @@ func (p *Ping) GetStats() (transmitted, received, errors int) {
 
 // Command returns command line args for pinging `host` with `count` requests, or indefinitely if `count` is not
 // positive.
-func Command(containerPID, host string, count int) []string {
-	prefix := ""
-	if containerPID != "" {
-		prefix = "chroot /host nsenter -t " + containerPID + " -n "
-	}
+func Command(host string, count int) []string {
 	if count > 0 {
-		return []string{prefix, dependencies.PingBinaryName, "-c", strconv.Itoa(count), host}
+		return []string{dependencies.PingBinaryName, "-c", strconv.Itoa(count), host}
 	}
-	return []string{prefix, dependencies.PingBinaryName, host}
+	return []string{dependencies.PingBinaryName, host}
+}
+
+// Command same as command but uses nsenter to in the command
+func CommandNsenter(containerPID, host string, count int) []string {
+	if count > 0 {
+		return []string{utils.AddNsenterPrefix(containerPID), dependencies.PingBinaryName, "-c", strconv.Itoa(count), host}
+	}
+	return []string{utils.AddNsenterPrefix(containerPID), dependencies.PingBinaryName, host}
 }
 
 // NewPing creates a new `Ping` test which pings `hosts` with `count` requests, or indefinitely if `count` is not
 // positive, and executes within `timeout` seconds.
-func NewPing(timeout time.Duration, containerPID, host string, count int) *Ping {
+func NewPing(timeout time.Duration, host string, count int) *Ping {
 	return &Ping{
 		result:  tnf.ERROR,
 		timeout: timeout,
-		args:    Command(containerPID, host, count),
+		args:    Command(host, count),
+	}
+}
+
+// NewPingNsenter same as NewPing but takes a containerID to run ping with the nsenter command with the node OC.
+func NewPingNsenter(timeout time.Duration, containerPID, host string, count int) *Ping {
+	return &Ping{
+		result:  tnf.ERROR,
+		timeout: timeout,
+		args:    CommandNsenter(containerPID, host, count),
 	}
 }
 

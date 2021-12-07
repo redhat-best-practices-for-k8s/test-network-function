@@ -1,3 +1,4 @@
+# proof of concept bash script to execute any commands in running pods
 set -x
 NAMESPACE=$1
 POD_NAME=$2

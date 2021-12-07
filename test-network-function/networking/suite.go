@@ -42,15 +42,57 @@ const (
 	defaultNumPings = 5
 )
 
+// netTestContext this is a data structure describing a network test context for a given subnet (e.g. network attachment)
+// The test context defines a tester or test initiator, that is initating the pings. It is selected randomly (first container in the list)
+// It also defines a list of destination ping targets corresponding to the other containers IPs on this subnet
 type netTestContext struct {
-	testerContainerNodeOc     *interactive.Oc
-	testerContainerIdentifier *configsections.ContainerIdentifier
-	ipSource                  string
-	ipDestTargets             []ipDest
+	// testerContainerNodeOc session context to access the node running the container selected to initiate tests
+	testerContainerNodeOc *interactive.Oc
+	// testerSource is the container select to initiate the ping tests on this given network
+	testerSource containerIP
+	// ipDestTargets List of containers to be pinged by the testerSource on this given network
+	destTargets []containerIP
 }
-type ipDest struct {
-	ip                        string
-	targetContainerIdentifier *configsections.ContainerIdentifier
+
+// containerIP holds a container identification and its IP for networking tests.
+type containerIP struct {
+	// ip address of the target container
+	ip string
+	// targetContainerIdentifier container identifier including namespace, pod name, container name, node name, and container UID
+	containerIdentifier *configsections.ContainerIdentifier
+}
+
+func (testContext netTestContext) print() (output string) {
+	output = fmt.Sprintf("From initiating container: %s\n", testContext.testerSource.print())
+	if len(testContext.destTargets) == 0 {
+		output = "--> No target containers to test for this network" //nolint:goconst // this is only one time
+	}
+	for _, target := range testContext.destTargets {
+		output += fmt.Sprintf("--> To target container: %s\n", target.print())
+	}
+	return
+}
+
+func (cip containerIP) print() (output string) {
+	output = fmt.Sprintf("%s ( node:%s ns:%s podName:%s containerName:%s containerUID:%s )",
+		cip.ip,
+		cip.containerIdentifier.NodeName,
+		cip.containerIdentifier.Namespace,
+		cip.containerIdentifier.PodName,
+		cip.containerIdentifier.ContainerName,
+		cip.containerIdentifier.ContainerUID)
+	return
+}
+
+func printNetTestContextMap(netsUnderTest map[string]netTestContext) (output string) {
+	if len(netsUnderTest) == 0 {
+		output = "No networks to test.\n" //nolint:goconst // this is only one time
+	}
+	for netName, netUnderTest := range netsUnderTest {
+		output += fmt.Sprintf("***Test for Network attachment: %s\n", netName)
+		output += fmt.Sprintf("%s\n", netUnderTest.print())
+	}
+	return
 }
 
 //
@@ -85,7 +127,7 @@ var _ = ginkgo.Describe(common.NetworkingTestKey, func() {
 	}
 })
 
-// processContainerIpsPerNet takes a container ip addresses for a given network attachment's network and uses it as a test target.
+// processContainerIpsPerNet takes a container ip addresses for a given network attachment's and uses it as a test target.
 // The first container in the loop is selected as the test initiator. the Oc context of the container is used to initiate the pings
 func processContainerIpsPerNet(containerID *configsections.ContainerIdentifier,
 	netKey string,
@@ -107,36 +149,47 @@ func processContainerIpsPerNet(containerID *configsections.ContainerIdentifier,
 	firstIPIndex := 0
 	if entry.testerContainerNodeOc == nil {
 		tnf.ClaimFilePrintf("Pod %s, container %s selected to initiate ping tests", containerID.PodName, containerID.ContainerName)
-		entry.testerContainerIdentifier = containerID
+		entry.testerSource.containerIdentifier = containerID
 		entry.testerContainerNodeOc = containerNodeOc
 		// if multiple interfaces are present for this network on this container/pod, pick the first one as the tester source ip
-		entry.ipSource = ipAddress[firstIPIndex]
+		entry.testerSource.ip = ipAddress[firstIPIndex]
 		// do no include tester's IP in the list of destination IPs to ping
 		firstIPIndex++
 	}
 
 	for _, aIP := range ipAddress[firstIPIndex:] {
-		ipDestEntry := ipDest{}
-		ipDestEntry.targetContainerIdentifier = containerID
+		ipDestEntry := containerIP{}
+		ipDestEntry.containerIdentifier = containerID
 		ipDestEntry.ip = aIP
-		entry.ipDestTargets = append(entry.ipDestTargets, ipDestEntry)
+		entry.destTargets = append(entry.destTargets, ipDestEntry)
 	}
 
 	// Then reassign map entry
 	netsUnderTest[netKey] = entry
 }
+
+// runNetworkingTests takes a map netTestContext, e.g. one context per network attachment
+// and runs pings test with it
 func runNetworkingTests(netsUnderTest map[string]netTestContext, count int) {
-	for _, netUnderTest := range netsUnderTest {
-		for _, aDestIP := range netUnderTest.ipDestTargets {
+	tnf.ClaimFilePrintf("%s", printNetTestContextMap(netsUnderTest))
+	log.Debugf("%s", printNetTestContextMap(netsUnderTest))
+	if len(netsUnderTest) == 0 {
+		ginkgo.Skip("There are no networks to test, skipping test")
+	}
+	for netName, netUnderTest := range netsUnderTest {
+		if len(netUnderTest.destTargets) == 0 {
+			ginkgo.Skip(fmt.Sprintf("There are no containers to ping for network %s. A minimum of 2 containers is needed to run a ping test (a source and a destination) Skipping test", netName))
+		}
+		for _, aDestIP := range netUnderTest.destTargets {
 			ginkgo.By(fmt.Sprintf("a Ping is issued from %s(%s) %s to %s(%s) %s",
-				netUnderTest.testerContainerIdentifier.PodName,
-				netUnderTest.testerContainerIdentifier.ContainerName,
-				netUnderTest.ipSource, aDestIP.targetContainerIdentifier.PodName,
-				aDestIP.targetContainerIdentifier.ContainerName,
+				netUnderTest.testerSource.containerIdentifier.PodName,
+				netUnderTest.testerSource.containerIdentifier.ContainerName,
+				netUnderTest.testerSource.ip, aDestIP.containerIdentifier.PodName,
+				aDestIP.containerIdentifier.ContainerName,
 				aDestIP.ip))
 			testPing(netUnderTest.testerContainerNodeOc,
-				netUnderTest.testerContainerIdentifier.NodeName,
-				netUnderTest.testerContainerIdentifier.ContainerUID,
+				netUnderTest.testerSource.containerIdentifier.NodeName,
+				netUnderTest.testerSource.containerIdentifier.ContainerUID,
 				aDestIP.ip,
 				count)
 		}
@@ -196,7 +249,7 @@ func testPing(initiatingPodNodeOc *interactive.Oc, nodeName, containerID, target
 	gomega.Expect(env.NodesUnderTest[nodeName].Oc).To(gomega.Not(gomega.BeNil()))
 	nodeOc := env.NodesUnderTest[nodeName].Oc
 	containerPID := utils.GetContainerPID(nodeName, nodeOc, containerID, common.IsNonOcpCluster())
-	pingTester := ping.NewPing(common.DefaultTimeout, containerPID, targetPodIPAddress, count)
+	pingTester := ping.NewPingNsenter(common.DefaultTimeout, containerPID, targetPodIPAddress, count)
 	test, err := tnf.NewTest(initiatingPodNodeOc.GetExpecter(), pingTester, []reel.Handler{pingTester}, initiatingPodNodeOc.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
 	test.RunAndValidate()

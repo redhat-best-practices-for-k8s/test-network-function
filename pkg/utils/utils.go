@@ -146,3 +146,7 @@ func RunCommandInNode(nodeName string, nodeOc *interactive.Oc, command string, t
 	test.RunAndValidate()
 	return tester.Raw
 }
+
+func AddNsenterPrefix(containerPID string) string {
+	return "chroot /host nsenter -t " + containerPID + " -n "
+}
