@@ -119,12 +119,20 @@ var _ = ginkgo.Describe(common.LifecycleTestKey, func() {
 	}
 })
 
-func waitForAllDeploymentsReady(namespace string, timeout, pollingPeriod time.Duration) { //nolint:unparam // it is fine to use always the same value for timeout
-	gomega.Eventually(func() []string {
+func waitForAllDeploymentsReady(namespace string, timeout, pollingPeriod time.Duration) int { //nolint:unparam // it is fine to use always the same value for timeout
+	var elapsed time.Duration
+	var notReadyDeployments []string
+
+	for elapsed < timeout {
 		_, notReadyDeployments := getDeployments(namespace)
 		log.Debugf("Waiting for deployments to get ready, remaining: %d deployments", len(notReadyDeployments))
-		return notReadyDeployments
-	}, timeout, pollingPeriod).Should(gomega.HaveLen(0))
+		if len(notReadyDeployments) == 0 {
+			break
+		}
+		time.Sleep(pollingPeriod)
+		elapsed += pollingPeriod
+	}
+	return len(notReadyDeployments)
 }
 
 // restoreDeployments is the last attempt to restore the original test deployments' replicaCount
@@ -135,7 +143,11 @@ func restoreDeployments(env *config.TestEnvironment) {
 
 		if len(notReadyDeployments) > 0 {
 			// Wait until the deployment is ready
-			waitForAllDeploymentsReady(deployment.Namespace, scalingTimeout, scalingPollingPeriod)
+			notReady := waitForAllDeploymentsReady(deployment.Namespace, scalingTimeout, scalingPollingPeriod)
+			if notReady != 0 {
+				collectNodeAndPendingPodInfo(deployment.Namespace)
+				log.Fatalf("Could not restore deployment replicaCount for namespace %s.", deployment.Namespace)
+			}
 		}
 
 		if deployment.Hpa.HpaName != "" { // it have hpa and need to update the max min
@@ -173,7 +185,11 @@ func runScalingTest(deployment configsections.Deployment) {
 	test.RunAndValidate()
 
 	// Wait until the deployment is ready
-	waitForAllDeploymentsReady(deployment.Namespace, scalingTimeout, scalingPollingPeriod)
+	notReady := waitForAllDeploymentsReady(deployment.Namespace, scalingTimeout, scalingPollingPeriod)
+	if notReady != 0 {
+		collectNodeAndPendingPodInfo(deployment.Namespace)
+		ginkgo.Fail(fmt.Sprintf("Failed to scale deployment for namespace %s.", deployment.Namespace))
+	}
 }
 
 func runHpaScalingTest(deployment configsections.Deployment) {
@@ -183,7 +199,11 @@ func runHpaScalingTest(deployment configsections.Deployment) {
 	test.RunAndValidate()
 
 	// Wait until the deployment is ready
-	waitForAllDeploymentsReady(deployment.Namespace, scalingTimeout, scalingPollingPeriod)
+	notReady := waitForAllDeploymentsReady(deployment.Namespace, scalingTimeout, scalingPollingPeriod)
+	if notReady != 0 {
+		collectNodeAndPendingPodInfo(deployment.Namespace)
+		ginkgo.Fail(fmt.Sprintf("Failed to auto-scale deployment for namespace %s.", deployment.Namespace))
+	}
 }
 
 func testScaling(env *config.TestEnvironment) {
@@ -300,20 +320,30 @@ func shutdownTest(podNamespace, podName string) {
 	test.RunAndValidate()
 }
 
+func cleanupNodeDrain(env *config.TestEnvironment, nodeName string) {
+	uncordonNode(nodeName)
+	for _, ns := range env.NameSpacesUnderTest {
+		notReady := waitForAllDeploymentsReady(ns, scalingTimeout, scalingPollingPeriod)
+		if notReady != 0 {
+			collectNodeAndPendingPodInfo(ns)
+			log.Fatalf("Cleanup after node drain for %s failed, stopping tests to ensure cluster integrity", nodeName)
+		}
+	}
+}
+
 func testNodeDrain(env *config.TestEnvironment, nodeName string) {
 	ginkgo.By(fmt.Sprintf("Testing node drain for %s\n", nodeName))
-	// drain node
-	drainNode(nodeName)
 	// Ensure the node is uncordoned before exiting the function,
 	// and all deployments are ready
-	defer func() {
-		uncordonNode(nodeName)
-		for _, ns := range env.NameSpacesUnderTest {
-			waitForAllDeploymentsReady(ns, scalingTimeout, scalingPollingPeriod)
-		}
-	}()
+	defer cleanupNodeDrain(env, nodeName)
+	// drain node
+	drainNode(nodeName)
 	for _, ns := range env.NameSpacesUnderTest {
-		waitForAllDeploymentsReady(ns, scalingTimeout, scalingPollingPeriod)
+		notReady := waitForAllDeploymentsReady(ns, scalingTimeout, scalingPollingPeriod)
+		if notReady != 0 {
+			collectNodeAndPendingPodInfo(ns)
+			ginkgo.Fail(fmt.Sprintf("Failed to recover deployments on namespace %s after draining node %s.", ns, nodeName))
+		}
 	}
 	// If we got this far, all deployments are ready after draining the node
 	tnf.ClaimFilePrintf("Node drain for %s succeeded", nodeName)
@@ -399,11 +429,7 @@ func drainNode(node string) {
 	tester := dd.NewDeploymentsDrain(drainTimeout, node)
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
-	result, err := test.Run()
-	if err != nil || result == tnf.ERROR {
-		uncordonNode(node) // Try to undo the node drain
-		log.Fatalf("Test skipped because of draining node failure - platform issue")
-	}
+	test.Run()
 }
 
 func uncordonNode(node string) {
