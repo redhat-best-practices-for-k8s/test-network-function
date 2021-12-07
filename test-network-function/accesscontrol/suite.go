@@ -54,6 +54,12 @@ var (
 	}
 )
 
+// failedPod is a helper type to track pods that fail in each of the TCs.
+type failedPod struct {
+	name      string
+	namespace string
+}
+
 var _ = ginkgo.Describe(common.AccessControlTestKey, func() {
 	conf, _ := ginkgo.GinkgoConfiguration()
 	if testcases.IsInFocus(conf.FocusStrings, common.AccessControlTestKey) {
@@ -308,10 +314,18 @@ func testServiceAccount(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestPodServiceAccountBestPracticesIdentifier)
 	ginkgo.It(testID, func() {
 		ginkgo.By("Should have a valid ServiceAccount name")
+		failedPods := []failedPod{}
 		for _, podUnderTest := range env.PodsUnderTest {
-			ginkgo.By(fmt.Sprintf("Testing pod service account %s %s", podUnderTest.Namespace, podUnderTest.Name))
+			ginkgo.By(fmt.Sprintf("Testing service account for pod %s (ns: %s)", podUnderTest.Name, podUnderTest.Namespace))
 			serviceAccountName := podUnderTest.ServiceAccount
-			gomega.Expect(serviceAccountName).ToNot(gomega.BeEmpty())
+			if serviceAccountName == "" {
+				tnf.ClaimFilePrintf("Pod %s (ns: %s) doesn't have a service account name.", podUnderTest.Name, podUnderTest.Namespace)
+				failedPods = append(failedPods, failedPod{name: podUnderTest.Name, namespace: podUnderTest.Namespace})
+			}
+		}
+		if n := len(failedPods); n > 0 {
+			log.Debugf("Pods without service account: %+v", failedPods)
+			ginkgo.Fail(fmt.Sprintf("%d pods don't have a service account name.", n))
 		}
 	})
 }
@@ -375,10 +389,10 @@ func testAutomountService(env *config.TestEnvironment) {
 	})
 }
 
-//nolint:dupl
 func testRoleBindings(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestPodRoleBindingsBestPracticesIdentifier)
 	ginkgo.It(testID, func() {
+		failedPods := []failedPod{}
 		ginkgo.By("Should not have RoleBinding in other namespaces")
 		for _, podUnderTest := range env.PodsUnderTest {
 			podName := podUnderTest.Name
@@ -392,16 +406,26 @@ func testRoleBindings(env *config.TestEnvironment) {
 			rbTester := rolebinding.NewRoleBinding(common.DefaultTimeout, serviceAccountName, podNamespace)
 			test, err := tnf.NewTest(context.GetExpecter(), rbTester, []reel.Handler{rbTester}, context.GetErrorChannel())
 			gomega.Expect(err).To(gomega.BeNil())
-			test.RunAndValidateWithFailureCallback(func() { log.Info("RoleBindings: ", rbTester.GetRoleBindings()) })
+			test.RunWithCallbacks(nil, func() {
+				tnf.ClaimFilePrintf("FAILURE: Pod %s (ns: %s) roleBindings: %v", podName, podNamespace, rbTester.GetRoleBindings())
+				failedPods = append(failedPods, failedPod{name: podName, namespace: podNamespace})
+			}, func(err error) {
+				tnf.ClaimFilePrintf("ERROR: Pod %s (ns: %s) roleBindings: %v, error: %v", podName, podNamespace, rbTester.GetRoleBindings(), err)
+				failedPods = append(failedPods, failedPod{name: podName, namespace: podNamespace})
+			})
+		}
+		if n := len(failedPods); n > 0 {
+			log.Debugf("Pods with role bindings: %+v", failedPods)
+			ginkgo.Fail(fmt.Sprintf("%d pods have role bindings in other namespaces.", n))
 		}
 	})
 }
 
-//nolint:dupl
 func testClusterRoleBindings(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestPodClusterRoleBindingsBestPracticesIdentifier)
 	ginkgo.It(testID, func() {
 		ginkgo.By("Should not have ClusterRoleBindings")
+		failedPods := []failedPod{}
 		for _, podUnderTest := range env.PodsUnderTest {
 			podName := podUnderTest.Name
 			podNamespace := podUnderTest.Namespace
@@ -414,7 +438,18 @@ func testClusterRoleBindings(env *config.TestEnvironment) {
 			crbTester := clusterrolebinding.NewClusterRoleBinding(common.DefaultTimeout, serviceAccountName, podNamespace)
 			test, err := tnf.NewTest(context.GetExpecter(), crbTester, []reel.Handler{crbTester}, context.GetErrorChannel())
 			gomega.Expect(err).To(gomega.BeNil())
-			test.RunAndValidateWithFailureCallback(func() { log.Info("ClusterRoleBindings: ", crbTester.GetClusterRoleBindings()) })
+			test.RunAndValidateWithFailureCallback(func() { log.Info("ClusterRoleBindings: ") })
+			test.RunWithCallbacks(nil, func() {
+				tnf.ClaimFilePrintf("FAILURE: Pod %s (ns: %s) clusterRoleBindings: %v", podName, podNamespace, crbTester.GetClusterRoleBindings())
+				failedPods = append(failedPods, failedPod{name: podName, namespace: podNamespace})
+			}, func(err error) {
+				tnf.ClaimFilePrintf("ERROR: Pod %s (ns: %s) clusterRoleBindings: %v, error: %v", podName, podNamespace, crbTester.GetClusterRoleBindings(), err)
+				failedPods = append(failedPods, failedPod{name: podName, namespace: podNamespace})
+			})
+		}
+		if n := len(failedPods); n > 0 {
+			log.Debugf("Pods with cluster role bindings: %+v", failedPods)
+			ginkgo.Fail(fmt.Sprintf("%d pods have cluster role bindings.", n))
 		}
 	})
 }
