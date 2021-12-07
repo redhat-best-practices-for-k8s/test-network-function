@@ -109,9 +109,9 @@ func getMockOutput(t *testing.T, testName string) string {
 
 func TestNewPing(t *testing.T) {
 	for _, testCase := range testCases {
-		request := ping.NewPing(testTimeoutDuration, testCase.host, testCase.count)
+		request := ping.NewPing(testTimeoutDuration, "", testCase.host, testCase.count)
 		assert.NotNil(t, request)
-		args := ping.Command(testCase.host, testCase.count)
+		args := ping.Command("", testCase.host, testCase.count)
 		assert.Equal(t, args, request.Args())
 		assert.Equal(t, tnf.ERROR, request.Result())
 	}
@@ -119,23 +119,23 @@ func TestNewPing(t *testing.T) {
 
 func TestPing_Args(t *testing.T) {
 	for _, testCase := range testCases {
-		request := ping.NewPing(testTimeoutDuration, testCase.host, testCase.count)
+		request := ping.NewPing(testTimeoutDuration, "", testCase.host, testCase.count)
 		assert.NotNil(t, request)
-		args := []string{"ping", "-c", strconv.Itoa(testCase.count), testCase.host}
+		args := []string{"", "ping", "-c", strconv.Itoa(testCase.count), testCase.host}
 		assert.Equal(t, args, request.Args())
 	}
 }
 
 func TestPing_GetIdentifier(t *testing.T) {
 	for _, testCase := range testCases {
-		request := ping.NewPing(testTimeoutDuration, testCase.host, testCase.count)
+		request := ping.NewPing(testTimeoutDuration, "", testCase.host, testCase.count)
 		assert.Equal(t, identifier.PingIdentifier, request.GetIdentifier())
 	}
 }
 
 func TestPing_ReelFirst(t *testing.T) {
 	for _, testCase := range testCases {
-		request := ping.NewPing(testTimeoutDuration, testCase.host, testCase.count)
+		request := ping.NewPing(testTimeoutDuration, "", testCase.host, testCase.count)
 		step := request.ReelFirst()
 		assert.Equal(t, "", step.Execute)
 		assert.NotNil(t, step.Expect)
@@ -147,7 +147,7 @@ func TestPing_ReelFirst(t *testing.T) {
 }
 
 func TestPing_GetStats(t *testing.T) {
-	request := ping.NewPing(testTimeoutDuration, "192.168.1.1", 1)
+	request := ping.NewPing(testTimeoutDuration, "", "192.168.1.1", 1)
 	sent, received, errors := request.GetStats()
 	assert.Zero(t, sent)
 	assert.Zero(t, received)
@@ -156,7 +156,7 @@ func TestPing_GetStats(t *testing.T) {
 
 func TestPing_ReelMatch(t *testing.T) {
 	for testCaseName, testCase := range testCases {
-		request := ping.NewPing(testTimeoutDuration, testCase.host, testCase.count)
+		request := ping.NewPing(testTimeoutDuration, "", testCase.host, testCase.count)
 		matchMock := getMockOutput(t, testCaseName)
 		step := request.ReelMatch("", "", matchMock)
 		assert.Nil(t, step)
@@ -170,14 +170,14 @@ func TestPing_ReelMatch(t *testing.T) {
 }
 
 func TestPing_ReelTimeout(t *testing.T) {
-	request := ping.NewPing(testTimeoutDuration, "192.168.1.2", 1)
+	request := ping.NewPing(testTimeoutDuration, "", "192.168.1.2", 1)
 	step := request.ReelTimeout()
 	assert.Nil(t, step)
 }
 
 func TestPing_Timeout(t *testing.T) {
 	for _, testCase := range testCases {
-		request := ping.NewPing(testTimeoutDuration, testCase.host, testCase.count)
+		request := ping.NewPing(testTimeoutDuration, "", testCase.host, testCase.count)
 		assert.Equal(t, testTimeoutDuration, request.Timeout())
 	}
 }
@@ -185,16 +185,16 @@ func TestPing_Timeout(t *testing.T) {
 // Just ensure there are no panics.
 func TestPing_ReelEof(t *testing.T) {
 	for _, testCase := range testCases {
-		request := ping.NewPing(testTimeoutDuration, testCase.host, testCase.count)
+		request := ping.NewPing(testTimeoutDuration, "", testCase.host, testCase.count)
 		request.ReelEOF()
 	}
 }
 
 func TestPingCmd(t *testing.T) {
-	cmd := ping.Command("192.168.1.1", 0)
-	assert.Equal(t, []string{"ping", "192.168.1.1"}, cmd)
-	cmd = ping.Command("192.168.1.1", -1)
-	assert.Equal(t, []string{"ping", "192.168.1.1"}, cmd)
-	cmd = ping.Command("192.168.1.1", 1)
-	assert.Equal(t, []string{"ping", "-c", "1", "192.168.1.1"}, cmd)
+	cmd := ping.Command("", "192.168.1.1", 0)
+	assert.Equal(t, []string{"", "ping", "192.168.1.1"}, cmd)
+	cmd = ping.Command("", "192.168.1.1", -1)
+	assert.Equal(t, []string{"", "ping", "192.168.1.1"}, cmd)
+	cmd = ping.Command("", "192.168.1.1", 1)
+	assert.Equal(t, []string{"", "ping", "-c", "1", "192.168.1.1"}, cmd)
 }

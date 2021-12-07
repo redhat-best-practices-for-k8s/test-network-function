@@ -71,11 +71,11 @@ func testLogging() {
 	ginkgo.It(testID, func() {
 		for _, cut := range env.ContainersUnderTest {
 			ginkgo.By(fmt.Sprintf("Test container: %+v. should emit at least one line of log to stderr/stdout", cut.ContainerIdentifier))
-			loggingTest(cut.ContainerIdentifier)
+			loggingTest(&cut.ContainerIdentifier)
 		}
 	})
 }
-func loggingTest(c configsections.ContainerIdentifier) {
+func loggingTest(c *configsections.ContainerIdentifier) {
 	context := common.GetContext()
 
 	values := make(map[string]interface{})

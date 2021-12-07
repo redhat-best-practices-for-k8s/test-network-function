@@ -56,10 +56,10 @@ type PodResource struct {
 		NodeName string `json:"nodeName"`
 	} `json:"spec"`
 	Status struct {
-		PodIPs []map[string]string `json:"podIPs"`
-		Phase  string              `json:"phase"`
+		PodIPs            []map[string]string `json:"podIPs"`
+		Phase             string              `json:"phase"`
 		ContainerStatuses []struct {
-			Name string `json:"name"`
+			Name        string `json:"name"`
 			ContainerID string `json:"containerID"`
 		} `json:"containerStatuses"`
 	} `json:"status"`

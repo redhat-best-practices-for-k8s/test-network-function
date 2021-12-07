@@ -56,7 +56,7 @@ func parseArgs() (*ping.Ping, time.Duration) {
 		flag.Usage()
 	}
 	timeoutDuration := time.Duration(*timeout) * time.Second
-	return ping.NewPing(timeoutDuration, args[0], *count), timeoutDuration
+	return ping.NewPing(timeoutDuration, "", args[0], *count), timeoutDuration
 }
 
 // Execute a ping test with exit code 0 on success, 1 on failure, 2 on error.

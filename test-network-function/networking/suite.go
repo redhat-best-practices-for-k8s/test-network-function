@@ -34,9 +34,8 @@ import (
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/ping"
 	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
-	"github.com/test-network-function/test-network-function/test-network-function/results"
 	"github.com/test-network-function/test-network-function/pkg/utils"
-
+	"github.com/test-network-function/test-network-function/test-network-function/results"
 )
 
 const (
@@ -44,14 +43,14 @@ const (
 )
 
 type netTestContext struct {
-	testerContainerNodeOc         *interactive.Oc
-	testerContainerIdentifier configsections.ContainerIdentifier
+	testerContainerNodeOc     *interactive.Oc
+	testerContainerIdentifier *configsections.ContainerIdentifier
 	ipSource                  string
 	ipDestTargets             []ipDest
 }
 type ipDest struct {
 	ip                        string
-	targetContainerIdentifier configsections.ContainerIdentifier
+	targetContainerIdentifier *configsections.ContainerIdentifier
 }
 
 //
@@ -88,11 +87,11 @@ var _ = ginkgo.Describe(common.NetworkingTestKey, func() {
 
 // processContainerIpsPerNet takes a container ip addresses for a given network attachment's network and uses it as a test target.
 // The first container in the loop is selected as the test initiator. the Oc context of the container is used to initiate the pings
-func processContainerIpsPerNet(containerID configsections.ContainerIdentifier,
-	 netKey string, 
-	 ipAddress []string,
-	  netsUnderTest map[string]netTestContext, 
-		containerNodeOc *interactive.Oc) {
+func processContainerIpsPerNet(containerID *configsections.ContainerIdentifier,
+	netKey string,
+	ipAddress []string,
+	netsUnderTest map[string]netTestContext,
+	containerNodeOc *interactive.Oc) {
 	if len(ipAddress) == 0 {
 		// if no multus addresses found, skip this container
 		tnf.ClaimFilePrintf("Skipping container %s, Network %s because no multus IPs are present", containerID.PodName, netKey)
@@ -147,13 +146,8 @@ func testDefaultNetworkConnectivity(env *config.TestEnvironment, count int) {
 	ginkgo.When("Testing Default network connectivity", func() {
 		testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestICMPv4ConnectivityIdentifier)
 		ginkgo.It(testID, func() {
-
-
 			netsUnderTest := make(map[string]netTestContext)
 			for _, cut := range env.ContainersUnderTest {
-
-				
-
 				if _, ok := env.ContainersToExcludeFromConnectivityTests[cut.ContainerIdentifier]; ok {
 					tnf.ClaimFilePrintf("Skipping container %s because it is excluded from connectivity tests (default interface)", cut.ContainerConfiguration.PodName)
 					continue
@@ -161,10 +155,10 @@ func testDefaultNetworkConnectivity(env *config.TestEnvironment, count int) {
 				netKey := "default" //nolint:goconst // only used once
 				defaultIPAddress := []string{cut.DefaultNetworkIPAddress}
 				gomega.Expect(env).To(gomega.Not(gomega.BeNil()))
-				gomega.Expect(env.NodesUnderTest[cut.ContainerConfiguration.NodeName] ).To(gomega.Not(gomega.BeNil()))
-				gomega.Expect(env.NodesUnderTest[cut.ContainerConfiguration.NodeName].Oc ).To(gomega.Not(gomega.BeNil()))
+				gomega.Expect(env.NodesUnderTest[cut.ContainerConfiguration.NodeName]).To(gomega.Not(gomega.BeNil()))
+				gomega.Expect(env.NodesUnderTest[cut.ContainerConfiguration.NodeName].Oc).To(gomega.Not(gomega.BeNil()))
 				nodeOc := env.NodesUnderTest[cut.ContainerConfiguration.NodeName].Oc
-				processContainerIpsPerNet(cut.ContainerIdentifier, netKey, defaultIPAddress, netsUnderTest, nodeOc)
+				processContainerIpsPerNet(&cut.ContainerIdentifier, netKey, defaultIPAddress, netsUnderTest, nodeOc)
 			}
 			runNetworkingTests(netsUnderTest, count)
 		})
@@ -182,10 +176,10 @@ func testMultusNetworkConnectivity(env *config.TestEnvironment, count int) {
 				}
 				for netKey, multusIPAddress := range cut.ContainerConfiguration.MultusIPAddressesPerNet {
 					gomega.Expect(env).To(gomega.Not(gomega.BeNil()))
-					gomega.Expect(env.NodesUnderTest[cut.ContainerConfiguration.NodeName] ).To(gomega.Not(gomega.BeNil()))
-					gomega.Expect(env.NodesUnderTest[cut.ContainerConfiguration.NodeName].Oc ).To(gomega.Not(gomega.BeNil()))
+					gomega.Expect(env.NodesUnderTest[cut.ContainerConfiguration.NodeName]).To(gomega.Not(gomega.BeNil()))
+					gomega.Expect(env.NodesUnderTest[cut.ContainerConfiguration.NodeName].Oc).To(gomega.Not(gomega.BeNil()))
 					nodeOc := env.NodesUnderTest[cut.ContainerConfiguration.NodeName].Oc
-					processContainerIpsPerNet(cut.ContainerIdentifier, netKey, multusIPAddress, netsUnderTest, nodeOc)
+					processContainerIpsPerNet(&cut.ContainerIdentifier, netKey, multusIPAddress, netsUnderTest, nodeOc)
 				}
 			}
 			runNetworkingTests(netsUnderTest, count)
@@ -194,16 +188,15 @@ func testMultusNetworkConnectivity(env *config.TestEnvironment, count int) {
 }
 
 // Test that a container can ping a target IP address.
-func testPing(initiatingPodNodeOc *interactive.Oc,nodeName,containerID, targetPodIPAddress string, count int) {
+func testPing(initiatingPodNodeOc *interactive.Oc, nodeName, containerID, targetPodIPAddress string, count int) {
 	log.Infof("Sending ICMP traffic(%s to %s)", initiatingPodNodeOc.GetPodName(), targetPodIPAddress)
 	env := config.GetTestEnvironment()
 	gomega.Expect(env).To(gomega.Not(gomega.BeNil()))
-	gomega.Expect(env.NodesUnderTest[nodeName] ).To(gomega.Not(gomega.BeNil()))
-	gomega.Expect(env.NodesUnderTest[nodeName].Oc ).To(gomega.Not(gomega.BeNil()))
-  nodeOc := env.NodesUnderTest[nodeName].Oc
-	//utils.RunCommandInNode(nodeName,nodeOc,"dnf install iputils -y", common.DefaultTimeout)
-	containerPID:=utils.GetContainerPID(nodeName,nodeOc,containerID,common.IsNonOcpCluster())
-	pingTester := ping.NewPing(common.DefaultTimeout, containerPID,targetPodIPAddress, count)
+	gomega.Expect(env.NodesUnderTest[nodeName]).To(gomega.Not(gomega.BeNil()))
+	gomega.Expect(env.NodesUnderTest[nodeName].Oc).To(gomega.Not(gomega.BeNil()))
+	nodeOc := env.NodesUnderTest[nodeName].Oc
+	containerPID := utils.GetContainerPID(nodeName, nodeOc, containerID, common.IsNonOcpCluster())
+	pingTester := ping.NewPing(common.DefaultTimeout, containerPID, targetPodIPAddress, count)
 	test, err := tnf.NewTest(initiatingPodNodeOc.GetExpecter(), pingTester, []reel.Handler{pingTester}, initiatingPodNodeOc.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
 	test.RunAndValidate()

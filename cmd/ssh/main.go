@@ -73,7 +73,7 @@ func main() {
 		os.Exit(tnf.ExitCodeMap[result])
 	}
 
-	request := ping.NewPing(timeoutDuration, targetIPAddress, testPingCount)
+	request := ping.NewPing(timeoutDuration, "", targetIPAddress, testPingCount)
 	chain := []reel.Handler{request}
 	test, err := tnf.NewTest(context.GetExpecter(), request, chain, context.GetErrorChannel())
 

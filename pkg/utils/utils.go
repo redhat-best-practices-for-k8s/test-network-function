@@ -28,7 +28,7 @@ var (
 )
 
 const (
-	timeoutPid = 5*time.Second
+	timeoutPid = 5 * time.Second
 )
 
 // ArgListToMap takes a list of strings of the form "key=value" and translate it into a map
@@ -123,25 +123,22 @@ func NewGenericTestAndValidate(templateFile, schemaPath string, values map[strin
 	return tester, handlers
 }
 
-
-
-func RunCommandInContainerNameSpace(nodeName string, nodeOc *interactive.Oc, containerID, command string, timeout time.Duration, isNonOcp bool) string  {
-	containrPID:=GetContainerPID(nodeName,nodeOc,containerID, isNonOcp)
-	nodeCommand := "nsenter -t "+containrPID+" -n "+command
-	return RunCommandInNode(nodeName, nodeOc, nodeCommand , timeout)
+func RunCommandInContainerNameSpace(nodeName string, nodeOc *interactive.Oc, containerID, command string, timeout time.Duration, isNonOcp bool) string {
+	containrPID := GetContainerPID(nodeName, nodeOc, containerID, isNonOcp)
+	nodeCommand := "nsenter -t " + containrPID + " -n " + command
+	return RunCommandInNode(nodeName, nodeOc, nodeCommand, timeout)
 }
 
-
-func GetContainerPID(nodeName string, nodeOc *interactive.Oc, containerID string, isNonOcp bool) string  {
-	command:=""
+func GetContainerPID(nodeName string, nodeOc *interactive.Oc, containerID string, isNonOcp bool) string {
+	command := ""
 	if isNonOcp {
-		command = "chroot /host docker inspect -f '{{.State.Pid}}' "+containerID+" 2>/dev/null"
-	}else{
-		command = "chroot /host crictl inspect --output go-template --template '{{.info.pid}}' "+containerID+" 2>/dev/null"
+		command = "chroot /host docker inspect -f '{{.State.Pid}}' " + containerID + " 2>/dev/null"
+	} else {
+		command = "chroot /host crictl inspect --output go-template --template '{{.info.pid}}' " + containerID + " 2>/dev/null"
 	}
-  return RunCommandInNode(nodeName, nodeOc, command, timeoutPid)
+	return RunCommandInNode(nodeName, nodeOc, command, timeoutPid)
 }
-func RunCommandInNode(nodeName string, nodeOc *interactive.Oc, command string, timeout time.Duration ) string  {
+func RunCommandInNode(nodeName string, nodeOc *interactive.Oc, command string, timeout time.Duration) string {
 	context := nodeOc
 	tester := nodedebug.NewNodeDebug(timeout, nodeName, command, true, true)
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
