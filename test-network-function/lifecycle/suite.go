@@ -316,7 +316,7 @@ func testNodeDrain(env *config.TestEnvironment, nodeName string) {
 		waitForAllDeploymentsReady(ns, scalingTimeout, scalingPollingPeriod)
 	}
 	// If we got this far, all deployments are ready after draining the node
-	tnf.ClaimFilePrintf("Node drain for %s succeeded\n", nodeName)
+	tnf.ClaimFilePrintf("Node drain for %s succeeded", nodeName)
 }
 
 func testPodsRecreation(env *config.TestEnvironment) {
