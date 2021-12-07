@@ -401,6 +401,7 @@ func drainNode(node string) {
 	gomega.Expect(err).To(gomega.BeNil())
 	result, err := test.Run()
 	if err != nil || result == tnf.ERROR {
+		uncordonNode(node) // Try to undo the node drain
 		log.Fatalf("Test skipped because of draining node failure - platform issue")
 	}
 }
