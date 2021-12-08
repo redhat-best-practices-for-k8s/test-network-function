@@ -95,7 +95,7 @@ func testOperatorIsInstalledViaOLM(subscriptionName, subscriptionNamespace strin
 	values := make(map[string]interface{})
 	values["SUBSCRIPTION_NAME"] = subscriptionName
 	values["SUBSCRIPTION_NAMESPACE"] = subscriptionNamespace
-	tester, handlers := utils.NewGenericTestAndValidate(relativecheckSubscriptionTestPath, relativeSchemaPath, values)
+	tester, handlers := utils.NewGenericTesterAndValidate(relativecheckSubscriptionTestPath, relativeSchemaPath, values)
 	context := common.GetContext()
 	test, err := tnf.NewTest(context.GetExpecter(), *tester, handlers, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())

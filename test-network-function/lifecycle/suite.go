@@ -292,7 +292,7 @@ func shutdownTest(podNamespace, podName string) {
 	values["POD_NAMESPACE"] = podNamespace
 	values["POD_NAME"] = podName
 	values["GO_TEMPLATE_PATH"] = relativeShutdownTestDirectoryPath
-	tester, handlers := utils.NewGenericTestAndValidate(relativeShutdownTestPath, common.RelativeSchemaPath, values)
+	tester, handlers := utils.NewGenericTesterAndValidate(relativeShutdownTestPath, common.RelativeSchemaPath, values)
 	test, err := tnf.NewTest(context.GetExpecter(), *tester, handlers, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
 	gomega.Expect(test).ToNot(gomega.BeNil())
@@ -375,6 +375,22 @@ func getDeployments(namespace string) (deployments dp.DeploymentMap, notReadyDep
 	return deployments, notReadyDeployments
 }
 
+//nolint:deadcode // to be used in Javier's change
+func collectNodeAndPendingPodInfo(ns string) {
+	context := common.GetContext()
+
+	nodeStatus, _ := utils.ExecuteCommand("oc get nodes -o json | jq '.items[]|{name:.metadata.name, taints:.spec.taints}'", common.DefaultTimeout, context)
+	common.TcClaimLogPrintf("Namespace: %s\nNode status:\n%s", ns, nodeStatus)
+
+	cmd := fmt.Sprintf("oc get pods -n %s --field-selector=status.phase!=Running,status.phase!=Succeeded -o json | jq '.items[]|{name:.metadata.name, status:.status}'", ns)
+	podStatus, _ := utils.ExecuteCommand(cmd, common.DefaultTimeout, context)
+	common.TcClaimLogPrintf("Pending Pods:\n%s", podStatus)
+
+	cmd = fmt.Sprintf("oc get events -n %s --field-selector type!=Normal -o json --sort-by='.lastTimestamp' | jq '.items[]|{object:.involvedObject, reason:.reason, type:.type, message:.message, lastSeen:.lastTimestamp}'", ns)
+	events, _ := utils.ExecuteCommand(cmd, common.DefaultTimeout, context)
+	common.TcClaimLogPrintf("Events:\n%s", events)
+}
+
 func drainNode(node string) {
 	context := common.GetContext()
 	tester := dd.NewDeploymentsDrain(drainTimeout, node)
@@ -390,7 +406,7 @@ func uncordonNode(node string) {
 	context := common.GetContext()
 	values := make(map[string]interface{})
 	values["NODE"] = node
-	tester, handlers := utils.NewGenericTestAndValidate(relativeNodesTestPath, common.RelativeSchemaPath, values)
+	tester, handlers := utils.NewGenericTesterAndValidate(relativeNodesTestPath, common.RelativeSchemaPath, values)
 	test, err := tnf.NewTest(context.GetExpecter(), *tester, handlers, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
 	gomega.Expect(test).ToNot(gomega.BeNil())
@@ -423,7 +439,7 @@ func podAntiAffinity(deployment, podNamespace string, replica int) {
 	values := make(map[string]interface{})
 	values["DEPLOYMENT_NAME"] = deployment
 	values["DEPLOYMENT_NAMESPACE"] = podNamespace
-	tester, handlers := utils.NewGenericTestAndValidate(relativePodTestPath, common.RelativeSchemaPath, values)
+	tester, handlers := utils.NewGenericTesterAndValidate(relativePodTestPath, common.RelativeSchemaPath, values)
 	test, err := tnf.NewTest(context.GetExpecter(), *tester, handlers, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
 	gomega.Expect(test).ToNot(gomega.BeNil())
@@ -478,7 +494,7 @@ func testImagePolicy(env *config.TestEnvironment) {
 			values["POD_NAME"] = podUnderTest.Name
 			for i := 0; i < ContainerCount; i++ {
 				values["CONTAINER_NUM"] = i
-				tester, handlers := utils.NewGenericTestAndValidate(relativeimagepullpolicyTestPath, common.RelativeSchemaPath, values)
+				tester, handlers := utils.NewGenericTesterAndValidate(relativeimagepullpolicyTestPath, common.RelativeSchemaPath, values)
 				test, err := tnf.NewTest(context.GetExpecter(), *tester, handlers, context.GetErrorChannel())
 				gomega.Expect(err).To(gomega.BeNil())
 				gomega.Expect(test).ToNot(gomega.BeNil())
