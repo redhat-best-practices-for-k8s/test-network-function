@@ -180,12 +180,13 @@ func TestTest(t *testing.T) {
 
 // incorporateTNFVersion adds the TNF version to the claim.
 func incorporateVersions(claimData *claim.Claim) {
+	versionsOcp := diagnostic.GetVersionsOcp()
 	claimData.Versions = &claim.Versions{
 		Tnf:          gitDisplayRelease,
 		TnfGitCommit: GitCommit,
-		OcClient:     diagnostic.GetVersionsOcp().Oc,
-		Ocp:          diagnostic.GetVersionsOcp().Ocp,
-		K8s:          diagnostic.GetVersionsOcp().K8s,
+		OcClient:     versionsOcp.Oc,
+		Ocp:          versionsOcp.Ocp,
+		K8s:          versionsOcp.K8s,
 	}
 }
 
@@ -243,9 +244,9 @@ func generateNodes() map[string]interface{} {
 		csiDriverInfo    = "csiDriver"
 	)
 	nodes := map[string]interface{}{}
-	nodes[nodeSummaryField] = diagnostic.GetNodeSummary()
-	nodes[cniPluginsField] = diagnostic.GetCniPlugins()
-	nodes[nodesHwInfo] = diagnostic.GetNodesHwInfo()
-	nodes[csiDriverInfo] = diagnostic.GetCsiDriverInfo()
+	nodes[nodeSummaryField] = make(map[string]interface{})
+	nodes[cniPluginsField] = make([]diagnostic.CniPlugin, 0)
+	nodes[nodesHwInfo] = diagnostic.NodesHwInfo{}
+	nodes[csiDriverInfo] = diagnostic.NewCsiDriverInfo()
 	return nodes
 }

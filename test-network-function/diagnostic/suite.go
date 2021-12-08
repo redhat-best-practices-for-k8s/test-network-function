@@ -30,18 +30,6 @@ var (
 	// defaultTestTimeout is the timeout for the test.
 	defaultTestTimeout = time.Duration(defaultTimeoutSeconds) * time.Second
 
-	// nodeSummary stores the raw JSON output of `oc get nodes -o json`
-	nodeSummary = make(map[string]interface{})
-
-	cniPlugins = make([]CniPlugin, 0)
-
-	versionsOcp clusterversion.ClusterVersion
-
-	nodesHwInfo = NodesHwInfo{}
-
-	// csiDriver stores the csi driver JSON output of `oc get csidriver -o json`
-	csiDriver = make(map[string]interface{})
-
 	// nodesTestPath is the file location of the nodes.json test case relative to the project root.
 	nodesTestPath = path.Join("pkg", "tnf", "handlers", "node", "nodes.json")
 
@@ -103,6 +91,7 @@ var _ = ginkgo.Describe(common.DiagnosticTestKey, func() {
 			matches := genericTest.Matches
 			gomega.Expect(len(matches)).To(gomega.Equal(1))
 			match := genericTest.GetMatches()[0]
+			nodeSummary := NewNodeSummary()
 			err = json.Unmarshal([]byte(match.Match), &nodeSummary)
 			gomega.Expect(err).To(gomega.BeNil())
 		})
@@ -143,28 +132,18 @@ type NodesHwInfo struct {
 }
 
 // GetNodeSummary returns the result of running `oc get nodes -o json`.
-func GetNodeSummary() map[string]interface{} {
-	return nodeSummary
-}
-
-// GetCniPlugins return the found plugins
-func GetCniPlugins() []CniPlugin {
-	return cniPlugins
+func NewNodeSummary() map[string]interface{} {
+	return make(map[string]interface{})
 }
 
 // GetVersionsOcp return OCP versions
 func GetVersionsOcp() clusterversion.ClusterVersion {
-	return versionsOcp
+	return clusterversion.ClusterVersion{}
 }
 
-// GetNodesHwInfo returns an object with HW info of one master and one worker
-func GetNodesHwInfo() NodesHwInfo {
-	return nodesHwInfo
-}
-
-// GetCsiDriverInfo returns the CSI driver info of running `oc get csidriver -o json`.
-func GetCsiDriverInfo() map[string]interface{} {
-	return csiDriver
+// NewCsiDriverInfo returns the CSI driver info of running `oc get csidriver -o json`.
+func NewCsiDriverInfo() map[string]interface{} {
+	return make(map[string]interface{})
 }
 
 func getMasterNodeName(env *config.TestEnvironment) string {
@@ -210,7 +189,6 @@ func testOcpVersion() {
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
 	test.RunAndValidate()
-	versionsOcp = tester.GetVersions()
 }
 
 func testCniPlugins() {
@@ -222,7 +200,7 @@ func testCniPlugins() {
 	nodeName := getMasterNodeName(env)
 	gomega.Expect(nodeName).ToNot(gomega.BeEmpty())
 	// get CNI plugins from node
-	cniPlugins = listNodeCniPlugins(nodeName)
+	cniPlugins := listNodeCniPlugins(nodeName)
 	gomega.Expect(cniPlugins).ToNot(gomega.BeNil())
 }
 
@@ -235,6 +213,8 @@ func testNodesHwInfo() {
 	gomega.Expect(masterNodeName).ToNot(gomega.BeEmpty())
 	workerNodeName := getWorkerNodeName(env)
 	gomega.Expect(workerNodeName).ToNot(gomega.BeEmpty())
+
+	nodesHwInfo := NodesHwInfo{}
 	nodesHwInfo.Master.NodeName = masterNodeName
 	nodesHwInfo.Master.Lscpu = getNodeLscpu(masterNodeName)
 	nodesHwInfo.Master.Ifconfig = getNodeIfconfig(masterNodeName)
@@ -340,6 +320,7 @@ func listClusterCSIInfo() {
 	matches := genericTest.Matches
 	gomega.Expect(len(matches)).To(gomega.Equal(1))
 	match := genericTest.GetMatches()[0]
+	csiDriver := NewCsiDriverInfo()
 	err = json.Unmarshal([]byte(match.Match), &csiDriver)
 	gomega.Expect(err).To(gomega.BeNil())
 }
