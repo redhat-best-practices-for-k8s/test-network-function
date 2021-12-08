@@ -62,18 +62,18 @@ type containerIP struct {
 	containerIdentifier *configsections.ContainerIdentifier
 }
 
-func (testContext netTestContext) print() (output string) {
-	output = fmt.Sprintf("From initiating container: %s\n", testContext.testerSource.print())
+func (testContext netTestContext) String() (output string) {
+	output = fmt.Sprintf("From initiating container: %s\n", testContext.testerSource.String())
 	if len(testContext.destTargets) == 0 {
 		output = "--> No target containers to test for this network" //nolint:goconst // this is only one time
 	}
 	for _, target := range testContext.destTargets {
-		output += fmt.Sprintf("--> To target container: %s\n", target.print())
+		output += fmt.Sprintf("--> To target container: %s\n", target.String())
 	}
 	return
 }
 
-func (cip containerIP) print() (output string) {
+func (cip containerIP) String() (output string) {
 	output = fmt.Sprintf("%s ( node:%s ns:%s podName:%s containerName:%s containerUID:%s )",
 		cip.ip,
 		cip.containerIdentifier.NodeName,
@@ -90,7 +90,7 @@ func printNetTestContextMap(netsUnderTest map[string]netTestContext) (output str
 	}
 	for netName, netUnderTest := range netsUnderTest {
 		output += fmt.Sprintf("***Test for Network attachment: %s\n", netName)
-		output += fmt.Sprintf("%s\n", netUnderTest.print())
+		output += fmt.Sprintf("%s\n", netUnderTest.String())
 	}
 	return
 }

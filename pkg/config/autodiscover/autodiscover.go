@@ -146,8 +146,11 @@ func buildContainersFromPodResource(pr *PodResource) (containers []configsection
 		// This is to have access to the pod namespace
 		for _, cs := range pr.Status.ContainerStatuses {
 			if cs.Name == container.ContainerName {
-				container.ContainerUID = strings.TrimPrefix(cs.ContainerID, "cri-o://")
-				container.ContainerUID = strings.TrimPrefix(container.ContainerUID, "docker://")
+				container.ContainerUID = ""
+				split:=strings.Split(cs.ContainerID, "//")
+				if len(split)>0 {
+					container.ContainerUID = split[len(split)-1]
+				}
 			}
 		}
 		container.DefaultNetworkDevice, err = pr.getDefaultNetworkDeviceFromAnnotations()
