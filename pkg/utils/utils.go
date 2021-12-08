@@ -123,12 +123,16 @@ func NewGenericTestAndValidate(templateFile, schemaPath string, values map[strin
 	return tester, handlers
 }
 
+// RunCommandInContainerNameSpace run a host command in a running container with the nsenter command.
+// takes the container nodeName, node Oc and container UID
+// returns the raw output of the command
 func RunCommandInContainerNameSpace(nodeName string, nodeOc *interactive.Oc, containerID, command string, timeout time.Duration, isNonOcp bool) string {
 	containrPID := GetContainerPID(nodeName, nodeOc, containerID, isNonOcp)
 	nodeCommand := "nsenter -t " + containrPID + " -n " + command
 	return RunCommandInNode(nodeName, nodeOc, nodeCommand, timeout)
 }
 
+// GetContainerPID gets the container PID from a kubernetes node, Oc and container PID
 func GetContainerPID(nodeName string, nodeOc *interactive.Oc, containerID string, isNonOcp bool) string {
 	command := ""
 	if isNonOcp {
@@ -138,6 +142,10 @@ func GetContainerPID(nodeName string, nodeOc *interactive.Oc, containerID string
 	}
 	return RunCommandInNode(nodeName, nodeOc, command, timeoutPid)
 }
+
+// RunCommandInNode runs a command on a remote kubernetes node
+// takes the node name, node oc and command
+// returns the command raw output
 func RunCommandInNode(nodeName string, nodeOc *interactive.Oc, command string, timeout time.Duration) string {
 	context := nodeOc
 	tester := nodedebug.NewNodeDebug(timeout, nodeName, command, true, true)
@@ -147,6 +155,7 @@ func RunCommandInNode(nodeName string, nodeOc *interactive.Oc, command string, t
 	return tester.Raw
 }
 
+// AddNsenterPrefix adds the nsenter command prefix to run inside a container namespace
 func AddNsenterPrefix(containerPID string) string {
 	return "chroot /host nsenter -t " + containerPID + " -n "
 }
