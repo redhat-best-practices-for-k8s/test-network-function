@@ -17,7 +17,7 @@ certification.  Please see "CNF Developers" below for more information.
 In the diagram above:
 - the `CNF` is the CNF to be certified. The certification suite identifies the resources (containers/pods/operators etc) belonging to the CNF via labels or static data entries in the config file
 - the `Certification container/exec` is the certification test suite running on the platform or in a container. The executable verifies the CNF under test configuration and its interactions with openshift
-- the `Debug` pods are part of a daemonset responsible to run various privileged commands on kubernetes nodes. Debug pods are useful to run platform tests and test commands (e.g. ping) in container namespaces without changing the container image content.  
+- the `Debug` pods are part of a daemonset responsible to run various privileged commands on kubernetes nodes. Debug pods are useful to run platform tests and test commands (e.g. ping) in container namespaces without changing the container image content. The debug daemonset is instantiated via the cnf-certification-test-partner repository [repo](https://github.com/test-network-function/cnf-certification-test-partner).  
 
 
 ## Test Configuration
