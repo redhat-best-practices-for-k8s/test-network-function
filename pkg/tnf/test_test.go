@@ -102,10 +102,27 @@ type testRunTestCase struct {
 	reelMatchBefore           string
 	reelMatchMatch            string
 	reelMatchResult           *reel.Step
+	testRunErr                error
 }
 
-func fakeSentinelOutput() string {
-	return fmt.Sprintf("someOutput%s\n", reel.EndOfTestRegexPostfix)
+func fakeSentinelOutputWithReturnCode(output string, code int) string {
+	return fmt.Sprintf("%s%s %s%d\n", output, reel.EndOfTestSentinel, reel.ExitKeyword, code)
+}
+
+func fakeSentinelOutput(output string) string {
+	return fakeSentinelOutputWithReturnCode(output, 0)
+}
+
+func fakeOutput() string {
+	return "someOutput"
+}
+
+func fakeWrongOutput() string {
+	return "something else"
+}
+
+func fakeErrorCode() int {
+	return 1
 }
 
 // Tests the actual state machine.
@@ -136,23 +153,63 @@ var testRunTestCases = map[string]testRunTestCase{
 		testCommandArgs: defaultTestCommand,
 		reelFirstResult: &reel.Step{
 			Execute: "ls",
-			Expect:  []string{fakeSentinelOutput()},
+			Expect:  []string{fakeOutput()},
 			Timeout: testTimeoutDuration,
 		},
 		testerResultResult:  tnf.ERROR,
 		expectBatchIsCalled: true,
 		expectBatchBatchResResult: []expect.BatchRes{
 			{
-				Idx:    0,
-				Output: fakeSentinelOutput(),
-				Match:  []string{fakeSentinelOutput()}},
+				Idx:     1,
+				CaseIdx: 0,
+				Output:  fakeSentinelOutput(fakeOutput()),
+				Match:   []string{fakeSentinelOutput(fakeOutput())}},
 		},
 		expectBatchBatchResErr: nil,
 		reelMatchIsCalled:      true,
 		reelMatchPattern:       "",
 		reelMatchBefore:        "",
-		reelMatchMatch:         fakeSentinelOutput(),
+		reelMatchMatch:         fakeOutput(),
 		reelMatchResult:        nil,
+	},
+	"reel_first_only": {
+		testCommandArgs: defaultTestCommand,
+		reelFirstResult: &reel.Step{
+			Execute: "ls",
+			Expect:  []string{fakeOutput()},
+			Timeout: testTimeoutDuration,
+		},
+		testerResultResult:  tnf.ERROR,
+		expectBatchIsCalled: true,
+		expectBatchBatchResResult: []expect.BatchRes{
+			{
+				Idx:     1,
+				CaseIdx: 1,
+				Output:  fakeSentinelOutput(fakeWrongOutput()),
+				Match:   []string{fakeSentinelOutput(fakeWrongOutput())}},
+		},
+		expectBatchBatchResErr: nil,
+		reelMatchIsCalled:      false,
+	},
+	"reel_first_only_with_error_code": {
+		testCommandArgs: defaultTestCommand,
+		reelFirstResult: &reel.Step{
+			Execute: "ls",
+			Expect:  []string{fakeOutput()},
+			Timeout: testTimeoutDuration,
+		},
+		testerResultResult:  tnf.ERROR,
+		expectBatchIsCalled: true,
+		expectBatchBatchResResult: []expect.BatchRes{
+			{
+				Idx:     1,
+				CaseIdx: 1,
+				Output:  fakeSentinelOutputWithReturnCode(fakeWrongOutput(), fakeErrorCode()),
+				Match:   []string{fakeSentinelOutputWithReturnCode(fakeWrongOutput(), fakeErrorCode())}},
+		},
+		expectBatchBatchResErr: nil,
+		reelMatchIsCalled:      false,
+		testRunErr:             fmt.Errorf("error executing command exit code:%d", fakeErrorCode()),
 	},
 }
 
@@ -163,7 +220,7 @@ func TestTest_Run(t *testing.T) {
 
 	for _, testCase := range testRunTestCases {
 		mockExpecter := mock_interactive.NewMockExpecter(ctrl)
-		testCommand := strings.Join(testCase.testCommandArgs, " ") + "\n"
+		testCommand := fmt.Sprintf("%s ; echo %s %s$?\n", strings.Join(testCase.testCommandArgs, " "), reel.EndOfTestSentinel, reel.ExitKeyword)
 		mockExpecter.EXPECT().Send(testCommand).AnyTimes()
 
 		// Only for test cases where ReelMatch(...) is encountered.
@@ -183,13 +240,12 @@ func TestTest_Run(t *testing.T) {
 
 		var expecter expect.Expecter = mockExpecter
 		var errorChannel <-chan error
-		test, err := tnf.NewTest(&expecter, mockTester, []reel.Handler{mockHandler}, errorChannel, reel.DisableTerminalPromptEmulation())
+		test, err := tnf.NewTest(&expecter, mockTester, []reel.Handler{mockHandler}, errorChannel)
 		assert.Nil(t, err)
 		assert.NotNil(t, test)
 		result, err := test.Run()
-		// Since we have no control over the t.runner, just make the assertion that err is nil.  In these cases, it
-		// always should be nil, as it is mocked.
-		assert.Nil(t, err)
+
+		assert.Equal(t, err, testCase.testRunErr)
 		assert.Equal(t, result, testCase.testerResultResult)
 	}
 }

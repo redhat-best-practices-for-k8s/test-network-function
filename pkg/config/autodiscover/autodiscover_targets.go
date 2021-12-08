@@ -17,7 +17,6 @@
 package autodiscover
 
 import (
-	"encoding/json"
 	"strings"
 	"time"
 
@@ -236,7 +235,7 @@ func getClusterCrdNames() ([]string, error) {
 	})
 
 	var crdNamesList []string
-	err := json.Unmarshal([]byte(out), &crdNamesList)
+	err := jsonUnmarshal([]byte(out), &crdNamesList)
 	if err != nil {
 		return nil, err
 	}

@@ -17,13 +17,25 @@
 package tnf
 
 import (
+	"fmt"
 	"time"
 
 	expect "github.com/google/goexpect"
+	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
+	"github.com/sirupsen/logrus"
 	"github.com/test-network-function/test-network-function/pkg/tnf/identifier"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
 )
+
+// ClaimFilePrintf prints to claim and junit report files.
+func ClaimFilePrintf(format string, args ...interface{}) {
+	message := fmt.Sprintf(format+"\n", args...)
+	_, err := ginkgo.GinkgoWriter.Write([]byte(message))
+	if err != nil {
+		logrus.Errorf("Ginkgo writer could not write msg '%s' because: %s", message, err)
+	}
+}
 
 const (
 	// ERROR represents an errored test.

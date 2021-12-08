@@ -82,6 +82,8 @@ func testDefaultNetworkConnectivity(env *config.TestEnvironment, count int) {
 			found := false
 			for _, cut := range env.ContainersUnderTest {
 				if _, ok := env.ContainersToExcludeFromConnectivityTests[cut.ContainerIdentifier]; ok {
+					tnf.ClaimFilePrintf("Skipping container %s because it is excluded from connectivity tests (default)", cut.ContainerConfiguration.PodName)
+
 					continue
 				}
 				found = true
@@ -113,12 +115,14 @@ func testMultusNetworkConnectivity(env *config.TestEnvironment, count int) {
 			found := false
 			for _, cut := range env.ContainersUnderTest {
 				if _, ok := env.ContainersToExcludeFromConnectivityTests[cut.ContainerIdentifier]; ok {
+					tnf.ClaimFilePrintf("Skipping container %s because it is excluded from connectivity tests (multus)", cut.ContainerConfiguration.PodName)
+					continue
+				}
+				if len(cut.ContainerConfiguration.MultusIPAddresses) == 0 {
+					tnf.ClaimFilePrintf("Skipping container %s for multus test because no multus IPs are present", cut.ContainerConfiguration.PodName)
 					continue
 				}
 				found = true
-				if len(cut.ContainerConfiguration.MultusIPAddresses) == 0 {
-					ginkgo.Skip("No Multus IPs detected")
-				}
 
 				for _, multusIPAddress := range cut.ContainerConfiguration.MultusIPAddresses {
 					testOrchestrator := env.TestOrchestrator
@@ -127,9 +131,9 @@ func testMultusNetworkConnectivity(env *config.TestEnvironment, count int) {
 						multusIPAddress))
 					testPing(testOrchestrator.Oc, multusIPAddress, count)
 				}
-				if !found {
-					ginkgo.Skip("No container found suitable for Multus connectivity test")
-				}
+			}
+			if !found {
+				ginkgo.Skip("No container found suitable for Multus connectivity test")
 			}
 		})
 	})

@@ -65,7 +65,7 @@ func (hp *Hugepages) Args() []string {
 	return hp.args
 }
 
-// GetIdentifier returns the tnf.Test specific identifiesa.
+// GetIdentifier returns the tnf.Test specific identifier.
 func (hp *Hugepages) GetIdentifier() identifier.Identifier {
 	return identifier.HugepagesIdentifier
 }

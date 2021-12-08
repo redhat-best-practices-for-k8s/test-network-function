@@ -16,7 +16,7 @@ RUN yum install -y gcc git jq make wget
 
 # Install Go binary
 ENV GO_DL_URL="https://golang.org/dl"
-ENV GO_BIN_TAR="go1.17.3.linux-amd64.tar.gz"
+ENV GO_BIN_TAR="go1.17.4.linux-amd64.tar.gz"
 ENV GO_BIN_URL_x86_64=${GO_DL_URL}/${GO_BIN_TAR}
 ENV GOPATH="/root/go"
 RUN if [[ "$(uname -m)" -eq "x86_64" ]] ; then \
@@ -74,6 +74,8 @@ RUN make install-tools && \
 #  Extract what's needed to run at a seperate location
 RUN mkdir ${TNF_BIN_DIR} && \
 	cp run-cnf-suites.sh ${TNF_DIR} && \
+    mkdir ${TNF_DIR}/script && \
+    cp script/results.html ${TNF_DIR}/script && \
 	# copy all JSON files to allow tests to run
 	cp --parents `find -name \*.json*` ${TNF_DIR} && \
   # copy all go template files to allow tests to run
