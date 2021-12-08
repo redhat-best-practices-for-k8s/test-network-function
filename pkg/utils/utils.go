@@ -81,8 +81,8 @@ func escapeToJSONstringFormat(line string) (string, error) {
 }
 
 // ExecuteCommand uses the generic command handler to execute an arbitrary interactive command, returning
-// its output wihout any other check.
-func ExecuteCommand(command string, timeout time.Duration, context *interactive.Context, failureCallbackFun func()) string {
+// its output without any other check.
+var ExecuteCommand = func(command string, timeout time.Duration, context *interactive.Context, failureCallbackFun func()) string {
 	log.Debugf("Executing command: %s", command)
 
 	values := make(map[string]interface{})
