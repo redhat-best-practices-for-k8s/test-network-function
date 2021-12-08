@@ -378,11 +378,16 @@ func getDeployments(namespace string) (deployments dp.DeploymentMap, notReadyDep
 //nolint:deadcode // to be used in Javier's change
 func collectNodeAndPendingPodInfo(ns string) {
 	context := common.GetContext()
+
 	nodeStatus, _ := utils.ExecuteCommand("oc get nodes -o json | jq '.items[]|{name:.metadata.name, taints:.spec.taints}'", common.DefaultTimeout, context)
 	common.TcClaimLogPrintf("Namespace: %s\nNode status:\n%s", ns, nodeStatus)
-	podStatus, _ := utils.ExecuteCommand("oc get pods -n "+ns+" --field-selector status.phase!=Running -o json | jq '.items[]|{name:.metadata.name, status:.status}'", common.DefaultTimeout, context)
+
+	cmd := fmt.Sprintf("oc get pods -n %s --field-selector=status.phase!=Running,status.phase!=Succeeded -o json | jq '.items[]|{name:.metadata.name, status:.status}'", ns)
+	podStatus, _ := utils.ExecuteCommand(cmd, common.DefaultTimeout, context)
 	common.TcClaimLogPrintf("Pending Pods:\n%s", podStatus)
-	events, _ := utils.ExecuteCommand("oc get events -n "+ns+" -o json --sort-by='.lastTimestamp' | jq '.items[]|{object:.involvedObject, reason:.reason, type:.type, message:.message, lastSeen:.lastTimestamp}'", common.DefaultTimeout, context)
+
+	cmd = fmt.Sprintf("oc get events -n %s --field-selector type!=Normal -o json --sort-by='.lastTimestamp' | jq '.items[]|{object:.involvedObject, reason:.reason, type:.type, message:.message, lastSeen:.lastTimestamp}'", ns)
+	events, _ := utils.ExecuteCommand(cmd, common.DefaultTimeout, context)
 	common.TcClaimLogPrintf("Events:\n%s", events)
 }
 
