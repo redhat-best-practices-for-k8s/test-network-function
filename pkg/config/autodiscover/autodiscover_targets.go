@@ -36,6 +36,8 @@ const (
 	skipConnectivityTestsLabel  = "skip_connectivity_tests"
 	ocGetClusterCrdNamesCommand = "kubectl get crd -o json | jq '[.items[].metadata.name]'"
 	DefaultTimeout              = 10 * time.Second
+	Statefullset                = "statefullset"
+	Deployment                  = "deployment"
 )
 
 var (
@@ -87,13 +89,13 @@ func FindTestTarget(labels []configsections.Label, target *configsections.TestTa
 			target.Operators = append(target.Operators, buildOperatorFromCSVResource(&csv))
 		}
 	}
-	dps := FindTestDeploymentsByLabel(labels, target, "deployment")
+	dps := FindTestDeploymentsByLabel(labels, target, Deployment)
 	for _, dp := range dps {
 		if ns[dp.Namespace] {
 			target.DeploymentsUnderTest = append(target.DeploymentsUnderTest, dp)
 		}
 	}
-	stateFullSet := FindTestDeploymentsByLabel(labels, target, "statefulsets")
+	stateFullSet := FindTestDeploymentsByLabel(labels, target, Statefullset)
 	for _, st := range stateFullSet {
 		if ns[st.Namespace] {
 			target.StateFullSetUnderTest = append(target.StateFullSetUnderTest, st)
@@ -147,18 +149,19 @@ func GetNodesList() (nodes map[string]configsections.Node) {
 
 // FindTestDeploymentsByLabel uses the containers' namespace to get its parent deployment. Filters out non CNF test deployments,
 // currently partner and fs_diff ones.
-func FindTestDeploymentsByLabel(targetLabels []configsections.Label, target *configsections.TestTarget, resourceTypeDeployment string) (deployments []configsections.Deployment) {
+func FindTestDeploymentsByLabel(targetLabels []configsections.Label, target *configsections.TestTarget, resourceTypeDeployment string) (deployments []configsections.PodSet) {
 	for _, label := range targetLabels {
 		deploymentResourceList, err := GetTargetDeploymentsByLabel(label, resourceTypeDeployment)
 		if err != nil {
 			log.Error("Unable to get deployment list  Error: ", err)
 		} else {
 			for _, deploymentResource := range deploymentResourceList.Items {
-				deployment := configsections.Deployment{
+				deployment := configsections.PodSet{
 					Name:      deploymentResource.GetName(),
 					Namespace: deploymentResource.GetNamespace(),
 					Replicas:  deploymentResource.GetReplicas(),
 					Hpa:       deploymentResource.GetHpa(),
+					Type:      configsections.PodSetType(resourceTypeDeployment),
 				}
 
 				deployments = append(deployments, deployment)
@@ -170,18 +173,19 @@ func FindTestDeploymentsByLabel(targetLabels []configsections.Label, target *con
 
 // FindTestDeploymentsByLabelByNamespace uses the containers' namespace to get its parent deployment. Filters out non CNF test deployments,
 // currently partner and fs_diff ones.
-func FindTestDeploymentsByLabelByNamespace(targetLabels []configsections.Label, target *configsections.TestTarget, namespace, resourceTypeDeployment string) (deployments []configsections.Deployment) {
+func FindTestDeploymentsByLabelByNamespace(targetLabels []configsections.Label, target *configsections.TestTarget, namespace, resourceTypeDeployment string) (deployments []configsections.PodSet) {
 	for _, label := range targetLabels {
 		deploymentResourceList, err := GetTargetDeploymentsByNamespace(namespace, label, resourceTypeDeployment)
 		if err != nil {
 			log.Error("Unable to get deployment list from namespace ", namespace, ". Error: ", err)
 		} else {
 			for _, deploymentResource := range deploymentResourceList.Items {
-				deployment := configsections.Deployment{
+				deployment := configsections.PodSet{
 					Name:      deploymentResource.GetName(),
 					Namespace: deploymentResource.GetNamespace(),
 					Replicas:  deploymentResource.GetReplicas(),
 					Hpa:       deploymentResource.GetHpa(),
+					Type:      configsections.PodSetType(resourceTypeDeployment),
 				}
 
 				deployments = append(deployments, deployment)

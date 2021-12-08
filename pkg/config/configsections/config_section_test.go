@@ -101,7 +101,7 @@ func newConfig(configPath string) (*TestConfiguration, error) {
 }
 
 func loadDeploymentsConfig() {
-	test.DeploymentsUnderTest = []Deployment{
+	test.DeploymentsUnderTest = []PodSet{
 		{
 			Name:      deploymentName,
 			Namespace: testNameSpace,

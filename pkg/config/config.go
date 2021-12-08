@@ -151,8 +151,8 @@ type TestEnvironment struct {
 	PartnerContainers     map[configsections.ContainerIdentifier]*Container
 	DebugContainers       map[configsections.ContainerIdentifier]*Container
 	PodsUnderTest         []configsections.Pod
-	DeploymentsUnderTest  []configsections.Deployment
-	StateFullSetUnderTest []configsections.Deployment
+	DeploymentsUnderTest  []configsections.PodSet
+	StateFullSetUnderTest []configsections.PodSet
 	OperatorsUnderTest    []configsections.Operator
 	NameSpacesUnderTest   []string
 	CrdNames              []string

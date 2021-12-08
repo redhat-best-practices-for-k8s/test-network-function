@@ -38,7 +38,7 @@ const (
 	testCrdNameSuffix2 = "test2.com"
 )
 
-func testLoadedDeployments(t *testing.T, deployments []configsections.Deployment) {
+func testLoadedDeployments(t *testing.T, deployments []configsections.PodSet) {
 	assert.Equal(t, len(deployments), testDeploymentsNumber)
 	assert.Equal(t, deployments[0].Name, testDeploymentName)
 	assert.Equal(t, deployments[0].Namespace, testDeploymentNamespace)

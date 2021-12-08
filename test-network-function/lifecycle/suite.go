@@ -147,7 +147,7 @@ func restoreDeployments(env *config.TestEnvironment) {
 	}
 }
 
-func closeOcSessionsByDeployment(containers map[configsections.ContainerIdentifier]*config.Container, deployment configsections.Deployment) {
+func closeOcSessionsByDeployment(containers map[configsections.ContainerIdentifier]*config.Container, deployment configsections.PodSet) {
 	log.Debug("close session for deployment=", deployment.Name, " start")
 	defer log.Debug("close session for deployment=", deployment.Name, " done")
 	for cid, c := range containers {
@@ -161,7 +161,7 @@ func closeOcSessionsByDeployment(containers map[configsections.ContainerIdentifi
 }
 
 // runScalingTest Runs a Scaling handler TC and waits for all the deployments to be ready.
-func runScalingTest(deployment configsections.Deployment) {
+func runScalingTest(deployment configsections.PodSet) {
 	handler := scaling.NewScaling(common.DefaultTimeout, deployment.Namespace, deployment.Name, deployment.Replicas)
 	test, err := tnf.NewTest(common.GetContext().GetExpecter(), handler, []reel.Handler{handler}, common.GetContext().GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
@@ -171,7 +171,7 @@ func runScalingTest(deployment configsections.Deployment) {
 	waitForAllDeploymentsReady(deployment.Namespace, scalingTimeout, scalingPollingPeriod)
 }
 
-func runHpaScalingTest(deployment configsections.Deployment) {
+func runHpaScalingTest(deployment configsections.PodSet) {
 	handler := scaling.NewHpaScaling(common.DefaultTimeout, deployment.Namespace, deployment.Hpa.HpaName, deployment.Hpa.MinReplicas, deployment.Hpa.MaxReplicas)
 	test, err := tnf.NewTest(common.GetContext().GetExpecter(), handler, []reel.Handler{handler}, common.GetContext().GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
@@ -212,7 +212,7 @@ func testStateFullSetScaling(env *config.TestEnvironment) {
 	})
 }
 
-func runScalingfunc(deployment configsections.Deployment, env *config.TestEnvironment) {
+func runScalingfunc(deployment configsections.PodSet, env *config.TestEnvironment) {
 	ginkgo.By(fmt.Sprintf("Scaling Deployment=%s, Replicas=%d (ns=%s)",
 		deployment.Name, deployment.Replicas, deployment.Namespace))
 

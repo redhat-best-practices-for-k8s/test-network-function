@@ -16,10 +16,12 @@
 
 package configsections
 
-// Deployment defines a deployment in the cluster.
-type Deployment struct {
+// PodSet defines a deployment /Statefullset in the cluster.
+type PodSet struct {
 	Name      string
 	Namespace string
 	Replicas  int
 	Hpa       Hpa
+	Type      PodSetType
 }
+type PodSetType string
