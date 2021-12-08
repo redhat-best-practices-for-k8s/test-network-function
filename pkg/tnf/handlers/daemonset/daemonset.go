@@ -55,11 +55,11 @@ func NewDaemonSet(timeout time.Duration, daemonset, namespace string) *DaemonSet
 		result:  tnf.ERROR,
 		args: []string{"oc", "-n", namespace, "get", "ds", daemonset, "-o",
 			"go-template='{{ .spec.template.metadata.name }} ",
-			"{{ .status.desiredNumberScheduled }}",
-			"{{ .status.currentNumberScheduled  }}",
-			"{{ .status.numberAvailable }}",
-			"{{ .status.numberReady }}",
-			"{{ .status.numberMisscheduled }} {{ printf \"\\n\" }}'",
+			"{{ if .status.desiredNumberScheduled}}{{ .status.desiredNumberScheduled }}{{else}}{{\"0\"}}{{end}}",
+			"{{ if .status.currentNumberScheduled}}{{ .status.currentNumberScheduled }}{{else}}{{\"0\"}}{{end}}",
+			"{{ if .status.numberAvailable}}{{ .status.numberAvailable }}{{else}}{{\"0\"}}{{end}}",
+			"{{ if .status.numberReady}}{{ .status.numberReady }}{{else}}{{\"0\"}}{{end}}",
+			"{{ if .status.numberMisscheduled}}{{ .status.numberMisscheduled }}{{else}}{{\"0\"}}{{end}} {{ printf \"\\n\" }}'",
 		},
 		status: Status{},
 	}
@@ -128,19 +128,19 @@ func processResult(status *Status, fields []string) error {
 	}
 	status.Current, err = strconv.Atoi(fields[2])
 	if err != nil {
-		return nil
+		return err
 	}
 	status.Available, err = strconv.Atoi(fields[3])
 	if err != nil {
-		return nil
+		return err
 	}
 	status.Ready, err = strconv.Atoi(fields[4])
 	if err != nil {
-		return nil
+		return err
 	}
 	status.Misscheduled, err = strconv.Atoi(fields[5])
 	if err != nil {
-		return nil
+		return err
 	}
 	return nil
 }

@@ -354,10 +354,13 @@ func (env *TestEnvironment) AttachDebugPodsToNodes() {
 // attach them to debug pods
 func (env *TestEnvironment) discoverNodes() {
 	env.NodesUnderTest = env.createNodes(env.Config.Nodes)
-	env.labelNodes()
 
 	if !autodiscover.IsNonOcpCluster() {
 		expectedDebugPods := 0
+		// Wait for the previous deployment's pod to fully terminate
+		autodiscover.CheckDebugDaemonset(expectedDebugPods)
+		env.labelNodes()
+
 		for _, node := range env.NodesUnderTest {
 			if node.HasDebugPod() {
 				expectedDebugPods++
