@@ -87,10 +87,16 @@ func FindTestTarget(labels []configsections.Label, target *configsections.TestTa
 			target.Operators = append(target.Operators, buildOperatorFromCSVResource(&csv))
 		}
 	}
-	dps := FindTestDeploymentsByLabel(labels, target)
+	dps := FindTestDeploymentsByLabel(labels, target, "deployment")
 	for _, dp := range dps {
 		if ns[dp.Namespace] {
 			target.DeploymentsUnderTest = append(target.DeploymentsUnderTest, dp)
+		}
+	}
+	stateFullSet := FindTestDeploymentsByLabel(labels, target, "statefulsets")
+	for _, st := range stateFullSet {
+		if ns[st.Namespace] {
+			target.StateFullSetUnderTest = append(target.StateFullSetUnderTest, st)
 		}
 	}
 	target.Nodes = GetNodesList()
@@ -141,9 +147,9 @@ func GetNodesList() (nodes map[string]configsections.Node) {
 
 // FindTestDeploymentsByLabel uses the containers' namespace to get its parent deployment. Filters out non CNF test deployments,
 // currently partner and fs_diff ones.
-func FindTestDeploymentsByLabel(targetLabels []configsections.Label, target *configsections.TestTarget) (deployments []configsections.Deployment) {
+func FindTestDeploymentsByLabel(targetLabels []configsections.Label, target *configsections.TestTarget, resourceTypeDeployment string) (deployments []configsections.Deployment) {
 	for _, label := range targetLabels {
-		deploymentResourceList, err := GetTargetDeploymentsByLabel(label)
+		deploymentResourceList, err := GetTargetDeploymentsByLabel(label, resourceTypeDeployment)
 		if err != nil {
 			log.Error("Unable to get deployment list  Error: ", err)
 		} else {
@@ -152,6 +158,7 @@ func FindTestDeploymentsByLabel(targetLabels []configsections.Label, target *con
 					Name:      deploymentResource.GetName(),
 					Namespace: deploymentResource.GetNamespace(),
 					Replicas:  deploymentResource.GetReplicas(),
+					Hpa:       deploymentResource.GetHpa(),
 				}
 
 				deployments = append(deployments, deployment)
@@ -163,9 +170,9 @@ func FindTestDeploymentsByLabel(targetLabels []configsections.Label, target *con
 
 // FindTestDeploymentsByLabelByNamespace uses the containers' namespace to get its parent deployment. Filters out non CNF test deployments,
 // currently partner and fs_diff ones.
-func FindTestDeploymentsByLabelByNamespace(targetLabels []configsections.Label, target *configsections.TestTarget, namespace string) (deployments []configsections.Deployment) {
+func FindTestDeploymentsByLabelByNamespace(targetLabels []configsections.Label, target *configsections.TestTarget, namespace, resourceTypeDeployment string) (deployments []configsections.Deployment) {
 	for _, label := range targetLabels {
-		deploymentResourceList, err := GetTargetDeploymentsByNamespace(namespace, label)
+		deploymentResourceList, err := GetTargetDeploymentsByNamespace(namespace, label, resourceTypeDeployment)
 		if err != nil {
 			log.Error("Unable to get deployment list from namespace ", namespace, ". Error: ", err)
 		} else {

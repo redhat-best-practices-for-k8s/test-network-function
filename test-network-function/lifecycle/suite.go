@@ -107,6 +107,7 @@ var _ = ginkgo.Describe(common.LifecycleTestKey, func() {
 			testPodsRecreation(env)
 
 			testScaling(env)
+			testStateFullSetScaling(env)
 		}
 
 		testOwner(env)
@@ -191,30 +192,50 @@ func testScaling(env *config.TestEnvironment) {
 			ginkgo.Skip("No test deployments found.")
 		}
 		for _, deployment := range env.DeploymentsUnderTest {
-			ginkgo.By(fmt.Sprintf("Scaling Deployment=%s, Replicas=%d (ns=%s)",
-				deployment.Name, deployment.Replicas, deployment.Namespace))
-
-			closeOcSessionsByDeployment(env.ContainersUnderTest, deployment)
-			replicaCount := deployment.Replicas
-			hpa := deployment.Hpa
-			if hpa.HpaName != "" {
-				deployment.Hpa.MinReplicas = replicaCount - 1
-				deployment.Hpa.MaxReplicas = replicaCount - 1
-				runHpaScalingTest(deployment) // scale in
-				deployment.Hpa.MinReplicas = replicaCount
-				deployment.Hpa.MaxReplicas = replicaCount
-				runHpaScalingTest(deployment) // scale out
-			} else {
-				// ScaleIn, removing one pod from the replicaCount
-				deployment.Replicas = replicaCount - 1
-				runScalingTest(deployment)
-
-				// Scaleout, restoring the original replicaCount number
-				deployment.Replicas = replicaCount
-				runScalingTest(deployment)
-			}
+			runScalingfunc(deployment, env)
 		}
 	})
+}
+func testStateFullSetScaling(env *config.TestEnvironment) {
+	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestScalingIdentifier)
+	ginkgo.It(testID, func() {
+		ginkgo.By("Testing statefullset scaling")
+		defer restoreDeployments(env)
+		defer env.SetNeedsRefresh()
+
+		if len(env.StateFullSetUnderTest) == 0 {
+			ginkgo.Skip("No test statefullset found.")
+		}
+		for _, statefullset := range env.StateFullSetUnderTest {
+			runScalingfunc(statefullset, env)
+		}
+	})
+}
+
+func runScalingfunc(deployment configsections.Deployment, env *config.TestEnvironment) {
+	ginkgo.By(fmt.Sprintf("Scaling Deployment=%s, Replicas=%d (ns=%s)",
+		deployment.Name, deployment.Replicas, deployment.Namespace))
+
+	closeOcSessionsByDeployment(env.ContainersUnderTest, deployment)
+	replicaCount := deployment.Replicas
+	hpa := deployment.Hpa
+	if hpa.HpaName != "" {
+		deployment.Hpa.MinReplicas = replicaCount - 1
+		deployment.Hpa.MaxReplicas = replicaCount - 1
+		runHpaScalingTest(deployment) // scale in
+		deployment.Hpa.MinReplicas = replicaCount
+		deployment.Hpa.MaxReplicas = replicaCount
+		runHpaScalingTest(deployment) // scale out
+	} else {
+		// ScaleIn, removing one pod from the replicaCount
+		deployment.Replicas = replicaCount - 1
+		runScalingTest(deployment)
+
+		// Scaleout, restoring the original replicaCount number
+		deployment.Replicas = replicaCount
+		runScalingTest(deployment)
+	}
+
 }
 
 func testNodeSelector(env *config.TestEnvironment) {

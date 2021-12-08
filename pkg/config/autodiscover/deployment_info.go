@@ -28,10 +28,6 @@ import (
 	"github.com/test-network-function/test-network-function/pkg/utils"
 )
 
-const (
-	resourceTypeDeployment = "deployment"
-)
-
 var (
 	jsonUnmarshal     = json.Unmarshal
 	execCommandOutput = func(command string) string {
@@ -98,7 +94,7 @@ func (deployment *DeploymentResource) GetHpa() configsections.Hpa {
 }
 
 // GetTargetDeploymentsByNamespace will return all deployments that have pods with a given label.
-func GetTargetDeploymentsByNamespace(namespace string, targetLabel configsections.Label) (*DeploymentList, error) {
+func GetTargetDeploymentsByNamespace(namespace string, targetLabel configsections.Label, resourceTypeDeployment string) (*DeploymentList, error) {
 	labelQuery := fmt.Sprintf("%q==%q", buildLabelName(targetLabel.Prefix, targetLabel.Name), targetLabel.Value)
 	jqArgs := fmt.Sprintf("'[.items[] | select(.spec.template.metadata.labels.%s)]'", labelQuery)
 	ocCmd := fmt.Sprintf("oc get %s -n %s -o json | jq %s", resourceTypeDeployment, namespace, jqArgs)
@@ -115,7 +111,7 @@ func GetTargetDeploymentsByNamespace(namespace string, targetLabel configsection
 }
 
 // GetTargetDeploymentsByLabel will return all deployments that have pods with a given label.
-func GetTargetDeploymentsByLabel(targetLabel configsections.Label) (*DeploymentList, error) {
+func GetTargetDeploymentsByLabel(targetLabel configsections.Label, resourceTypeDeployment string) (*DeploymentList, error) {
 	labelQuery := fmt.Sprintf("%q==%q", buildLabelName(targetLabel.Prefix, targetLabel.Name), targetLabel.Value)
 	jqArgs := fmt.Sprintf("'[.items[] | select(.spec.template.metadata.labels.%s)]'", labelQuery)
 	ocCmd := fmt.Sprintf("oc get %s -A -o json | jq %s", resourceTypeDeployment, jqArgs)
