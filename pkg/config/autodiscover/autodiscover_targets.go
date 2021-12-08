@@ -156,11 +156,11 @@ func FindTestDeploymentsByLabel(targetLabels []configsections.Label, target *con
 		} else {
 			for _, deploymentResource := range deploymentResourceList.Items {
 				deployment := configsections.PodSet{
-					Name:      deploymentResource.GetName(),
-					Namespace: deploymentResource.GetNamespace(),
-					Replicas:  deploymentResource.GetReplicas(),
-					Hpa:       deploymentResource.GetHpa(),
-					Type:      configsections.PodSetType(resourceTypeDeployment),
+					Name:       deploymentResource.GetName(),
+					Namespace:  deploymentResource.GetNamespace(),
+					Replicas:   deploymentResource.GetReplicas(),
+					Hpa:        deploymentResource.GetHpa(),
+					PodSetType: resourceTypeDeployment,
 				}
 
 				deployments = append(deployments, deployment)

@@ -120,9 +120,9 @@ var _ = ginkgo.Describe(common.LifecycleTestKey, func() {
 	}
 })
 
-func waitForAllDeploymentsReady(namespace string, timeout, pollingPeriod time.Duration) { //nolint:unparam // it is fine to use always the same value for timeout
+func waitForAllDeploymentsReady(namespace string, timeout, pollingPeriod time.Duration, podsettype string) { //nolint:unparam // it is fine to use always the same value for timeout
 	gomega.Eventually(func() []string {
-		_, notReadyDeployments := getDeployments(namespace)
+		_, notReadyDeployments := getDeployments(namespace, podsettype)
 		log.Debugf("Waiting for deployments to get ready, remaining: %d deployments", len(notReadyDeployments))
 		return notReadyDeployments
 	}, timeout, pollingPeriod).Should(gomega.HaveLen(0))
@@ -132,24 +132,36 @@ func waitForAllDeploymentsReady(namespace string, timeout, pollingPeriod time.Du
 func restoreDeployments(env *config.TestEnvironment) {
 	for _, deployment := range env.DeploymentsUnderTest {
 		// For each test deployment in the namespace, refresh the current replicas and compare.
-		deployments, notReadyDeployments := getDeployments(deployment.Namespace)
+		refreshReplicas(deployment, env)
+	}
+}
 
-		if len(notReadyDeployments) > 0 {
-			// Wait until the deployment is ready
-			waitForAllDeploymentsReady(deployment.Namespace, scalingTimeout, scalingPollingPeriod)
-		}
+// restoreDeployments is the last attempt to restore the original test deployments' replicaCount
+func restoreStateFullSet(env *config.TestEnvironment) {
+	for _, statefullset := range env.StateFullSetUnderTest {
+		// For each test deployment in the namespace, refresh the current replicas and compare.
+		refreshReplicas(statefullset, env)
+	}
+}
 
-		if deployment.Hpa.HpaName != "" { // it have hpa and need to update the max min
-			runHpaScalingTest(deployment)
-		}
-		if deployments[deployment.Name].Replicas != deployment.Replicas {
-			log.Warn("Deployment ", deployment.Name, " replicaCount (", deployment.Replicas, ") needs to be restored.")
+func refreshReplicas(podset configsections.PodSet, env *config.TestEnvironment) {
+	deployments, notReadyDeployments := getDeployments(podset.Namespace, podset.PodSetType)
 
-			// Try to scale to the original deployment's replicaCount.
-			runScalingTest(deployment)
+	if len(notReadyDeployments) > 0 {
+		// Wait until the deployment is ready
+		waitForAllDeploymentsReady(podset.Namespace, scalingTimeout, scalingPollingPeriod, podset.PodSetType)
+	}
 
-			env.SetNeedsRefresh()
-		}
+	if podset.Hpa.HpaName != "" { // it have hpa and need to update the max min
+		runHpaScalingTest(podset)
+	}
+	if deployments[podset.Name].Replicas != podset.Replicas {
+		log.Warn("Deployment ", podset.Name, " replicaCount (", podset.Replicas, ") needs to be restored.")
+
+		// Try to scale to the original deployment's replicaCount.
+		runScalingTest(podset)
+
+		env.SetNeedsRefresh()
 	}
 }
 
@@ -174,7 +186,7 @@ func runScalingTest(deployment configsections.PodSet) {
 	test.RunAndValidate()
 
 	// Wait until the deployment is ready
-	waitForAllDeploymentsReady(deployment.Namespace, scalingTimeout, scalingPollingPeriod)
+	waitForAllDeploymentsReady(deployment.Namespace, scalingTimeout, scalingPollingPeriod, deployment.PodSetType)
 }
 
 func runHpaScalingTest(deployment configsections.PodSet) {
@@ -184,7 +196,7 @@ func runHpaScalingTest(deployment configsections.PodSet) {
 	test.RunAndValidate()
 
 	// Wait until the deployment is ready
-	waitForAllDeploymentsReady(deployment.Namespace, scalingTimeout, scalingPollingPeriod)
+	waitForAllDeploymentsReady(deployment.Namespace, scalingTimeout, scalingPollingPeriod, deployment.PodSetType)
 }
 
 func testScaling(env *config.TestEnvironment) {
@@ -206,7 +218,7 @@ func testStateFullSetScaling(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestScalingIdentifier)
 	ginkgo.It(testID, func() {
 		ginkgo.By("Testing statefullset scaling")
-		defer restoreDeployments(env)
+		defer restoreStateFullSet(env)
 		defer env.SetNeedsRefresh()
 
 		if len(env.StateFullSetUnderTest) == 0 {
@@ -331,7 +343,7 @@ func testPodsRecreation(env *config.TestEnvironment) {
 		ginkgo.By(fmt.Sprintf("test deployment in namespace %s", env.NameSpacesUnderTest))
 		for _, ns := range env.NameSpacesUnderTest {
 			var dps dp.DeploymentMap
-			dps, notReadyDeployments = getDeployments(ns)
+			dps, notReadyDeployments = getDeployments(ns, "deployment")
 			for dpKey, dp := range dps {
 				deployments[dpKey] = dp
 			}
@@ -356,9 +368,9 @@ func testPodsRecreation(env *config.TestEnvironment) {
 			// drain node
 			drainNode(n.Name) // should go in this
 			for _, ns := range env.NameSpacesUnderTest {
-				waitForAllDeploymentsReady(ns, scalingTimeout, scalingPollingPeriod)
+				waitForAllDeploymentsReady(ns, scalingTimeout, scalingPollingPeriod, "deployment")
 				// verify deployments are ready again
-				_, notReadyDeployments = getDeployments(ns)
+				_, notReadyDeployments = getDeployments(ns, "deployment")
 				if len(notReadyDeployments) > 0 {
 					uncordonNode(n.Name)
 					ginkgo.Fail(fmt.Sprintf("did not create replicas when node %s is drained", n.Name))
@@ -368,16 +380,16 @@ func testPodsRecreation(env *config.TestEnvironment) {
 
 			for _, ns := range env.NameSpacesUnderTest {
 				// wait for all deployment to be ready otherwise, pods might be unreacheable during the next discovery
-				waitForAllDeploymentsReady(ns, scalingTimeout, scalingPollingPeriod)
+				waitForAllDeploymentsReady(ns, scalingTimeout, scalingPollingPeriod, "deployment")
 			}
 		}
 	})
 }
 
 // getDeployments returns map of deployments and names of not-ready deployments
-func getDeployments(namespace string) (deployments dp.DeploymentMap, notReadyDeployments []string) {
+func getDeployments(namespace, resourceType string) (deployments dp.DeploymentMap, notReadyDeployments []string) {
 	context := common.GetContext()
-	tester := dp.NewDeployments(common.DefaultTimeout, namespace)
+	tester := dp.NewDeployments(common.DefaultTimeout, namespace, resourceType)
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
 	test.RunAndValidate()

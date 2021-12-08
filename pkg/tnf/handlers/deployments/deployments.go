@@ -52,12 +52,12 @@ type Deployments struct {
 }
 
 // NewDeployments creates a new Deployments tnf.Test.
-func NewDeployments(timeout time.Duration, namespace string) *Deployments {
+func NewDeployments(timeout time.Duration, namespace, resourceType string) *Deployments {
 	return &Deployments{
 		timeout:   timeout,
 		namespace: namespace,
 		result:    tnf.ERROR,
-		args: []string{"oc", "-n", namespace, "get", "deployments", "-o", "custom-columns=" +
+		args: []string{"oc", "-n", namespace, "get", resourceType, "-o", "custom-columns=" +
 			"NAME:.metadata.name," +
 			"REPLICAS:.spec.replicas," +
 			"READY:.status.readyReplicas," +

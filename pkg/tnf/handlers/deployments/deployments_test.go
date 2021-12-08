@@ -27,7 +27,7 @@ import (
 )
 
 func Test_NewDeployments(t *testing.T) {
-	newDp := dp.NewDeployments(testTimeoutDuration, testNamespace)
+	newDp := dp.NewDeployments(testTimeoutDuration, testNamespace, deployment)
 	assert.NotNil(t, newDp)
 	assert.Equal(t, testTimeoutDuration, newDp.Timeout())
 	assert.Equal(t, newDp.Result(), tnf.ERROR)
@@ -35,7 +35,7 @@ func Test_NewDeployments(t *testing.T) {
 }
 
 func Test_ReelFirstPositive(t *testing.T) {
-	newDp := dp.NewDeployments(testTimeoutDuration, testNamespace)
+	newDp := dp.NewDeployments(testTimeoutDuration, testNamespace, deployment)
 	assert.NotNil(t, newDp)
 	firstStep := newDp.ReelFirst()
 	re := regexp.MustCompile(firstStep.Expect[0])
@@ -45,7 +45,7 @@ func Test_ReelFirstPositive(t *testing.T) {
 }
 
 func Test_ReelFirstNegative(t *testing.T) {
-	newDp := dp.NewDeployments(testTimeoutDuration, testNamespace)
+	newDp := dp.NewDeployments(testTimeoutDuration, testNamespace, deployment)
 	assert.NotNil(t, newDp)
 	firstStep := newDp.ReelFirst()
 	re := regexp.MustCompile(firstStep.Expect[0])
@@ -54,7 +54,7 @@ func Test_ReelFirstNegative(t *testing.T) {
 }
 
 func Test_ReelMatchSuccess(t *testing.T) {
-	newDp := dp.NewDeployments(testTimeoutDuration, testNamespace)
+	newDp := dp.NewDeployments(testTimeoutDuration, testNamespace, deployment)
 	assert.NotNil(t, newDp)
 	step := newDp.ReelMatch("", "", testInputSuccess)
 	assert.Nil(t, step)
@@ -78,12 +78,13 @@ func Test_ReelMatchSuccess(t *testing.T) {
 
 // Just ensure there are no panics.
 func Test_ReelEof(t *testing.T) {
-	newDp := dp.NewDeployments(testTimeoutDuration, testNamespace)
+	newDp := dp.NewDeployments(testTimeoutDuration, testNamespace, deployment)
 	assert.NotNil(t, newDp)
 	newDp.ReelEOF()
 }
 
 const (
+	deployment               = "deployment"
 	testTimeoutDuration      = time.Second * 2
 	testNamespace            = "testNamespace"
 	testInputError           = ""
