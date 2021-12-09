@@ -124,7 +124,7 @@ func waitForAllDeploymentsReady(namespace string, timeout, pollingPeriod time.Du
 	var notReadyDeployments []string
 
 	for elapsed < timeout {
-		_, notReadyDeployments := getDeployments(namespace)
+		_, notReadyDeployments = getDeployments(namespace)
 		log.Debugf("Waiting for deployments to get ready, remaining: %d deployments", len(notReadyDeployments))
 		if len(notReadyDeployments) == 0 {
 			break
@@ -408,7 +408,6 @@ func getDeployments(namespace string) (deployments dp.DeploymentMap, notReadyDep
 	return deployments, notReadyDeployments
 }
 
-//nolint:deadcode // to be used in Javier's change
 func collectNodeAndPendingPodInfo(ns string) {
 	context := common.GetContext()
 
@@ -429,7 +428,10 @@ func drainNode(node string) {
 	tester := dd.NewDeploymentsDrain(drainTimeout, node)
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
-	test.Run()
+	result, err := test.Run()
+	if err != nil || result == tnf.ERROR {
+		log.Fatalf("Test skipped because of draining node failure - platform issue")
+	}
 }
 
 func uncordonNode(node string) {
