@@ -169,7 +169,7 @@ func refreshReplicas(podset configsections.PodSet, env *config.TestEnvironment) 
 	}
 	key := podset.Namespace + ":" + podset.Name
 	if deployments[key].Replicas != podset.Replicas {
-		log.Warn("Deployment ", podset.Name, " replicaCount (", podset.Replicas, ") needs to be restored.", deployments[podset.Name].Replicas)
+		log.Warn("Deployment ", podset.Name, " replicaCount (", podset.Replicas, ") needs to be restored.")
 
 		// Try to scale to the original deployment's replicaCount.
 		runScalingTest(podset)
