@@ -24,6 +24,7 @@ import (
 	"github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
 	"github.com/test-network-function/test-network-function/pkg/config"
+	"github.com/test-network-function/test-network-function/pkg/config/configsections"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/automountservice"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/clusterrolebinding"
@@ -53,12 +54,6 @@ var (
 		"aspenmesh-",
 	}
 )
-
-// failedPod is a helper type to track pods that fail in each of the TCs.
-type failedPod struct {
-	name      string
-	namespace string
-}
 
 var _ = ginkgo.Describe(common.AccessControlTestKey, func() {
 	conf, _ := ginkgo.GinkgoConfiguration()
@@ -314,13 +309,12 @@ func testServiceAccount(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestPodServiceAccountBestPracticesIdentifier)
 	ginkgo.It(testID, func() {
 		ginkgo.By("Should have a valid ServiceAccount name")
-		failedPods := []failedPod{}
+		failedPods := []configsections.Pod{}
 		for _, podUnderTest := range env.PodsUnderTest {
 			ginkgo.By(fmt.Sprintf("Testing service account for pod %s (ns: %s)", podUnderTest.Name, podUnderTest.Namespace))
-			serviceAccountName := podUnderTest.ServiceAccount
-			if serviceAccountName == "" {
+			if podUnderTest.ServiceAccount == "" {
 				tnf.ClaimFilePrintf("Pod %s (ns: %s) doesn't have a service account name.", podUnderTest.Name, podUnderTest.Namespace)
-				failedPods = append(failedPods, failedPod{name: podUnderTest.Name, namespace: podUnderTest.Namespace})
+				failedPods = append(failedPods, podUnderTest)
 			}
 		}
 		if n := len(failedPods); n > 0 {
@@ -392,7 +386,7 @@ func testAutomountService(env *config.TestEnvironment) {
 func testRoleBindings(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestPodRoleBindingsBestPracticesIdentifier)
 	ginkgo.It(testID, func() {
-		failedPods := []failedPod{}
+		failedPods := []configsections.Pod{}
 		ginkgo.By("Should not have RoleBinding in other namespaces")
 		for _, podUnderTest := range env.PodsUnderTest {
 			podName := podUnderTest.Name
@@ -408,10 +402,10 @@ func testRoleBindings(env *config.TestEnvironment) {
 			gomega.Expect(err).To(gomega.BeNil())
 			test.RunWithCallbacks(nil, func() {
 				tnf.ClaimFilePrintf("FAILURE: Pod %s (ns: %s) roleBindings: %v", podName, podNamespace, rbTester.GetRoleBindings())
-				failedPods = append(failedPods, failedPod{name: podName, namespace: podNamespace})
+				failedPods = append(failedPods, podUnderTest)
 			}, func(err error) {
 				tnf.ClaimFilePrintf("ERROR: Pod %s (ns: %s) roleBindings: %v, error: %v", podName, podNamespace, rbTester.GetRoleBindings(), err)
-				failedPods = append(failedPods, failedPod{name: podName, namespace: podNamespace})
+				failedPods = append(failedPods, podUnderTest)
 			})
 		}
 		if n := len(failedPods); n > 0 {
@@ -425,7 +419,7 @@ func testClusterRoleBindings(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestPodClusterRoleBindingsBestPracticesIdentifier)
 	ginkgo.It(testID, func() {
 		ginkgo.By("Should not have ClusterRoleBindings")
-		failedPods := []failedPod{}
+		failedPods := []configsections.Pod{}
 		for _, podUnderTest := range env.PodsUnderTest {
 			podName := podUnderTest.Name
 			podNamespace := podUnderTest.Namespace
@@ -441,10 +435,10 @@ func testClusterRoleBindings(env *config.TestEnvironment) {
 			test.RunAndValidateWithFailureCallback(func() { log.Info("ClusterRoleBindings: ") })
 			test.RunWithCallbacks(nil, func() {
 				tnf.ClaimFilePrintf("FAILURE: Pod %s (ns: %s) clusterRoleBindings: %v", podName, podNamespace, crbTester.GetClusterRoleBindings())
-				failedPods = append(failedPods, failedPod{name: podName, namespace: podNamespace})
+				failedPods = append(failedPods, podUnderTest)
 			}, func(err error) {
 				tnf.ClaimFilePrintf("ERROR: Pod %s (ns: %s) clusterRoleBindings: %v, error: %v", podName, podNamespace, crbTester.GetClusterRoleBindings(), err)
-				failedPods = append(failedPods, failedPod{name: podName, namespace: podNamespace})
+				failedPods = append(failedPods, podUnderTest)
 			})
 		}
 		if n := len(failedPods); n > 0 {
