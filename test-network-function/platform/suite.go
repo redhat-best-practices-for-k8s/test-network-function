@@ -170,9 +170,9 @@ func testIsRedHatRelease(env *config.TestEnvironment) {
 
 // testContainerIsRedHatRelease tests whether the container attached to oc is Red Hat based.
 func testContainerIsRedHatRelease(cut *config.Container) {
-	podName := cut.Oc.GetPodName()
-	containerName := cut.Oc.GetPodContainerName()
-	context := cut.Oc
+	podName := cut.GetOc().GetPodName()
+	containerName := cut.GetOc().GetPodContainerName()
+	context := cut.GetOc()
 	ginkgo.By(fmt.Sprintf("%s(%s) is checked for Red Hat version", podName, containerName))
 	versionTester := redhat.NewRelease(common.DefaultTimeout)
 	test, err := tnf.NewTest(context.GetExpecter(), versionTester, []reel.Handler{versionTester}, context.GetErrorChannel())
@@ -188,12 +188,12 @@ func testContainersFsDiff(env *config.TestEnvironment) {
 			var badContainers []string
 			var errContainers []string
 			for _, cut := range env.ContainersUnderTest {
-				podName := cut.Oc.GetPodName()
-				containerName := cut.Oc.GetPodContainerName()
-				containerOC := cut.Oc
-				nodeName := cut.ContainerConfiguration.NodeName
+				podName := cut.GetOc().GetPodName()
+				containerName := cut.GetOc().GetPodContainerName()
+				containerOC := cut.GetOc()
+				nodeName := cut.NodeName
 				ginkgo.By(fmt.Sprintf("%s(%s) should not install new packages after starting", podName, containerName))
-				nodeOc := env.NodesUnderTest[nodeName].Oc
+				nodeOc := env.NodesUnderTest[nodeName].DebugContainer.GetOc()
 				test := newContainerFsDiffTest(nodeName, nodeOc, containerOC)
 				var message string
 				test.RunWithCallbacks(nil, func() {
@@ -324,9 +324,9 @@ func testBootParams(env *config.TestEnvironment) {
 	ginkgo.It(testID, func() {
 		context := common.GetContext()
 		for _, cut := range env.ContainersUnderTest {
-			podName := cut.Oc.GetPodName()
-			podNameSpace := cut.Oc.GetPodNamespace()
-			targetContainerOc := cut.Oc
+			podName := cut.GetOc().GetPodName()
+			podNameSpace := cut.GetOc().GetPodNamespace()
+			targetContainerOc := cut.GetOc()
 			testBootParamsHelper(context, podName, podNameSpace, targetContainerOc)
 		}
 	})
@@ -338,7 +338,7 @@ func testBootParamsHelper(context *interactive.Context, podName, podNamespace st
 	mcKernelArgumentsMap := getMcKernelArguments(context, mcName)
 	currentKernelArgsMap := getCurrentKernelCmdlineArgs(targetContainerOc)
 	env := config.GetTestEnvironment()
-	nodeOC := env.NodesUnderTest[nodeName].Oc
+	nodeOC := env.NodesUnderTest[nodeName].DebugContainer.GetOc()
 	grubKernelConfigMap := getGrubKernelArgs(nodeOC)
 
 	for key, mcVal := range mcKernelArgumentsMap {
@@ -366,7 +366,7 @@ func testSysctlConfigsHelper(podName, podNamespace string) {
 	context := common.GetContext()
 	nodeName := getPodNodeName(context, podName, podNamespace)
 	env := config.GetTestEnvironment()
-	nodeOc := env.NodesUnderTest[nodeName].Oc
+	nodeOc := env.NodesUnderTest[nodeName].DebugContainer.GetOc()
 	combinedSysctlSettings := getSysctlConfigArgs(nodeOc)
 	mcName := getMcName(context, nodeName)
 	mcKernelArgumentsMap := getMcKernelArguments(context, mcName)
@@ -400,7 +400,7 @@ func testTainted(env *config.TestEnvironment) {
 			if !node.HasDebugPod() {
 				continue
 			}
-			context := node.Oc
+			context := node.DebugContainer.GetOc()
 			tester := nodetainted.NewNodeTainted(common.DefaultTimeout)
 			test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 			gomega.Expect(err).To(gomega.BeNil())
@@ -505,7 +505,7 @@ func getNodeNumaHugePages(node *config.NodeConfig) (hugepages numaHugePagesPerSi
 	const numRegexFields = 4
 
 	// This command must run inside the node, so we'll need the node's context to run commands inside the debug daemonset pod.
-	context := interactive.NewContext(node.Oc.GetExpecter(), node.Oc.GetErrorChannel())
+	context := interactive.NewContext(node.DebugContainer.GetOc().GetExpecter(), node.DebugContainer.GetOc().GetErrorChannel())
 	var commandErr error
 	hugepagesCmdOut := utils.ExecuteCommandAndValidate(cmd, commandTimeout, context, func() {
 		commandErr = fmt.Errorf("failed to get node %s hugepages per numa", node.Name)
