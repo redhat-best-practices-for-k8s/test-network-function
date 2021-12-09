@@ -71,7 +71,7 @@ func buildLabelQuery(label configsections.Label) string {
 
 var executeOcGetCommand = func(resourceType, labelQuery, namespace string) string {
 	ocCommandToExecute := fmt.Sprintf(ocCommand, resourceType, namespace, labelQuery)
-	match := utils.ExecuteCommand(ocCommandToExecute, ocCommandTimeOut, interactive.GetContext(expectersVerboseModeEnabled), func() {
+	match := utils.ExecuteCommandAndValidate(ocCommandToExecute, ocCommandTimeOut, interactive.GetContext(expectersVerboseModeEnabled), func() {
 		log.Error("can't run command: ", ocCommandToExecute)
 	})
 	return match
@@ -79,7 +79,7 @@ var executeOcGetCommand = func(resourceType, labelQuery, namespace string) strin
 
 var executeOcGetAllCommand = func(resourceType, labelQuery string) string {
 	ocCommandToExecute := fmt.Sprintf(ocAllCommand, resourceType, labelQuery)
-	match := utils.ExecuteCommand(ocCommandToExecute, ocCommandTimeOut, interactive.GetContext(expectersVerboseModeEnabled), func() {
+	match := utils.ExecuteCommandAndValidate(ocCommandToExecute, ocCommandTimeOut, interactive.GetContext(expectersVerboseModeEnabled), func() {
 		log.Error("can't run command: ", ocCommandToExecute)
 	})
 	return match

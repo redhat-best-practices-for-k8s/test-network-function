@@ -82,8 +82,8 @@ func TestFindTestCrdNames(t *testing.T) {
 	}
 
 	// Spoof the executeCommand func
-	origFunc := utils.ExecuteCommand
-	utils.ExecuteCommand = func(command string, timeout time.Duration, context *interactive.Context, failureCallbackFun func()) string {
+	origFunc := utils.ExecuteCommandAndValidate
+	utils.ExecuteCommandAndValidate = func(command string, timeout time.Duration, context *interactive.Context, failureCallbackFun func()) string {
 		fileContents, err := os.ReadFile("testdata/crd_output.json")
 		assert.Nil(t, err)
 		return string(fileContents)
@@ -103,6 +103,6 @@ func TestFindTestCrdNames(t *testing.T) {
 		}
 	}
 
-	utils.ExecuteCommand = origFunc
+	utils.ExecuteCommandAndValidate = origFunc
 	jsonUnmarshal = json.Unmarshal
 }

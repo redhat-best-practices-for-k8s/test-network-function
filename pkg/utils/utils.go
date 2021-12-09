@@ -81,8 +81,37 @@ func escapeToJSONstringFormat(line string) (string, error) {
 }
 
 // ExecuteCommand uses the generic command handler to execute an arbitrary interactive command, returning
-// its output without any other check.
-var ExecuteCommand = func(command string, timeout time.Duration, context *interactive.Context, failureCallbackFun func()) string {
+// its output wihout any filtering/matching if the command is successfully executed
+func ExecuteCommand(command string, timeout time.Duration, context *interactive.Context) (string, error) {
+	tester, test := newGenericCommandTester(command, timeout, context)
+	result, err := test.Run()
+	if result == tnf.SUCCESS && err == nil {
+		genericTest := (*tester).(*generic.Generic)
+		if genericTest != nil {
+			matches := genericTest.Matches
+			if len(matches) == 1 {
+				return genericTest.GetMatches()[0].Match, nil
+			}
+		}
+	}
+	return "", err
+}
+
+// ExecuteCommandAndValidate uses the generic command handler to execute an arbitrary interactive command, returning
+// its output wihout any filtering/matching
+var ExecuteCommandAndValidate = func(command string, timeout time.Duration, context *interactive.Context, failureCallbackFun func()) string {
+	tester, test := newGenericCommandTester(command, timeout, context)
+	test.RunAndValidateWithFailureCallback(failureCallbackFun)
+	genericTest := (*tester).(*generic.Generic)
+	gomega.Expect(genericTest).ToNot(gomega.BeNil())
+
+	matches := genericTest.Matches
+	gomega.Expect(len(matches)).To(gomega.Equal(1))
+	match := genericTest.GetMatches()[0]
+	return match.Match
+}
+
+func newGenericCommandTester(command string, timeout time.Duration, context *interactive.Context) (*tnf.Tester, *tnf.Test) {
 	log.Debugf("Executing command: %s", command)
 
 	values := make(map[string]interface{})
@@ -94,24 +123,15 @@ var ExecuteCommand = func(command string, timeout time.Duration, context *intera
 
 	log.Debugf("Command handler's COMMAND string value: %s", values["COMMAND"])
 
-	tester, handlers := NewGenericTestAndValidate(commandHandlerFilePath, handlerJSONSchemaFilePath, values)
+	tester, handlers := NewGenericTesterAndValidate(commandHandlerFilePath, handlerJSONSchemaFilePath, values)
 	test, err := tnf.NewTest(context.GetExpecter(), *tester, handlers, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
 	gomega.Expect(tester).ToNot(gomega.BeNil())
-
-	test.RunAndValidateWithFailureCallback(failureCallbackFun)
-
-	genericTest := (*tester).(*generic.Generic)
-	gomega.Expect(genericTest).ToNot(gomega.BeNil())
-
-	matches := genericTest.Matches
-	gomega.Expect(len(matches)).To(gomega.Equal(1))
-	match := genericTest.GetMatches()[0]
-	return match.Match
+	return tester, test
 }
 
-// NewGenericTestAndValidate creates a generic handler from the json template with the var map and validate the outcome
-func NewGenericTestAndValidate(templateFile, schemaPath string, values map[string]interface{}) (*tnf.Tester, []reel.Handler) {
+// NewGenericTesterAndValidate creates a generic handler from the json template with the var map and validate the outcome
+func NewGenericTesterAndValidate(templateFile, schemaPath string, values map[string]interface{}) (*tnf.Tester, []reel.Handler) {
 	tester, handlers, result, err := generic.NewGenericFromMap(templateFile, handlerJSONSchemaFilePath, values)
 
 	gomega.Expect(err).To(gomega.BeNil())

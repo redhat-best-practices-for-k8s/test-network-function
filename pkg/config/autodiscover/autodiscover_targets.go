@@ -220,7 +220,7 @@ func getConfiguredOperatorTests() (opTests []string) {
 
 // getClusterCrdNames returns a list of crd names found in the cluster.
 func getClusterCrdNames() ([]string, error) {
-	out := utils.ExecuteCommand(ocGetClusterCrdNamesCommand, ocCommandTimeOut, interactive.GetContext(expectersVerboseModeEnabled), func() {
+	out := utils.ExecuteCommandAndValidate(ocGetClusterCrdNamesCommand, ocCommandTimeOut, interactive.GetContext(expectersVerboseModeEnabled), func() {
 		log.Error("can't run command: ", ocGetClusterCrdNamesCommand)
 	})
 

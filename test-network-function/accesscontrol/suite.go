@@ -24,6 +24,7 @@ import (
 	"github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
 	"github.com/test-network-function/test-network-function/pkg/config"
+	"github.com/test-network-function/test-network-function/pkg/config/configsections"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/automountservice"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/clusterrolebinding"
@@ -192,8 +193,8 @@ func getCrsNamespaces(crdName, crdKind string) (map[string]string, error) {
 
 	gomega.Expect(crdKind).NotTo(gomega.BeEmpty())
 	getCrNamespaceCommand := fmt.Sprintf(ocGetCrNamespaceFormat, crdKind)
-	cmdOut := utils.ExecuteCommand(getCrNamespaceCommand, common.DefaultTimeout, common.GetContext(), func() {
-		tnf.ClaimFilePrintf("CRD %s: Failed to get CRs (kind=%s)", crdName, crdKind)
+	cmdOut := utils.ExecuteCommandAndValidate(getCrNamespaceCommand, common.DefaultTimeout, common.GetContext(), func() {
+		common.TcClaimLogPrintf("CRD %s: Failed to get CRs (kind=%s)", crdName, crdKind)
 	})
 
 	crNamespaces := map[string]string{}
@@ -219,8 +220,8 @@ func testCrsNamespaces(crNames, configNamespaces []string) (invalidCrs map[strin
 	invalidCrs = map[string][]string{}
 	for _, crdName := range crNames {
 		getCrPluralNameCommand := fmt.Sprintf(ocGetCrPluralNameFormat, crdName)
-		crdPluralName := utils.ExecuteCommand(getCrPluralNameCommand, common.DefaultTimeout, common.GetContext(), func() {
-			tnf.ClaimFilePrintf("CRD %s: Failed to get CR plural name.", crdName)
+		crdPluralName := utils.ExecuteCommandAndValidate(getCrPluralNameCommand, common.DefaultTimeout, common.GetContext(), func() {
+			common.TcClaimLogPrintf("CRD %s: Failed to get CR plural name.", crdName)
 		})
 
 		crNamespaces, err := getCrsNamespaces(crdName, crdPluralName)
@@ -240,7 +241,7 @@ func testCrsNamespaces(crNames, configNamespaces []string) (invalidCrs map[strin
 			}
 
 			if !found {
-				tnf.ClaimFilePrintf("CRD: %s (kind:%s) - CR %s has an invalid namespace (%s)", crdName, crdPluralName, crName, namespace)
+				common.TcClaimLogPrintf("CRD: %s (kind:%s) - CR %s has an invalid namespace (%s)", crdName, crdPluralName, crName, namespace)
 				if crNames, exists := invalidCrs[crdName]; exists {
 					invalidCrs[crdName] = append(crNames, crName)
 				} else {
@@ -262,7 +263,7 @@ func testNamespace(env *config.TestEnvironment) {
 				ginkgo.By(fmt.Sprintf("Checking namespace %s", namespace))
 				for _, invalidPrefix := range invalidNamespacePrefixes {
 					if strings.HasPrefix(namespace, invalidPrefix) {
-						tnf.ClaimFilePrintf("Namespace %s has invalid prefix %s", namespace, invalidPrefix)
+						common.TcClaimLogPrintf("Namespace %s has invalid prefix %s", namespace, invalidPrefix)
 						failedNamespaces = append(failedNamespaces, namespace)
 					}
 				}
@@ -276,7 +277,7 @@ func testNamespace(env *config.TestEnvironment) {
 
 			if nonValidPodsNum := len(env.Config.NonValidPods); nonValidPodsNum > 0 {
 				for _, invalidPod := range env.Config.NonValidPods {
-					tnf.ClaimFilePrintf("Pod %s has invalid namespace %s", invalidPod.Name, invalidPod.Namespace)
+					common.TcClaimLogPrintf("Pod %s has invalid namespace %s", invalidPod.Name, invalidPod.Namespace)
 				}
 
 				ginkgo.Fail(fmt.Sprintf("Found %d pods under test belonging to invalid namespaces.", nonValidPodsNum))
@@ -288,7 +289,7 @@ func testNamespace(env *config.TestEnvironment) {
 			if invalidCrsNum := len(invalidCrs); invalidCrsNum > 0 {
 				for crdName, crs := range invalidCrs {
 					for _, crName := range crs {
-						tnf.ClaimFilePrintf("CRD %s - CR %s has an invalid namespace.", crdName, crName)
+						common.TcClaimLogPrintf("CRD %s - CR %s has an invalid namespace.", crdName, crName)
 					}
 				}
 				ginkgo.Fail(fmt.Sprintf("Found %d CRs belonging to invalid namespaces.", invalidCrsNum))
@@ -308,10 +309,17 @@ func testServiceAccount(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestPodServiceAccountBestPracticesIdentifier)
 	ginkgo.It(testID, func() {
 		ginkgo.By("Should have a valid ServiceAccount name")
+		failedPods := []configsections.Pod{}
 		for _, podUnderTest := range env.PodsUnderTest {
-			ginkgo.By(fmt.Sprintf("Testing pod service account %s %s", podUnderTest.Namespace, podUnderTest.Name))
-			serviceAccountName := podUnderTest.ServiceAccount
-			gomega.Expect(serviceAccountName).ToNot(gomega.BeEmpty())
+			ginkgo.By(fmt.Sprintf("Testing service account for pod %s (ns: %s)", podUnderTest.Name, podUnderTest.Namespace))
+			if podUnderTest.ServiceAccount == "" {
+				tnf.ClaimFilePrintf("Pod %s (ns: %s) doesn't have a service account name.", podUnderTest.Name, podUnderTest.Namespace)
+				failedPods = append(failedPods, podUnderTest)
+			}
+		}
+		if n := len(failedPods); n > 0 {
+			log.Debugf("Pods without service account: %+v", failedPods)
+			ginkgo.Fail(fmt.Sprintf("%d pods don't have a service account name.", n))
 		}
 	})
 }
@@ -375,10 +383,10 @@ func testAutomountService(env *config.TestEnvironment) {
 	})
 }
 
-//nolint:dupl
 func testRoleBindings(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestPodRoleBindingsBestPracticesIdentifier)
 	ginkgo.It(testID, func() {
+		failedPods := []configsections.Pod{}
 		ginkgo.By("Should not have RoleBinding in other namespaces")
 		for _, podUnderTest := range env.PodsUnderTest {
 			podName := podUnderTest.Name
@@ -392,16 +400,26 @@ func testRoleBindings(env *config.TestEnvironment) {
 			rbTester := rolebinding.NewRoleBinding(common.DefaultTimeout, serviceAccountName, podNamespace)
 			test, err := tnf.NewTest(context.GetExpecter(), rbTester, []reel.Handler{rbTester}, context.GetErrorChannel())
 			gomega.Expect(err).To(gomega.BeNil())
-			test.RunAndValidateWithFailureCallback(func() { log.Info("RoleBindings: ", rbTester.GetRoleBindings()) })
+			test.RunWithCallbacks(nil, func() {
+				tnf.ClaimFilePrintf("FAILURE: Pod %s (ns: %s) roleBindings: %v", podName, podNamespace, rbTester.GetRoleBindings())
+				failedPods = append(failedPods, podUnderTest)
+			}, func(err error) {
+				tnf.ClaimFilePrintf("ERROR: Pod %s (ns: %s) roleBindings: %v, error: %v", podName, podNamespace, rbTester.GetRoleBindings(), err)
+				failedPods = append(failedPods, podUnderTest)
+			})
+		}
+		if n := len(failedPods); n > 0 {
+			log.Debugf("Pods with role bindings: %+v", failedPods)
+			ginkgo.Fail(fmt.Sprintf("%d pods have role bindings in other namespaces.", n))
 		}
 	})
 }
 
-//nolint:dupl
 func testClusterRoleBindings(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestPodClusterRoleBindingsBestPracticesIdentifier)
 	ginkgo.It(testID, func() {
 		ginkgo.By("Should not have ClusterRoleBindings")
+		failedPods := []configsections.Pod{}
 		for _, podUnderTest := range env.PodsUnderTest {
 			podName := podUnderTest.Name
 			podNamespace := podUnderTest.Namespace
@@ -414,7 +432,18 @@ func testClusterRoleBindings(env *config.TestEnvironment) {
 			crbTester := clusterrolebinding.NewClusterRoleBinding(common.DefaultTimeout, serviceAccountName, podNamespace)
 			test, err := tnf.NewTest(context.GetExpecter(), crbTester, []reel.Handler{crbTester}, context.GetErrorChannel())
 			gomega.Expect(err).To(gomega.BeNil())
-			test.RunAndValidateWithFailureCallback(func() { log.Info("ClusterRoleBindings: ", crbTester.GetClusterRoleBindings()) })
+			test.RunAndValidateWithFailureCallback(func() { log.Info("ClusterRoleBindings: ") })
+			test.RunWithCallbacks(nil, func() {
+				tnf.ClaimFilePrintf("FAILURE: Pod %s (ns: %s) clusterRoleBindings: %v", podName, podNamespace, crbTester.GetClusterRoleBindings())
+				failedPods = append(failedPods, podUnderTest)
+			}, func(err error) {
+				tnf.ClaimFilePrintf("ERROR: Pod %s (ns: %s) clusterRoleBindings: %v, error: %v", podName, podNamespace, crbTester.GetClusterRoleBindings(), err)
+				failedPods = append(failedPods, podUnderTest)
+			})
+		}
+		if n := len(failedPods); n > 0 {
+			log.Debugf("Pods with cluster role bindings: %+v", failedPods)
+			ginkgo.Fail(fmt.Sprintf("%d pods have cluster role bindings.", n))
 		}
 	})
 }
