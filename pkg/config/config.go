@@ -102,7 +102,7 @@ func (n NodeConfig) HasDeployment() bool {
 	return n.deployment
 }
 func (n NodeConfig) HasDebugPod() bool {
-	return n.debug
+	return n.DebugContainer != nil
 }
 
 // DefaultTimeout for creating new interactive sessions (oc, ssh, tty)
@@ -226,7 +226,7 @@ func (env *TestEnvironment) reset() {
 	env.TestOrchestrator = nil
 	// Delete Oc debug sessions before re-creating them
 	for name, node := range env.NodesUnderTest {
-		if node.HasDebugPod() {
+		if node.debug {
 			autodiscover.DeleteDebugLabel(name)
 		}
 	}
@@ -301,7 +301,7 @@ func (env *TestEnvironment) labelNodes() {
 		if node.IsMaster() && masterNode == "" {
 			masterNode = name
 		}
-		if node.IsMaster() && node.HasDebugPod() {
+		if node.IsMaster() && node.debug {
 			masterNode = ""
 			break
 		}
@@ -310,7 +310,7 @@ func (env *TestEnvironment) labelNodes() {
 		if node.IsWorker() && workerNode == "" {
 			workerNode = name
 		}
-		if node.IsWorker() && node.HasDebugPod() {
+		if node.IsWorker() && node.debug {
 			workerNode = ""
 			break
 		}
@@ -323,7 +323,7 @@ func (env *TestEnvironment) labelNodes() {
 	}
 	// label all nodes
 	for nodeName, node := range env.NodesUnderTest {
-		if node.HasDebugPod() {
+		if node.debug {
 			autodiscover.AddDebugLabel(nodeName)
 		}
 	}
@@ -372,7 +372,7 @@ func (env *TestEnvironment) discoverNodes() {
 		env.labelNodes()
 
 		for _, node := range env.NodesUnderTest {
-			if node.HasDebugPod() {
+			if node.debug {
 				expectedDebugPods++
 			}
 		}
