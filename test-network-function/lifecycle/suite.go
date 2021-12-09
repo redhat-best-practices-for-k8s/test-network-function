@@ -120,12 +120,12 @@ var _ = ginkgo.Describe(common.LifecycleTestKey, func() {
 	}
 })
 
-func waitForAllDeploymentsReady(namespace string, timeout, pollingPeriod time.Duration,  podsettype string) int { //nolint:unparam // it is fine to use always the same value for timeout
+func waitForAllDeploymentsReady(namespace string, timeout, pollingPeriod time.Duration, podsettype string) int { //nolint:unparam // it is fine to use always the same value for timeout
 	var elapsed time.Duration
 	var notReadyDeployments []string
 
 	for elapsed < timeout {
-		_, notReadyDeployments = getDeployments(namespace)
+		_, notReadyDeployments = getDeployments(namespace, podsettype)
 		log.Debugf("Waiting for deployments to get ready, remaining: %d deployments", len(notReadyDeployments))
 		if len(notReadyDeployments) == 0 {
 			break
@@ -157,10 +157,10 @@ func refreshReplicas(podset configsections.PodSet, env *config.TestEnvironment) 
 
 	if len(notReadyDeployments) > 0 {
 		// Wait until the deployment is ready
-    notReady := waitForAllDeploymentsReady(podset.Namespace, scalingTimeout, scalingPollingPeriod, string(podset.Type))
+		notReady := waitForAllDeploymentsReady(podset.Namespace, scalingTimeout, scalingPollingPeriod, string(podset.Type))
 		if notReady != 0 {
-			collectNodeAndPendingPodInfo(deployment.Namespace)
-			log.Fatalf("Could not restore deployment replicaCount for namespace %s.", deployment.Namespace)
+			collectNodeAndPendingPodInfo(podset.Namespace)
+			log.Fatalf("Could not restore deployment replicaCount for namespace %s.", podset.Namespace)
 		}
 	}
 
@@ -201,8 +201,8 @@ func runScalingTest(podset configsections.PodSet) {
 	// Wait until the deployment is ready
 	notReady := waitForAllDeploymentsReady(podset.Namespace, scalingTimeout, scalingPollingPeriod, string(podset.Type))
 	if notReady != 0 {
-		collectNodeAndPendingPodInfo(deployment.Namespace)
-		ginkgo.Fail(fmt.Sprintf("Failed to scale deployment for namespace %s.", deployment.Namespace))
+		collectNodeAndPendingPodInfo(podset.Namespace)
+		ginkgo.Fail(fmt.Sprintf("Failed to scale deployment for namespace %s.", podset.Namespace))
 	}
 }
 
@@ -215,8 +215,8 @@ func runHpaScalingTest(podset configsections.PodSet) {
 	// Wait until the deployment is ready
 	notReady := waitForAllDeploymentsReady(podset.Namespace, scalingTimeout, scalingPollingPeriod, string(podset.Type))
 	if notReady != 0 {
-		collectNodeAndPendingPodInfo(deployment.Namespace)
-		ginkgo.Fail(fmt.Sprintf("Failed to auto-scale deployment for namespace %s.", deployment.Namespace))
+		collectNodeAndPendingPodInfo(podset.Namespace)
+		ginkgo.Fail(fmt.Sprintf("Failed to auto-scale deployment for namespace %s.", podset.Namespace))
 	}
 }
 
@@ -252,8 +252,7 @@ func testStateFullSetScaling(env *config.TestEnvironment) {
 }
 
 func runScalingfunc(podset configsections.PodSet, env *config.TestEnvironment) {
-	ginkgo.By(fmt.Sprintf("Scaling Deployment=%s, Replicas=%d (ns=%s)",
-		podset.Name, podset.Replicas, podset.Namespace))
+	ginkgo.By(fmt.Sprintf("Scaling Deployment=%s, Replicas=%d (ns=%s)", podset.Name, podset.Replicas, podset.Namespace))
 
 	closeOcSessionsByDeployment(env.ContainersUnderTest, podset)
 	replicaCount := podset.Replicas
@@ -357,7 +356,7 @@ func shutdownTest(podNamespace, podName string) {
 func cleanupNodeDrain(env *config.TestEnvironment, nodeName string) {
 	uncordonNode(nodeName)
 	for _, ns := range env.NameSpacesUnderTest {
-		notReady := waitForAllDeploymentsReady(ns, scalingTimeout, scalingPollingPeriod)
+		notReady := waitForAllDeploymentsReady(ns, scalingTimeout, scalingPollingPeriod, "deployment")
 		if notReady != 0 {
 			collectNodeAndPendingPodInfo(ns)
 			log.Fatalf("Cleanup after node drain for %s failed, stopping tests to ensure cluster integrity", nodeName)
@@ -373,7 +372,7 @@ func testNodeDrain(env *config.TestEnvironment, nodeName string) {
 	// drain node
 	drainNode(nodeName)
 	for _, ns := range env.NameSpacesUnderTest {
-		notReady := waitForAllDeploymentsReady(ns, scalingTimeout, scalingPollingPeriod)
+		notReady := waitForAllDeploymentsReady(ns, scalingTimeout, scalingPollingPeriod, "deployment")
 		if notReady != 0 {
 			collectNodeAndPendingPodInfo(ns)
 			ginkgo.Fail(fmt.Sprintf("Failed to recover deployments on namespace %s after draining node %s.", ns, nodeName))
