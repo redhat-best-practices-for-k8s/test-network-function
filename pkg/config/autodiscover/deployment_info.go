@@ -31,7 +31,7 @@ import (
 var (
 	jsonUnmarshal     = json.Unmarshal
 	execCommandOutput = func(command string) string {
-		return utils.ExecuteCommand(command, ocCommandTimeOut, interactive.GetContext(expectersVerboseModeEnabled), func() {
+		return utils.ExecuteCommandAndValidate(command, ocCommandTimeOut, interactive.GetContext(expectersVerboseModeEnabled), func() {
 			log.Error("can't run command: ", command)
 		})
 	}
