@@ -23,6 +23,7 @@ import (
 
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
+	log "github.com/sirupsen/logrus"
 	"github.com/test-network-function/test-network-function/pkg/config"
 	"github.com/test-network-function/test-network-function/pkg/config/configsections"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
@@ -69,25 +70,38 @@ var _ = ginkgo.Describe(common.ObservabilityTestKey, func() {
 func testLogging() {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestLoggingIdentifier)
 	ginkgo.It(testID, func() {
+		failedCutIds := []*configsections.ContainerIdentifier{}
 		for _, cut := range env.ContainersUnderTest {
-			ginkgo.By(fmt.Sprintf("Test container: %+v. should emit at least one line of log to stderr/stdout", cut.ContainerIdentifier))
-			loggingTest(cut.ContainerIdentifier)
+			cutIdentifier := &cut.ContainerIdentifier
+			ginkgo.By(fmt.Sprintf("Test container: %+v. should emit at least one line of log to stderr/stdout", cutIdentifier))
+
+			context := common.GetContext()
+
+			values := make(map[string]interface{})
+			values["POD_NAMESPACE"] = cutIdentifier.Namespace
+			values["POD_NAME"] = cutIdentifier.PodName
+			values["CONTAINER_NAME"] = cutIdentifier.ContainerName
+			tester, handlers := utils.NewGenericTesterAndValidate(relativeLoggingTestPath, common.RelativeSchemaPath, values)
+			test, err := tnf.NewTest(context.GetExpecter(), *tester, handlers, context.GetErrorChannel())
+			gomega.Expect(err).To(gomega.BeNil())
+			gomega.Expect(test).ToNot(gomega.BeNil())
+
+			test.RunWithCallbacks(nil, func() {
+				tnf.ClaimFilePrintf("FAILURE: Container: %s (Pod %s ns %s) does not have any line of log to stderr/stdout",
+					cutIdentifier.ContainerName, cutIdentifier.PodName, cutIdentifier.Namespace)
+				failedCutIds = append(failedCutIds, cutIdentifier)
+			}, func(err error) {
+				tnf.ClaimFilePrintf("ERROR: Container: %s (Pod %s) does not have any line of log to stderr/stdout. Error: %v",
+					cutIdentifier.ContainerName, cutIdentifier.PodName, cutIdentifier.Namespace, err)
+				failedCutIds = append(failedCutIds, cutIdentifier)
+			})
+		}
+
+		if n := len(failedCutIds); n > 0 {
+			log.Debugf("Containers without logging: %+v", failedCutIds)
+			ginkgo.Fail(fmt.Sprintf("%d containers don't have any log to stdout/stderr.", n))
 		}
 	})
-}
-func loggingTest(c configsections.ContainerIdentifier) {
-	context := common.GetContext()
-
-	values := make(map[string]interface{})
-	values["POD_NAMESPACE"] = c.Namespace
-	values["POD_NAME"] = c.PodName
-	values["CONTAINER_NAME"] = c.ContainerName
-	tester, handlers := utils.NewGenericTesterAndValidate(relativeLoggingTestPath, common.RelativeSchemaPath, values)
-	test, err := tnf.NewTest(context.GetExpecter(), *tester, handlers, context.GetErrorChannel())
-	gomega.Expect(err).To(gomega.BeNil())
-	gomega.Expect(test).ToNot(gomega.BeNil())
-
-	test.RunAndValidate()
 }
 
 func testCrds() {
@@ -95,6 +109,7 @@ func testCrds() {
 	ginkgo.It(testID, func() {
 		ginkgo.By("CRDs should have a status subresource")
 		context := common.GetContext()
+		failedCrds := []string{}
 		for _, crdName := range env.CrdNames {
 			ginkgo.By("Testing CRD " + crdName)
 
@@ -106,7 +121,19 @@ func testCrds() {
 			test, err := tnf.NewTest(context.GetExpecter(), *tester, handlers, context.GetErrorChannel())
 			gomega.Expect(test).ToNot(gomega.BeNil())
 			gomega.Expect(err).To(gomega.BeNil())
-			test.RunAndValidate()
+
+			test.RunWithCallbacks(nil, func() {
+				tnf.ClaimFilePrintf("FAILURE: CRD %s does not have a status subresource.", crdName)
+				failedCrds = append(failedCrds, crdName)
+			}, func(err error) {
+				tnf.ClaimFilePrintf("FAILURE: CRD %s does not have a status subresource.", crdName)
+				failedCrds = append(failedCrds, crdName)
+			})
+		}
+
+		if n := len(failedCrds); n > 0 {
+			log.Debugf("CRDs without status subresource: %+v", failedCrds)
+			ginkgo.Fail(fmt.Sprintf("%d CRDs don't have status subresource", n))
 		}
 	})
 }
