@@ -245,6 +245,9 @@ func (env *TestEnvironment) ResetOc() {
 		cut.Oc.Close()
 		cut.Oc = nil
 	}
+
+	// Wait to allow "done" signals to propagate.
+	time.Sleep(time.Second * 1)
 }
 
 func (env *TestEnvironment) doAutodiscover() {

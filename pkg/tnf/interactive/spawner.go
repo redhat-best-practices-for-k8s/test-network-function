@@ -55,6 +55,9 @@ type SpawnFunc interface {
 	// Start consult exec.Cmd.Start.
 	Start() error
 
+	// Close calls the exec.Cmd.Kill to stop de program
+	Close() error
+
 	// StdinPipe consult exec.Cmd.StdinPipe
 	StdinPipe() (io.WriteCloser, error)
 
@@ -122,7 +125,7 @@ func (e *ExecSpawnFunc) StderrPipe() (io.Reader, error) {
 	return e.cmd.StderrPipe()
 }
 
-// Wait wraps exec.Cmd.Wait.
+// Close wraps exec.Cmd.Kill.
 func (e *ExecSpawnFunc) Close() error {
 	return e.cmd.Process.Kill()
 }
@@ -293,19 +296,26 @@ func logCmdMirrorPipe(cmdLine string, pipeToMirror io.Reader, name string, trace
 	r, w, _ := os.Pipe()
 	tr := io.TeeReader(originalPipe, w)
 
+	log.Debugf("Creating %s mirror pipe for cmd: %s", name, cmdLine)
 	go func() {
 		buf := bufio.NewReader(tr)
 		for {
 			line, _, err := buf.ReadLine()
+			if err != nil {
+				if err == io.EOF {
+					// Graceful exit: no more to read here.
+					log.Debugf("Stoping %s mirroring pipe for cmd: %s (EOF)", name, cmdLine)
+				} else {
+					// Some Error has happened, report it as warning.
+					log.Warnf("Exiting %s log mirroring goroutine for cmd %s. Error: %s", name, cmdLine, err)
+				}
+				return
+			}
+
 			if trace {
 				log.Trace(name + " for " + cmdLine + " : " + string(line))
 			} else {
 				log.Warn(name + " for " + cmdLine + " : " + string(line))
-			}
-			if err != nil {
-				// Some Error has happened, goroutine about to exit
-				log.Warnf("Exiting %s log mirroring goroutine for cmd %s. Error: %s", name, cmdLine, err)
-				return
 			}
 		}
 	}()
@@ -358,7 +368,8 @@ func (g *GoExpectSpawner) spawnGeneric(spawnFunc *SpawnFunc, stdinPipe io.WriteC
 			return (*spawnFunc).Wait()
 		},
 		Close: func() error {
-			return nil
+			log.Debug("Killing shell cmd: " + strings.Join((*spawnFunc).Args(), " "))
+			return (*spawnFunc).Close()
 		},
 		Check: func() bool {
 			if !(*spawnFunc).IsRunning() {
