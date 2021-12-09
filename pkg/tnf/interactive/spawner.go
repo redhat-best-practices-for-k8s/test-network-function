@@ -55,7 +55,7 @@ type SpawnFunc interface {
 	// Start consult exec.Cmd.Start.
 	Start() error
 
-	// Close calls the exec.Cmd.Kill to stop de program
+	// Close calls the exec.Cmd.Kill to stop the process (shell).
 	Close() error
 
 	// StdinPipe consult exec.Cmd.StdinPipe
