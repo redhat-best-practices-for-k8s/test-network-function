@@ -35,8 +35,6 @@ const (
 	skipConnectivityTestsLabel  = "skip_connectivity_tests"
 	ocGetClusterCrdNamesCommand = "kubectl get crd -o json | jq '[.items[].metadata.name]'"
 	DefaultTimeout              = 10 * time.Second
-	Statefullset                = "StatefulSet"
-	Deployment                  = "deployment"
 )
 
 var (
@@ -88,13 +86,13 @@ func FindTestTarget(labels []configsections.Label, target *configsections.TestTa
 			target.Operators = append(target.Operators, buildOperatorFromCSVResource(&csv))
 		}
 	}
-	dps := FindTestDeploymentsByLabel(labels, target, Deployment)
+	dps := FindTestDeploymentsByLabel(labels, target, string(configsections.Deployment))
 	for _, dp := range dps {
 		if ns[dp.Namespace] {
 			target.DeploymentsUnderTest = append(target.DeploymentsUnderTest, dp)
 		}
 	}
-	stateFullSet := FindTestDeploymentsByLabel(labels, target, Statefullset)
+	stateFullSet := FindTestDeploymentsByLabel(labels, target, string(configsections.StateFullSet))
 	for _, st := range stateFullSet {
 		if ns[st.Namespace] {
 			target.StateFullSetUnderTest = append(target.StateFullSetUnderTest, st)
@@ -152,7 +150,7 @@ func FindTestDeploymentsByLabel(targetLabels []configsections.Label, target *con
 	for _, label := range targetLabels {
 		deploymentResourceList, err := GetTargetDeploymentsByLabel(label, resourceTypeDeployment)
 		Type := configsections.Deployment
-		if resourceTypeDeployment == Statefullset {
+		if resourceTypeDeployment == string(configsections.StateFullSet) {
 			Type = configsections.StateFullSet
 		}
 		if err != nil {
