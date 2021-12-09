@@ -170,8 +170,7 @@ func closeOcSessionsByDeployment(containers map[configsections.ContainerIdentifi
 	for cid, c := range containers {
 		if cid.Namespace == deployment.Namespace && strings.HasPrefix(cid.PodName, deployment.Name+"-") {
 			log.Infof("Closing session to %s %s", cid.PodName, cid.ContainerName)
-			c.Oc.Close()
-			c.Oc = nil
+			c.CloseOc()
 			delete(containers, cid)
 		}
 	}
