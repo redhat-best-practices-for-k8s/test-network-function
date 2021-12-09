@@ -172,5 +172,5 @@ func RunCommandInNode(nodeName string, nodeOc *interactive.Oc, command string, t
 
 // AddNsenterPrefix adds the nsenter command prefix to run inside a container namespace
 func AddNsenterPrefix(containerPID string) string {
-	return "chroot /host nsenter -t " + containerPID + " -n "
+	return "nsenter -t " + containerPID + " -n "
 }
