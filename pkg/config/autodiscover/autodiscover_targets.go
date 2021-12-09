@@ -35,7 +35,7 @@ const (
 	skipConnectivityTestsLabel  = "skip_connectivity_tests"
 	ocGetClusterCrdNamesCommand = "kubectl get crd -o json | jq '[.items[].metadata.name]'"
 	DefaultTimeout              = 10 * time.Second
-	Statefullset                = "statefullset"
+	Statefullset                = "StatefulSet"
 	Deployment                  = "deployment"
 )
 
@@ -151,16 +151,21 @@ func GetNodesList() (nodes map[string]configsections.Node) {
 func FindTestDeploymentsByLabel(targetLabels []configsections.Label, target *configsections.TestTarget, resourceTypeDeployment string) (deployments []configsections.PodSet) {
 	for _, label := range targetLabels {
 		deploymentResourceList, err := GetTargetDeploymentsByLabel(label, resourceTypeDeployment)
+		Type := configsections.Deployment
+		if resourceTypeDeployment == Statefullset {
+			Type = configsections.StateFullSet
+		}
 		if err != nil {
 			log.Error("Unable to get deployment list  Error: ", err)
 		} else {
 			for _, deploymentResource := range deploymentResourceList.Items {
+
 				deployment := configsections.PodSet{
-					Name:       deploymentResource.GetName(),
-					Namespace:  deploymentResource.GetNamespace(),
-					Replicas:   deploymentResource.GetReplicas(),
-					Hpa:        deploymentResource.GetHpa(),
-					PodSetType: resourceTypeDeployment,
+					Name:      deploymentResource.GetName(),
+					Namespace: deploymentResource.GetNamespace(),
+					Replicas:  deploymentResource.GetReplicas(),
+					Hpa:       deploymentResource.GetHpa(),
+					Type:      Type,
 				}
 
 				deployments = append(deployments, deployment)

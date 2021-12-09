@@ -62,7 +62,7 @@ func NewDeployments(timeout time.Duration, namespace, resourceType string) *Depl
 			"REPLICAS:.spec.replicas," +
 			"READY:.status.readyReplicas," +
 			"UPDATED:.status.updatedReplicas," +
-			"AVAILABLE:.status.availableReplicas," +
+			"AVAILABLE:.status.readyReplicas," +
 			"UNAVAILABLE:.status.unavailableReplicas",
 		},
 		deployments: DeploymentMap{},

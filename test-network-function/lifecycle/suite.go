@@ -145,18 +145,19 @@ func restoreStateFullSet(env *config.TestEnvironment) {
 }
 
 func refreshReplicas(podset configsections.PodSet, env *config.TestEnvironment) {
-	deployments, notReadyDeployments := getDeployments(podset.Namespace, podset.PodSetType)
+	deployments, notReadyDeployments := getDeployments(podset.Namespace, string(podset.Type))
 
 	if len(notReadyDeployments) > 0 {
 		// Wait until the deployment is ready
-		waitForAllDeploymentsReady(podset.Namespace, scalingTimeout, scalingPollingPeriod, podset.PodSetType)
+		waitForAllDeploymentsReady(podset.Namespace, scalingTimeout, scalingPollingPeriod, string(podset.Type))
 	}
 
 	if podset.Hpa.HpaName != "" { // it have hpa and need to update the max min
 		runHpaScalingTest(podset)
 	}
-	if deployments[podset.Name].Replicas != podset.Replicas {
-		log.Warn("Deployment ", podset.Name, " replicaCount (", podset.Replicas, ") needs to be restored.")
+	key := podset.Namespace + ":" + podset.Name
+	if deployments[key].Replicas != podset.Replicas {
+		log.Warn("Deployment ", podset.Name, " replicaCount (", podset.Replicas, ") needs to be restored.", deployments[podset.Name].Replicas)
 
 		// Try to scale to the original deployment's replicaCount.
 		runScalingTest(podset)
@@ -179,24 +180,24 @@ func closeOcSessionsByDeployment(containers map[configsections.ContainerIdentifi
 }
 
 // runScalingTest Runs a Scaling handler TC and waits for all the deployments to be ready.
-func runScalingTest(deployment configsections.PodSet) {
-	handler := scaling.NewScaling(common.DefaultTimeout, deployment.Namespace, deployment.Name, deployment.Replicas)
+func runScalingTest(podset configsections.PodSet) {
+	handler := scaling.NewScaling(common.DefaultTimeout, podset.Namespace, podset.Name, podset.Replicas)
 	test, err := tnf.NewTest(common.GetContext().GetExpecter(), handler, []reel.Handler{handler}, common.GetContext().GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
 	test.RunAndValidate()
 
 	// Wait until the deployment is ready
-	waitForAllDeploymentsReady(deployment.Namespace, scalingTimeout, scalingPollingPeriod, deployment.PodSetType)
+	waitForAllDeploymentsReady(podset.Namespace, scalingTimeout, scalingPollingPeriod, string(podset.Type))
 }
 
-func runHpaScalingTest(deployment configsections.PodSet) {
-	handler := scaling.NewHpaScaling(common.DefaultTimeout, deployment.Namespace, deployment.Hpa.HpaName, deployment.Hpa.MinReplicas, deployment.Hpa.MaxReplicas)
+func runHpaScalingTest(podset configsections.PodSet) {
+	handler := scaling.NewHpaScaling(common.DefaultTimeout, podset.Namespace, podset.Hpa.HpaName, podset.Hpa.MinReplicas, podset.Hpa.MaxReplicas)
 	test, err := tnf.NewTest(common.GetContext().GetExpecter(), handler, []reel.Handler{handler}, common.GetContext().GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
 	test.RunAndValidate()
 
 	// Wait until the deployment is ready
-	waitForAllDeploymentsReady(deployment.Namespace, scalingTimeout, scalingPollingPeriod, deployment.PodSetType)
+	waitForAllDeploymentsReady(podset.Namespace, scalingTimeout, scalingPollingPeriod, string(podset.Type))
 }
 
 func testScaling(env *config.TestEnvironment) {
@@ -217,12 +218,12 @@ func testScaling(env *config.TestEnvironment) {
 func testStateFullSetScaling(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestScalingIdentifier)
 	ginkgo.It(testID, func() {
-		ginkgo.By("Testing statefullset scaling")
+		ginkgo.By("Testing StatefulSet scaling")
 		defer restoreStateFullSet(env)
 		defer env.SetNeedsRefresh()
 
 		if len(env.StateFullSetUnderTest) == 0 {
-			ginkgo.Skip("No test statefullset found.")
+			ginkgo.Skip("No test StatefulSet found.")
 		}
 		for _, statefullset := range env.StateFullSetUnderTest {
 			runScalingfunc(statefullset, env)
@@ -230,28 +231,28 @@ func testStateFullSetScaling(env *config.TestEnvironment) {
 	})
 }
 
-func runScalingfunc(deployment configsections.PodSet, env *config.TestEnvironment) {
+func runScalingfunc(podset configsections.PodSet, env *config.TestEnvironment) {
 	ginkgo.By(fmt.Sprintf("Scaling Deployment=%s, Replicas=%d (ns=%s)",
-		deployment.Name, deployment.Replicas, deployment.Namespace))
+		podset.Name, podset.Replicas, podset.Namespace))
 
-	closeOcSessionsByDeployment(env.ContainersUnderTest, deployment)
-	replicaCount := deployment.Replicas
-	hpa := deployment.Hpa
+	closeOcSessionsByDeployment(env.ContainersUnderTest, podset)
+	replicaCount := podset.Replicas
+	hpa := podset.Hpa
 	if hpa.HpaName != "" {
-		deployment.Hpa.MinReplicas = replicaCount - 1
-		deployment.Hpa.MaxReplicas = replicaCount - 1
-		runHpaScalingTest(deployment) // scale in
-		deployment.Hpa.MinReplicas = replicaCount
-		deployment.Hpa.MaxReplicas = replicaCount
-		runHpaScalingTest(deployment) // scale out
+		podset.Hpa.MinReplicas = replicaCount - 1
+		podset.Hpa.MaxReplicas = replicaCount - 1
+		runHpaScalingTest(podset) // scale in
+		podset.Hpa.MinReplicas = replicaCount
+		podset.Hpa.MaxReplicas = replicaCount
+		runHpaScalingTest(podset) // scale out
 	} else {
 		// ScaleIn, removing one pod from the replicaCount
-		deployment.Replicas = replicaCount - 1
-		runScalingTest(deployment)
+		podset.Replicas = replicaCount - 1
+		runScalingTest(podset)
 
 		// Scaleout, restoring the original replicaCount number
-		deployment.Replicas = replicaCount
-		runScalingTest(deployment)
+		podset.Replicas = replicaCount
+		runScalingTest(podset)
 	}
 
 }
