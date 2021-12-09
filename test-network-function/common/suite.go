@@ -40,8 +40,9 @@ var _ = ginkgo.AfterSuite(func() {
 		if !(node.HasDebugPod()) {
 			continue
 		}
-		node.Oc.Close()
-		node.Oc = nil
+		if node.DebugContainer != nil {
+			node.DebugContainer.CloseOc()
+		}
 		autodiscover.DeleteDebugLabel(name)
 	}
 })

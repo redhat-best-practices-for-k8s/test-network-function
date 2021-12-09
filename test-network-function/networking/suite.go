@@ -82,19 +82,19 @@ func testDefaultNetworkConnectivity(env *config.TestEnvironment, count int) {
 			found := false
 			for _, cut := range env.ContainersUnderTest {
 				if _, ok := env.ContainersToExcludeFromConnectivityTests[cut.ContainerIdentifier]; ok {
-					tnf.ClaimFilePrintf("Skipping container %s because it is excluded from connectivity tests (default)", cut.ContainerConfiguration.PodName)
+					tnf.ClaimFilePrintf("Skipping container %s because it is excluded from connectivity tests (default)", cut.PodName)
 
 					continue
 				}
 				found = true
-				context := cut.Oc
+				context := cut.GetOc()
 				testOrchestrator := env.TestOrchestrator
-				ginkgo.By(fmt.Sprintf("a Ping is issued from %s(%s) to %s(%s) %s", testOrchestrator.Oc.GetPodName(),
-					testOrchestrator.Oc.GetPodContainerName(), cut.Oc.GetPodName(), cut.Oc.GetPodContainerName(),
+				ginkgo.By(fmt.Sprintf("a Ping is issued from %s(%s) to %s(%s) %s", testOrchestrator.GetOc().GetPodName(),
+					testOrchestrator.GetOc().GetPodContainerName(), cut.GetOc().GetPodName(), cut.GetOc().GetPodContainerName(),
 					cut.DefaultNetworkIPAddress))
-				testPing(testOrchestrator.Oc, cut.DefaultNetworkIPAddress, count)
-				ginkgo.By(fmt.Sprintf("a Ping is issued from %s(%s) to %s(%s) %s", cut.Oc.GetPodName(),
-					cut.Oc.GetPodContainerName(), testOrchestrator.Oc.GetPodName(), testOrchestrator.Oc.GetPodContainerName(),
+				testPing(testOrchestrator.GetOc(), cut.DefaultNetworkIPAddress, count)
+				ginkgo.By(fmt.Sprintf("a Ping is issued from %s(%s) to %s(%s) %s", cut.GetOc().GetPodName(),
+					cut.GetOc().GetPodContainerName(), testOrchestrator.GetOc().GetPodName(), testOrchestrator.GetOc().GetPodContainerName(),
 					testOrchestrator.DefaultNetworkIPAddress))
 				testPing(context, testOrchestrator.DefaultNetworkIPAddress, count)
 			}
@@ -115,21 +115,21 @@ func testMultusNetworkConnectivity(env *config.TestEnvironment, count int) {
 			found := false
 			for _, cut := range env.ContainersUnderTest {
 				if _, ok := env.ContainersToExcludeFromConnectivityTests[cut.ContainerIdentifier]; ok {
-					tnf.ClaimFilePrintf("Skipping container %s because it is excluded from connectivity tests (multus)", cut.ContainerConfiguration.PodName)
+					tnf.ClaimFilePrintf("Skipping container %s because it is excluded from connectivity tests (multus)", cut.PodName)
 					continue
 				}
-				if len(cut.ContainerConfiguration.MultusIPAddresses) == 0 {
-					tnf.ClaimFilePrintf("Skipping container %s for multus test because no multus IPs are present", cut.ContainerConfiguration.PodName)
+				if len(cut.MultusIPAddresses) == 0 {
+					tnf.ClaimFilePrintf("Skipping container %s for multus test because no multus IPs are present", cut.PodName)
 					continue
 				}
 				found = true
 
-				for _, multusIPAddress := range cut.ContainerConfiguration.MultusIPAddresses {
+				for _, multusIPAddress := range cut.MultusIPAddresses {
 					testOrchestrator := env.TestOrchestrator
-					ginkgo.By(fmt.Sprintf("a Ping is issued from %s(%s) to %s(%s) %s", testOrchestrator.Oc.GetPodName(),
-						testOrchestrator.Oc.GetPodContainerName(), cut.Oc.GetPodName(), cut.Oc.GetPodContainerName(),
+					ginkgo.By(fmt.Sprintf("a Ping is issued from %s(%s) to %s(%s) %s", testOrchestrator.GetOc().GetPodName(),
+						testOrchestrator.GetOc().GetPodContainerName(), cut.GetOc().GetPodName(), cut.GetOc().GetPodContainerName(),
 						multusIPAddress))
-					testPing(testOrchestrator.Oc, multusIPAddress, count)
+					testPing(testOrchestrator.GetOc(), multusIPAddress, count)
 				}
 			}
 			if !found {

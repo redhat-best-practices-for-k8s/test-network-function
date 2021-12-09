@@ -59,18 +59,31 @@ func getConfigurationFilePathFromEnvironment() string {
 // as the reference to the interactive.Oc instance, the reference to the test configuration, and the default network
 // IP address.
 type Container struct {
-	ContainerConfiguration  configsections.ContainerConfig
-	Oc                      *interactive.Oc
+	configsections.ContainerConfig
+	oc                      *interactive.Oc
 	DefaultNetworkIPAddress string
-	ContainerIdentifier     configsections.ContainerIdentifier
+}
+
+func (c *Container) GetOc() *interactive.Oc {
+	if c.oc == nil {
+		c.oc = getOcSession(c.PodName, c.ContainerName, c.Namespace, DefaultTimeout, interactive.Verbose(expectersVerboseModeEnabled), interactive.SendTimeout(DefaultTimeout))
+	}
+	return c.oc
+}
+
+func (c *Container) CloseOc() {
+	if c.oc != nil {
+		c.oc.Close()
+		c.oc = nil
+	}
 }
 
 type NodeConfig struct {
 	// same Name as the one inside Node structure
 	Name string
 	Node configsections.Node
-	// Oc holds shell for debug pod running on the node
-	Oc *interactive.Oc
+	// pointer to the container of the debug pod running on the node
+	DebugContainer *Container
 	// deployment indicates if the node has a deployment
 	deployment bool
 	// debug indicates if the node should have a debug pod
@@ -230,20 +243,17 @@ func (env *TestEnvironment) ResetOc() {
 	for _, node := range env.NodesUnderTest {
 		if node.HasDebugPod() {
 			log.Infof("Closing session to node %s", node.Name)
-			node.Oc.Close()
-			node.Oc = nil
+			node.DebugContainer.CloseOc()
 		}
 	}
 	// Delete all remaining sessions before re-creating them
 	for _, cut := range env.ContainersUnderTest {
-		cut.Oc.Close()
-		cut.Oc = nil
+		cut.CloseOc()
 	}
 
 	// Delete all remaining partner sessions before re-creating them
 	for _, cut := range env.PartnerContainers {
-		cut.Oc.Close()
-		cut.Oc = nil
+		cut.CloseOc()
 	}
 }
 
@@ -325,10 +335,10 @@ func (env *TestEnvironment) createNodes(nodes map[string]configsections.Node) ma
 	defer log.Debug("autodiscovery: create nodes done")
 	nodesConfig := make(map[string]*NodeConfig)
 	for _, n := range nodes {
-		nodesConfig[n.Name] = &NodeConfig{Node: n, Name: n.Name, Oc: nil, deployment: false, debug: false}
+		nodesConfig[n.Name] = &NodeConfig{Node: n, Name: n.Name}
 	}
 	for _, c := range env.ContainersUnderTest {
-		nodeName := c.ContainerConfiguration.NodeName
+		nodeName := c.NodeName
 		if _, ok := nodesConfig[nodeName]; ok {
 			nodesConfig[nodeName].deployment = true
 			nodesConfig[nodeName].debug = true
@@ -342,9 +352,9 @@ func (env *TestEnvironment) createNodes(nodes map[string]configsections.Node) ma
 // attach debug pod session to node session
 func (env *TestEnvironment) AttachDebugPodsToNodes() {
 	for _, c := range env.DebugContainers {
-		nodeName := c.ContainerConfiguration.NodeName
+		nodeName := c.NodeName
 		if _, ok := env.NodesUnderTest[nodeName]; ok {
-			env.NodesUnderTest[nodeName].Oc = c.Oc
+			env.NodesUnderTest[nodeName].DebugContainer = c
 		}
 	}
 }
@@ -393,10 +403,9 @@ func (env *TestEnvironment) createContainers(containerDefinitions []configsectio
 			}
 		}
 		createdContainers[c.ContainerIdentifier] = &Container{
-			ContainerConfiguration:  c,
-			Oc:                      oc,
+			ContainerConfig:         c,
+			oc:                      oc,
 			DefaultNetworkIPAddress: defaultIPAddress,
-			ContainerIdentifier:     c.ContainerIdentifier,
 		}
 	}
 	return createdContainers
