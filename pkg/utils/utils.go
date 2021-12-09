@@ -134,12 +134,7 @@ func RunCommandInContainerNameSpace(nodeName string, nodeOc *interactive.Oc, con
 
 // GetContainerPID gets the container PID from a kubernetes node, Oc and container PID
 func GetContainerPID(nodeName string, nodeOc *interactive.Oc, containerID string, isNonOcp bool) string {
-	command := ""
-	if isNonOcp {
-		command = "chroot /host docker inspect -f '{{.State.Pid}}' " + containerID + " 2>/dev/null"
-	} else {
-		command = "chroot /host crictl inspect --output go-template --template '{{.info.pid}}' " + containerID + " 2>/dev/null"
-	}
+	command := "chroot /host crictl inspect --output go-template --template '{{.info.pid}}' " + containerID + " 2>/dev/null"
 	return RunCommandInNode(nodeName, nodeOc, command, timeoutPid)
 }
 

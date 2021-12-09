@@ -147,8 +147,8 @@ func buildContainersFromPodResource(pr *PodResource) (containers []configsection
 		for _, cs := range pr.Status.ContainerStatuses {
 			if cs.Name == container.ContainerName {
 				container.ContainerUID = ""
-				split:=strings.Split(cs.ContainerID, "//")
-				if len(split)>0 {
+				split := strings.Split(cs.ContainerID, "//")
+				if len(split) > 0 {
 					container.ContainerUID = split[len(split)-1]
 				}
 			}
@@ -166,7 +166,7 @@ func buildContainersFromPodResource(pr *PodResource) (containers []configsection
 
 		containers = append(containers, container)
 	}
-	return
+	return containers
 }
 
 // EnableExpectersVerboseMode enables the verbose mode for expecters (Sent/Match output)
