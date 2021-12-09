@@ -24,6 +24,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
 	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
@@ -45,6 +46,14 @@ var DefaultTimeout = time.Duration(defaultTimeoutSeconds) * time.Second
 
 // LogLevelTraceEnabled is saved to filter some debug trace logs (e.g. expecters Sent/Match)
 var LogLevelTraceEnabled = false
+
+var TcClaimLogPrintf = func(format string, args ...interface{}) {
+	message := fmt.Sprintf(format+"\n", args...)
+	_, err := ginkgo.GinkgoWriter.Write([]byte(message))
+	if err != nil {
+		log.Errorf("Ginkgo writer could not write msg '%s' because: %s", message, err)
+	}
+}
 
 // GetContext spawns a new shell session and returns its context
 func GetContext() *interactive.Context {

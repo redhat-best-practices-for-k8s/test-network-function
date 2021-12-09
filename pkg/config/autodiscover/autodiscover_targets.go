@@ -17,7 +17,6 @@
 package autodiscover
 
 import (
-	"encoding/json"
 	"strings"
 	"time"
 
@@ -221,12 +220,12 @@ func getConfiguredOperatorTests() (opTests []string) {
 
 // getClusterCrdNames returns a list of crd names found in the cluster.
 func getClusterCrdNames() ([]string, error) {
-	out := utils.ExecuteCommand(ocGetClusterCrdNamesCommand, ocCommandTimeOut, interactive.GetContext(expectersVerboseModeEnabled), func() {
+	out := utils.ExecuteCommandAndValidate(ocGetClusterCrdNamesCommand, ocCommandTimeOut, interactive.GetContext(expectersVerboseModeEnabled), func() {
 		log.Error("can't run command: ", ocGetClusterCrdNamesCommand)
 	})
 
 	var crdNamesList []string
-	err := json.Unmarshal([]byte(out), &crdNamesList)
+	err := jsonUnmarshal([]byte(out), &crdNamesList)
 	if err != nil {
 		return nil, err
 	}

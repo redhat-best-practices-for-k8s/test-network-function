@@ -507,7 +507,7 @@ func getNodeNumaHugePages(node *config.NodeConfig) (hugepages numaHugePagesPerSi
 	// This command must run inside the node, so we'll need the node's context to run commands inside the debug daemonset pod.
 	context := interactive.NewContext(node.Oc.GetExpecter(), node.Oc.GetErrorChannel())
 	var commandErr error
-	hugepagesCmdOut := utils.ExecuteCommand(cmd, commandTimeout, context, func() {
+	hugepagesCmdOut := utils.ExecuteCommandAndValidate(cmd, commandTimeout, context, func() {
 		commandErr = fmt.Errorf("failed to get node %s hugepages per numa", node.Name)
 	})
 	if commandErr != nil {
@@ -549,7 +549,7 @@ func getMachineConfig(mcName string) (machineConfig, error) {
 
 	// Local shell context is needed for the command handler.
 	context := common.GetContext()
-	mcJSON := utils.ExecuteCommand(fmt.Sprintf("oc get mc %s -o json", mcName), commandTimeout, context, func() {
+	mcJSON := utils.ExecuteCommandAndValidate(fmt.Sprintf("oc get mc %s -o json", mcName), commandTimeout, context, func() {
 		commandErr = fmt.Errorf("failed to get json machineconfig %s", mcName)
 	})
 	if commandErr != nil {

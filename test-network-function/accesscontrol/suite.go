@@ -193,8 +193,8 @@ func getCrsNamespaces(crdName, crdKind string) (map[string]string, error) {
 
 	gomega.Expect(crdKind).NotTo(gomega.BeEmpty())
 	getCrNamespaceCommand := fmt.Sprintf(ocGetCrNamespaceFormat, crdKind)
-	cmdOut := utils.ExecuteCommand(getCrNamespaceCommand, common.DefaultTimeout, common.GetContext(), func() {
-		tnf.ClaimFilePrintf("CRD %s: Failed to get CRs (kind=%s)", crdName, crdKind)
+	cmdOut := utils.ExecuteCommandAndValidate(getCrNamespaceCommand, common.DefaultTimeout, common.GetContext(), func() {
+		common.TcClaimLogPrintf("CRD %s: Failed to get CRs (kind=%s)", crdName, crdKind)
 	})
 
 	crNamespaces := map[string]string{}
@@ -220,8 +220,8 @@ func testCrsNamespaces(crNames, configNamespaces []string) (invalidCrs map[strin
 	invalidCrs = map[string][]string{}
 	for _, crdName := range crNames {
 		getCrPluralNameCommand := fmt.Sprintf(ocGetCrPluralNameFormat, crdName)
-		crdPluralName := utils.ExecuteCommand(getCrPluralNameCommand, common.DefaultTimeout, common.GetContext(), func() {
-			tnf.ClaimFilePrintf("CRD %s: Failed to get CR plural name.", crdName)
+		crdPluralName := utils.ExecuteCommandAndValidate(getCrPluralNameCommand, common.DefaultTimeout, common.GetContext(), func() {
+			common.TcClaimLogPrintf("CRD %s: Failed to get CR plural name.", crdName)
 		})
 
 		crNamespaces, err := getCrsNamespaces(crdName, crdPluralName)
@@ -241,7 +241,7 @@ func testCrsNamespaces(crNames, configNamespaces []string) (invalidCrs map[strin
 			}
 
 			if !found {
-				tnf.ClaimFilePrintf("CRD: %s (kind:%s) - CR %s has an invalid namespace (%s)", crdName, crdPluralName, crName, namespace)
+				common.TcClaimLogPrintf("CRD: %s (kind:%s) - CR %s has an invalid namespace (%s)", crdName, crdPluralName, crName, namespace)
 				if crNames, exists := invalidCrs[crdName]; exists {
 					invalidCrs[crdName] = append(crNames, crName)
 				} else {
@@ -263,7 +263,7 @@ func testNamespace(env *config.TestEnvironment) {
 				ginkgo.By(fmt.Sprintf("Checking namespace %s", namespace))
 				for _, invalidPrefix := range invalidNamespacePrefixes {
 					if strings.HasPrefix(namespace, invalidPrefix) {
-						tnf.ClaimFilePrintf("Namespace %s has invalid prefix %s", namespace, invalidPrefix)
+						common.TcClaimLogPrintf("Namespace %s has invalid prefix %s", namespace, invalidPrefix)
 						failedNamespaces = append(failedNamespaces, namespace)
 					}
 				}
@@ -277,7 +277,7 @@ func testNamespace(env *config.TestEnvironment) {
 
 			if nonValidPodsNum := len(env.Config.NonValidPods); nonValidPodsNum > 0 {
 				for _, invalidPod := range env.Config.NonValidPods {
-					tnf.ClaimFilePrintf("Pod %s has invalid namespace %s", invalidPod.Name, invalidPod.Namespace)
+					common.TcClaimLogPrintf("Pod %s has invalid namespace %s", invalidPod.Name, invalidPod.Namespace)
 				}
 
 				ginkgo.Fail(fmt.Sprintf("Found %d pods under test belonging to invalid namespaces.", nonValidPodsNum))
@@ -289,7 +289,7 @@ func testNamespace(env *config.TestEnvironment) {
 			if invalidCrsNum := len(invalidCrs); invalidCrsNum > 0 {
 				for crdName, crs := range invalidCrs {
 					for _, crName := range crs {
-						tnf.ClaimFilePrintf("CRD %s - CR %s has an invalid namespace.", crdName, crName)
+						common.TcClaimLogPrintf("CRD %s - CR %s has an invalid namespace.", crdName, crName)
 					}
 				}
 				ginkgo.Fail(fmt.Sprintf("Found %d CRs belonging to invalid namespaces.", invalidCrsNum))
