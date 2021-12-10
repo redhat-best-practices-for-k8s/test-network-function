@@ -164,7 +164,7 @@ func refreshReplicas(podset *configsections.PodSet, env *config.TestEnvironment)
 		}
 	}
 	if podset.Hpa.HpaName != "" { // it have hpa and need to update the max min
-		runHpaScalingTest(podset)
+		runHpaScalingTest(podset, podset.Hpa.MinReplicas, podset.Hpa.MaxReplicas)
 	}
 	key := podset.Namespace + ":" + podset.Name
 	dep, ok := podsets[key]
@@ -208,8 +208,8 @@ func runScalingTest(podset *configsections.PodSet) {
 	}
 }
 
-func runHpaScalingTest(podset *configsections.PodSet) {
-	handler := scaling.NewHpaScaling(common.DefaultTimeout, podset.Namespace, podset.Hpa.HpaName, podset.Hpa.MinReplicas, podset.Hpa.MaxReplicas)
+func runHpaScalingTest(podset *configsections.PodSet, min, max int) {
+	handler := scaling.NewHpaScaling(common.DefaultTimeout, podset.Namespace, podset.Hpa.HpaName, min, max)
 	test, err := tnf.NewTest(common.GetContext().GetExpecter(), handler, []reel.Handler{handler}, common.GetContext().GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
 	test.RunAndValidate()
@@ -233,7 +233,7 @@ func testScaling(env *config.TestEnvironment) {
 			ginkgo.Skip("No test deployments found.")
 		}
 		for i := range env.DeploymentsUnderTest {
-			runScalingfunc(env.DeploymentsUnderTest[i], env)
+			runScalingfunc(&env.DeploymentsUnderTest[i], env)
 		}
 	})
 }
@@ -248,32 +248,32 @@ func testStateFullSetScaling(env *config.TestEnvironment) {
 			ginkgo.Skip("No test StatefulSet found.")
 		}
 		for i := range env.StateFullSetUnderTest {
-			runScalingfunc(env.StateFullSetUnderTest[i], env)
+			runScalingfunc(&env.StateFullSetUnderTest[i], env)
 		}
 	})
 }
 
-func runScalingfunc(podset configsections.PodSet, env *config.TestEnvironment) {
+func runScalingfunc(podset *configsections.PodSet, env *config.TestEnvironment) {
 	ginkgo.By(fmt.Sprintf("Scaling Deployment=%s, Replicas=%d (ns=%s)", podset.Name, podset.Replicas, podset.Namespace))
 
-	closeOcSessionsByDeployment(env.ContainersUnderTest, &podset)
+	closeOcSessionsByDeployment(env.ContainersUnderTest, podset)
 	replicaCount := podset.Replicas
 	podsetscale := podset
 	if podsetscale.Hpa.HpaName != "" {
-		podsetscale.Hpa.MinReplicas = replicaCount - 1
-		podsetscale.Hpa.MaxReplicas = replicaCount - 1
-		runHpaScalingTest(&podsetscale) // scale in
-		podsetscale.Hpa.MinReplicas = replicaCount
-		podsetscale.Hpa.MaxReplicas = replicaCount
-		runHpaScalingTest(&podsetscale) // scale out
+		min := replicaCount - 1
+		max := replicaCount - 1
+		runHpaScalingTest(podsetscale, min, max) // scale in
+		min = replicaCount
+		max = replicaCount
+		runHpaScalingTest(podsetscale, min, max) // scale out
 	} else {
 		// ScaleIn, removing one pod from the replicaCount
 		podset.Replicas = replicaCount - 1
-		runScalingTest(&podset)
+		runScalingTest(podset)
 
 		// Scaleout, restoring the original replicaCount number
 		podset.Replicas = replicaCount
-		runScalingTest(&podset)
+		runScalingTest(podset)
 	}
 }
 
