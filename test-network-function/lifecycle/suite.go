@@ -140,7 +140,7 @@ func waitForAllDeploymentsReady(namespace string, timeout, pollingPeriod time.Du
 func restoreDeployments(env *config.TestEnvironment) {
 	for _, deployment := range env.DeploymentsUnderTest {
 		// For each test deployment in the namespace, refresh the current replicas and compare.
-		refreshReplicas(deployment, env)
+		refreshReplicas(&deployment, env)
 	}
 }
 
@@ -148,11 +148,11 @@ func restoreDeployments(env *config.TestEnvironment) {
 func restoreStateFullSet(env *config.TestEnvironment) {
 	for _, statefullset := range env.StateFullSetUnderTest {
 		// For each test deployment in the namespace, refresh the current replicas and compare.
-		refreshReplicas(statefullset, env)
+		refreshReplicas(&statefullset, env)
 	}
 }
 
-func refreshReplicas(podset configsections.PodSet, env *config.TestEnvironment) {
+func refreshReplicas(podset *configsections.PodSet, env *config.TestEnvironment) {
 	deployments, notReadyDeployments := GetPodSets(podset.Namespace, podset.Type)
 
 	if len(notReadyDeployments) > 0 {
@@ -179,10 +179,9 @@ func refreshReplicas(podset configsections.PodSet, env *config.TestEnvironment) 
 			env.SetNeedsRefresh()
 		}
 	}
-
 }
 
-func closeOcSessionsByDeployment(containers map[configsections.ContainerIdentifier]*config.Container, deployment configsections.PodSet) {
+func closeOcSessionsByDeployment(containers map[configsections.ContainerIdentifier]*config.Container, deployment *configsections.PodSet) {
 	log.Debug("close session for deployment=", deployment.Name, " start")
 	defer log.Debug("close session for deployment=", deployment.Name, " done")
 	for cid, c := range containers {
@@ -196,7 +195,7 @@ func closeOcSessionsByDeployment(containers map[configsections.ContainerIdentifi
 }
 
 // runScalingTest Runs a Scaling handler TC and waits for all the deployments to be ready.
-func runScalingTest(podset configsections.PodSet) {
+func runScalingTest(podset *configsections.PodSet) {
 	handler := scaling.NewScaling(common.DefaultTimeout, podset.Namespace, podset.Name, podset.Replicas)
 	test, err := tnf.NewTest(common.GetContext().GetExpecter(), handler, []reel.Handler{handler}, common.GetContext().GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
@@ -210,7 +209,7 @@ func runScalingTest(podset configsections.PodSet) {
 	}
 }
 
-func runHpaScalingTest(podset configsections.PodSet) {
+func runHpaScalingTest(podset *configsections.PodSet) {
 	handler := scaling.NewHpaScaling(common.DefaultTimeout, podset.Namespace, podset.Hpa.HpaName, podset.Hpa.MinReplicas, podset.Hpa.MaxReplicas)
 	test, err := tnf.NewTest(common.GetContext().GetExpecter(), handler, []reel.Handler{handler}, common.GetContext().GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
@@ -235,7 +234,7 @@ func testScaling(env *config.TestEnvironment) {
 			ginkgo.Skip("No test deployments found.")
 		}
 		for _, deployment := range env.DeploymentsUnderTest {
-			runScalingfunc(deployment, env)
+			runScalingfunc(&deployment, env)
 		}
 	})
 }
@@ -250,12 +249,12 @@ func testStateFullSetScaling(env *config.TestEnvironment) {
 			ginkgo.Skip("No test StatefulSet found.")
 		}
 		for _, statefullset := range env.StateFullSetUnderTest {
-			runScalingfunc(statefullset, env)
+			runScalingfunc(&statefullset, env)
 		}
 	})
 }
 
-func runScalingfunc(podset configsections.PodSet, env *config.TestEnvironment) {
+func runScalingfunc(podset *configsections.PodSet, env *config.TestEnvironment) {
 	ginkgo.By(fmt.Sprintf("Scaling Deployment=%s, Replicas=%d (ns=%s)", podset.Name, podset.Replicas, podset.Namespace))
 
 	closeOcSessionsByDeployment(env.ContainersUnderTest, podset)
@@ -277,7 +276,6 @@ func runScalingfunc(podset configsections.PodSet, env *config.TestEnvironment) {
 		podset.Replicas = replicaCount
 		runScalingTest(podset)
 	}
-
 }
 
 func testNodeSelector(env *config.TestEnvironment) {
@@ -433,7 +431,7 @@ func GetPodSets(namespace string, resourceType configsections.PodSetType) (podse
 
 	podsets = tester.GetPodSets()
 	for name, d := range podsets {
-		if d.Unavailable != 0 || d.Ready != d.Replicas || resourceType == "deployment" && d.Available != d.Replicas || resourceType == "StatefulSet" && d.Current != d.Replicas || d.UpToDate != d.Replicas {
+		if d.Unavailable != 0 || d.Ready != d.Replicas || resourceType == configsections.Deployment && d.Available != d.Replicas || resourceType == configsections.StateFullSet && d.Current != d.Replicas || d.UpToDate != d.Replicas {
 			notReadypodsets = append(notReadypodsets, name)
 			log.Tracef("deployment %s: not ready", name)
 		} else {

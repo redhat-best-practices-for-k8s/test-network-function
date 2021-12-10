@@ -117,7 +117,7 @@ func TestGetTargetDeploymentByNamespace(t *testing.T) {
 			Prefix: "prefix1",
 			Name:   "name1",
 			Value:  "value1",
-		}, "deploymnet")
+		}, string(configsections.Deployment))
 		if !tc.badExec && !tc.badJSONUnmarshal {
 			assert.NotNil(t, list)
 			assert.Equal(t, "my-test1", list.Items[0].Metadata.Name)

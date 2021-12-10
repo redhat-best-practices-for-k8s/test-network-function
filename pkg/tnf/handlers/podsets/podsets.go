@@ -130,12 +130,12 @@ func (ps *PodSets) ReelMatch(_, _, match string) *reel.Step {
 }
 
 // ReelTimeout does nothing;  no action is necessary upon timeout.
-func (dp *PodSets) ReelTimeout() *reel.Step {
+func (ps *PodSets) ReelTimeout() *reel.Step {
 	return nil
 }
 
 // ReelEOF does nothing;  no action is necessary upon EOF.
-func (dp *PodSets) ReelEOF() {
+func (ps *PodSets) ReelEOF() {
 }
 
 func atoi(s string) int {

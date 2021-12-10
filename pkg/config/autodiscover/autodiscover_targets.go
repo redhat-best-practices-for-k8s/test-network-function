@@ -157,7 +157,6 @@ func FindTestDeploymentsByLabel(targetLabels []configsections.Label, target *con
 			log.Error("Unable to get deployment list  Error: ", err)
 		} else {
 			for _, deploymentResource := range deploymentResourceList.Items {
-
 				deployment := configsections.PodSet{
 					Name:      deploymentResource.GetName(),
 					Namespace: deploymentResource.GetNamespace(),

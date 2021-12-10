@@ -62,10 +62,10 @@ func Test_ReelMatchSuccess(t *testing.T) {
 	assert.Len(t, newDp.GetPodSets(), testInputSuccessNumLines)
 
 	expectedDeployments := ps.PodSetMap{
-		"testNamespace:cdi-apiserver":                   {1, 1, 1, 1, 0, 1},
-		"testNamespace:hyperconverged-cluster-operator": {1, 0, 1, 0, 1, 1},
-		"testNamespace:virt-api":                        {2, 2, 2, 2, 0, 1},
-		"testNamespace:vm-import-operator":              {0, 0, 0, 0, 0, 1},
+		"testNamespace:cdi-apiserver":                   {1, 1, 1, 1, 0, 0},
+		"testNamespace:hyperconverged-cluster-operator": {1, 0, 1, 0, 1, 0},
+		"testNamespace:virt-api":                        {2, 2, 2, 2, 0, 0},
+		"testNamespace:vm-import-operator":              {0, 0, 0, 0, 0, 0},
 	}
 	deployments := newDp.GetPodSets()
 
@@ -90,21 +90,21 @@ const (
 	testInputError           = ""
 	testInputSuccessNumLines = 17
 	testInputSuccess         = `NAME                                 REPLICAS   READY    UPDATED   AVAILABLE   UNAVAILABLE  CURRENT 
-	cdi-apiserver                        1          1        1         1           <none>           1
-	cdi-deployment                       1          1        1         1           <none>           1
-	cdi-operator                         1          1        1         1           <none>           1
-	cdi-uploadproxy                      1          1        1         1           <none>           1
-	cluster-network-addons-operator      1          1        1         1           <none>           1
-	hostpath-provisioner-operator        1          1        1         1           <none>           1
-	hyperconverged-cluster-operator      1          <none>   1         <none>      1                1
-	kubemacpool-mac-controller-manager   1          1        1         1           <none>           1
-	kubevirt-ssp-operator                1          <none>   1         <none>      1                1
-	nmstate-webhook                      2          2        2         2           <none>           1
-	node-maintenance-operator            1          <none>   1         <none>      1                1
-	v2v-vmware                           1          1        1         1           <none>           1
-	virt-api                             2          2        2         2           <none>           1
-	virt-controller                      2          2        2         2           <none>           1
-	virt-operator                        2          2        2         2           <none>           1
-	virt-template-validator              2          2        2         2           <none>           1
-	vm-import-operator                   0          <none>   <none>    <none>      <none>           1`
+	cdi-apiserver                        1          1        1         1           <none>           <none>
+	cdi-deployment                       1          1        1         1           <none>           <none>
+	cdi-operator                         1          1        1         1           <none>           <none>
+	cdi-uploadproxy                      1          1        1         1           <none>           <none>
+	cluster-network-addons-operator      1          1        1         1           <none>           <none>
+	hostpath-provisioner-operator        1          1        1         1           <none>           <none>
+	hyperconverged-cluster-operator      1          <none>   1         <none>      1                <none>
+	kubemacpool-mac-controller-manager   1          1        1         1           <none>           <none>
+	kubevirt-ssp-operator                1          <none>   1         <none>      1                <none>
+	nmstate-webhook                      2          2        2         2           <none>           <none>
+	node-maintenance-operator            1          <none>   1         <none>      1                <none>
+	v2v-vmware                           1          1        1         1           <none>           <none>
+	virt-api                             2          2        2         2           <none>           <none>
+	virt-controller                      2          2        2         2           <none>           <none>
+	virt-operator                        2          2        2         2           <none>           <none>
+	virt-template-validator              2          2        2         2           <none>           <none>
+	vm-import-operator                   0          <none>   <none>    <none>      <none>           <none>`
 )
