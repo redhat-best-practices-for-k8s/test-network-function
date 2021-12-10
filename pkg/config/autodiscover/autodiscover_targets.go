@@ -146,9 +146,9 @@ func GetNodesList() (nodes map[string]configsections.Node) {
 
 // FindTestDeploymentsByLabel uses the containers' namespace to get its parent deployment. Filters out non CNF test deployments,
 // currently partner and fs_diff ones.
-func FindTestDeploymentsByLabel(targetLabels []configsections.Label, target *configsections.TestTarget, resourceTypeDeployment string) (deployments []configsections.PodSet) {
+func FindTestDeploymentsByLabel(targetLabels []configsections.Label, target *configsections.TestTarget, resourceTypeDeployment string) (podsets []configsections.PodSet) {
 	for _, label := range targetLabels {
-		deploymentResourceList, err := GetTargetDeploymentsByLabel(label, resourceTypeDeployment)
+		podsetResourceList, err := GetTargetPodSetsByLabel(label, resourceTypeDeployment)
 		Type := configsections.Deployment
 		if resourceTypeDeployment == string(configsections.StateFullSet) {
 			Type = configsections.StateFullSet
@@ -156,20 +156,20 @@ func FindTestDeploymentsByLabel(targetLabels []configsections.Label, target *con
 		if err != nil {
 			log.Error("Unable to get deployment list  Error: ", err)
 		} else {
-			for _, deploymentResource := range deploymentResourceList.Items {
-				deployment := configsections.PodSet{
-					Name:      deploymentResource.GetName(),
-					Namespace: deploymentResource.GetNamespace(),
-					Replicas:  deploymentResource.GetReplicas(),
-					Hpa:       deploymentResource.GetHpa(),
+			for _, podsetResource := range podsetResourceList.Items {
+				podset := configsections.PodSet{
+					Name:      podsetResource.GetName(),
+					Namespace: podsetResource.GetNamespace(),
+					Replicas:  podsetResource.GetReplicas(),
+					Hpa:       podsetResource.GetHpa(),
 					Type:      Type,
 				}
 
-				deployments = append(deployments, deployment)
+				podsets = append(podsets, podset)
 			}
 		}
 	}
-	return deployments
+	return podsets
 }
 
 // buildPodUnderTest builds a single `configsections.Pod` from a PodResource
