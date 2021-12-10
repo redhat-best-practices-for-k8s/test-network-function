@@ -36,6 +36,6 @@ func TestBuildPodUnderTest(t *testing.T) {
 	assert.Equal(t, []string{}, orchestratorPod.Tests)
 
 	assert.Equal(t, "tnf", subjectPod.Namespace)
-	assert.Equal(t, "test", subjectPod.Name)
+	assert.Equal(t, "I'mAPodName", subjectPod.Name)
 	assert.Equal(t, []string{"OneTestName", "AnotherTestName"}, subjectPod.Tests)
 }

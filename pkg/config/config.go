@@ -365,24 +365,22 @@ func (env *TestEnvironment) AttachDebugPodsToNodes() {
 func (env *TestEnvironment) discoverNodes() {
 	env.NodesUnderTest = env.createNodes(env.Config.Nodes)
 
-	if !autodiscover.IsNonOcpCluster() {
-		expectedDebugPods := 0
-		// Wait for the previous deployment's pod to fully terminate
-		autodiscover.CheckDebugDaemonset(expectedDebugPods)
-		env.labelNodes()
+	expectedDebugPods := 0
+	// Wait for the previous deployment's pod to fully terminate
+	autodiscover.CheckDebugDaemonset(expectedDebugPods)
+	env.labelNodes()
 
-		for _, node := range env.NodesUnderTest {
-			if node.debug {
-				expectedDebugPods++
-			}
+	for _, node := range env.NodesUnderTest {
+		if node.debug {
+			expectedDebugPods++
 		}
-		autodiscover.CheckDebugDaemonset(expectedDebugPods)
-		autodiscover.FindDebugPods(&env.Config.Partner)
-		for _, debugPod := range env.Config.Partner.ContainersDebugList {
-			env.ContainersToExcludeFromConnectivityTests[debugPod.ContainerIdentifier] = ""
-		}
-		env.DebugContainers = env.createContainers(env.Config.Partner.ContainersDebugList)
 	}
+	autodiscover.CheckDebugDaemonset(expectedDebugPods)
+	autodiscover.FindDebugPods(&env.Config.Partner)
+	for _, debugPod := range env.Config.Partner.ContainersDebugList {
+		env.ContainersToExcludeFromConnectivityTests[debugPod.ContainerIdentifier] = ""
+	}
+	env.DebugContainers = env.createContainers(env.Config.Partner.ContainersDebugList)
 
 	env.AttachDebugPodsToNodes()
 }

@@ -17,9 +17,6 @@
 package autodiscover
 
 import (
-	"os"
-	"strconv"
-
 	log "github.com/sirupsen/logrus"
 	"github.com/test-network-function/test-network-function/pkg/config/configsections"
 )
@@ -28,11 +25,6 @@ const (
 	genericLabelName  = "generic"
 	orchestratorValue = "orchestrator"
 )
-
-func IsNonOcpCluster() bool {
-	minikube, _ := strconv.ParseBool(os.Getenv("TNF_NON_OCP_CLUSTER"))
-	return minikube
-}
 
 // FindTestPartner completes a `configsections.TestPartner` from the current state of the cluster,
 // using labels and annotations to populate the data, if it's not fully configured
