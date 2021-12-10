@@ -94,13 +94,13 @@ func FindTestTarget(labels []configsections.Label, target *configsections.TestTa
 }
 
 // func for appending the pod sets
-func AppendPodsets(podsets []configsections.PodSet, ns map[string]bool) (PodSet []configsections.PodSet) {
+func AppendPodsets(podsets []configsections.PodSet, ns map[string]bool) (podSet []configsections.PodSet) {
 	for _, ps := range podsets {
 		if ns[ps.Namespace] {
-			PodSet = append(PodSet, ps)
+			podSet = append(podSet, ps)
 		}
 	}
-	return PodSet
+	return podSet
 }
 
 // GetNodesList Function that return a list of node and what is the type of them.
