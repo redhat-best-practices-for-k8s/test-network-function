@@ -290,7 +290,7 @@ control over the outputs, see the output of `test-network-function.test --help`.
 cd test-network-function && ./test-network-function.test --help
 ```
 
-*Gotcha:* The generic test suite requires that the CNF has both `ping` and `ip` binaries installed.  Please add them
+*Gotcha:* The generic test suite requires that the CNF has the `ip` binariy installed.  Please add them
 manually if the CNF under test does not include these.  Automated installation of missing dependencies is targeted
 for a future version.
 *Gotcha:* check that OCP cluster has resources to deploy [debug image](#check-cluster-resources)
@@ -522,9 +522,9 @@ For example:
 TNF_DEFAULT_BUFFER_SIZE=32768 ./run-cnf-suites.sh -f diagnostic
 ```
 
-## Issue-161 Some containers under test do not contain `ping` or `ip` binary utilities
+## Issue-161 Some containers under test do not contain `ip` binary
 
-In some cases, containers do not provide ping or ip binary utilities. Since these binaries are required for the
+In some cases, containers do not provide ip binary utilities. Since this binary is required for the
 connectivity tests, we must exclude such containers from the connectivity test suite.  In order to exclude these
 containers, please add the following to `test-network-function/tnf_config.yml`:
 
@@ -535,4 +535,4 @@ excludeContainersFromConnectivityTests:
     containerName: <containerName>
 ```
 
-Note:  Future work may involve installing missing binary dependencies.
+Note:  Future work may involve bypassing missing ip utility.
