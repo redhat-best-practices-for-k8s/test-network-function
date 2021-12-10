@@ -73,14 +73,11 @@ func (testContext netTestContext) String() (output string) {
 	return
 }
 
-func (cip containerIP) String() (output string) {
-	output = fmt.Sprintf("%s ( node:%s ns:%s podName:%s containerName:%s containerUID:%s )",
+func (cip *containerIP) String() (output string) {
+	output = fmt.Sprintf("%s ( %s )",
 		cip.ip,
-		cip.containerIdentifier.NodeName,
-		cip.containerIdentifier.Namespace,
-		cip.containerIdentifier.PodName,
-		cip.containerIdentifier.ContainerName,
-		cip.containerIdentifier.ContainerUID)
+		cip.containerIdentifier.String(),
+	)
 	return
 }
 
@@ -190,6 +187,7 @@ func runNetworkingTests(netsUnderTest map[string]netTestContext, count int) {
 			testPing(netUnderTest.testerContainerNodeOc,
 				netUnderTest.testerSource.containerIdentifier.NodeName,
 				netUnderTest.testerSource.containerIdentifier.ContainerUID,
+				netUnderTest.testerSource.containerIdentifier.ContainerRuntime,
 				aDestIP.ip,
 				count)
 		}
@@ -241,14 +239,14 @@ func testMultusNetworkConnectivity(env *config.TestEnvironment, count int) {
 }
 
 // Test that a container can ping a target IP address.
-func testPing(initiatingPodNodeOc *interactive.Oc, nodeName, containerID, targetPodIPAddress string, count int) {
+func testPing(initiatingPodNodeOc *interactive.Oc, nodeName, containerID, runtime, targetPodIPAddress string, count int) {
 	log.Infof("Sending ICMP traffic(%s to %s)", initiatingPodNodeOc.GetPodName(), targetPodIPAddress)
 	env := config.GetTestEnvironment()
 	gomega.Expect(env).To(gomega.Not(gomega.BeNil()))
 	gomega.Expect(env.NodesUnderTest[nodeName]).To(gomega.Not(gomega.BeNil()))
 	gomega.Expect(env.NodesUnderTest[nodeName].DebugContainer.GetOc()).To(gomega.Not(gomega.BeNil()))
 	nodeOc := env.NodesUnderTest[nodeName].DebugContainer.GetOc()
-	containerPID := utils.GetContainerPID(nodeName, nodeOc, containerID, common.IsNonOcpCluster())
+	containerPID := utils.GetContainerPID(nodeName, nodeOc, containerID, runtime)
 	pingTester := ping.NewPingNsenter(common.DefaultTimeout, containerPID, targetPodIPAddress, count)
 	test, err := tnf.NewTest(initiatingPodNodeOc.GetExpecter(), pingTester, []reel.Handler{pingTester}, initiatingPodNodeOc.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())

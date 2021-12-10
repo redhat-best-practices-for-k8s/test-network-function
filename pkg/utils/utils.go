@@ -3,12 +3,14 @@ package utils
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 	"path"
 	"path/filepath"
 	"strings"
 	"time"
 
+	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
@@ -146,19 +148,22 @@ func NewGenericTesterAndValidate(templateFile, schemaPath string, values map[str
 // RunCommandInContainerNameSpace run a host command in a running container with the nsenter command.
 // takes the container nodeName, node Oc and container UID
 // returns the raw output of the command
-func RunCommandInContainerNameSpace(nodeName string, nodeOc *interactive.Oc, containerID, command string, timeout time.Duration, isNonOcp bool) string {
-	containrPID := GetContainerPID(nodeName, nodeOc, containerID, isNonOcp)
+func RunCommandInContainerNameSpace(nodeName string, nodeOc *interactive.Oc, containerID, command string, timeout time.Duration, runtime string) string {
+	containrPID := GetContainerPID(nodeName, nodeOc, containerID, runtime)
 	nodeCommand := "nsenter -t " + containrPID + " -n " + command
 	return RunCommandInNode(nodeName, nodeOc, nodeCommand, timeout)
 }
 
 // GetContainerPID gets the container PID from a kubernetes node, Oc and container PID
-func GetContainerPID(nodeName string, nodeOc *interactive.Oc, containerID string, isNonOcp bool) string {
+func GetContainerPID(nodeName string, nodeOc *interactive.Oc, containerID, runtime string) string {
 	command := ""
-	if isNonOcp {
+	switch runtime {
+	case "docker": //nolint:goconst // used only once
 		command = "chroot /host docker inspect -f '{{.State.Pid}}' " + containerID + " 2>/dev/null"
-	} else {
+	case "cri-o": //nolint:goconst // used only once
 		command = "chroot /host crictl inspect --output go-template --template '{{.info.pid}}' " + containerID + " 2>/dev/null"
+	default:
+		ginkgo.Skip(fmt.Sprintf("Container runtime %s not supported yet for this test, skipping", runtime))
 	}
 	return RunCommandInNode(nodeName, nodeOc, command, timeoutPid)
 }

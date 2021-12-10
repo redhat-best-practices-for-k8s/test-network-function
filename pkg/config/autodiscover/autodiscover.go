@@ -147,9 +147,10 @@ func buildContainersFromPodResource(pr *PodResource) (containers []configsection
 		for _, cs := range pr.Status.ContainerStatuses {
 			if cs.Name == container.ContainerName {
 				container.ContainerUID = ""
-				split := strings.Split(cs.ContainerID, "//")
+				split := strings.Split(cs.ContainerID, "://")
 				if len(split) > 0 {
 					container.ContainerUID = split[len(split)-1]
+					container.ContainerRuntime = split[0]
 				}
 			}
 		}
@@ -163,7 +164,7 @@ func buildContainersFromPodResource(pr *PodResource) (containers []configsection
 			log.Warnf("error encountered getting multus IPs: %s", err)
 			err = nil
 		}
-
+		log.Debugf("added container: %s", container.String())
 		containers = append(containers, container)
 	}
 	return containers
