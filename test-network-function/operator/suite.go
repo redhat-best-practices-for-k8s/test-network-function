@@ -21,6 +21,8 @@ import (
 	"path"
 	"strings"
 
+	log "github.com/sirupsen/logrus"
+	"github.com/test-network-function/test-network-function/pkg/config/configsections"
 	"github.com/test-network-function/test-network-function/pkg/utils"
 
 	"github.com/test-network-function/test-network-function/test-network-function/common"
@@ -83,25 +85,32 @@ var _ = ginkgo.Describe(testSpecName, func() {
 func testOperatorsAreInstalledViaOLM(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestOperatorIsInstalledViaOLMIdentifier)
 	ginkgo.It(testID, func() {
+		badOperators := []configsections.Operator{}
 		for _, operatorInTest := range env.OperatorsUnderTest {
 			ginkgo.By(fmt.Sprintf("%s in namespace %s Should have a valid subscription", operatorInTest.SubscriptionName, operatorInTest.Namespace))
-			testOperatorIsInstalledViaOLM(operatorInTest.SubscriptionName, operatorInTest.Namespace)
+			values := make(map[string]interface{})
+			values["SUBSCRIPTION_NAME"] = operatorInTest.SubscriptionName
+			values["SUBSCRIPTION_NAMESPACE"] = operatorInTest.Namespace
+			tester, handlers := utils.NewGenericTesterAndValidate(relativecheckSubscriptionTestPath, relativeSchemaPath, values)
+			context := common.GetContext()
+			test, err := tnf.NewTest(context.GetExpecter(), *tester, handlers, context.GetErrorChannel())
+			gomega.Expect(err).To(gomega.BeNil())
+			gomega.Expect(test).ToNot(gomega.BeNil())
+
+			test.RunWithCallbacks(nil, func() {
+				tnf.ClaimFilePrintf("Operator %s doesn't have a proper OLM subscription.", operatorInTest.Name)
+				badOperators = append(badOperators, operatorInTest)
+			}, func(err error) {
+				tnf.ClaimFilePrintf("Operator %s doesn't have a proper OLM subscription. Error: %v", operatorInTest.Name, err)
+				badOperators = append(badOperators, operatorInTest)
+			})
+		}
+
+		if n := len(badOperators); n > 0 {
+			log.Warnf("Operators without proper OLM subscription: %+v", badOperators)
+			ginkgo.Fail(fmt.Sprintf("%d operators found without proper OLM subscription.", n))
 		}
 	})
-}
-
-// testOperatorIsInstalledViaOLM tests that an operator is installed via OLM.
-func testOperatorIsInstalledViaOLM(subscriptionName, subscriptionNamespace string) {
-	values := make(map[string]interface{})
-	values["SUBSCRIPTION_NAME"] = subscriptionName
-	values["SUBSCRIPTION_NAMESPACE"] = subscriptionNamespace
-	tester, handlers := utils.NewGenericTesterAndValidate(relativecheckSubscriptionTestPath, relativeSchemaPath, values)
-	context := common.GetContext()
-	test, err := tnf.NewTest(context.GetExpecter(), *tester, handlers, context.GetErrorChannel())
-	gomega.Expect(err).To(gomega.BeNil())
-	gomega.Expect(test).ToNot(gomega.BeNil())
-
-	test.RunAndValidate()
 }
 
 func itRunsTestsOnOperator(env *config.TestEnvironment) {
@@ -126,6 +135,7 @@ func itRunsTestsOnOperator(env *config.TestEnvironment) {
 func runTestsOnOperator(env *config.TestEnvironment, testCase testcases.BaseTestCase) {
 	testID := identifiers.XformToGinkgoItIdentifierExtended(identifiers.TestOperatorInstallStatusIdentifier, testCase.Name)
 	ginkgo.It(testID, func() {
+		badOperators := []configsections.Operator{}
 		for _, op := range env.OperatorsUnderTest {
 			if testCase.ExpectedType == testcases.Function {
 				for _, val := range testCase.ExpectedStatus {
@@ -141,7 +151,19 @@ func runTestsOnOperator(env *config.TestEnvironment, testCase testcases.BaseTest
 			test, err := tnf.NewTest(context.GetExpecter(), opInTest, []reel.Handler{opInTest}, context.GetErrorChannel())
 			gomega.Expect(err).To(gomega.BeNil())
 			gomega.Expect(test).ToNot(gomega.BeNil())
-			test.RunAndValidate()
+
+			test.RunWithCallbacks(nil, func() {
+				tnf.ClaimFilePrintf("Operator %s failed TC: %s", name, testCase.Name)
+				badOperators = append(badOperators, op)
+			}, func(err error) {
+				tnf.ClaimFilePrintf("Operator %s failed TC: %s. Error: %v", name, testCase.Name, err)
+				badOperators = append(badOperators, op)
+			})
+		}
+
+		if n := len(badOperators); n > 0 {
+			log.Warnf("Operators that failed TC %s: %+v", testCase.Name, badOperators)
+			ginkgo.Fail(fmt.Sprintf("%d operators failed TC %s", n, testCase.Name))
 		}
 	})
 }
