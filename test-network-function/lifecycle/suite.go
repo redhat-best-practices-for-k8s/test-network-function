@@ -82,6 +82,7 @@ var (
 )
 
 var drainTimeout = time.Duration(drainTimeoutMinutes) * time.Minute
+var HPA configsections.Hpa
 
 //
 // All actual test code belongs below here.  Utilities belong above.
@@ -153,9 +154,9 @@ func restoreStateFullSet(env *config.TestEnvironment) {
 }
 
 func refreshReplicas(podset *configsections.PodSet, env *config.TestEnvironment) {
-	deployments, notReadyDeployments := GetPodSets(podset.Namespace, podset.Type)
+	podsets, notReadypodsets := GetPodSets(podset.Namespace, podset.Type)
 
-	if len(notReadyDeployments) > 0 {
+	if len(notReadypodsets) > 0 {
 		// Wait until the deployment is ready
 		notReady := waitForAllDeploymentsReady(podset.Namespace, scalingTimeout, scalingPollingPeriod, podset.Type)
 		if notReady != 0 {
@@ -163,12 +164,12 @@ func refreshReplicas(podset *configsections.PodSet, env *config.TestEnvironment)
 			log.Fatalf("Could not restore deployment replicaCount for namespace %s.", podset.Namespace)
 		}
 	}
-
+	podset.Hpa = HPA
 	if podset.Hpa.HpaName != "" { // it have hpa and need to update the max min
 		runHpaScalingTest(podset)
 	}
 	key := podset.Namespace + ":" + podset.Name
-	dep, ok := deployments[key]
+	dep, ok := podsets[key]
 	if ok {
 		if dep.Replicas != podset.Replicas {
 			log.Warn("Deployment ", podset.Name, " replicaCount (", podset.Replicas, ") needs to be restored.")
@@ -259,8 +260,8 @@ func runScalingfunc(podset *configsections.PodSet, env *config.TestEnvironment) 
 
 	closeOcSessionsByDeployment(env.ContainersUnderTest, podset)
 	replicaCount := podset.Replicas
-	hpa := podset.Hpa
-	if hpa.HpaName != "" {
+	HPA = podset.Hpa
+	if HPA.HpaName != "" {
 		podset.Hpa.MinReplicas = replicaCount - 1
 		podset.Hpa.MaxReplicas = replicaCount - 1
 		runHpaScalingTest(podset) // scale in

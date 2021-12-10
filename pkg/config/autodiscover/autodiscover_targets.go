@@ -87,18 +87,20 @@ func FindTestTarget(labels []configsections.Label, target *configsections.TestTa
 		}
 	}
 	dps := FindTestPodSetsByLabel(labels, target, string(configsections.Deployment))
-	for _, dp := range dps {
-		if ns[dp.Namespace] {
-			target.DeploymentsUnderTest = append(target.DeploymentsUnderTest, dp)
-		}
-	}
+	target.DeploymentsUnderTest = AppendPodsets(dps, ns)
 	stateFullSet := FindTestPodSetsByLabel(labels, target, string(configsections.StateFullSet))
-	for _, st := range stateFullSet {
-		if ns[st.Namespace] {
-			target.StateFullSetUnderTest = append(target.StateFullSetUnderTest, st)
+	target.StateFullSetUnderTest = AppendPodsets(stateFullSet, ns)
+	target.Nodes = GetNodesList()
+}
+
+// func for appending the pod sets
+func AppendPodsets(podsets []configsections.PodSet, ns map[string]bool) (PodSet []configsections.PodSet) {
+	for _, ps := range podsets {
+		if ns[ps.Namespace] {
+			PodSet = append(PodSet, ps)
 		}
 	}
-	target.Nodes = GetNodesList()
+	return PodSet
 }
 
 // GetNodesList Function that return a list of node and what is the type of them.
