@@ -138,17 +138,17 @@ func waitForAllDeploymentsReady(namespace string, timeout, pollingPeriod time.Du
 
 // restoreDeployments is the last attempt to restore the original test deployments' replicaCount
 func restoreDeployments(env *config.TestEnvironment) {
-	for _, deployment := range env.DeploymentsUnderTest {
+	for i := range env.DeploymentsUnderTest {
 		// For each test deployment in the namespace, refresh the current replicas and compare.
-		refreshReplicas(&deployment, env)
+		refreshReplicas(&env.DeploymentsUnderTest[i], env)
 	}
 }
 
 // restoreDeployments is the last attempt to restore the original test deployments' replicaCount
 func restoreStateFullSet(env *config.TestEnvironment) {
-	for _, statefullset := range env.StateFullSetUnderTest {
+	for i := range env.StateFullSetUnderTest {
 		// For each test deployment in the namespace, refresh the current replicas and compare.
-		refreshReplicas(&statefullset, env)
+		refreshReplicas(&env.StateFullSetUnderTest[i], env)
 	}
 }
 
@@ -233,8 +233,8 @@ func testScaling(env *config.TestEnvironment) {
 		if len(env.DeploymentsUnderTest) == 0 {
 			ginkgo.Skip("No test deployments found.")
 		}
-		for _, deployment := range env.DeploymentsUnderTest {
-			runScalingfunc(&deployment, env)
+		for i := range env.DeploymentsUnderTest {
+			runScalingfunc(&env.DeploymentsUnderTest[i], env)
 		}
 	})
 }
@@ -248,8 +248,8 @@ func testStateFullSetScaling(env *config.TestEnvironment) {
 		if len(env.StateFullSetUnderTest) == 0 {
 			ginkgo.Skip("No test StatefulSet found.")
 		}
-		for _, statefullset := range env.StateFullSetUnderTest {
-			runScalingfunc(&statefullset, env)
+		for i := range env.StateFullSetUnderTest {
+			runScalingfunc(&env.StateFullSetUnderTest[i], env)
 		}
 	})
 }
