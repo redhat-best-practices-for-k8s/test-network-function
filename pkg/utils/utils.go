@@ -3,12 +3,14 @@ package utils
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 	"path"
 	"path/filepath"
 	"strings"
 	"time"
 
+	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
@@ -81,8 +83,37 @@ func escapeToJSONstringFormat(line string) (string, error) {
 }
 
 // ExecuteCommand uses the generic command handler to execute an arbitrary interactive command, returning
-// its output without any other check.
-var ExecuteCommand = func(command string, timeout time.Duration, context *interactive.Context, failureCallbackFun func()) string {
+// its output wihout any filtering/matching if the command is successfully executed
+func ExecuteCommand(command string, timeout time.Duration, context *interactive.Context) (string, error) {
+	tester, test := newGenericCommandTester(command, timeout, context)
+	result, err := test.Run()
+	if result == tnf.SUCCESS && err == nil {
+		genericTest := (*tester).(*generic.Generic)
+		if genericTest != nil {
+			matches := genericTest.Matches
+			if len(matches) == 1 {
+				return genericTest.GetMatches()[0].Match, nil
+			}
+		}
+	}
+	return "", err
+}
+
+// ExecuteCommandAndValidate uses the generic command handler to execute an arbitrary interactive command, returning
+// its output wihout any filtering/matching
+var ExecuteCommandAndValidate = func(command string, timeout time.Duration, context *interactive.Context, failureCallbackFun func()) string {
+	tester, test := newGenericCommandTester(command, timeout, context)
+	test.RunAndValidateWithFailureCallback(failureCallbackFun)
+	genericTest := (*tester).(*generic.Generic)
+	gomega.Expect(genericTest).ToNot(gomega.BeNil())
+
+	matches := genericTest.Matches
+	gomega.Expect(len(matches)).To(gomega.Equal(1))
+	match := genericTest.GetMatches()[0]
+	return match.Match
+}
+
+func newGenericCommandTester(command string, timeout time.Duration, context *interactive.Context) (*tnf.Tester, *tnf.Test) {
 	log.Debugf("Executing command: %s", command)
 
 	values := make(map[string]interface{})
@@ -94,24 +125,15 @@ var ExecuteCommand = func(command string, timeout time.Duration, context *intera
 
 	log.Debugf("Command handler's COMMAND string value: %s", values["COMMAND"])
 
-	tester, handlers := NewGenericTestAndValidate(commandHandlerFilePath, handlerJSONSchemaFilePath, values)
+	tester, handlers := NewGenericTesterAndValidate(commandHandlerFilePath, handlerJSONSchemaFilePath, values)
 	test, err := tnf.NewTest(context.GetExpecter(), *tester, handlers, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
 	gomega.Expect(tester).ToNot(gomega.BeNil())
-
-	test.RunAndValidateWithFailureCallback(failureCallbackFun)
-
-	genericTest := (*tester).(*generic.Generic)
-	gomega.Expect(genericTest).ToNot(gomega.BeNil())
-
-	matches := genericTest.Matches
-	gomega.Expect(len(matches)).To(gomega.Equal(1))
-	match := genericTest.GetMatches()[0]
-	return match.Match
+	return tester, test
 }
 
-// NewGenericTestAndValidate creates a generic handler from the json template with the var map and validate the outcome
-func NewGenericTestAndValidate(templateFile, schemaPath string, values map[string]interface{}) (*tnf.Tester, []reel.Handler) {
+// NewGenericTesterAndValidate creates a generic handler from the json template with the var map and validate the outcome
+func NewGenericTesterAndValidate(templateFile, schemaPath string, values map[string]interface{}) (*tnf.Tester, []reel.Handler) {
 	tester, handlers, result, err := generic.NewGenericFromMap(templateFile, handlerJSONSchemaFilePath, values)
 
 	gomega.Expect(err).To(gomega.BeNil())
@@ -126,19 +148,22 @@ func NewGenericTestAndValidate(templateFile, schemaPath string, values map[strin
 // RunCommandInContainerNameSpace run a host command in a running container with the nsenter command.
 // takes the container nodeName, node Oc and container UID
 // returns the raw output of the command
-func RunCommandInContainerNameSpace(nodeName string, nodeOc *interactive.Oc, containerID, command string, timeout time.Duration, isNonOcp bool) string {
-	containrPID := GetContainerPID(nodeName, nodeOc, containerID, isNonOcp)
+func RunCommandInContainerNameSpace(nodeName string, nodeOc *interactive.Oc, containerID, command string, timeout time.Duration, runtime string) string {
+	containrPID := GetContainerPID(nodeName, nodeOc, containerID, runtime)
 	nodeCommand := "nsenter -t " + containrPID + " -n " + command
 	return RunCommandInNode(nodeName, nodeOc, nodeCommand, timeout)
 }
 
 // GetContainerPID gets the container PID from a kubernetes node, Oc and container PID
-func GetContainerPID(nodeName string, nodeOc *interactive.Oc, containerID string, isNonOcp bool) string {
+func GetContainerPID(nodeName string, nodeOc *interactive.Oc, containerID, runtime string) string {
 	command := ""
-	if isNonOcp {
+	switch runtime {
+	case "docker": //nolint:goconst // used only once
 		command = "chroot /host docker inspect -f '{{.State.Pid}}' " + containerID + " 2>/dev/null"
-	} else {
+	case "cri-o": //nolint:goconst // used only once
 		command = "chroot /host crictl inspect --output go-template --template '{{.info.pid}}' " + containerID + " 2>/dev/null"
+	default:
+		ginkgo.Skip(fmt.Sprintf("Container runtime %s not supported yet for this test, skipping", runtime))
 	}
 	return RunCommandInNode(nodeName, nodeOc, command, timeoutPid)
 }
@@ -157,5 +182,5 @@ func RunCommandInNode(nodeName string, nodeOc *interactive.Oc, command string, t
 
 // AddNsenterPrefix adds the nsenter command prefix to run inside a container namespace
 func AddNsenterPrefix(containerPID string) string {
-	return "chroot /host nsenter -t " + containerPID + " -n "
+	return "nsenter -t " + containerPID + " -n "
 }

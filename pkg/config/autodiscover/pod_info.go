@@ -56,6 +56,10 @@ type PodResource struct {
 		NodeName string `json:"nodeName"`
 	} `json:"spec"`
 	Status struct {
+		// PodIPs this is currently unused, but part of the oc get output
+		// The listof IPs is contained in the Metadata->Annotations section
+		// of this structure. This is a list of ips with the following format:
+		// [0]:map[string]string ["ip": "10.130.0.65", ]
 		PodIPs            []map[string]string `json:"podIPs"`
 		Phase             string              `json:"phase"`
 		ContainerStatuses []struct {
@@ -121,6 +125,10 @@ func (pr *PodResource) getDefaultNetworkDeviceFromAnnotations() (iface string, e
 // getPodIPsPerNet gets the IPs of a pod.
 // CNI annotation "k8s.v1.cni.cncf.io/networks-status".
 func (pr *PodResource) getPodIPsPerNet() (ips map[string][]string, err error) {
+	// This is a map indexed with the network name (network attachment) and
+	// listing all the IPs created in this subnet and belonging to the pod namespace
+	// The list of ips pr net is parsed from the content of the "k8s.v1.cni.cncf.io/networks-status" annotation.
+	// see file pkg/config/autodiscover/testdata/testtarget.json for an example of such annotation
 	ips = make(map[string][]string)
 
 	if val, present := pr.Metadata.Annotations[cniNetworksStatusKey]; present {

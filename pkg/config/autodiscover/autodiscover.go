@@ -71,7 +71,7 @@ func buildLabelQuery(label configsections.Label) string {
 
 var executeOcGetCommand = func(resourceType, labelQuery, namespace string) string {
 	ocCommandToExecute := fmt.Sprintf(ocCommand, resourceType, namespace, labelQuery)
-	match := utils.ExecuteCommand(ocCommandToExecute, ocCommandTimeOut, interactive.GetContext(expectersVerboseModeEnabled), func() {
+	match := utils.ExecuteCommandAndValidate(ocCommandToExecute, ocCommandTimeOut, interactive.GetContext(expectersVerboseModeEnabled), func() {
 		log.Error("can't run command: ", ocCommandToExecute)
 	})
 	return match
@@ -79,7 +79,7 @@ var executeOcGetCommand = func(resourceType, labelQuery, namespace string) strin
 
 var executeOcGetAllCommand = func(resourceType, labelQuery string) string {
 	ocCommandToExecute := fmt.Sprintf(ocAllCommand, resourceType, labelQuery)
-	match := utils.ExecuteCommand(ocCommandToExecute, ocCommandTimeOut, interactive.GetContext(expectersVerboseModeEnabled), func() {
+	match := utils.ExecuteCommandAndValidate(ocCommandToExecute, ocCommandTimeOut, interactive.GetContext(expectersVerboseModeEnabled), func() {
 		log.Error("can't run command: ", ocCommandToExecute)
 	})
 	return match
@@ -121,8 +121,12 @@ func buildContainersFromPodResource(pr *PodResource) (containers []configsection
 		// This is to have access to the pod namespace
 		for _, cs := range pr.Status.ContainerStatuses {
 			if cs.Name == container.ContainerName {
-				container.ContainerUID = strings.TrimPrefix(cs.ContainerID, "cri-o://")
-				container.ContainerUID = strings.TrimPrefix(container.ContainerUID, "docker://")
+				container.ContainerUID = ""
+				split := strings.Split(cs.ContainerID, "://")
+				if len(split) > 0 {
+					container.ContainerUID = split[len(split)-1]
+					container.ContainerRuntime = split[0]
+				}
 			}
 		}
 		container.DefaultNetworkDevice, err = pr.getDefaultNetworkDeviceFromAnnotations()
@@ -135,10 +139,10 @@ func buildContainersFromPodResource(pr *PodResource) (containers []configsection
 			log.Warnf("error encountered getting multus IPs: %s", err)
 			err = nil
 		}
-
+		log.Debugf("added container: %s", container.String())
 		containers = append(containers, container)
 	}
-	return
+	return containers
 }
 
 // EnableExpectersVerboseMode enables the verbose mode for expecters (Sent/Match output)
