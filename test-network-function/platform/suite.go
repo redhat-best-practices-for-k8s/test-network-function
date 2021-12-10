@@ -443,7 +443,7 @@ func logMcKernelArgumentsHugepages(hugepagesPerSize map[int]int, defhugepagesz i
 }
 
 // getMcHugepagesFromMcKernelArguments gets the hugepages params from machineconfig's kernelArguments
-func getMcHugepagesFromMcKernelArguments(mc *machineConfig) (hugepagesPerSize map[int]int, defhugepagesz int, err error) {
+var getMcHugepagesFromMcKernelArguments = func(mc *machineConfig) (hugepagesPerSize map[int]int, defhugepagesz int) {
 	defhugepagesz = RhelDefaultHugepagesz
 	hugepagesPerSize = map[int]int{}
 
@@ -457,11 +457,14 @@ func getMcHugepagesFromMcKernelArguments(mc *machineConfig) (hugepagesPerSize ma
 
 		key, value := keyValueSlice[0], keyValueSlice[1]
 		if key == HugepagesParam && value != "" {
-			if _, sizeFound := hugepagesPerSize[hugepagesz]; !sizeFound {
-				return map[int]int{}, RhelDefaultHugepagesz, fmt.Errorf("found hugepages count without size in kernelArguments: %v", mc.Spec.KernelArguments)
-			}
 			hugepages, _ := strconv.Atoi(value)
-			hugepagesPerSize[hugepagesz] = hugepages
+			if _, sizeFound := hugepagesPerSize[hugepagesz]; sizeFound {
+				// hugepagesz was parsed before.
+				hugepagesPerSize[hugepagesz] = hugepages
+			} else {
+				// use RHEL's default size for this count.
+				hugepagesPerSize[RhelDefaultHugepagesz] = hugepages
+			}
 		}
 
 		if key == HugepageszParam && value != "" {
@@ -485,7 +488,7 @@ func getMcHugepagesFromMcKernelArguments(mc *machineConfig) (hugepagesPerSize ma
 	}
 
 	logMcKernelArgumentsHugepages(hugepagesPerSize, defhugepagesz)
-	return hugepagesPerSize, defhugepagesz, nil
+	return hugepagesPerSize, defhugepagesz
 }
 
 // getNodeNumaHugePages gets the actual node's hugepages config based on /sys/devices/system/node/nodeX files.
@@ -707,10 +710,7 @@ func testHugepages(env *config.TestEnvironment) {
 			// KernelArguments params will only be used in case no systemd units were found.
 			if len(mcSystemdHugepages) == 0 {
 				ginkgo.By("Comparing MC KernelArguments hugepages info against node values.")
-				hugepagesPerSize, _, err := getMcHugepagesFromMcKernelArguments(&mc)
-				if err != nil {
-					ginkgo.Fail(fmt.Sprintf("Unable to get mc kernelArguments hugepages from node %s. Error: %v", node.Name, err))
-				}
+				hugepagesPerSize, _ := getMcHugepagesFromMcKernelArguments(&mc)
 				if pass, err := testNodeHugepagesWithKernelArgs(node.Name, nodeNumaHugePages, hugepagesPerSize); !pass {
 					log.Error(err)
 					badNodes = append(badNodes, node.Name)
