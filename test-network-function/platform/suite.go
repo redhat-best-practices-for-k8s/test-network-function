@@ -443,7 +443,7 @@ func logMcKernelArgumentsHugepages(hugepagesPerSize map[int]int, defhugepagesz i
 }
 
 // getMcHugepagesFromMcKernelArguments gets the hugepages params from machineconfig's kernelArguments
-var getMcHugepagesFromMcKernelArguments = func(mc *machineConfig) (hugepagesPerSize map[int]int, defhugepagesz int) {
+func getMcHugepagesFromMcKernelArguments(mc *machineConfig) (hugepagesPerSize map[int]int, defhugepagesz int) {
 	defhugepagesz = RhelDefaultHugepagesz
 	hugepagesPerSize = map[int]int{}
 
