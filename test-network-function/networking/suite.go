@@ -166,15 +166,15 @@ func processContainerIpsPerNet(containerID *configsections.ContainerIdentifier,
 }
 
 // runNetworkingTests takes a map netTestContext, e.g. one context per network attachment
-// and runs pings test with it
-func runNetworkingTests(netsUnderTest map[string]netTestContext, count int) (badNets map[string][]string) {
+// and runs pings test with it. Returns a network name to a slice of bad target IPs map.
+func runNetworkingTests(netsUnderTest map[string]netTestContext, count int) map[string][]string {
 	tnf.ClaimFilePrintf("%s", printNetTestContextMap(netsUnderTest))
 	log.Debugf("%s", printNetTestContextMap(netsUnderTest))
 	if len(netsUnderTest) == 0 {
 		ginkgo.Skip("There are no networks to test, skipping test")
 	}
 
-	badNets = map[string][]string{} // maps a net name to a list of failed destination IPs
+	badNets := map[string][]string{} // maps a net name to a list of failed destination IPs
 	for netName, netUnderTest := range netsUnderTest {
 		if len(netUnderTest.destTargets) == 0 {
 			ginkgo.Skip(fmt.Sprintf("There are no containers to ping for network %s. A minimum of 2 containers is needed to run a ping test (a source and a destination) Skipping test", netName))
@@ -193,12 +193,7 @@ func runNetworkingTests(netsUnderTest map[string]netTestContext, count int) (bad
 				netUnderTest.testerSource.ip, aDestIP.containerIdentifier.PodName,
 				aDestIP.containerIdentifier.ContainerName,
 				aDestIP.ip))
-			testPass := testPing(netUnderTest.testerContainerNodeOc,
-				netUnderTest.testerSource.containerIdentifier.NodeName,
-				netUnderTest.testerSource.containerIdentifier.ContainerUID,
-				netUnderTest.testerSource.containerIdentifier.ContainerRuntime,
-				aDestIP.ip,
-				count)
+			testPass := testPing(netUnderTest.testerContainerNodeOc, netUnderTest.testerSource.containerIdentifier, aDestIP, count)
 			if !testPass {
 				if failedDestIps, netFound := badNets[netName]; netFound {
 					badNets[netName] = append(failedDestIps, aDestIP.ip)
@@ -267,33 +262,40 @@ func testMultusNetworkConnectivity(env *config.TestEnvironment, count int) {
 }
 
 // Test that a container can ping a target IP address.
-func testPing(initiatingPodNodeOc *interactive.Oc, nodeName, containerID, runtime, targetPodIPAddress string, count int) bool {
-	log.Infof("Sending ICMP traffic(%s to %s)", initiatingPodNodeOc.GetPodName(), targetPodIPAddress)
+func testPing(initiatingPodNodeOc *interactive.Oc, sourceContainerID *configsections.ContainerIdentifier, targetContainerIP containerIP, count int) bool {
+	log.Infof("Sending ICMP traffic(%s to %s)", initiatingPodNodeOc.GetPodName(), targetContainerIP.ip)
 	env := config.GetTestEnvironment()
 	gomega.Expect(env).To(gomega.Not(gomega.BeNil()))
-	gomega.Expect(env.NodesUnderTest[nodeName]).To(gomega.Not(gomega.BeNil()))
-	gomega.Expect(env.NodesUnderTest[nodeName].DebugContainer.GetOc()).To(gomega.Not(gomega.BeNil()))
-	nodeOc := env.NodesUnderTest[nodeName].DebugContainer.GetOc()
-	containerPID := utils.GetContainerPID(nodeName, nodeOc, containerID, runtime)
-	pingTester := ping.NewPingNsenter(common.DefaultTimeout, containerPID, targetPodIPAddress, count)
+	gomega.Expect(env.NodesUnderTest[sourceContainerID.NodeName]).To(gomega.Not(gomega.BeNil()))
+	gomega.Expect(env.NodesUnderTest[sourceContainerID.NodeName].DebugContainer.GetOc()).To(gomega.Not(gomega.BeNil()))
+	nodeOc := env.NodesUnderTest[sourceContainerID.NodeName].DebugContainer.GetOc()
+	containerPID := utils.GetContainerPID(sourceContainerID.NodeName, nodeOc, sourceContainerID.ContainerUID, sourceContainerID.ContainerRuntime)
+	pingTester := ping.NewPingNsenter(common.DefaultTimeout, containerPID, targetContainerIP.ip, count)
 	test, err := tnf.NewTest(initiatingPodNodeOc.GetExpecter(), pingTester, []reel.Handler{pingTester}, initiatingPodNodeOc.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
+
+	sourcePodName := initiatingPodNodeOc.GetPodName()
+	targetPodName := targetContainerIP.containerIdentifier.PodName
 
 	testResult := false
 	test.RunWithCallbacks(func() {
 		transmitted, received, errors := pingTester.GetStats()
 		if received == transmitted && errors == 0 {
-			log.Infof("Ping test to %s succeeded. Tx/Rx/Err: %d/%d/%d", targetPodIPAddress, transmitted, received, errors)
+			log.Infof("Ping test from pod %s to pod %s (ip %s) succeeded. Tx/Rx/Err: %d/%d/%d",
+				sourcePodName, targetPodName, targetContainerIP.ip, transmitted, received, errors)
 			testResult = true
 		} else {
-			tnf.ClaimFilePrintf("Ping test to %s failed. Tx/Rx/Err: %d/%d/%d", targetPodIPAddress, transmitted, received, errors)
+			tnf.ClaimFilePrintf("Ping test from pod %s to pod %s (ip: %s) failed. Tx/Rx/Err: %d/%d/%d",
+				sourcePodName, targetPodName, targetContainerIP.ip, transmitted, received, errors)
 		}
 	}, func() {
-		tnf.ClaimFilePrintf("Ping test to %s failed.", targetPodIPAddress)
+		tnf.ClaimFilePrintf("FAILURE: Ping test from pod %s to pod %s (ip: %s) failed.",
+			sourcePodName, targetPodName, targetContainerIP.ip)
 	}, func(err error) {
-		tnf.ClaimFilePrintf("Ping test to %s failed. Error: %v", targetPodIPAddress, err)
+		tnf.ClaimFilePrintf("ERROR: Ping test from pod %s to pod %s (ip: %s) failed. Error: %v",
+			sourcePodName, targetPodName, targetContainerIP.ip, err)
 		if reel.IsTimeout(err) {
-			env.NodesUnderTest[nodeName].DebugContainer.CloseOc()
+			env.NodesUnderTest[sourceContainerID.NodeName].DebugContainer.CloseOc()
 		}
 	})
 
