@@ -56,22 +56,22 @@ type PodSetResource struct {
 	}
 }
 
-// GetName returns deployment's metadata section's name field.
+// GetName returns podset's metadata section's name field.
 func (podset *PodSetResource) GetName() string {
 	return podset.Metadata.Name
 }
 
-// GetNamespace returns deployment's metadata section's namespace field.
+// GetNamespace returns podset's metadata section's namespace field.
 func (podset *PodSetResource) GetNamespace() string {
 	return podset.Metadata.Namespace
 }
 
-// GetReplicas returns deployment's spec section's replicas field.
+// GetReplicas returns podset's spec section's replicas field.
 func (podset *PodSetResource) GetReplicas() int {
 	return podset.Spec.Replicas
 }
 
-// GetLabels returns a map with the deployment's metadata section's labels.
+// GetLabels returns a map with the podset's metadata section's labels.
 func (podset *PodSetResource) GetLabels() map[string]string {
 	return podset.Metadata.Labels
 }

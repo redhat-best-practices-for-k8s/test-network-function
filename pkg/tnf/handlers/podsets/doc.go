@@ -14,5 +14,5 @@
 // with this program; if not, write to the Free Software Foundation, Inc.,
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-// Package deployments provides a test for reading the namespace's deployments
+// Package PodSet-deployments/statefulsets provides a test for reading the namespace's PodSet deployments/statefulsets
 package podsets
