@@ -186,7 +186,7 @@ func getWorkerNodeName(env *config.TestEnvironment) string {
 }
 
 func listNodeCniPlugins(nodeName string) []CniPlugin {
-	const command = "cat /host/etc/cni/net.d/* | jq -r .name,.cniVersion"
+	const command = "cat /host/etc/cni/net.d/[0-999]* | jq -r .name,.cniVersion"
 	result := []CniPlugin{}
 	nodes := config.GetTestEnvironment().NodesUnderTest
 	context := nodes[nodeName].DebugContainer.GetOc()
