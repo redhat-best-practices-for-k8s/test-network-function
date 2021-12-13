@@ -153,9 +153,9 @@ func restoreStateFullSet(env *config.TestEnvironment) {
 }
 
 func refreshReplicas(podset *configsections.PodSet, env *config.TestEnvironment) {
-	podsets, notReadypodsets := GetPodSets(podset.Namespace, podset.Type)
+	podsets, notReadyPodsets := GetPodSets(podset.Namespace, podset.Type)
 
-	if len(notReadypodsets) > 0 {
+	if len(notReadyPodsets) > 0 {
 		// Wait until the deployment is ready
 		notReady := waitForAllDeploymentsReady(podset.Namespace, scalingTimeout, scalingPollingPeriod, podset.Type)
 		if notReady != 0 {
@@ -429,11 +429,11 @@ func GetPodSets(namespace string, resourceType configsections.PodSetType) (podse
 
 	podsets = tester.GetPodSets()
 	for name, d := range podsets {
-		if d.Unavailable != 0 || d.Ready != d.Replicas || resourceType == configsections.Deployment && d.Available != d.Replicas || resourceType == configsections.StateFullSet && d.Current != d.Replicas || d.UpToDate != d.Replicas {
+		if d.Unavailable != 0 || d.Ready != d.Replicas || (d.Available != d.Replicas && d.Current != d.Replicas) || d.UpToDate != d.Replicas {
 			notReadypodsets = append(notReadypodsets, name)
-			log.Tracef("deployment %s: not ready", name)
+			log.Tracef("%s %s: not ready", string(resourceType), name)
 		} else {
-			log.Tracef("deployment %s: ready", name)
+			log.Tracef("%s %s: ready", string(resourceType), name)
 		}
 	}
 
