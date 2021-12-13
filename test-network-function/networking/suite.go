@@ -177,7 +177,13 @@ func runNetworkingTests(netsUnderTest map[string]netTestContext, count int) {
 		if len(netUnderTest.destTargets) == 0 {
 			ginkgo.Skip(fmt.Sprintf("There are no containers to ping for network %s. A minimum of 2 containers is needed to run a ping test (a source and a destination) Skipping test", netName))
 		}
+		m := make(map[string]bool)
 		for _, aDestIP := range netUnderTest.destTargets {
+			podName := aDestIP.containerIdentifier.PodName
+			if _, ok := m[podName]; ok {
+				continue
+			}
+			m[podName] = true
 			ginkgo.By(fmt.Sprintf("a Ping is issued from %s(%s) %s to %s(%s) %s",
 				netUnderTest.testerSource.containerIdentifier.PodName,
 				netUnderTest.testerSource.containerIdentifier.ContainerName,
@@ -196,6 +202,7 @@ func runNetworkingTests(netsUnderTest map[string]netTestContext, count int) {
 func testDefaultNetworkConnectivity(env *config.TestEnvironment, count int) {
 	ginkgo.When("Testing Default network connectivity", func() {
 		testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestICMPv4ConnectivityIdentifier)
+		m := make(map[string]bool)
 		ginkgo.It(testID, func() {
 			netsUnderTest := make(map[string]netTestContext)
 			for _, cut := range env.ContainersUnderTest {
@@ -203,6 +210,12 @@ func testDefaultNetworkConnectivity(env *config.TestEnvironment, count int) {
 					tnf.ClaimFilePrintf("Skipping container %s because it is excluded from connectivity tests (default interface)", cut.PodName)
 					continue
 				}
+				if _, ok := m[cut.PodName]; ok {
+					// test once per podname since all containers share the
+					// same network
+					continue
+				}
+				m[cut.PodName] = true
 				netKey := "default" //nolint:goconst // only used once
 				defaultIPAddress := []string{cut.DefaultNetworkIPAddress}
 				gomega.Expect(env).To(gomega.Not(gomega.BeNil()))
