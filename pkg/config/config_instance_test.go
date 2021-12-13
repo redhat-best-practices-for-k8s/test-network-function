@@ -55,9 +55,6 @@ func TestLoadConfigFromFile(t *testing.T) {
 	env := GetTestEnvironment()
 	assert.Nil(t, env.loadConfigFromFile(filePath))
 	assert.NotNil(t, env.loadConfigFromFile(filePath)) // Loading when already loaded is an error case
-	assert.Equal(t, env.Config.Partner.TestOrchestratorID.Namespace, "default")
-	assert.Equal(t, env.Config.Partner.TestOrchestratorID.ContainerName, "partner")
-	assert.Equal(t, env.Config.Partner.TestOrchestratorID.PodName, "partner")
 	testLoadedDeployments(t, env.Config.DeploymentsUnderTest)
 	testLoadedCrds(t, env.Config.CrdFilters)
 }

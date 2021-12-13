@@ -12,12 +12,12 @@ The suite is provided here in part so that CNF Developers can use the suite to t
 certification.  Please see "CNF Developers" below for more information.
 
 ## Overview 
- ![overview](docs/images/overview.svg)
+ ![overview](docs/images/overview-new.svg)
 
 In the diagram above:
-- the `CNF under test` is the CNF to be certified. The certification suite identifies the resources (containers/pods/operators etc) belonging to the CNF via labels or static data entries in the config file
-- the `Certification container/exec` is the certification test suite running on the platform or in a container. The executable verifies the CNF under test configuration and its interactions with openshift 
-- the `Partner pod` can be any pod with the required tools in the same namespace as the `CNF under test`. For example, during connectivity tests, the partner pod will generate pings towards the `CNF under test` to verify connectivity. The partner pods/containers are auto deployed by the test suite prior a test run and can be auto discovered by the suite without any data entry in the config file.
+- the `CNF` is the CNF to be certified. The certification suite identifies the resources (containers/pods/operators etc) belonging to the CNF via labels or static data entries in the config file
+- the `Certification container/exec` is the certification test suite running on the platform or in a container. The executable verifies the CNF under test configuration and its interactions with openshift
+- the `Debug` pods are part of a daemonset responsible to run various privileged commands on kubernetes nodes. Debug pods are useful to run platform tests and test commands (e.g. ping) in container namespaces without changing the container image content. The debug daemonset is instantiated via the cnf-certification-test-partner repository [repo](https://github.com/test-network-function/cnf-certification-test-partner).  
 
 
 ## Test Configuration
@@ -71,9 +71,8 @@ For Network Interfaces:
 
 * The annotation test-network-function.com/defaultnetworkinterface is the highest priority, and must contain a JSON-encoded string of the primary network interface for the pod. This must be explicitly set if needed. Examples can be seen in cnf-certification-test-partner
 * If the above is not present, the k8s.v1.cni.cncf.io/networks-status annotation is checked and the "interface" from the first entry found with "default"=true is used. This annotation is automatically managed in OpenShift but may not be present in K8s.
-* If multus IP addresses are discovered or configured, the partner pod needs to be deployed in the same namespace as the multus network interface for the connectivity test to pass. Refer to instruction here.
 
-If a pod is not suitable for network connectivity tests because it lacks binaries (e.g. ping), it should be given the label test-network-function.com/skip_connectivity_tests to exclude it from those tests. The label value is not important, only its presence.
+The label test-network-function.com/skip_connectivity_tests excludes pods from connectivity tests. The label value is not important, only its presence.
 
 #### operators
 
@@ -83,10 +82,6 @@ The section can be configured as well as auto discovered. For manual configurati
 label. Any value is permitted but `target` is used here for consistency with the other specs.
 * `test-network-function.com/subscription_name` is optional and should contain a JSON-encoded string that's the name of
 the subscription for this CSV. If unset, the CSV name will be used.
-
-### testPartner
-
-This section can also be discovered automatically and should be left commented out unless the partner pods are modified from the original version in [cnf-certification-test-partner](https://github.com/test-network-function/cnf-certification-test-partner/tree/main/test-partner)
 
 ### certifiedcontainerinfo and certifiedoperatorinfo
 
@@ -295,9 +290,6 @@ control over the outputs, see the output of `test-network-function.test --help`.
 cd test-network-function && ./test-network-function.test --help
 ```
 
-*Gotcha:* The generic test suite requires that the CNF has both `ping` and `ip` binaries installed.  Please add them
-manually if the CNF under test does not include these.  Automated installation of missing dependencies is targeted
-for a future version.
 *Gotcha:* check that OCP cluster has resources to deploy [debug image](#check-cluster-resources)
 ## Available Test Specs
 
@@ -526,18 +518,3 @@ For example:
 ```shell script
 TNF_DEFAULT_BUFFER_SIZE=32768 ./run-cnf-suites.sh -f diagnostic
 ```
-
-## Issue-161 Some containers under test do not contain `ping` or `ip` binary utilities
-
-In some cases, containers do not provide ping or ip binary utilities. Since these binaries are required for the
-connectivity tests, we must exclude such containers from the connectivity test suite.  In order to exclude these
-containers, please add the following to `test-network-function/tnf_config.yml`:
-
-```yaml
-excludeContainersFromConnectivityTests:
-  - namespace: <namespace>
-    podName: <podName>
-    containerName: <containerName>
-```
-
-Note:  Future work may involve installing missing binary dependencies.
