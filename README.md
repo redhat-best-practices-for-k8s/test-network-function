@@ -319,7 +319,7 @@ appropriate for the CNF(s) under test. Test suites group tests by topic area:
 Suite|Test Spec Description|Minimum OpenShift Version
 ---|---|---
 `access-control`|The access-control test suite is used to test  service account, namespace and cluster/pod role binding for the pods under test. It also tests the pods/containers configuration.|4.6.0
-`affiliated-certification`|The affiliated-certification test suite verifies that the containers in the pod under test and operator under test are certified by Redhat|4.6.0
+`affiliated-certification`|The affiliated-certification test suite verifies that the containers and operators listed in the configuration file are certified by Redhat|4.6.0
 `diagnostic`|The diagnostic test suite is used to gather node information from an OpenShift cluster.  The diagnostic test suite should be run whenever generating a claim.json file.|4.6.0
 `lifecycle`| The lifecycle test suite verifies the pods deployment, creation, shutdown and  survivability. |4.6.0
 `networking`|The networking test suite contains tests that check connectivity and networking config related best practices.|4.6.0
