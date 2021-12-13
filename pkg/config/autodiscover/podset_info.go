@@ -37,7 +37,7 @@ var (
 	}
 )
 
-// Deploymen/statefulsettList holds the data from an `oc get /statefulset -o json` command
+// Deploymen/statefulsettList holds the data from an `oc get deployment/statefulset -o json` command
 type PodSetList struct {
 	Items []PodSetResource `json:"items"`
 }
@@ -93,7 +93,7 @@ func (podset *PodSetResource) GetHpa() configsections.Hpa {
 	return configsections.Hpa{}
 }
 
-// GetTargetDeploymentsByNamespace will return all deployments that have pods with a given label.
+// GetTargetPodSetsByNamespace will return all podsets(deployments/statefulset )that have pods with a given label.
 func GetTargetPodSetsByNamespace(namespace string, targetLabel configsections.Label, resourceTypePodSet string) (*PodSetList, error) {
 	labelQuery := fmt.Sprintf("%q==%q", buildLabelName(targetLabel.Prefix, targetLabel.Name), targetLabel.Value)
 	jqArgs := fmt.Sprintf("'[.items[] | select(.spec.template.metadata.labels.%s)]'", labelQuery)
@@ -110,7 +110,7 @@ func GetTargetPodSetsByNamespace(namespace string, targetLabel configsections.La
 	return &podsetList, nil
 }
 
-// GetTargetDeploymentsByLabel will return all deployments that have pods with a given label.
+// GetTargetDeploymentsByLabel will return all deployments/statefulsets that have pods with a given label.
 func GetTargetPodSetsByLabel(targetLabel configsections.Label, resourceTypePodSet string) (*PodSetList, error) {
 	labelQuery := fmt.Sprintf("%q==%q", buildLabelName(targetLabel.Prefix, targetLabel.Name), targetLabel.Value)
 	jqArgs := fmt.Sprintf("'[.items[] | select(.spec.template.metadata.labels.%s)]'", labelQuery)

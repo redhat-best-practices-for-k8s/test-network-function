@@ -146,15 +146,15 @@ func GetNodesList() (nodes map[string]configsections.Node) {
 	return nodes
 }
 
-// FindTestPodSetsByLabel uses the containers' namespace to get its parent deployment. Filters out non CNF test deployments,
+// FindTestPodSetsByLabel uses the containers' namespace to get its parent deployment. Filters out non CNF test podsets,deployment/statefulset,
 // currently partner and fs_diff ones.
 func FindTestPodSetsByLabel(targetLabels []configsections.Label, target *configsections.TestTarget, resourceTypeDeployment string) (podsets []configsections.PodSet) {
+	Type := configsections.Deployment
+	if resourceTypeDeployment == string(configsections.StateFullSet) {
+		Type = configsections.StateFullSet
+	}
 	for _, label := range targetLabels {
 		podsetResourceList, err := GetTargetPodSetsByLabel(label, resourceTypeDeployment)
-		Type := configsections.Deployment
-		if resourceTypeDeployment == string(configsections.StateFullSet) {
-			Type = configsections.StateFullSet
-		}
 		if err != nil {
 			log.Error("Unable to get deployment list  Error: ", err)
 		} else {

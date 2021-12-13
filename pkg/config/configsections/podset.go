@@ -16,7 +16,7 @@
 
 package configsections
 
-// PodSet defines a deployment /Statefullset in the cluster.
+// PodSet defines a podset (deployment/Statefulset) in the cluster.
 type PodSet struct {
 	Name      string
 	Namespace string
