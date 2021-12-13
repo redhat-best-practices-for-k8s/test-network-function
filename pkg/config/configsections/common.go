@@ -66,10 +66,6 @@ type TestConfiguration struct {
 
 // TestPartner contains the helper containers that can be used to facilitate tests
 type TestPartner struct {
-	// ContainerConfigList is the list partner containers that facilitates tests
-	ContainerConfigList []ContainerConfig `yaml:"partnerContainers" json:"partnerContainers"`
-	// TestOrchestratorID is the id of the partner container for conducting connectivity tests
-	TestOrchestratorID ContainerIdentifier `yaml:"testOrchestrator" json:"testOrchestrator"`
 	// DebugPods
 	ContainersDebugList []ContainerConfig `yaml:"debugContainers,omitempty" json:"debugContainers,omitempty"`
 }
