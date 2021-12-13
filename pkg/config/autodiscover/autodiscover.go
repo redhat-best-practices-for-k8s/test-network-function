@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -142,19 +143,31 @@ func buildContainersFromPodResource(pr *PodResource) (containers []configsection
 		container.PodName = pr.Metadata.Name
 		container.ContainerName = containerResource.Name
 		container.NodeName = pr.Spec.NodeName
+		// This is to have access to the pod namespace
+		for _, cs := range pr.Status.ContainerStatuses {
+			if cs.Name == container.ContainerName {
+				container.ContainerUID = ""
+				split := strings.Split(cs.ContainerID, "://")
+				if len(split) > 0 {
+					container.ContainerUID = split[len(split)-1]
+					container.ContainerRuntime = split[0]
+				}
+			}
+		}
 		container.DefaultNetworkDevice, err = pr.getDefaultNetworkDeviceFromAnnotations()
 		if err != nil {
 			log.Warnf("error encountered getting default network device: %s", err)
 		}
-		container.MultusIPAddresses, err = pr.getPodIPs()
+
+		container.MultusIPAddressesPerNet, err = pr.getPodIPsPerNet()
 		if err != nil {
 			log.Warnf("error encountered getting multus IPs: %s", err)
 			err = nil
 		}
-
+		log.Debugf("added container: %s", container.String())
 		containers = append(containers, container)
 	}
-	return
+	return containers
 }
 
 // EnableExpectersVerboseMode enables the verbose mode for expecters (Sent/Match output)

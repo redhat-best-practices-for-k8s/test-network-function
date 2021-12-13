@@ -2,23 +2,23 @@
 {
     "metadata": {
         "annotations": {
-            "k8s.v1.cni.cncf.io/networks-status": "[{\n    \"name\": \"\",\n    \"interface\": \"eth1\",\n    \"ips\": [\n        \"10.217.1.89\"\n    ],\n    \"default\": true,\n    \"dns\": {}\n}]",
-            "test-network-function.com/multusips": "[\"3.3.3.3\",\"4.4.4.4\"]",
-            "test-network-function.com/host_resource_tests": "[\"OneTestName\",\"AnotherTestName\"]"
+            "k8s.v1.cni.cncf.io/networks-status": "[{\n    \"name\": \"k8s-pod-network\",\n    \"ips\": [\n        \"10.244.205.205\"\n    ],\n    \"default\": true,\n    \"dns\": {}\n},{\n    \"name\": \"default/macvlan-conf1\",\n    \"interface\": \"net1\",\n    \"ips\": [\n        \"3.3.3.3\"\n    ],\n    \"mac\": \"62:a2:5a:1f:80:15\",\n    \"dns\": {}\n},{\n    \"name\": \"default/macvlan-conf2\",\n    \"interface\": \"net2\",\n    \"ips\": [\n        \"4.4.4.4\"\n    ],\n    \"mac\": \"62:a2:5a:1f:80:16\",\n    \"dns\": {}\n}]",
+            "test-network-function.com/host_resource_tests": "[\"OneTestName\",\"AnotherTestName\"]",
+            "test-network-function.com/defaultnetworkinterface": "\"eth0\""
         },
         "labels": {
             "app": "test",
             "test-network-function.com/generic": "target",
             "test-network-function.com/container": "target"
         },
-        "name": "test",
+        "name": "I'mAPodName",
         "namespace": "tnf"
     },
     "spec": {
         "containers": [
             {
                 "image": "quay.io/testnetworkfunction/cnf-test-partner:latest",
-                "name": "test"
+                "name": "I'mAContainer"
             }
         ]
     },
