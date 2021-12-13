@@ -45,7 +45,7 @@ ARG TNF_SRC_URL=https://github.com/test-network-function/test-network-function
 ARG GIT_CHECKOUT_TARGET=$TNF_VERSION
 
 # Git identifier to checkout for partner
-ARG TNF_PARTNER_VERSION=main
+ARG TNF_PARTNER_VERSION
 ARG TNF_PARTNER_SRC_URL=https://github.com/test-network-function/cnf-certification-test-partner
 ARG GIT_PARTNER_CHECKOUT_TARGET=$TNF_PARTNER_VERSION
 
