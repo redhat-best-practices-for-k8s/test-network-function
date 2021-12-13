@@ -290,7 +290,7 @@ control over the outputs, see the output of `test-network-function.test --help`.
 cd test-network-function && ./test-network-function.test --help
 ```
 
-*Gotcha:* The generic test suite requires that the CNF has the `ip` binariy installed.  Please add them
+*Gotcha:* The generic test suite requires that the CNF has the `ip` binary installed.  Please add them
 manually if the CNF under test does not include these.  Automated installation of missing dependencies is targeted
 for a future version.
 *Gotcha:* check that OCP cluster has resources to deploy [debug image](#check-cluster-resources)
