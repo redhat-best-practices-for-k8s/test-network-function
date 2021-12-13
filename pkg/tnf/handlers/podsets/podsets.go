@@ -40,10 +40,10 @@ type PodSet struct {
 	Current     int
 }
 
-// DeploymentMap name to Deployment
+// PodSetMap name to Deployment/statefulsets
 type PodSetMap map[string]PodSet
 
-// Deployments holds information derived from running "oc -n <namespace> get deployments" on the command line.
+// PodSets holds information derived from running "oc -n <namespace> get deployments/statefulsets" on the command line.
 type PodSets struct {
 	podsets   PodSetMap
 	namespace string
@@ -52,7 +52,7 @@ type PodSets struct {
 	args      []string
 }
 
-// NewDeployments creates a new Deployments tnf.Test.
+// NewPodSets creates a new deployments/statefulsets tnf.Test.
 func NewPodSets(timeout time.Duration, namespace, resourceType string) *PodSets {
 	return &PodSets{
 		timeout:   timeout,
@@ -72,7 +72,7 @@ func NewPodSets(timeout time.Duration, namespace, resourceType string) *PodSets 
 	}
 }
 
-// GetDeployments returns deployments extracted from running the Deployments tnf.Test.
+// GetPodSets returns deployments/statefulsets extracted from running the deployments/statefulsets tnf.Test.
 func (ps *PodSets) GetPodSets() PodSetMap {
 	return ps.podsets
 }
@@ -84,7 +84,7 @@ func (ps *PodSets) Args() []string {
 
 // GetIdentifier returns the tnf.Test specific identifier.
 func (ps *PodSets) GetIdentifier() identifier.Identifier {
-	return identifier.DeploymentsIdentifier
+	return identifier.PodSetsIdentifier
 }
 
 // Timeout returns the timeout in seconds for the test.

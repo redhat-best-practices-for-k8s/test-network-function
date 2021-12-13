@@ -360,7 +360,7 @@ var Catalog = map[string]TestCatalogEntry{
 		},
 	},
 	deploymentsIdentifierURL: {
-		Identifier:  DeploymentsIdentifier,
+		Identifier:  PodSetsIdentifier,
 		Description: "A generic test used to read namespace's deployments",
 		Type:        Normative,
 		IntrusionSettings: IntrusionSettings{
@@ -795,8 +795,8 @@ var NodeHugepagesIdentifier = Identifier{
 	SemanticVersion: versionOne,
 }
 
-// DeploymentsIdentifier is the Identifier used to represent the generic Deployments test.
-var DeploymentsIdentifier = Identifier{
+// PodSetsIdentifier is the Identifier used to represent the generic Deployments test.
+var PodSetsIdentifier = Identifier{
 	URL:             deploymentsIdentifierURL,
 	SemanticVersion: versionOne,
 }
