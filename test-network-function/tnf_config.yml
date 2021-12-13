@@ -7,26 +7,6 @@ targetPodLabels:
 targetCrdFilters:
   - nameSuffix: "group1.test.com"
   - nameSuffix: "test-network-function.com"
-# The following section does not require manual configuration as autodiscovery is on by default.
-# Partner pods deployed automatically from the cnf-test-partner-repo should have all the labels
-# used by autodiscovery
-#
-# testPartner:
-#   partnerContainers:
-#     - namespace: tnf
-#       podName: partner
-#       containerName: partner
-#       defaultNetworkDevice: eth0
-#       multusIpAddresses:
-#         - 10.217.0.29
-#     - namespace: tnf
-#       podName: node-master
-#       containerName: master
-#       defaultNetworkDevice: eth0       
-#   testOrchestrator:
-#     namespace: tnf
-#     podName: partner
-#     containerName: partner
 certifiedcontainerinfo:
   - name: nginx-116  # working example
     repository: rhel8

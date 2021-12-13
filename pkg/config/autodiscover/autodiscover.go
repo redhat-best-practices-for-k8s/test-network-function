@@ -97,18 +97,6 @@ func getContainersByLabel(label configsections.Label) (containers []configsectio
 	return containers, nil
 }
 
-// getContainersByLabelByNamespace builds `config.Container`s from containers in pods matching a label.
-func getContainersByLabelByNamespace(label configsections.Label, namespace string) (containers []configsections.ContainerConfig, err error) {
-	pods, err := GetPodsByLabelByNamespace(label, namespace)
-	if err != nil {
-		return nil, err
-	}
-	for i := range pods.Items {
-		containers = append(containers, buildContainersFromPodResource(pods.Items[i])...)
-	}
-	return containers, nil
-}
-
 // getContainerIdentifiersByLabel builds `config.ContainerIdentifier`s from containers in pods matching a label.
 func getContainerIdentifiersByLabel(label configsections.Label) (containerIDs []configsections.ContainerIdentifier, err error) {
 	containers, err := getContainersByLabel(label)
@@ -119,19 +107,6 @@ func getContainerIdentifiersByLabel(label configsections.Label) (containerIDs []
 		containerIDs = append(containerIDs, c.ContainerIdentifier)
 	}
 	return containerIDs, nil
-}
-
-// getContainerByLabelByNamespace returns exactly one container with the given label. If any other number of containers is found
-// then an error is returned along with an empty `config.Container`.
-func getContainerByLabelByNamespace(label configsections.Label, namespace string) (container configsections.ContainerConfig, err error) {
-	containers, err := getContainersByLabelByNamespace(label, namespace)
-	if err != nil {
-		return container, err
-	}
-	if len(containers) != 1 {
-		return container, fmt.Errorf("expected exactly one container, got %d for label %s/%s=%s", len(containers), label.Prefix, label.Name, label.Value)
-	}
-	return containers[0], nil
 }
 
 // buildContainersFromPodResource builds `configsections.Container`s from a `PodResource`
