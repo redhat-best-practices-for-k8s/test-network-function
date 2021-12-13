@@ -40,8 +40,8 @@ RUN wget --directory-prefix=${TEMP_DIR} ${OC_DL_URL} && \
 ENV PATH=${PATH}:"/usr/local/go/bin":${GOPATH}/"bin"
 
 # Git identifier to checkout
-ARG TNF_VERSION=remove-partner-pod
-ARG TNF_SRC_URL=https://github.com/edcdavid/test-network-function
+ARG TNF_VERSION
+ARG TNF_SRC_URL=https://github.com/test-network-function/test-network-function
 ARG GIT_CHECKOUT_TARGET=$TNF_VERSION
 
 # Git identifier to checkout for partner
