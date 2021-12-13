@@ -29,6 +29,7 @@ import (
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/ipaddr"
 	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
+	"github.com/test-network-function/test-network-function/pkg/utils"
 	"gopkg.in/yaml.v2"
 )
 
@@ -145,17 +146,17 @@ func getOcSession(pod, container, namespace string, timeout time.Duration, optio
 
 // Extract a container IP address for a particular device.  This is needed since container default network IP address
 // is served by dhcp, and thus is ephemeral.
-func getContainerDefaultNetworkIPAddress(oc *interactive.Oc, dev string) (string, error) {
-	log.Infof("Getting IP Information for: %s(%s) in ns=%s", oc.GetPodName(), oc.GetPodContainerName(), oc.GetPodNamespace())
-	ipTester := ipaddr.NewIPAddr(DefaultTimeout, dev)
-	test, err := tnf.NewTest(oc.GetExpecter(), ipTester, []reel.Handler{ipTester}, oc.GetErrorChannel())
+func getContainerDefaultNetworkIPAddress(initiatingPodNodeOc *interactive.Oc, nodeName, containerID, runtime, dev string) (string, error) {
+	log.Infof("Getting IP Information for: %s(%s) in ns=%s", initiatingPodNodeOc.GetPodName(), initiatingPodNodeOc.GetPodContainerName(), initiatingPodNodeOc.GetPodNamespace())
+	containerPID := utils.GetContainerPID(nodeName, initiatingPodNodeOc, containerID, runtime)
+	ipTester := ipaddr.NewIPAddrNsenter(DefaultTimeout, containerPID, dev)
+	test, err := tnf.NewTest(initiatingPodNodeOc.GetExpecter(), ipTester, []reel.Handler{ipTester}, initiatingPodNodeOc.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
 	result, err := test.Run()
 	if result == tnf.SUCCESS && err == nil {
 		return ipTester.GetIPv4Address(), nil
 	}
-	return "", fmt.Errorf("failed to get IP information for %s(%s) in ns=%s, result=%v, err=%v",
-		oc.GetPodName(), oc.GetPodContainerName(), oc.GetPodNamespace(), result, err)
+	return "", err
 }
 
 // TestEnvironment includes the representation of the current state of the test targets and partners as well as the test configuration
@@ -274,9 +275,14 @@ func (env *TestEnvironment) doAutodiscover() {
 		env.ContainersToExcludeFromConnectivityTests[cid] = ""
 	}
 
-	env.ContainersUnderTest = env.createContainers(env.Config.ContainerConfigList)
+	env.ContainersUnderTest = env.createContainersNoIP(env.Config.ContainerConfigList)
 	env.PodsUnderTest = env.Config.PodsUnderTest
 
+	// Discover nodes early on since they might be used to run commands by discovery
+	// But after getting a node list in FindTestTarget() and a container under test list in env.ContainersUnderTest
+	env.discoverNodes()
+
+	env.recordContainersDefaultIP(env.ContainersUnderTest)
 	for _, cid := range env.Config.Partner.ContainersDebugList {
 		env.ContainersToExcludeFromConnectivityTests[cid.ContainerIdentifier] = ""
 	}
@@ -288,7 +294,6 @@ func (env *TestEnvironment) doAutodiscover() {
 	env.OperatorsUnderTest = env.Config.Operators
 	env.CrdNames = autodiscover.FindTestCrdNames(env.Config.CrdFilters)
 
-	env.discoverNodes()
 	log.Infof("Test Configuration: %+v", *env)
 
 	env.needsRefresh = false
@@ -388,20 +393,13 @@ func (env *TestEnvironment) discoverNodes() {
 }
 
 // createContainers contains the general steps involved in creating "oc" sessions and other configuration. A map of the
-// aggregate information is returned.
-func (env *TestEnvironment) createContainers(containerDefinitions []configsections.ContainerConfig) map[configsections.ContainerIdentifier]*Container {
+// aggregate information is returned. No IP is populated yet in this step
+func (env *TestEnvironment) createContainersNoIP(containerDefinitions []configsections.ContainerConfig) map[configsections.ContainerIdentifier]*Container {
 	createdContainers := make(map[configsections.ContainerIdentifier]*Container)
 	for _, c := range containerDefinitions {
 		oc := getOcSession(c.PodName, c.ContainerName, c.Namespace, DefaultTimeout, interactive.Verbose(expectersVerboseModeEnabled), interactive.SendTimeout(DefaultTimeout))
 		var defaultIPAddress = "UNKNOWN"
-		var err error
-		if _, ok := env.ContainersToExcludeFromConnectivityTests[c.ContainerIdentifier]; !ok {
-			defaultIPAddress, err = getContainerDefaultNetworkIPAddress(oc, c.DefaultNetworkDevice)
-			if err != nil {
-				log.Warnf("Adding container to the ExcludeFromConnectivityTests list due to: %v", err)
-				env.ContainersToExcludeFromConnectivityTests[c.ContainerIdentifier] = ""
-			}
-		}
+
 		createdContainers[c.ContainerIdentifier] = &Container{
 			ContainerConfig:         c,
 			oc:                      oc,
@@ -409,6 +407,40 @@ func (env *TestEnvironment) createContainers(containerDefinitions []configsectio
 		}
 	}
 	return createdContainers
+}
+
+// createContainers contains the general steps involved in creating "oc" sessions and other configuration. A map of the
+// aggregate information is returned.
+func (env *TestEnvironment) createContainers(containerDefinitions []configsections.ContainerConfig) map[configsections.ContainerIdentifier]*Container {
+	containers := env.createContainersNoIP(containerDefinitions)
+	env.recordContainersDefaultIP(containers)
+	return containers
+}
+
+// recordContainersDefaultIP default IP populated in container map
+func (env *TestEnvironment) recordContainersDefaultIP(containers map[configsections.ContainerIdentifier]*Container) {
+	for id, c := range containers {
+		var defaultIPAddress = "UNKNOWN"
+		var err error
+		if _, ok := env.ContainersToExcludeFromConnectivityTests[c.ContainerIdentifier]; !ok {
+			if env.NodesUnderTest[c.NodeName].HasDebugPod() {
+				defaultIPAddress, err = getContainerDefaultNetworkIPAddress(env.NodesUnderTest[c.NodeName].DebugContainer.oc,
+					c.NodeName,
+					c.ContainerUID,
+					c.ContainerRuntime,
+					c.DefaultNetworkDevice)
+				if err != nil {
+					log.Warnf("Failed to get default network ip, Adding container pod:%s container:%s ns:%s to the ExcludeFromConnectivityTests list due to: %v",
+						c.PodName,
+						c.ContainerName,
+						c.Namespace,
+						err)
+					env.ContainersToExcludeFromConnectivityTests[c.ContainerIdentifier] = ""
+				}
+			}
+		}
+		containers[id].DefaultNetworkIPAddress = defaultIPAddress
+	}
 }
 
 // SetNeedsRefresh marks the config stale so that the next getInstance call will redo discovery

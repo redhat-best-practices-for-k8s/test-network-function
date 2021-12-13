@@ -26,6 +26,7 @@ import (
 	"github.com/test-network-function/test-network-function/pkg/tnf/dependencies"
 	"github.com/test-network-function/test-network-function/pkg/tnf/identifier"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
+	"github.com/test-network-function/test-network-function/pkg/utils"
 )
 
 // IPAddr provides an ip addr test implemented using command line tool `ip addr`.
@@ -111,7 +112,16 @@ func ipAddrCmd(dev string) []string {
 	return strings.Split(fmt.Sprintf("%s %s", ipAddrCommand, dev), " ")
 }
 
+func ipAddrCmdNsenter(containerPID, dev string) []string {
+	return strings.Split(fmt.Sprintf("%s%s %s", utils.AddNsenterPrefix(containerPID), ipAddrCommand, dev), " ")
+}
+
 // NewIPAddr creates a new `ip addr` test for the given device.
 func NewIPAddr(timeout time.Duration, device string) *IPAddr {
 	return &IPAddr{result: tnf.ERROR, timeout: timeout, args: ipAddrCmd(device)}
+}
+
+// NewIPAddr creates a new `ip addr` test for the given device.
+func NewIPAddrNsenter(timeout time.Duration, containerPID, device string) *IPAddr {
+	return &IPAddr{result: tnf.ERROR, timeout: timeout, args: ipAddrCmdNsenter(containerPID, device)}
 }
