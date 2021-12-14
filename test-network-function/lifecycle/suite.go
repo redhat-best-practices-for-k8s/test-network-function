@@ -147,7 +147,7 @@ func restoreDeployments(env *config.TestEnvironment) {
 // restoreStateFullSet is the last attempt to restore the original test PodSets' replicaCount
 func restoreStateFullSet(env *config.TestEnvironment) {
 	for i := range env.StateFullSetUnderTest {
-		// For each test deployment in the namespace, refresh the current replicas and compare.
+		// For each test StateFullSet in the namespace, refresh the current replicas and compare.
 		refreshReplicas(&env.StateFullSetUnderTest[i], env)
 	}
 }
@@ -170,9 +170,9 @@ func refreshReplicas(podset *configsections.PodSet, env *config.TestEnvironment)
 	dep, ok := podsets[key]
 	if ok {
 		if dep.Replicas != podset.Replicas {
-			log.Warn("Deployment ", podset.Name, " replicaCount (", podset.Replicas, ") needs to be restored.")
+			log.Warn(string(podset.Type), podset.Name, " replicaCount (", podset.Replicas, ") needs to be restored.")
 
-			// Try to scale to the original deployment's replicaCount.
+			// Try to scale to the original deployments/statefulsets replicaCount.
 			runScalingTest(podset)
 
 			env.SetNeedsRefresh()
