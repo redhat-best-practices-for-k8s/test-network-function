@@ -114,12 +114,10 @@ export TNF_PARTNER_SRC_DIR=/home/userid/code/cnf-certification-test-partner
 When this variable is set, the run-cnf-suites.sh script will deploy/refresh the partner deployments/pods in the cluster before starting the test run.
 
 ### Disconnected environment
-In disconnected environment, only specific versions of images are mirrored to the local repo. For the `oc debug` command (used by a number of tests) to work, set TNF_OC_DEBUG_IMAGE_ID:
+In a disconnected environment, only specific versions of images are mirrored to the local repo. For those environments,
+the partner pod image `quay.io/testnetworkfunction/cnf-test-partner` and debug pod image `quay.io/testnetworkfunction/debug-partner` should be mirrored
+and `TNF_PARTNER_REPO` should be set to the local repo, e.g.:
 
-```shell-script
-export TNF_OC_DEBUG_IMAGE_ID="registry.dfwt5g.lab:5000/openshift-release-dev/ocp-v4.0-art-dev@sha256:0f5ce898fbad3671fecd6f797130f950fb1abdbaf0d8154c22e2b59c74e3a918"
-```
-For similar reasons, the partner pod image `quay.io/testnetworkfunction/cnf-test-partner` should be mirrored too and `TNF_PARTNER_REPO` should be set to the local repo, e.g.:
 ```shell-script
 export TNF_PARTNER_REPO="registry.dfwt5g.lab:5000/testnetworkfunction"
 ```
