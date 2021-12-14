@@ -40,7 +40,7 @@ type PodSet struct {
 	Current     int
 }
 
-//PodSetMap maps a deployment/statefulset name to a PodSet
+// PodSetMap maps a deployment/statefulset name to a PodSet
 type PodSetMap map[string]PodSet
 
 // PodSets holds information derived from running "oc -n <namespace> get deployments/statefulsets" on the command line.
