@@ -164,7 +164,7 @@ func refreshReplicas(podset *configsections.PodSet, env *config.TestEnvironment)
 		}
 	}
 	if podset.Hpa.HpaName != "" { // it have hpa and need to update the max min
-		runHpaScalingTest(podset, podset.Hpa.MinReplicas, podset.Hpa.MaxReplicas)
+		runHpaScalingTest(podset)
 	}
 	key := podset.Namespace + ":" + podset.Name
 	dep, ok := podsets[key]
@@ -173,7 +173,7 @@ func refreshReplicas(podset *configsections.PodSet, env *config.TestEnvironment)
 			log.Warn(string(podset.Type), podset.Name, " replicaCount (", podset.Replicas, ") needs to be restored.")
 
 			// Try to scale to the original deployments/statefulsets replicaCount.
-			runScalingTest(podset, podset.Replicas)
+			runScalingTest(podset)
 
 			env.SetNeedsRefresh()
 		}
@@ -193,8 +193,8 @@ func closeOcSessionsByPodset(containers map[configsections.ContainerIdentifier]*
 }
 
 // runScalingTest Runs a Scaling handler TC and waits for all the deployments/statefulset to be ready.
-func runScalingTest(podset *configsections.PodSet, replica int) {
-	handler := scaling.NewScaling(common.DefaultTimeout, podset.Namespace, podset.Name, replica)
+func runScalingTest(podset *configsections.PodSet) {
+	handler := scaling.NewScaling(common.DefaultTimeout, podset.Namespace, podset.Name, podset.Replicas)
 	test, err := tnf.NewTest(common.GetContext().GetExpecter(), handler, []reel.Handler{handler}, common.GetContext().GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
 	test.RunAndValidate()
@@ -207,8 +207,8 @@ func runScalingTest(podset *configsections.PodSet, replica int) {
 	}
 }
 
-func runHpaScalingTest(podset *configsections.PodSet, min, max int) {
-	handler := scaling.NewHpaScaling(common.DefaultTimeout, podset.Namespace, podset.Hpa.HpaName, min, max)
+func runHpaScalingTest(podset *configsections.PodSet) {
+	handler := scaling.NewHpaScaling(common.DefaultTimeout, podset.Namespace, podset.Hpa.HpaName, podset.Hpa.MinReplicas, podset.Hpa.MaxReplicas)
 	test, err := tnf.NewTest(common.GetContext().GetExpecter(), handler, []reel.Handler{handler}, common.GetContext().GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
 	test.RunAndValidate()
@@ -257,20 +257,22 @@ func runScalingfunc(podset *configsections.PodSet, env *config.TestEnvironment) 
 
 	closeOcSessionsByPodset(env.ContainersUnderTest, podset)
 	replicaCount := podset.Replicas
-	podsetscale := podset
+	podsetscale := *podset
 	if podsetscale.Hpa.HpaName != "" {
-		min := replicaCount - 1
-		max := replicaCount - 1
-		runHpaScalingTest(podsetscale, min, max) // scale in
-		min = replicaCount
-		max = replicaCount
-		runHpaScalingTest(podsetscale, min, max) // scale out
+		podsetscale.Hpa.MinReplicas = replicaCount - 1
+		podsetscale.Hpa.MaxReplicas = replicaCount - 1
+		runHpaScalingTest(&podsetscale) // scale in
+		podsetscale.Hpa.MinReplicas = replicaCount
+		podsetscale.Hpa.MaxReplicas = replicaCount
+		runHpaScalingTest(&podsetscale) // scale out
 	} else {
 		// ScaleIn, removing one pod from the replicaCount
-		runScalingTest(podset, replicaCount-1)
+		podsetscale.Replicas = replicaCount - 1
+		runScalingTest(&podsetscale)
 
 		// Scaleout, restoring the original replicaCount number
-		runScalingTest(podset, replicaCount)
+		podsetscale.Replicas = replicaCount
+		runScalingTest(&podsetscale)
 	}
 }
 
