@@ -65,7 +65,7 @@ Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/site
 Property|Description
 ---|---
 Version|v1.0.0
-Description|http://test-network-function.com/testcases/affiliated-certification/container-is-certified tests whether container images have passed the Red Hat Container Certification Program (CCP).
+Description|http://test-network-function.com/testcases/affiliated-certification/container-is-certified tests whether container images listed in the configuration file have passed the Red Hat Container Certification Program (CCP).
 Result Type|normative
 Suggested Remediation|Ensure that your container has passed the Red Hat Container Certification Program (CCP).
 Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.3.7
@@ -74,7 +74,7 @@ Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/site
 Property|Description
 ---|---
 Version|v1.0.0
-Description|http://test-network-function.com/testcases/affiliated-certification/operator-is-certified tests whether CNF Operators have passed the Red Hat Operator Certification Program (OCP).
+Description|http://test-network-function.com/testcases/affiliated-certification/operator-is-certified tests whether CNF Operators listed in the configuration file have passed the Red Hat Operator Certification Program (OCP).
 Result Type|normative
 Suggested Remediation|Ensure that your Operator has passed Red Hat's Operator Certification Program (OCP).
 Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2.12 and Section 6.3.3
