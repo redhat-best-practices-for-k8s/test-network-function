@@ -40,7 +40,7 @@ type PodSet struct {
 	Current     int
 }
 
-// PodSetMap name to Deployment/statefulsets
+//PodSetMap maps a deployment/statefulset name to a PodSet
 type PodSetMap map[string]PodSet
 
 // PodSets holds information derived from running "oc -n <namespace> get deployments/statefulsets" on the command line.
@@ -52,7 +52,7 @@ type PodSets struct {
 	args      []string
 }
 
-// NewPodSets creates a new deployments/statefulsets tnf.Test.
+// NewPodSets creates a new PodSets tnf.Test.
 func NewPodSets(timeout time.Duration, namespace, resourceType string) *PodSets {
 	return &PodSets{
 		timeout:   timeout,
@@ -72,7 +72,7 @@ func NewPodSets(timeout time.Duration, namespace, resourceType string) *PodSets 
 	}
 }
 
-// GetPodSets returns deployments/statefulsets extracted from running the deployments/statefulsets tnf.Test.
+// GetPodSets returns deployments/statefulsets extracted from running the PodSets tnf.Test.
 func (ps *PodSets) GetPodSets() PodSetMap {
 	return ps.podsets
 }
@@ -119,8 +119,8 @@ func (ps *PodSets) ReelMatch(_, _, match string) *reel.Step {
 		if len(fields) != numExepctedFields {
 			return nil
 		}
-		// we can have the same deployment in different namespaces
-		// this ensures the uniqueness of the deployment in the test
+		// we can have the same deployment/statefulset in different namespaces
+		// this ensures the uniqueness of the deployment/statefulset in the test
 		key := ps.namespace + ":" + fields[0]
 		ps.podsets[key] = PodSet{atoi(fields[1]), atoi(fields[2]), atoi(fields[3]), atoi(fields[4]), atoi(fields[5]), atoi(fields[6])}
 	}

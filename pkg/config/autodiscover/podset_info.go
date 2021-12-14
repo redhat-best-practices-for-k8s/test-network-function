@@ -37,7 +37,7 @@ var (
 	}
 )
 
-//PodSetList holds the data from an `oc get deployment/statefulset -o json` command
+// PodSetList holds the data from an `oc get deployment/statefulset -o json` command
 type PodSetList struct {
 	Items []PodSetResource `json:"items"`
 }

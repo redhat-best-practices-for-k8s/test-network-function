@@ -39,7 +39,7 @@ const (
 	gracePeriodIdentifierURL              = "http://test-network-function.com/tests/gracePeriod"
 	hugepagesIdentifierURL                = "http://test-network-function.com/tests/hugepages"
 	nodehugepagesIdentifierURL            = "http://test-network-function.com/tests/nodehugepages"
-	deploymentsIdentifierURL              = "http://test-network-function.com/tests/deployments"
+	podsetsIdentifierURL                  = "http://test-network-function.com/tests/podsets"
 	deploymentsnodesIdentifierURL         = "http://test-network-function.com/tests/deploymentsnodes"
 	deploymentsdrainIdentifierURL         = "http://test-network-function.com/tests/deploymentsdrain"
 	ownersIdentifierURL                   = "http://test-network-function.com/tests/owners"
@@ -359,9 +359,9 @@ var Catalog = map[string]TestCatalogEntry{
 			dependencies.GrepBinaryName,
 		},
 	},
-	deploymentsIdentifierURL: {
+	podsetsIdentifierURL: {
 		Identifier:  PodSetsIdentifier,
-		Description: "A generic test used to read namespace's deployments",
+		Description: "A generic test used to read namespace's deployments/statefulsets",
 		Type:        Normative,
 		IntrusionSettings: IntrusionSettings{
 			ModifiesSystem:           false,
@@ -795,9 +795,9 @@ var NodeHugepagesIdentifier = Identifier{
 	SemanticVersion: versionOne,
 }
 
-// PodSetsIdentifier is the Identifier used to represent the generic Deployments test.
+// PodSetsIdentifier is the Identifier used to represent the generic PodSets test.
 var PodSetsIdentifier = Identifier{
-	URL:             deploymentsIdentifierURL,
+	URL:             podsetsIdentifierURL,
 	SemanticVersion: versionOne,
 }
 

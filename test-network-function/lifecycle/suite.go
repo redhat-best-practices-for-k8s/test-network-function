@@ -126,7 +126,7 @@ func waitForAllPodSetsReady(namespace string, timeout, pollingPeriod time.Durati
 
 	for elapsed < timeout {
 		_, notReadyPodSets = GetPodSets(namespace, resourceType)
-		log.Debugf("Waiting for PodSets to get ready, remaining: %d PodSets", len(notReadyPodSets))
+		log.Debugf("Waiting for %s to get ready, remaining: %d PodSets", string(resourceType), len(notReadyPodSets))
 		if len(notReadyPodSets) == 0 {
 			break
 		}
@@ -156,7 +156,7 @@ func refreshReplicas(podset *configsections.PodSet, env *config.TestEnvironment)
 	podsets, notReadyPodsets := GetPodSets(podset.Namespace, podset.Type)
 
 	if len(notReadyPodsets) > 0 {
-		// Wait until the podset is ready
+		// Wait until the deployment/replicaset is ready
 		notReady := waitForAllPodSetsReady(podset.Namespace, scalingTimeout, scalingPollingPeriod, podset.Type)
 		if notReady != 0 {
 			collectNodeAndPendingPodInfo(podset.Namespace)
@@ -385,10 +385,10 @@ func testNodeDrain(env *config.TestEnvironment, nodeName string) {
 		notReadyStateFulSets := waitForAllPodSetsReady(ns, scalingTimeout, scalingPollingPeriod, configsections.StateFullSet)
 		if notReadyStateFulSets != 0 {
 			collectNodeAndPendingPodInfo(ns)
-			ginkgo.Fail(fmt.Sprintf("Failed to recover statefulset on namespace %s after draining node %s.", ns, nodeName))
+			ginkgo.Fail(fmt.Sprintf("Failed to recover statefulsets on namespace %s after draining node %s.", ns, nodeName))
 		}
 	}
-	// If we got this far, all deployments are ready after draining the node
+	// If we got this far, all deployments/statefulsets are ready after draining the node
 	tnf.ClaimFilePrintf("Node drain for %s succeeded", nodeName)
 }
 
@@ -429,7 +429,7 @@ func testPodsRecreation(env *config.TestEnvironment) {
 	})
 }
 
-// GetPodSets returns map of deployments/statefulset and names of not-ready statefulset
+// GetPodSets returns map of podsets(deployments/statefulset) and names of not-ready podsets
 func GetPodSets(namespace string, resourceType configsections.PodSetType) (podsets ps.PodSetMap, notReadypodsets []string) {
 	context := common.GetContext()
 	tester := ps.NewPodSets(common.DefaultTimeout, namespace, string(resourceType))
