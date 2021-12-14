@@ -39,8 +39,6 @@ type Oc struct {
 	container string
 	// namespace of the pod
 	namespace string
-	// serviceAccountName of the pod
-	serviceAccountName string
 	// timeout for commands run in expecter
 	timeout time.Duration
 	// options for expecter, such as expect.Verbose(true)
@@ -84,16 +82,6 @@ func (o *Oc) GetPodContainerName() string {
 // GetPodNamespace extracts the namespace of the pod.
 func (o *Oc) GetPodNamespace() string {
 	return o.namespace
-}
-
-// GetServiceAccountName extracts the serviceAccountName of the pod
-func (o *Oc) GetServiceAccountName() string {
-	return o.serviceAccountName
-}
-
-// SetServiceAccountName sets the serviceAccountName of the pod
-func (o *Oc) SetServiceAccountName(serviceAccountName string) {
-	o.serviceAccountName = serviceAccountName
 }
 
 // GetTimeout returns the timeout for the expect.Expecter.

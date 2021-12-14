@@ -38,7 +38,6 @@ import (
 	"github.com/test-network-function/test-network-function/pkg/tnf"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/base/redhat"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/cnffsdiff"
-	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/containerid"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/currentkernelcmdlineargs"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/mckernelarguments"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodemcname"
@@ -190,20 +189,24 @@ func testContainersFsDiff(env *config.TestEnvironment) {
 			for _, cut := range env.ContainersUnderTest {
 				podName := cut.GetOc().GetPodName()
 				containerName := cut.GetOc().GetPodContainerName()
-				containerOC := cut.GetOc()
 				nodeName := cut.NodeName
 				ginkgo.By(fmt.Sprintf("%s(%s) should not install new packages after starting", podName, containerName))
 				nodeOc := env.NodesUnderTest[nodeName].DebugContainer.GetOc()
-				test := newContainerFsDiffTest(nodeName, nodeOc, containerOC)
+				fsDiffTester := cnffsdiff.NewFsDiff(common.DefaultTimeout, cut.ContainerUID, nodeName)
+				test, err := tnf.NewTest(nodeOc.GetExpecter(), fsDiffTester, []reel.Handler{fsDiffTester}, nodeOc.GetErrorChannel())
+				gomega.Expect(err).To(gomega.BeNil())
 				var message string
 				test.RunWithCallbacks(nil, func() {
 					badContainers = append(badContainers, containerName)
 					message = fmt.Sprintf("pod %s container %s did update/install/modify additional packages", podName, containerName)
 				}, func(err error) {
 					errContainers = append(errContainers, containerName)
+					if reel.IsTimeout(err) {
+						env.NodesUnderTest[nodeName].DebugContainer.CloseOc()
+					}
 					message = fmt.Sprintf("Failed to check pod %s container %s for additional packages due to: %v", podName, containerName, err)
 				})
-				_, err := ginkgo.GinkgoWriter.Write([]byte(message))
+				_, err = ginkgo.GinkgoWriter.Write([]byte(message))
 				if err != nil {
 					log.Errorf("Ginkgo writer could not write because: %s", err)
 				}
@@ -214,19 +217,6 @@ func testContainersFsDiff(env *config.TestEnvironment) {
 	})
 }
 
-// newContainerFsDiffTest  test that the CUT didn't install new packages after starting, and report through Ginkgo.
-func newContainerFsDiffTest(nodeName string, nodeOc, targetContainerOC *interactive.Oc) *tnf.Test {
-	targetContainerOC.GetExpecter()
-	containerIDTester := containerid.NewContainerID(common.DefaultTimeout)
-	test, err := tnf.NewTest(targetContainerOC.GetExpecter(), containerIDTester, []reel.Handler{containerIDTester}, targetContainerOC.GetErrorChannel())
-	gomega.Expect(err).To(gomega.BeNil())
-	test.RunAndValidate()
-	containerID := containerIDTester.GetID()
-	fsDiffTester := cnffsdiff.NewFsDiff(common.DefaultTimeout, containerID, nodeName)
-	test, err = tnf.NewTest(nodeOc.GetExpecter(), fsDiffTester, []reel.Handler{fsDiffTester}, nodeOc.GetErrorChannel())
-	gomega.Expect(err).To(gomega.BeNil())
-	return test
-}
 func getMcKernelArguments(context *interactive.Context, mcName string) map[string]string {
 	mcKernelArgumentsTester := mckernelarguments.NewMcKernelArguments(common.DefaultTimeout, mcName)
 	test, err := tnf.NewTest(context.GetExpecter(), mcKernelArgumentsTester, []reel.Handler{mcKernelArgumentsTester}, context.GetErrorChannel())
