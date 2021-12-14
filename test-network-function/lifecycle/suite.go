@@ -173,7 +173,7 @@ func refreshReplicas(podset *configsections.PodSet, env *config.TestEnvironment)
 			log.Warn(string(podset.Type), podset.Name, " replicaCount (", podset.Replicas, ") needs to be restored.")
 
 			// Try to scale to the original deployments/statefulsets replicaCount.
-			runScalingTest(podset)
+			runScalingTest(podset, podset.Replicas)
 
 			env.SetNeedsRefresh()
 		}
@@ -193,8 +193,8 @@ func closeOcSessionsByPodset(containers map[configsections.ContainerIdentifier]*
 }
 
 // runScalingTest Runs a Scaling handler TC and waits for all the deployments/statefulset to be ready.
-func runScalingTest(podset *configsections.PodSet) {
-	handler := scaling.NewScaling(common.DefaultTimeout, podset.Namespace, podset.Name, podset.Replicas)
+func runScalingTest(podset *configsections.PodSet, replica int) {
+	handler := scaling.NewScaling(common.DefaultTimeout, podset.Namespace, podset.Name, replica)
 	test, err := tnf.NewTest(common.GetContext().GetExpecter(), handler, []reel.Handler{handler}, common.GetContext().GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
 	test.RunAndValidate()
@@ -267,12 +267,10 @@ func runScalingfunc(podset *configsections.PodSet, env *config.TestEnvironment) 
 		runHpaScalingTest(podsetscale, min, max) // scale out
 	} else {
 		// ScaleIn, removing one pod from the replicaCount
-		podset.Replicas = replicaCount - 1
-		runScalingTest(podset)
+		runScalingTest(podset, replicaCount-1)
 
 		// Scaleout, restoring the original replicaCount number
-		podset.Replicas = replicaCount
-		runScalingTest(podset)
+		runScalingTest(podset, replicaCount)
 	}
 }
 
