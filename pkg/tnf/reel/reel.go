@@ -174,7 +174,7 @@ func (r *Reel) generateBatcher(execute string) []expect.Batcher {
 }
 
 // Determines if an error is an expect.TimeoutError.
-func isTimeout(err error) bool {
+func IsTimeout(err error) bool {
 	_, ok := err.(expect.TimeoutError)
 	return ok
 }
@@ -197,35 +197,37 @@ func (r *Reel) Step(step *Step, handler Handler) error {
 			return nil
 		}
 		if err != nil {
-			if isTimeout(err) {
+			// record the err in reel in case the next step is nil as we return r.Err at the end
+			r.Err = err
+			if IsTimeout(err) {
 				step = handler.ReelTimeout()
 			} else {
-				return err
+				step = nil
 			}
-		} else {
-			if len(results) > 0 {
-				result := results[0]
-				output, outputStatus := r.stripEmulatedPromptFromOutput(result.Output)
-				if outputStatus != 0 {
-					return fmt.Errorf("error executing command exit code:%d", outputStatus)
-				}
-				match, matchStatus := r.stripEmulatedPromptFromOutput(result.Match[0])
-				log.Debugf("command status: output=%s, match=%s, outputStatus=%d, matchStatus=%d, caseIndex=%d", output, match, outputStatus, matchStatus, result.CaseIdx)
-				// Check if the matching case is the extra one added in generateCases() for prompt return in error cases, skip calling ReelMatch if it is
-				if result.CaseIdx != len(batchers[result.Idx].Cases())-1 {
-					matchIndex := strings.Index(output, match)
-					var before string
-					// special case:  the match regex may be nothing at all.
-					if matchIndex > 0 {
-						before = output[0 : matchIndex-1]
-					} else {
-						before = ""
-					}
-					strippedFirstMatchRe := r.stripEmulatedRegularExpression(firstMatchRe)
-					step = handler.ReelMatch(strippedFirstMatchRe, before, match)
+		} else if len(results) > 0 {
+			result := results[0]
+			output, outputStatus := r.stripEmulatedPromptFromOutput(result.Output)
+			if outputStatus != 0 {
+				r.Err = fmt.Errorf("error executing command exit code:%d", outputStatus)
+				step = nil
+				continue
+			}
+			match, matchStatus := r.stripEmulatedPromptFromOutput(result.Match[0])
+			log.Debugf("command status: output=%s, match=%s, outputStatus=%d, matchStatus=%d, caseIndex=%d", output, match, outputStatus, matchStatus, result.CaseIdx)
+			// Check if the matching case is the extra one added in generateCases() for prompt return in error cases, skip calling ReelMatch if it is
+			if result.CaseIdx != len(batchers[result.Idx].Cases())-1 {
+				matchIndex := strings.Index(output, match)
+				var before string
+				// special case:  the match regex may be nothing at all.
+				if matchIndex > 0 {
+					before = output[0 : matchIndex-1]
 				} else {
-					step = nil
+					before = ""
 				}
+				strippedFirstMatchRe := r.stripEmulatedRegularExpression(firstMatchRe)
+				step = handler.ReelMatch(strippedFirstMatchRe, before, match)
+			} else {
+				step = nil
 			}
 		}
 	}
