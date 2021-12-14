@@ -202,7 +202,6 @@ func runNetworkingTests(netsUnderTest map[string]netTestContext, count int) {
 func testDefaultNetworkConnectivity(env *config.TestEnvironment, count int) {
 	ginkgo.When("Testing Default network connectivity", func() {
 		testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestICMPv4ConnectivityIdentifier)
-		m := make(map[string]bool)
 		ginkgo.It(testID, func() {
 			netsUnderTest := make(map[string]netTestContext)
 			for _, cut := range env.ContainersUnderTest {
@@ -210,12 +209,6 @@ func testDefaultNetworkConnectivity(env *config.TestEnvironment, count int) {
 					tnf.ClaimFilePrintf("Skipping container %s because it is excluded from connectivity tests (default interface)", cut.PodName)
 					continue
 				}
-				if _, ok := m[cut.PodName]; ok {
-					// test once per podname since all containers share the
-					// same network
-					continue
-				}
-				m[cut.PodName] = true
 				netKey := "default" //nolint:goconst // only used once
 				defaultIPAddress := []string{cut.DefaultNetworkIPAddress}
 				gomega.Expect(env).To(gomega.Not(gomega.BeNil()))
