@@ -30,7 +30,7 @@ const (
 	dpRegex = "(?s).+"
 )
 
-// Deployment holds information about a single deployment
+// PodSet holds information about a single Deployment/statefulsets
 type PodSet struct {
 	Replicas    int
 	Ready       int

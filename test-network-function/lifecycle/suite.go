@@ -180,11 +180,11 @@ func refreshReplicas(podset *configsections.PodSet, env *config.TestEnvironment)
 	}
 }
 
-func closeOcSessionsByDeployment(containers map[configsections.ContainerIdentifier]*config.Container, deployment *configsections.PodSet) {
-	log.Debug("close session for deployment=", deployment.Name, " start")
-	defer log.Debug("close session for deployment=", deployment.Name, " done")
+func closeOcSessionsByPodset(containers map[configsections.ContainerIdentifier]*config.Container, podset *configsections.PodSet) {
+	log.Debug("close session for", string(podset.Type), "=", podset.Name, " start")
+	defer log.Debug("close session for", string(podset.Type), "=", podset.Name, " done")
 	for cid, c := range containers {
-		if cid.Namespace == deployment.Namespace && strings.HasPrefix(cid.PodName, deployment.Name+"-") {
+		if cid.Namespace == podset.Namespace && strings.HasPrefix(cid.PodName, podset.Name+"-") {
 			log.Infof("Closing session to %s %s", cid.PodName, cid.ContainerName)
 			c.CloseOc()
 			delete(containers, cid)
@@ -192,7 +192,7 @@ func closeOcSessionsByDeployment(containers map[configsections.ContainerIdentifi
 	}
 }
 
-// runScalingTest Runs a Scaling handler TC and waits for all the deployments to be ready.
+// runScalingTest Runs a Scaling handler TC and waits for all the deployments/statefulset to be ready.
 func runScalingTest(podset *configsections.PodSet) {
 	handler := scaling.NewScaling(common.DefaultTimeout, podset.Namespace, podset.Name, podset.Replicas)
 	test, err := tnf.NewTest(common.GetContext().GetExpecter(), handler, []reel.Handler{handler}, common.GetContext().GetErrorChannel())
@@ -213,7 +213,7 @@ func runHpaScalingTest(podset *configsections.PodSet, min, max int) {
 	gomega.Expect(err).To(gomega.BeNil())
 	test.RunAndValidate()
 
-	// Wait until the deployment is ready
+	// Wait until the eployment/statefulset is ready
 	notReady := waitForAllPodSetsReady(podset.Namespace, scalingTimeout, scalingPollingPeriod, podset.Type)
 	if notReady != 0 {
 		collectNodeAndPendingPodInfo(podset.Namespace)
@@ -255,7 +255,7 @@ func testStateFullSetScaling(env *config.TestEnvironment) {
 func runScalingfunc(podset *configsections.PodSet, env *config.TestEnvironment) {
 	ginkgo.By(fmt.Sprintf("Scaling %s=%s, Replicas=%d (ns=%s)", string(podset.Type), podset.Name, podset.Replicas, podset.Namespace))
 
-	closeOcSessionsByDeployment(env.ContainersUnderTest, podset)
+	closeOcSessionsByPodset(env.ContainersUnderTest, podset)
 	replicaCount := podset.Replicas
 	podsetscale := podset
 	if podsetscale.Hpa.HpaName != "" {
