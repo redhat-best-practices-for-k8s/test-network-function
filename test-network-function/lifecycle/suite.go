@@ -194,7 +194,7 @@ func closeOcSessionsByPodset(containers map[configsections.ContainerIdentifier]*
 
 // runScalingTest Runs a Scaling handler TC and waits for all the deployments/statefulset to be ready.
 func runScalingTest(podset *configsections.PodSet) {
-	handler := scaling.NewScaling(common.DefaultTimeout, podset.Namespace, podset.Name, podset.Replicas)
+	handler := scaling.NewScaling(common.DefaultTimeout, podset.Namespace, podset.Name, string(podset.Type), podset.Replicas)
 	test, err := tnf.NewTest(common.GetContext().GetExpecter(), handler, []reel.Handler{handler}, common.GetContext().GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
 	test.RunAndValidate()
