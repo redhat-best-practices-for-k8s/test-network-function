@@ -177,7 +177,13 @@ func runNetworkingTests(netsUnderTest map[string]netTestContext, count int) {
 		if len(netUnderTest.destTargets) == 0 {
 			ginkgo.Skip(fmt.Sprintf("There are no containers to ping for network %s. A minimum of 2 containers is needed to run a ping test (a source and a destination) Skipping test", netName))
 		}
+		m := make(map[string]bool)
 		for _, aDestIP := range netUnderTest.destTargets {
+			podName := aDestIP.containerIdentifier.PodName
+			if _, ok := m[podName]; ok {
+				continue
+			}
+			m[podName] = true
 			ginkgo.By(fmt.Sprintf("a Ping is issued from %s(%s) %s to %s(%s) %s",
 				netUnderTest.testerSource.containerIdentifier.PodName,
 				netUnderTest.testerSource.containerIdentifier.ContainerName,

@@ -38,6 +38,7 @@ var (
 	defaultCommand = []string{"ls"}
 	errReel        = errors.New("some reel error")
 	errSendCommand = errors.New("send command error")
+	errTimeout     = expect.TimeoutError(time.Second * 1)
 )
 
 type newReelTestCase struct {
@@ -146,11 +147,11 @@ var reelStepTestCases = map[string]reelStepTestCase{
 	"timeout_error": {
 		stepInput:                          &reel.Step{Expect: []string{"expect something"}},
 		command:                            defaultCommand,
-		stepReturnErr:                      nil,
+		stepReturnErr:                      errTimeout,
 		reelErr:                            nil,
 		expectBatchExpectedInvocationCount: 1,
 		expectBatchResResult:               []expect.BatchRes{},
-		expectBatchErrResult:               expect.TimeoutError(time.Second * 1),
+		expectBatchErrResult:               errTimeout,
 		isTimeout:                          true,
 	},
 	"non_timeout_error": {
