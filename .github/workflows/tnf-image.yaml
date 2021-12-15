@@ -36,7 +36,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        branch: [3.1.x]
+        branch: [3.1.x, 3.2.x]
     env:
       SHELL: /bin/bash
       KUBECONFIG: '/home/runner/.kube/config'
