@@ -18,9 +18,14 @@ package networking
 
 import (
 	"fmt"
+	"sort"
+	"strconv"
+	"strings"
+	"time"
 
 	"github.com/test-network-function/test-network-function/pkg/config"
 	"github.com/test-network-function/test-network-function/pkg/tnf/testcases"
+	"github.com/test-network-function/test-network-function/pkg/utils"
 
 	"github.com/test-network-function/test-network-function/test-network-function/common"
 	"github.com/test-network-function/test-network-function/test-network-function/identifiers"
@@ -37,8 +42,34 @@ import (
 )
 
 const (
-	defaultNumPings = 5
+	CommandPortDeclared = "oc get pod %s -n %s -o json  | jq -r '.spec.containers[%d].ports'"
+	CommandPortListen   = "ss -tulwnH"
+	defaultNumPings     = 5
+	ocCommandTimeOut    = time.Second * 10
+	indexProtocolName   = 0
+	indexPort           = 4
 )
+
+var (
+	expectersVerboseModeEnabled = false
+	PortDeclaredAndListen       []PortDeclared
+	nodeListen                  PortListen
+	protocolName                = ""
+	port                        = ""
+	name                        = ""
+	flag                        = 0
+)
+
+type PortDeclared struct {
+	containerPort int
+	name          string
+	protocol      string
+}
+
+type PortListen struct {
+	port     int
+	protocol string
+}
 
 //
 // All actual test code belongs below here.  Utilities belong above.
@@ -68,6 +99,9 @@ var _ = ginkgo.Describe(common.NetworkingTestKey, func() {
 		})
 		ginkgo.Context("Should not have type of nodePort", func() {
 			testNodePort(env)
+		})
+		ginkgo.Context("Should not have type of listen port and declared port", func() {
+			testListenAndDeclared(env)
 		})
 	}
 })
@@ -163,4 +197,111 @@ func testNodePort(env *config.TestEnvironment) {
 			test.RunAndValidate()
 		}
 	})
+}
+
+func getDeclaredPortList(command string, containerNum int, podName, podNamespace string) []PortDeclared {
+	var result []PortDeclared
+	ocCommandToExecute := fmt.Sprintf(command, podName, podNamespace, containerNum)
+	res := utils.ExecuteCommand(ocCommandToExecute, ocCommandTimeOut, interactive.GetContext(expectersVerboseModeEnabled), func() {
+		log.Error("can't run command: ", command)
+	})
+	x := strings.Split(res, "\n")
+	for _, i := range x {
+		fmt.Println(i)
+		if strings.Contains(i, "containerPort") {
+			s := strings.Split(i, ":")
+			s = strings.Split(s[1], ",")
+			port = s[0]
+		}
+		if strings.Contains(i, "name") {
+			s := strings.Split(i, ":")
+			s = strings.Split(s[1], ",")
+			name = s[0]
+		}
+		if strings.Contains(i, "protocol") {
+			s := strings.Split(i, ":")
+			protocolName = s[1]
+			flag = 1
+		}
+		if flag < 1 {
+			continue
+		}
+		p, _ := strconv.Atoi(strings.TrimSpace(port))
+		noderes := PortDeclared{containerPort: p, name: name, protocol: protocolName}
+		result = append(result, noderes)
+		flag = 0
+	}
+	return result
+}
+
+func getListeningPortList(ocCommand string) []PortListen {
+	res := utils.ExecuteCommand(ocCommand, ocCommandTimeOut, interactive.GetContext(expectersVerboseModeEnabled), func() {
+		log.Error("can't run command: ", ocCommand)
+	})
+	splitRes := strings.Split(res, "\n")
+	var result []PortListen
+	protocolName := ""
+	for _, line := range splitRes {
+		fields := strings.Fields(line)
+		protocolName = fields[indexProtocolName]
+		s := strings.Split(fields[indexPort], ":")
+		p, _ := strconv.Atoi(s[1])
+		nodeListen = PortListen{port: p, protocol: protocolName}
+		result = append(result, nodeListen)
+	}
+	return result
+}
+
+func compareList(declaredPortList []PortDeclared, listeningPortList []PortListen) []PortDeclared {
+	var result []PortDeclared
+	var temp PortDeclared
+	indexElement1 := 0
+	indexElement2 := 0
+
+	for indexElement1 < len(declaredPortList) && indexElement2 < len(listeningPortList) {
+		if declaredPortList[indexElement1].containerPort == listeningPortList[indexElement2].port {
+			temp = declaredPortList[indexElement1]
+			result = append(result, temp)
+			indexElement1++
+			indexElement2++
+			continue
+		}
+		if declaredPortList[indexElement1].containerPort < listeningPortList[indexElement2].port {
+			indexElement1++
+			continue
+		}
+		indexElement2++
+	}
+	return result
+}
+
+func testListenAndDeclared(env *config.TestEnvironment) []PortDeclared {
+	var declaredPort []PortDeclared
+	var listeningPort []PortListen
+	var PortDeclaredAndListen []PortDeclared
+	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestServicesDoNotUseNodeportsIdentifier)
+	ginkgo.It(testID, func() {
+		for _, podUnderTest := range env.PodsUnderTest {
+			ContainerCount := podUnderTest.ContainerCount
+			for i := 0; i < ContainerCount; i++ {
+				podName := podUnderTest.Name
+				podNamespace := podUnderTest.Namespace
+				temp := getDeclaredPortList(CommandPortDeclared, i, podName, podNamespace)
+				declaredPort = append(declaredPort, temp...)
+			}
+			temp := getListeningPortList(CommandPortListen)
+			listeningPort = append(listeningPort, temp...)
+			// sorting the lists
+			sort.SliceStable(declaredPort, func(i, j int) bool {
+				return declaredPort[i].containerPort < declaredPort[j].containerPort
+			})
+			sort.SliceStable(listeningPort, func(i, j int) bool {
+				return listeningPort[i].port < listeningPort[j].port
+			})
+			// compare between declaredPort,listeningPort and return the common.
+			res := compareList(declaredPort, listeningPort)
+			PortDeclaredAndListen = append(PortDeclaredAndListen, res...)
+		}
+	})
+	return PortDeclaredAndListen
 }
