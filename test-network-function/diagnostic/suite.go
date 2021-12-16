@@ -186,10 +186,10 @@ func getWorkerNodeName(env *config.TestEnvironment) string {
 }
 
 func listNodeCniPlugins(nodeName string) []CniPlugin {
-	const command = "cat /host/etc/cni/net.d/* | chroot /host jq -r .name,.cniVersion"
+	const command = "cat /host/etc/cni/net.d/[0-999]* | jq -r .name,.cniVersion"
 	result := []CniPlugin{}
 	nodes := config.GetTestEnvironment().NodesUnderTest
-	context := nodes[nodeName].Oc
+	context := nodes[nodeName].DebugContainer.GetOc()
 	tester := nodedebug.NewNodeDebug(defaultTestTimeout, nodeName, command, true, true)
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
@@ -214,9 +214,6 @@ func testOcpVersion() {
 }
 
 func testCniPlugins() {
-	if common.IsNonOcpCluster() {
-		ginkgo.Skip("can't use 'oc debug' in minikube")
-	}
 	// get name of a master node
 	env = config.GetTestEnvironment()
 	nodeName := getMasterNodeName(env)
@@ -227,9 +224,6 @@ func testCniPlugins() {
 }
 
 func testNodesHwInfo() {
-	if common.IsNonOcpCluster() {
-		ginkgo.Skip("can't use 'oc debug' in minikube")
-	}
 	env = config.GetTestEnvironment()
 	masterNodeName := getMasterNodeName(env)
 	gomega.Expect(masterNodeName).ToNot(gomega.BeEmpty())
@@ -253,7 +247,7 @@ func getNodeLscpu(nodeName string) map[string]string {
 	result := map[string]string{}
 	env = config.GetTestEnvironment()
 	nodes := env.NodesUnderTest
-	context := nodes[nodeName].Oc
+	context := nodes[nodeName].DebugContainer.GetOc()
 	tester := nodedebug.NewNodeDebug(defaultTestTimeout, nodeName, command, true, true)
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
@@ -266,12 +260,12 @@ func getNodeLscpu(nodeName string) map[string]string {
 }
 
 func getNodeIfconfig(nodeName string) map[string][]string {
-	const command = "chroot /host ifconfig"
+	const command = "ifconfig"
 	const numSplitSubstrings = 2
 	result := map[string][]string{}
 	env = config.GetTestEnvironment()
 	nodes := env.NodesUnderTest
-	context := nodes[nodeName].Oc
+	context := nodes[nodeName].DebugContainer.GetOc()
 	tester := nodedebug.NewNodeDebug(defaultTestTimeout, nodeName, command, true, true)
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
@@ -295,7 +289,7 @@ func getNodeLsblk(nodeName string) interface{} {
 	const command = "lsblk -J"
 	env = config.GetTestEnvironment()
 	nodes := env.NodesUnderTest
-	context := nodes[nodeName].Oc
+	context := nodes[nodeName].DebugContainer.GetOc()
 	tester := nodedebug.NewNodeDebug(defaultTestTimeout, nodeName, command, false, false)
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
@@ -310,7 +304,7 @@ func getNodeLspci(nodeName string) []string {
 	const command = "lspci"
 	env = config.GetTestEnvironment()
 	nodes := env.NodesUnderTest
-	context := nodes[nodeName].Oc
+	context := nodes[nodeName].DebugContainer.GetOc()
 	tester := nodedebug.NewNodeDebug(defaultTestTimeout, nodeName, command, true, true)
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
@@ -320,9 +314,6 @@ func getNodeLspci(nodeName string) []string {
 
 // check CSI driver info in cluster
 func listClusterCSIInfo() {
-	if common.IsNonOcpCluster() {
-		ginkgo.Skip("CSI is not checked in minikube")
-	}
 	context := common.GetContext()
 	tester, handlers, result, err := generic.NewGenericFromJSONFile(relativeCsiDriverTestPath, common.RelativeSchemaPath)
 	gomega.Expect(err).To(gomega.BeNil())

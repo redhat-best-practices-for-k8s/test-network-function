@@ -38,7 +38,6 @@ import (
 	"github.com/test-network-function/test-network-function/pkg/tnf"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/base/redhat"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/cnffsdiff"
-	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/containerid"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/currentkernelcmdlineargs"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/mckernelarguments"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodemcname"
@@ -170,9 +169,9 @@ func testIsRedHatRelease(env *config.TestEnvironment) {
 
 // testContainerIsRedHatRelease tests whether the container attached to oc is Red Hat based.
 func testContainerIsRedHatRelease(cut *config.Container) {
-	podName := cut.Oc.GetPodName()
-	containerName := cut.Oc.GetPodContainerName()
-	context := cut.Oc
+	podName := cut.GetOc().GetPodName()
+	containerName := cut.GetOc().GetPodContainerName()
+	context := cut.GetOc()
 	ginkgo.By(fmt.Sprintf("%s(%s) is checked for Red Hat version", podName, containerName))
 	versionTester := redhat.NewRelease(common.DefaultTimeout)
 	test, err := tnf.NewTest(context.GetExpecter(), versionTester, []reel.Handler{versionTester}, context.GetErrorChannel())
@@ -188,22 +187,26 @@ func testContainersFsDiff(env *config.TestEnvironment) {
 			var badContainers []string
 			var errContainers []string
 			for _, cut := range env.ContainersUnderTest {
-				podName := cut.Oc.GetPodName()
-				containerName := cut.Oc.GetPodContainerName()
-				containerOC := cut.Oc
-				nodeName := cut.ContainerConfiguration.NodeName
+				podName := cut.GetOc().GetPodName()
+				containerName := cut.GetOc().GetPodContainerName()
+				nodeName := cut.NodeName
 				ginkgo.By(fmt.Sprintf("%s(%s) should not install new packages after starting", podName, containerName))
-				nodeOc := env.NodesUnderTest[nodeName].Oc
-				test := newContainerFsDiffTest(nodeName, nodeOc, containerOC)
+				nodeOc := env.NodesUnderTest[nodeName].DebugContainer.GetOc()
+				fsDiffTester := cnffsdiff.NewFsDiff(common.DefaultTimeout, cut.ContainerUID, nodeName)
+				test, err := tnf.NewTest(nodeOc.GetExpecter(), fsDiffTester, []reel.Handler{fsDiffTester}, nodeOc.GetErrorChannel())
+				gomega.Expect(err).To(gomega.BeNil())
 				var message string
 				test.RunWithCallbacks(nil, func() {
 					badContainers = append(badContainers, containerName)
 					message = fmt.Sprintf("pod %s container %s did update/install/modify additional packages", podName, containerName)
 				}, func(err error) {
 					errContainers = append(errContainers, containerName)
+					if reel.IsTimeout(err) {
+						env.NodesUnderTest[nodeName].DebugContainer.CloseOc()
+					}
 					message = fmt.Sprintf("Failed to check pod %s container %s for additional packages due to: %v", podName, containerName, err)
 				})
-				_, err := ginkgo.GinkgoWriter.Write([]byte(message))
+				_, err = ginkgo.GinkgoWriter.Write([]byte(message))
 				if err != nil {
 					log.Errorf("Ginkgo writer could not write because: %s", err)
 				}
@@ -214,19 +217,6 @@ func testContainersFsDiff(env *config.TestEnvironment) {
 	})
 }
 
-// newContainerFsDiffTest  test that the CUT didn't install new packages after starting, and report through Ginkgo.
-func newContainerFsDiffTest(nodeName string, nodeOc, targetContainerOC *interactive.Oc) *tnf.Test {
-	targetContainerOC.GetExpecter()
-	containerIDTester := containerid.NewContainerID(common.DefaultTimeout)
-	test, err := tnf.NewTest(targetContainerOC.GetExpecter(), containerIDTester, []reel.Handler{containerIDTester}, targetContainerOC.GetErrorChannel())
-	gomega.Expect(err).To(gomega.BeNil())
-	test.RunAndValidate()
-	containerID := containerIDTester.GetID()
-	fsDiffTester := cnffsdiff.NewFsDiff(common.DefaultTimeout, containerID, nodeName)
-	test, err = tnf.NewTest(nodeOc.GetExpecter(), fsDiffTester, []reel.Handler{fsDiffTester}, nodeOc.GetErrorChannel())
-	gomega.Expect(err).To(gomega.BeNil())
-	return test
-}
 func getMcKernelArguments(context *interactive.Context, mcName string) map[string]string {
 	mcKernelArgumentsTester := mckernelarguments.NewMcKernelArguments(common.DefaultTimeout, mcName)
 	test, err := tnf.NewTest(context.GetExpecter(), mcKernelArgumentsTester, []reel.Handler{mcKernelArgumentsTester}, context.GetErrorChannel())
@@ -324,9 +314,9 @@ func testBootParams(env *config.TestEnvironment) {
 	ginkgo.It(testID, func() {
 		context := common.GetContext()
 		for _, cut := range env.ContainersUnderTest {
-			podName := cut.Oc.GetPodName()
-			podNameSpace := cut.Oc.GetPodNamespace()
-			targetContainerOc := cut.Oc
+			podName := cut.GetOc().GetPodName()
+			podNameSpace := cut.GetOc().GetPodNamespace()
+			targetContainerOc := cut.GetOc()
 			testBootParamsHelper(context, podName, podNameSpace, targetContainerOc)
 		}
 	})
@@ -338,7 +328,7 @@ func testBootParamsHelper(context *interactive.Context, podName, podNamespace st
 	mcKernelArgumentsMap := getMcKernelArguments(context, mcName)
 	currentKernelArgsMap := getCurrentKernelCmdlineArgs(targetContainerOc)
 	env := config.GetTestEnvironment()
-	nodeOC := env.NodesUnderTest[nodeName].Oc
+	nodeOC := env.NodesUnderTest[nodeName].DebugContainer.GetOc()
 	grubKernelConfigMap := getGrubKernelArgs(nodeOC)
 
 	for key, mcVal := range mcKernelArgumentsMap {
@@ -366,7 +356,7 @@ func testSysctlConfigsHelper(podName, podNamespace string) {
 	context := common.GetContext()
 	nodeName := getPodNodeName(context, podName, podNamespace)
 	env := config.GetTestEnvironment()
-	nodeOc := env.NodesUnderTest[nodeName].Oc
+	nodeOc := env.NodesUnderTest[nodeName].DebugContainer.GetOc()
 	combinedSysctlSettings := getSysctlConfigArgs(nodeOc)
 	mcName := getMcName(context, nodeName)
 	mcKernelArgumentsMap := getMcKernelArguments(context, mcName)
@@ -400,7 +390,7 @@ func testTainted(env *config.TestEnvironment) {
 			if !node.HasDebugPod() {
 				continue
 			}
-			context := node.Oc
+			context := node.DebugContainer.GetOc()
 			tester := nodetainted.NewNodeTainted(common.DefaultTimeout)
 			test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 			gomega.Expect(err).To(gomega.BeNil())
@@ -505,9 +495,9 @@ func getNodeNumaHugePages(node *config.NodeConfig) (hugepages numaHugePagesPerSi
 	const numRegexFields = 4
 
 	// This command must run inside the node, so we'll need the node's context to run commands inside the debug daemonset pod.
-	context := interactive.NewContext(node.Oc.GetExpecter(), node.Oc.GetErrorChannel())
+	context := interactive.NewContext(node.DebugContainer.GetOc().GetExpecter(), node.DebugContainer.GetOc().GetErrorChannel())
 	var commandErr error
-	hugepagesCmdOut := utils.ExecuteCommand(cmd, commandTimeout, context, func() {
+	hugepagesCmdOut := utils.ExecuteCommandAndValidate(cmd, commandTimeout, context, func() {
 		commandErr = fmt.Errorf("failed to get node %s hugepages per numa", node.Name)
 	})
 	if commandErr != nil {
@@ -549,7 +539,7 @@ func getMachineConfig(mcName string) (machineConfig, error) {
 
 	// Local shell context is needed for the command handler.
 	context := common.GetContext()
-	mcJSON := utils.ExecuteCommand(fmt.Sprintf("oc get mc %s -o json", mcName), commandTimeout, context, func() {
+	mcJSON := utils.ExecuteCommandAndValidate(fmt.Sprintf("oc get mc %s -o json", mcName), commandTimeout, context, func() {
 		commandErr = fmt.Errorf("failed to get json machineconfig %s", mcName)
 	})
 	if commandErr != nil {

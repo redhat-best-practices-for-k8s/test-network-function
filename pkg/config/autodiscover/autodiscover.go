@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -70,7 +71,7 @@ func buildLabelQuery(label configsections.Label) string {
 
 var executeOcGetCommand = func(resourceType, labelQuery, namespace string) string {
 	ocCommandToExecute := fmt.Sprintf(ocCommand, resourceType, namespace, labelQuery)
-	match := utils.ExecuteCommand(ocCommandToExecute, ocCommandTimeOut, interactive.GetContext(expectersVerboseModeEnabled), func() {
+	match := utils.ExecuteCommandAndValidate(ocCommandToExecute, ocCommandTimeOut, interactive.GetContext(expectersVerboseModeEnabled), func() {
 		log.Error("can't run command: ", ocCommandToExecute)
 	})
 	return match
@@ -78,7 +79,7 @@ var executeOcGetCommand = func(resourceType, labelQuery, namespace string) strin
 
 var executeOcGetAllCommand = func(resourceType, labelQuery string) string {
 	ocCommandToExecute := fmt.Sprintf(ocAllCommand, resourceType, labelQuery)
-	match := utils.ExecuteCommand(ocCommandToExecute, ocCommandTimeOut, interactive.GetContext(expectersVerboseModeEnabled), func() {
+	match := utils.ExecuteCommandAndValidate(ocCommandToExecute, ocCommandTimeOut, interactive.GetContext(expectersVerboseModeEnabled), func() {
 		log.Error("can't run command: ", ocCommandToExecute)
 	})
 	return match
@@ -87,18 +88,6 @@ var executeOcGetAllCommand = func(resourceType, labelQuery string) string {
 // getContainersByLabel builds `config.Container`s from containers in pods matching a label.
 func getContainersByLabel(label configsections.Label) (containers []configsections.ContainerConfig, err error) {
 	pods, err := GetPodsByLabel(label)
-	if err != nil {
-		return nil, err
-	}
-	for i := range pods.Items {
-		containers = append(containers, buildContainersFromPodResource(pods.Items[i])...)
-	}
-	return containers, nil
-}
-
-// getContainersByLabelByNamespace builds `config.Container`s from containers in pods matching a label.
-func getContainersByLabelByNamespace(label configsections.Label, namespace string) (containers []configsections.ContainerConfig, err error) {
-	pods, err := GetPodsByLabelByNamespace(label, namespace)
 	if err != nil {
 		return nil, err
 	}
@@ -120,19 +109,6 @@ func getContainerIdentifiersByLabel(label configsections.Label) (containerIDs []
 	return containerIDs, nil
 }
 
-// getContainerByLabelByNamespace returns exactly one container with the given label. If any other number of containers is found
-// then an error is returned along with an empty `config.Container`.
-func getContainerByLabelByNamespace(label configsections.Label, namespace string) (container configsections.ContainerConfig, err error) {
-	containers, err := getContainersByLabelByNamespace(label, namespace)
-	if err != nil {
-		return container, err
-	}
-	if len(containers) != 1 {
-		return container, fmt.Errorf("expected exactly one container, got %d for label %s/%s=%s", len(containers), label.Prefix, label.Name, label.Value)
-	}
-	return containers[0], nil
-}
-
 // buildContainersFromPodResource builds `configsections.Container`s from a `PodResource`
 func buildContainersFromPodResource(pr *PodResource) (containers []configsections.ContainerConfig) {
 	for _, containerResource := range pr.Spec.Containers {
@@ -142,19 +118,31 @@ func buildContainersFromPodResource(pr *PodResource) (containers []configsection
 		container.PodName = pr.Metadata.Name
 		container.ContainerName = containerResource.Name
 		container.NodeName = pr.Spec.NodeName
+		// This is to have access to the pod namespace
+		for _, cs := range pr.Status.ContainerStatuses {
+			if cs.Name == container.ContainerName {
+				container.ContainerUID = ""
+				split := strings.Split(cs.ContainerID, "://")
+				if len(split) > 0 {
+					container.ContainerUID = split[len(split)-1]
+					container.ContainerRuntime = split[0]
+				}
+			}
+		}
 		container.DefaultNetworkDevice, err = pr.getDefaultNetworkDeviceFromAnnotations()
 		if err != nil {
 			log.Warnf("error encountered getting default network device: %s", err)
 		}
-		container.MultusIPAddresses, err = pr.getPodIPs()
+
+		container.MultusIPAddressesPerNet, err = pr.getPodIPsPerNet()
 		if err != nil {
 			log.Warnf("error encountered getting multus IPs: %s", err)
 			err = nil
 		}
-
+		log.Debugf("added container: %s", container.String())
 		containers = append(containers, container)
 	}
-	return
+	return containers
 }
 
 // EnableExpectersVerboseMode enables the verbose mode for expecters (Sent/Match output)

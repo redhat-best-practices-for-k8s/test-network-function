@@ -66,10 +66,6 @@ type TestConfiguration struct {
 
 // TestPartner contains the helper containers that can be used to facilitate tests
 type TestPartner struct {
-	// ContainerConfigList is the list partner containers that facilitates tests
-	ContainerConfigList []ContainerConfig `yaml:"partnerContainers" json:"partnerContainers"`
-	// TestOrchestratorID is the id of the partner container for conducting connectivity tests
-	TestOrchestratorID ContainerIdentifier `yaml:"testOrchestrator" json:"testOrchestrator"`
 	// DebugPods
 	ContainersDebugList []ContainerConfig `yaml:"debugContainers,omitempty" json:"debugContainers,omitempty"`
 }
@@ -77,7 +73,9 @@ type TestPartner struct {
 // TestTarget is a collection of resources under test
 type TestTarget struct {
 	// DeploymentsUnderTest is the list of deployments that contain pods under test.
-	DeploymentsUnderTest []Deployment `yaml:"deploymentsUnderTest" json:"deploymentsUnderTest"`
+	DeploymentsUnderTest []PodSet `yaml:"deploymentsUnderTest" json:"deploymentsUnderTest"`
+	// StateFulSetUnderTest is the list of statefulset that contain pods under test.
+	StateFulSetUnderTest []PodSet `yaml:"stateFulSetUnderTest" json:"stateFulSetUnderTest"`
 	// PodsUnderTest is the list of the pods that needs to be tested. Each entry is a single pod to be tested.
 	PodsUnderTest []Pod `yaml:"podsUnderTest,omitempty" json:"podsUnderTest,omitempty"`
 	// NonValidPods contains a list of pods that share the same labels with Pods Under Test

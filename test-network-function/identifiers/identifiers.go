@@ -168,6 +168,11 @@ var (
 		Url:     formTestURL(common.AccessControlTestKey, "pod-service-account"),
 		Version: versionOne,
 	}
+	//
+	TestPodAutomountServiceAccountIdentifier = claim.Identifier{
+		Url:     formTestURL(common.AccessControlTestKey, "pod-automount-service-account-token"),
+		Version: versionOne,
+	}
 	// TestServicesDoNotUseNodeportsIdentifier ensures Services don't utilize NodePorts.
 	TestServicesDoNotUseNodeportsIdentifier = claim.Identifier{
 		Url:     formTestURL(common.NetworkingTestKey, "service-type"),
@@ -280,7 +285,7 @@ cannot be followed.`,
 		Type:        normativeResult,
 		Remediation: `Ensure that your container has passed the Red Hat Container Certification Program (CCP).`,
 		Description: formDescription(TestContainerIsCertifiedIdentifier,
-			`tests whether container images have passed the Red Hat Container Certification Program (CCP).`),
+			`tests whether container images listed in the configuration file have passed the Red Hat Container Certification Program (CCP).`),
 		BestPracticeReference: bestPracticeDocV1dot2URL + " Section 6.3.7",
 	},
 
@@ -318,9 +323,7 @@ how to exclude a particular container from ICMPv4 connectivity tests, consult:
 [README.md](https://github.com/test-network-function/test-network-function#issue-161-some-containers-under-test-do-not-contain-ping-or-ip-binary-utilities).`,
 		Description: formDescription(TestICMPv4ConnectivityIdentifier,
 			`checks that each CNF Container is able to communicate via ICMPv4 on the Default OpenShift network.  This
-test case requires the Deployment of the
-[CNF Certification Test Partner](https://github.com/test-network-function/cnf-certification-test-partner/blob/main/test-partner/partner-deployment.yaml).
-The test ensures that all CNF containers respond to ICMPv4 requests from the Partner Pod, and vice-versa.
+test case requires the Deployment of the debug daemonset.
 `),
 		BestPracticeReference: bestPracticeDocV1dot2URL + " Section 6.2",
 	},
@@ -380,7 +383,7 @@ with no resourceNames under its rules.`),
 		Type:        normativeResult,
 		Remediation: `Ensure that your Operator has passed Red Hat's Operator Certification Program (OCP).`,
 		Description: formDescription(TestOperatorIsCertifiedIdentifier,
-			`tests whether CNF Operators have passed the Red Hat Operator Certification Program (OCP).`),
+			`tests whether CNF Operators listed in the configuration file have passed the Red Hat Operator Certification Program (OCP).`),
 		BestPracticeReference: bestPracticeDocV1dot2URL + " Section 6.2.12 and Section 6.3.3",
 	},
 
@@ -616,5 +619,12 @@ the changes for you.`,
 			`check that all containers under test use standard input output and standard error when logging`),
 		Remediation:           `make sure containers are not redirecting stdout/stderr`,
 		BestPracticeReference: bestPracticeDocV1dot2URL + " Section 11.1",
+	},
+	TestPodAutomountServiceAccountIdentifier: {
+		Identifier: TestPodAutomountServiceAccountIdentifier,
+		Type:       normativeResult,
+		Description: formDescription(TestPodAutomountServiceAccountIdentifier,
+			`check that all pods under test have automountServiceAccountToken set to false`),
+		Remediation: `check that pod has automountServiceAccountToken set to false or pod is attached to service account which has automountServiceAccountToken set to false`,
 	},
 }

@@ -14,35 +14,20 @@
 // with this program; if not, write to the Free Software Foundation, Inc.,
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-package autodiscover
+package configsections
 
-import (
-	"os"
-	"testing"
-
-	"github.com/stretchr/testify/assert"
-)
-
-func TestIsNonOcpCluster(t *testing.T) {
-	defer os.Unsetenv("TNF_NON_OCP_CLUSTER")
-	testCases := []struct {
-		IsNonOcpCluster bool
-	}{
-		{
-			IsNonOcpCluster: true,
-		},
-		{
-			IsNonOcpCluster: false,
-		},
-	}
-
-	for _, tc := range testCases {
-		if tc.IsNonOcpCluster {
-			os.Setenv("TNF_NON_OCP_CLUSTER", "true")
-			assert.True(t, IsNonOcpCluster())
-		} else {
-			os.Setenv("TNF_NON_OCP_CLUSTER", "false")
-			assert.False(t, IsNonOcpCluster())
-		}
-	}
+// PodSet defines a podset (deployment/Statefulset) in the cluster.
+type PodSet struct {
+	Name      string
+	Namespace string
+	Replicas  int
+	Hpa       Hpa
+	Type      PodSetType
 }
+
+type PodSetType string
+
+const (
+	Deployment  PodSetType = "deployment"
+	StateFulSet PodSetType = "statefulset"
+)

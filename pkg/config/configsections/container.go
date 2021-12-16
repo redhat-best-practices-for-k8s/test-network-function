@@ -16,12 +16,18 @@
 
 package configsections
 
+import (
+	"fmt"
+)
+
 // ContainerIdentifier is a complex key representing a unique container.
 type ContainerIdentifier struct {
-	Namespace     string `yaml:"namespace" json:"namespace"`
-	PodName       string `yaml:"podName" json:"podName"`
-	ContainerName string `yaml:"containerName" json:"containerName"`
-	NodeName      string `yaml:"nodeName" json:"nodeName"`
+	Namespace        string `yaml:"namespace" json:"namespace"`
+	PodName          string `yaml:"podName" json:"podName"`
+	ContainerName    string `yaml:"containerName" json:"containerName"`
+	NodeName         string `yaml:"nodeName" json:"nodeName"`
+	ContainerUID     string `yaml:"containerUID" json:"containerUID"`
+	ContainerRuntime string `yaml:"containerRuntime" json:"containerRuntime"`
 }
 
 // ContainerConfig contains the payload of container facets.
@@ -29,6 +35,18 @@ type ContainerConfig struct {
 	ContainerIdentifier `yaml:",inline"`
 	// OpenShift Default network interface name (i.e., eth0)
 	DefaultNetworkDevice string `yaml:"defaultNetworkDevice" json:"defaultNetworkDevice"`
-	// MultusIPAddresses are the overlay IPs.
-	MultusIPAddresses []string `yaml:"multusIpAddresses" json:"multusIpAddresses"`
+	// MultusIPAddressesPerNet are the overlay IPs.
+	MultusIPAddressesPerNet map[string][]string `yaml:"multusIpAddressesPerNet" json:"multusIpAddressesPerNet"`
+}
+
+func (cid *ContainerIdentifier) String() (output string) {
+	output = fmt.Sprintf("node:%s ns:%s podName:%s containerName:%s containerUID:%s containerRuntime:%s",
+		cid.NodeName,
+		cid.Namespace,
+		cid.PodName,
+		cid.ContainerName,
+		cid.ContainerUID,
+		cid.ContainerRuntime,
+	)
+	return
 }

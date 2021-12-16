@@ -76,11 +76,14 @@ func TestGetContainersByLabel(t *testing.T) {
 			expectedOutput: []configsections.ContainerConfig{
 				{
 					ContainerIdentifier: configsections.ContainerIdentifier{
-						Namespace:     "kube-system",
-						PodName:       "coredns-78fcd69978-cc94v",
-						ContainerName: "coredns",
-						NodeName:      "minikube",
+						Namespace:        "kube-system",
+						PodName:          "coredns-78fcd69978-cc94v",
+						ContainerName:    "coredns",
+						NodeName:         "minikube",
+						ContainerUID:     "cf794b9e8c2448815b8b5a47b354c9bf9414a04f6fa567ac3b059851ed6757ab",
+						ContainerRuntime: "docker",
 					},
+					MultusIPAddressesPerNet: map[string][]string{},
 				},
 			},
 		},
@@ -92,18 +95,15 @@ func TestGetContainersByLabel(t *testing.T) {
 			expectedOutput: []configsections.ContainerConfig(nil),
 		},
 	}
-
 	origCommand := executeOcGetAllCommand
 	defer func() {
 		executeOcGetAllCommand = origCommand
 	}()
-
 	for _, tc := range testCases {
 		executeOcGetAllCommand = func(resourceType, labelQuery string) string {
 			file, _ := os.ReadFile(tc.filename)
 			return string(file)
 		}
-
 		containers, _ := getContainersByLabel(configsections.Label{
 			Prefix: tc.prefix,
 			Name:   tc.name,
@@ -145,10 +145,12 @@ func TestGetContainerIdentifiersByLabel(t *testing.T) {
 		{
 			expectedOutput: []configsections.ContainerIdentifier{
 				{
-					Namespace:     "kube-system",
-					PodName:       "coredns-78fcd69978-cc94v",
-					ContainerName: "coredns",
-					NodeName:      "minikube",
+					Namespace:        "kube-system",
+					PodName:          "coredns-78fcd69978-cc94v",
+					ContainerName:    "coredns",
+					NodeName:         "minikube",
+					ContainerUID:     "cf794b9e8c2448815b8b5a47b354c9bf9414a04f6fa567ac3b059851ed6757ab",
+					ContainerRuntime: "docker",
 				},
 			},
 			prefix:   "testprefix",

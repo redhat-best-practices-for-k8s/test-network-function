@@ -28,14 +28,14 @@ import (
 )
 
 func Test_NewScaling(t *testing.T) {
-	handler := scaling.NewScaling(testTimeoutDuration, testPodNamespace, testDeploymentName, testReplicaCount)
+	handler := scaling.NewScaling(testTimeoutDuration, testPodNamespace, testDeploymentName, sourcetype, testReplicaCount)
 	assert.NotNil(t, handler)
 	assert.Equal(t, testTimeoutDuration, handler.Timeout())
 	assert.Equal(t, handler.Result(), tnf.ERROR)
 }
 
 func Test_ReelFirstPositive(t *testing.T) {
-	handler := scaling.NewScaling(testTimeoutDuration, testPodNamespace, testDeploymentName, testReplicaCount)
+	handler := scaling.NewScaling(testTimeoutDuration, testPodNamespace, testDeploymentName, sourcetype, testReplicaCount)
 	assert.NotNil(t, handler)
 	firstStep := handler.ReelFirst()
 	re := regexp.MustCompile(firstStep.Expect[0])
@@ -45,7 +45,7 @@ func Test_ReelFirstPositive(t *testing.T) {
 }
 
 func Test_ReelFirstNegative(t *testing.T) {
-	handler := scaling.NewScaling(testTimeoutDuration, testPodNamespace, testDeploymentName, testReplicaCount)
+	handler := scaling.NewScaling(testTimeoutDuration, testPodNamespace, testDeploymentName, sourcetype, testReplicaCount)
 	assert.NotNil(t, handler)
 	firstStep := handler.ReelFirst()
 	re := regexp.MustCompile(firstStep.Expect[0])
@@ -54,7 +54,7 @@ func Test_ReelFirstNegative(t *testing.T) {
 }
 
 func Test_ReelMatchSuccess(t *testing.T) {
-	handler := scaling.NewScaling(testTimeoutDuration, testPodNamespace, testDeploymentName, testReplicaCount)
+	handler := scaling.NewScaling(testTimeoutDuration, testPodNamespace, testDeploymentName, sourcetype, testReplicaCount)
 	assert.NotNil(t, handler)
 
 	step := handler.ReelMatch("", "", testInputSuccess)
@@ -64,7 +64,7 @@ func Test_ReelMatchSuccess(t *testing.T) {
 
 // Just ensure there are no panics.
 func Test_ReelEof(t *testing.T) {
-	handler := scaling.NewScaling(testTimeoutDuration, testPodNamespace, testDeploymentName, testReplicaCount)
+	handler := scaling.NewScaling(testTimeoutDuration, testPodNamespace, testDeploymentName, sourcetype, testReplicaCount)
 	assert.NotNil(t, handler)
 	handler.ReelEOF()
 }
@@ -75,6 +75,7 @@ const (
 	testInputError      = ""
 	testPodNamespace    = "testPodNamespace"
 	testDeploymentName  = "testDeploymentName"
+	sourcetype          = "deployment"
 )
 
 var (

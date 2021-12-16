@@ -24,6 +24,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
 	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
@@ -46,6 +47,14 @@ var DefaultTimeout = time.Duration(defaultTimeoutSeconds) * time.Second
 // LogLevelTraceEnabled is saved to filter some debug trace logs (e.g. expecters Sent/Match)
 var LogLevelTraceEnabled = false
 
+var TcClaimLogPrintf = func(format string, args ...interface{}) {
+	message := fmt.Sprintf(format+"\n", args...)
+	_, err := ginkgo.GinkgoWriter.Write([]byte(message))
+	if err != nil {
+		log.Errorf("Ginkgo writer could not write msg '%s' because: %s", message, err)
+	}
+}
+
 // GetContext spawns a new shell session and returns its context
 func GetContext() *interactive.Context {
 	context, err := interactive.SpawnShell(interactive.CreateGoExpectSpawner(), DefaultTimeout, interactive.Verbose(LogLevelTraceEnabled), interactive.SendTimeout(DefaultTimeout))
@@ -65,11 +74,6 @@ func IsNonOcpCluster() bool {
 func Intrusive() bool {
 	b, _ := strconv.ParseBool(os.Getenv("TNF_NON_INTRUSIVE_ONLY"))
 	return !b
-}
-
-// GetOcDebugImageID is for running oc debug commands in a disconnected environment with a specific oc debug pod image mirrored
-func GetOcDebugImageID() string {
-	return os.Getenv("TNF_OC_DEBUG_IMAGE_ID")
 }
 
 // logLevel retrieves the LOG_LEVEL environment variable
