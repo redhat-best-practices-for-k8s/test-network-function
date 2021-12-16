@@ -33,7 +33,6 @@ import (
 	"github.com/test-network-function/test-network-function/pkg/config"
 	"github.com/test-network-function/test-network-function/pkg/junit"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
-	tnfcommon "github.com/test-network-function/test-network-function/pkg/tnf/handlers/common"
 
 	utils "github.com/test-network-function/test-network-function/pkg/utils"
 	_ "github.com/test-network-function/test-network-function/test-network-function/accesscontrol"
@@ -142,8 +141,6 @@ func TestTest(t *testing.T) {
 		gitDisplayRelease = GitRelease
 	}
 	log.Info("Version: ", gitDisplayRelease, " ( ", GitCommit, " )")
-
-	tnfcommon.OcDebugImageID = common.GetOcDebugImageID()
 
 	// Initialize the claim with the start time, tnf version, etc.
 	claimRoot := createClaimRoot()
