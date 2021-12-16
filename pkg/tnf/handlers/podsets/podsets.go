@@ -14,7 +14,7 @@
 // with this program; if not, write to the Free Software Foundation, Inc.,
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-package deployments
+package podsets
 
 import (
 	"strconv"
@@ -30,81 +30,84 @@ const (
 	dpRegex = "(?s).+"
 )
 
-// Deployment holds information about a single deployment
-type Deployment struct {
+// PodSet holds information about a single Deployment/statefulsets
+type PodSet struct {
 	Replicas    int
 	Ready       int
 	UpToDate    int
-	Available   int
+	Available   int // this param exist in deployment and not exsit on statefulset
 	Unavailable int
+	Current     int // this param exist in statefulset and not exsit on deployment
 }
 
-// DeploymentMap name to Deployment
-type DeploymentMap map[string]Deployment
+// PodSetMap maps a deployment/statefulset name to a PodSet
+type PodSetMap map[string]PodSet
 
-// Deployments holds information derived from running "oc -n <namespace> get deployments" on the command line.
-type Deployments struct {
-	deployments DeploymentMap
-	namespace   string
-	result      int
-	timeout     time.Duration
-	args        []string
+// PodSets holds information derived from running "oc -n <namespace> get deployments/statefulsets" on the command line.
+type PodSets struct {
+	podsets   PodSetMap
+	namespace string
+	result    int
+	timeout   time.Duration
+	args      []string
 }
 
-// NewDeployments creates a new Deployments tnf.Test.
-func NewDeployments(timeout time.Duration, namespace string) *Deployments {
-	return &Deployments{
+// NewPodSets creates a new PodSets tnf.Test.
+func NewPodSets(timeout time.Duration, namespace, resourceType string) *PodSets {
+	return &PodSets{
 		timeout:   timeout,
 		namespace: namespace,
 		result:    tnf.ERROR,
-		args: []string{"oc", "-n", namespace, "get", "deployments", "-o", "custom-columns=" +
+		args: []string{"oc", "-n", namespace, "get", resourceType, "-o", "custom-columns=" +
 			"NAME:.metadata.name," +
 			"REPLICAS:.spec.replicas," +
 			"READY:.status.readyReplicas," +
 			"UPDATED:.status.updatedReplicas," +
 			"AVAILABLE:.status.availableReplicas," +
-			"UNAVAILABLE:.status.unavailableReplicas",
+			"UNAVAILABLE:.status.unavailableReplicas," +
+			"CURRENT:.status.currentReplicas",
 		},
-		deployments: DeploymentMap{},
+
+		podsets: PodSetMap{},
 	}
 }
 
-// GetDeployments returns deployments extracted from running the Deployments tnf.Test.
-func (dp *Deployments) GetDeployments() DeploymentMap {
-	return dp.deployments
+// GetPodSets returns deployments/statefulsets extracted from running the PodSets tnf.Test.
+func (ps *PodSets) GetPodSets() PodSetMap {
+	return ps.podsets
 }
 
 // Args returns the command line args for the test.
-func (dp *Deployments) Args() []string {
-	return dp.args
+func (ps *PodSets) Args() []string {
+	return ps.args
 }
 
 // GetIdentifier returns the tnf.Test specific identifier.
-func (dp *Deployments) GetIdentifier() identifier.Identifier {
-	return identifier.DeploymentsIdentifier
+func (ps *PodSets) GetIdentifier() identifier.Identifier {
+	return identifier.PodSetsIdentifier
 }
 
 // Timeout returns the timeout in seconds for the test.
-func (dp *Deployments) Timeout() time.Duration {
-	return dp.timeout
+func (ps *PodSets) Timeout() time.Duration {
+	return ps.timeout
 }
 
 // Result returns the test result.
-func (dp *Deployments) Result() int {
-	return dp.result
+func (ps *PodSets) Result() int {
+	return ps.result
 }
 
 // ReelFirst returns a step which expects the ping statistics within the test timeout.
-func (dp *Deployments) ReelFirst() *reel.Step {
+func (ps *PodSets) ReelFirst() *reel.Step {
 	return &reel.Step{
 		Expect:  []string{dpRegex},
-		Timeout: dp.timeout,
+		Timeout: ps.timeout,
 	}
 }
 
 // ReelMatch ensures that list of nodes is not empty and stores the names as []string
-func (dp *Deployments) ReelMatch(_, _, match string) *reel.Step {
-	const numExepctedFields = 6
+func (ps *PodSets) ReelMatch(_, _, match string) *reel.Step {
+	const numExepctedFields = 7
 	trimmedMatch := strings.Trim(match, "\n")
 	lines := strings.Split(trimmedMatch, "\n")[1:] // First line is the headers/titles line
 
@@ -116,23 +119,23 @@ func (dp *Deployments) ReelMatch(_, _, match string) *reel.Step {
 		if len(fields) != numExepctedFields {
 			return nil
 		}
-		// we can have the same deployment in different namespaces
-		// this ensures the uniqueness of the deployment in the test
-		key := dp.namespace + ":" + fields[0]
-		dp.deployments[key] = Deployment{atoi(fields[1]), atoi(fields[2]), atoi(fields[3]), atoi(fields[4]), atoi(fields[5])}
+		// we can have the same deployment/statefulset in different namespaces
+		// this ensures the uniqueness of the deployment/statefulset in the test
+		key := ps.namespace + ":" + fields[0]
+		ps.podsets[key] = PodSet{atoi(fields[1]), atoi(fields[2]), atoi(fields[3]), atoi(fields[4]), atoi(fields[5]), atoi(fields[6])}
 	}
 
-	dp.result = tnf.SUCCESS
+	ps.result = tnf.SUCCESS
 	return nil
 }
 
 // ReelTimeout does nothing;  no action is necessary upon timeout.
-func (dp *Deployments) ReelTimeout() *reel.Step {
+func (ps *PodSets) ReelTimeout() *reel.Step {
 	return nil
 }
 
 // ReelEOF does nothing;  no action is necessary upon EOF.
-func (dp *Deployments) ReelEOF() {
+func (ps *PodSets) ReelEOF() {
 }
 
 func atoi(s string) int {

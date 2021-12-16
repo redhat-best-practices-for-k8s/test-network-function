@@ -28,10 +28,6 @@ import (
 	"github.com/test-network-function/test-network-function/pkg/utils"
 )
 
-const (
-	resourceTypeDeployment = "deployment"
-)
-
 var (
 	jsonUnmarshal     = json.Unmarshal
 	execCommandOutput = func(command string) string {
@@ -41,13 +37,13 @@ var (
 	}
 )
 
-// DeploymentList holds the data from an `oc get deployments -o json` command
-type DeploymentList struct {
-	Items []DeploymentResource `json:"items"`
+// PodSetList holds the data from an `oc get deployment/statefulset -o json` command
+type PodSetList struct {
+	Items []PodSetResource `json:"items"`
 }
 
-// DeploymentResource defines deployment resources
-type DeploymentResource struct {
+// PodSetResource defines deployment/statefulset resources
+type PodSetResource struct {
 	Metadata struct {
 		Name        string            `json:"name"`
 		Namespace   string            `json:"namespace"`
@@ -60,28 +56,28 @@ type DeploymentResource struct {
 	}
 }
 
-// GetName returns deployment's metadata section's name field.
-func (deployment *DeploymentResource) GetName() string {
-	return deployment.Metadata.Name
+// GetName returns podset's metadata section's name field.
+func (podset *PodSetResource) GetName() string {
+	return podset.Metadata.Name
 }
 
-// GetNamespace returns deployment's metadata section's namespace field.
-func (deployment *DeploymentResource) GetNamespace() string {
-	return deployment.Metadata.Namespace
+// GetNamespace returns podset's metadata section's namespace field.
+func (podset *PodSetResource) GetNamespace() string {
+	return podset.Metadata.Namespace
 }
 
-// GetReplicas returns deployment's spec section's replicas field.
-func (deployment *DeploymentResource) GetReplicas() int {
-	return deployment.Spec.Replicas
+// GetReplicas returns podset's spec section's replicas field.
+func (podset *PodSetResource) GetReplicas() int {
+	return podset.Spec.Replicas
 }
 
-// GetLabels returns a map with the deployment's metadata section's labels.
-func (deployment *DeploymentResource) GetLabels() map[string]string {
-	return deployment.Metadata.Labels
+// GetLabels returns a map with the podset's metadata section's labels.
+func (podset *PodSetResource) GetLabels() map[string]string {
+	return podset.Metadata.Labels
 }
-func (deployment *DeploymentResource) GetHpa() configsections.Hpa {
-	template := fmt.Sprintf("go-template='{{ range .items }}{{ if eq .spec.scaleTargetRef.name %q }}{{.spec.minReplicas}},{{.spec.maxReplicas}},{{.metadata.name}}{{ end }}{{ end }}'", deployment.GetName())
-	ocCmd := fmt.Sprintf("oc get hpa -n %s -o %s", deployment.GetNamespace(), template)
+func (podset *PodSetResource) GetHpa() configsections.Hpa {
+	template := fmt.Sprintf("go-template='{{ range .items }}{{ if eq .spec.scaleTargetRef.name %q }}{{.spec.minReplicas}},{{.spec.maxReplicas}},{{.metadata.name}}{{ end }}{{ end }}'", podset.GetName())
+	ocCmd := fmt.Sprintf("oc get hpa -n %s -o %s", podset.GetNamespace(), template)
 	out := execCommandOutput(ocCmd)
 	if out != "" {
 		out := strings.Split(out, ",")
@@ -97,36 +93,36 @@ func (deployment *DeploymentResource) GetHpa() configsections.Hpa {
 	return configsections.Hpa{}
 }
 
-// GetTargetDeploymentsByNamespace will return all deployments that have pods with a given label.
-func GetTargetDeploymentsByNamespace(namespace string, targetLabel configsections.Label) (*DeploymentList, error) {
+// GetTargetPodSetsByNamespace will return all podsets(deployments/statefulset )that have pods with a given label.
+func GetTargetPodSetsByNamespace(namespace string, targetLabel configsections.Label, resourceTypePodSet string) (*PodSetList, error) {
 	labelQuery := fmt.Sprintf("%q==%q", buildLabelName(targetLabel.Prefix, targetLabel.Name), targetLabel.Value)
 	jqArgs := fmt.Sprintf("'[.items[] | select(.spec.template.metadata.labels.%s)]'", labelQuery)
-	ocCmd := fmt.Sprintf("oc get %s -n %s -o json | jq %s", resourceTypeDeployment, namespace, jqArgs)
+	ocCmd := fmt.Sprintf("oc get %s -n %s -o json | jq %s", resourceTypePodSet, namespace, jqArgs)
 
 	out := execCommandOutput(ocCmd)
 
-	var deploymentList DeploymentList
-	err := jsonUnmarshal([]byte(out), &deploymentList.Items)
+	var podsetList PodSetList
+	err := jsonUnmarshal([]byte(out), &podsetList.Items)
 	if err != nil {
 		return nil, err
 	}
 
-	return &deploymentList, nil
+	return &podsetList, nil
 }
 
-// GetTargetDeploymentsByLabel will return all deployments that have pods with a given label.
-func GetTargetDeploymentsByLabel(targetLabel configsections.Label) (*DeploymentList, error) {
+// GetTargetDeploymentsByLabel will return all deployments/statefulsets that have pods with a given label.
+func GetTargetPodSetsByLabel(targetLabel configsections.Label, resourceTypePodSet string) (*PodSetList, error) {
 	labelQuery := fmt.Sprintf("%q==%q", buildLabelName(targetLabel.Prefix, targetLabel.Name), targetLabel.Value)
 	jqArgs := fmt.Sprintf("'[.items[] | select(.spec.template.metadata.labels.%s)]'", labelQuery)
-	ocCmd := fmt.Sprintf("oc get %s -A -o json | jq %s", resourceTypeDeployment, jqArgs)
+	ocCmd := fmt.Sprintf("oc get %s -A -o json | jq %s", resourceTypePodSet, jqArgs)
 
 	out := execCommandOutput(ocCmd)
 
-	var deploymentList DeploymentList
-	err := jsonUnmarshal([]byte(out), &deploymentList.Items)
+	var podsetList PodSetList
+	err := jsonUnmarshal([]byte(out), &podsetList.Items)
 	if err != nil {
 		return nil, err
 	}
 
-	return &deploymentList, nil
+	return &podsetList, nil
 }

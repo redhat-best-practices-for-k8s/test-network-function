@@ -164,7 +164,8 @@ type TestEnvironment struct {
 	PartnerContainers    map[configsections.ContainerIdentifier]*Container
 	DebugContainers      map[configsections.ContainerIdentifier]*Container
 	PodsUnderTest        []configsections.Pod
-	DeploymentsUnderTest []configsections.Deployment
+	DeploymentsUnderTest []configsections.PodSet
+	StateFulSetUnderTest []configsections.PodSet
 	OperatorsUnderTest   []configsections.Operator
 	NameSpacesUnderTest  []string
 	CrdNames             []string
@@ -285,6 +286,7 @@ func (env *TestEnvironment) doAutodiscover() {
 		env.ContainersToExcludeFromConnectivityTests[cid.ContainerIdentifier] = ""
 	}
 	env.DeploymentsUnderTest = env.Config.DeploymentsUnderTest
+	env.StateFulSetUnderTest = env.Config.StateFulSetUnderTest
 	env.OperatorsUnderTest = env.Config.Operators
 	env.CrdNames = autodiscover.FindTestCrdNames(env.Config.CrdFilters)
 

@@ -175,9 +175,11 @@ jobs:
       - name: 'Test: Run diagnostic test suite in a TNF container'
         run: ./run-tnf-container.sh ${{ env.TESTING_CMD_PARAMS }} -f diagnostic
 
-      - name: 'Test: Delete HPA from pods and Run the scaling test'
-        run: oc delete hpa test -n tnf
-
+      - name: Delete the deployment and deploy Statefulset pods
+        uses: ./cnf-certification-test-partner/.github/actions/deploy-statefulset-pods
+        with:
+          working_directory: cnf-certification-test-partner
+          
       - name: 'Test: Run generic test suite in a TNF container'
         run: ./run-tnf-container.sh ${{ env.TESTING_CMD_PARAMS }} -f access-control lifecycle platform observablility networking affiliated-certification operator
 
