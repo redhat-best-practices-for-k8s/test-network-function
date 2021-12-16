@@ -22,6 +22,7 @@ env:
   IMAGE_TAG: latest
   TNF_CONTAINER_CLIENT: docker
   TNF_NON_INTRUSIVE_ONLY: false
+  TNF_MINIKUBE_ONLY: true
   TNF_DISABLE_CONFIG_AUTODISCOVER: false
   TNF_CONFIG_DIR: /tmp/tnf/config
   TNF_OUTPUT_DIR: /tmp/tnf/output
@@ -36,7 +37,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        branch: [3.1.x]
+        branch: [3.1.x, 3.2.x]
     env:
       SHELL: /bin/bash
       KUBECONFIG: '/home/runner/.kube/config'

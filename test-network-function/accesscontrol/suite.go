@@ -383,6 +383,7 @@ func testAutomountService(env *config.TestEnvironment) {
 	})
 }
 
+//nolint: dupl // we could create a generic function for cluster and normal role bindings, but it would be large and full of ifs
 func testRoleBindings(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestPodRoleBindingsBestPracticesIdentifier)
 	ginkgo.It(testID, func() {
@@ -393,7 +394,7 @@ func testRoleBindings(env *config.TestEnvironment) {
 			podNamespace := podUnderTest.Namespace
 			serviceAccountName := podUnderTest.ServiceAccount
 			context := common.GetContext()
-			ginkgo.By(fmt.Sprintf("Testing role  bidning  %s %s", podNamespace, podName))
+			ginkgo.By(fmt.Sprintf("Testing role binding  %s %s", podNamespace, podName))
 			if serviceAccountName == "" {
 				ginkgo.Skip("Can not test when serviceAccountName is empty. Please check previous tests for failures")
 			}
@@ -415,6 +416,7 @@ func testRoleBindings(env *config.TestEnvironment) {
 	})
 }
 
+//nolint: dupl // we could create a generic function for cluster and normal role bindings, but it would be large and full of ifs
 func testClusterRoleBindings(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestPodClusterRoleBindingsBestPracticesIdentifier)
 	ginkgo.It(testID, func() {
@@ -425,14 +427,13 @@ func testClusterRoleBindings(env *config.TestEnvironment) {
 			podNamespace := podUnderTest.Namespace
 			serviceAccountName := podUnderTest.ServiceAccount
 			context := common.GetContext()
-			ginkgo.By(fmt.Sprintf("Testing cluster role  binding  %s %s", podNamespace, podName))
+			ginkgo.By(fmt.Sprintf("Testing cluster role binding  %s %s", podNamespace, podName))
 			if serviceAccountName == "" {
 				ginkgo.Skip("Can not test when serviceAccountName is empty. Please check previous tests for failures")
 			}
 			crbTester := clusterrolebinding.NewClusterRoleBinding(common.DefaultTimeout, serviceAccountName, podNamespace)
 			test, err := tnf.NewTest(context.GetExpecter(), crbTester, []reel.Handler{crbTester}, context.GetErrorChannel())
 			gomega.Expect(err).To(gomega.BeNil())
-			test.RunAndValidateWithFailureCallback(func() { log.Info("ClusterRoleBindings: ") })
 			test.RunWithCallbacks(nil, func() {
 				tnf.ClaimFilePrintf("FAILURE: Pod %s (ns: %s) clusterRoleBindings: %v", podName, podNamespace, crbTester.GetClusterRoleBindings())
 				failedPods = append(failedPods, podUnderTest)

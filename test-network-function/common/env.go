@@ -76,11 +76,6 @@ func Intrusive() bool {
 	return !b
 }
 
-// GetOcDebugImageID is for running oc debug commands in a disconnected environment with a specific oc debug pod image mirrored
-func GetOcDebugImageID() string {
-	return os.Getenv("TNF_OC_DEBUG_IMAGE_ID")
-}
-
 // logLevel retrieves the LOG_LEVEL environment variable
 func logLevel() string {
 	logLevel := os.Getenv("LOG_LEVEL")
