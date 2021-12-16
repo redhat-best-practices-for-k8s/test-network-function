@@ -113,7 +113,7 @@ var _ = ginkgo.Describe(common.LifecycleTestKey, func() {
 			testPodsRecreation(env)
 
 			testScaling(env)
-			testStateFullSetScaling(env)
+			testStateFulSetScaling(env)
 		}
 
 		testOwner(env)
@@ -144,11 +144,11 @@ func restoreDeployments(env *config.TestEnvironment) {
 	}
 }
 
-// restoreStateFullSet is the last attempt to restore the original test PodSets' replicaCount
-func restoreStateFullSet(env *config.TestEnvironment) {
-	for i := range env.StateFullSetUnderTest {
-		// For each test StateFullSet in the namespace, refresh the current replicas and compare.
-		refreshReplicas(&env.StateFullSetUnderTest[i], env)
+// restoreStateFulSet is the last attempt to restore the original test PodSets' replicaCount
+func restoreStateFulSet(env *config.TestEnvironment) {
+	for i := range env.StateFulSetUnderTest {
+		// For each test StateFulSet in the namespace, refresh the current replicas and compare.
+		refreshReplicas(&env.StateFulSetUnderTest[i], env)
 	}
 }
 
@@ -236,18 +236,18 @@ func testScaling(env *config.TestEnvironment) {
 		}
 	})
 }
-func testStateFullSetScaling(env *config.TestEnvironment) {
+func testStateFulSetScaling(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestScalingIdentifier)
 	ginkgo.It(testID, func() {
 		ginkgo.By("Testing StatefulSet scaling")
-		defer restoreStateFullSet(env)
+		defer restoreStateFulSet(env)
 		defer env.SetNeedsRefresh()
 
-		if len(env.StateFullSetUnderTest) == 0 {
+		if len(env.StateFulSetUnderTest) == 0 {
 			ginkgo.Skip("No test StatefulSet found.")
 		}
-		for i := range env.StateFullSetUnderTest {
-			runScalingfunc(&env.StateFullSetUnderTest[i], env)
+		for i := range env.StateFulSetUnderTest {
+			runScalingfunc(&env.StateFulSetUnderTest[i], env)
 		}
 	})
 }
@@ -361,7 +361,7 @@ func cleanupNodeDrain(env *config.TestEnvironment, nodeName string) {
 			collectNodeAndPendingPodInfo(ns)
 			log.Fatalf("Cleanup after node drain for %s failed, stopping tests to ensure cluster integrity", nodeName)
 		}
-		notReadyStateFulSets := waitForAllPodSetsReady(ns, scalingTimeout, scalingPollingPeriod, configsections.StateFullSet)
+		notReadyStateFulSets := waitForAllPodSetsReady(ns, scalingTimeout, scalingPollingPeriod, configsections.StateFulSet)
 		if notReadyStateFulSets != 0 {
 			collectNodeAndPendingPodInfo(ns)
 			ginkgo.Fail(fmt.Sprintf("Cleanup after node drain for %s failed, stopping tests to ensure cluster integrity", nodeName))
@@ -382,7 +382,7 @@ func testNodeDrain(env *config.TestEnvironment, nodeName string) {
 			collectNodeAndPendingPodInfo(ns)
 			ginkgo.Fail(fmt.Sprintf("Failed to recover deployments on namespace %s after draining node %s.", ns, nodeName))
 		}
-		notReadyStateFulSets := waitForAllPodSetsReady(ns, scalingTimeout, scalingPollingPeriod, configsections.StateFullSet)
+		notReadyStateFulSets := waitForAllPodSetsReady(ns, scalingTimeout, scalingPollingPeriod, configsections.StateFulSet)
 		if notReadyStateFulSets != 0 {
 			collectNodeAndPendingPodInfo(ns)
 			ginkgo.Fail(fmt.Sprintf("Failed to recover statefulsets on namespace %s after draining node %s.", ns, nodeName))

@@ -160,16 +160,16 @@ func getContainerDefaultNetworkIPAddress(initiatingPodNodeOc *interactive.Oc, no
 
 // TestEnvironment includes the representation of the current state of the test targets and partners as well as the test configuration
 type TestEnvironment struct {
-	ContainersUnderTest   map[configsections.ContainerIdentifier]*Container
-	PartnerContainers     map[configsections.ContainerIdentifier]*Container
-	DebugContainers       map[configsections.ContainerIdentifier]*Container
-	PodsUnderTest         []configsections.Pod
-	DeploymentsUnderTest  []configsections.PodSet
-	StateFullSetUnderTest []configsections.PodSet
-	OperatorsUnderTest    []configsections.Operator
-	NameSpacesUnderTest   []string
-	CrdNames              []string
-	NodesUnderTest        map[string]*NodeConfig
+	ContainersUnderTest  map[configsections.ContainerIdentifier]*Container
+	PartnerContainers    map[configsections.ContainerIdentifier]*Container
+	DebugContainers      map[configsections.ContainerIdentifier]*Container
+	PodsUnderTest        []configsections.Pod
+	DeploymentsUnderTest []configsections.PodSet
+	StateFulSetUnderTest []configsections.PodSet
+	OperatorsUnderTest   []configsections.Operator
+	NameSpacesUnderTest  []string
+	CrdNames             []string
+	NodesUnderTest       map[string]*NodeConfig
 
 	// ContainersToExcludeFromConnectivityTests is a set used for storing the containers that should be excluded from
 	// connectivity testing.
@@ -286,7 +286,7 @@ func (env *TestEnvironment) doAutodiscover() {
 		env.ContainersToExcludeFromConnectivityTests[cid.ContainerIdentifier] = ""
 	}
 	env.DeploymentsUnderTest = env.Config.DeploymentsUnderTest
-	env.StateFullSetUnderTest = env.Config.StateFullSetUnderTest
+	env.StateFulSetUnderTest = env.Config.StateFulSetUnderTest
 	env.OperatorsUnderTest = env.Config.Operators
 	env.CrdNames = autodiscover.FindTestCrdNames(env.Config.CrdFilters)
 

@@ -28,6 +28,6 @@ type PodSet struct {
 type PodSetType string
 
 const (
-	Deployment   PodSetType = "deployment"
-	StateFullSet PodSetType = "statefulset"
+	Deployment  PodSetType = "deployment"
+	StateFulSet PodSetType = "statefulset"
 )

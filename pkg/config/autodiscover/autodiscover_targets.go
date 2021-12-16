@@ -88,8 +88,8 @@ func FindTestTarget(labels []configsections.Label, target *configsections.TestTa
 	}
 	dps := FindTestPodSetsByLabel(labels, target, string(configsections.Deployment))
 	target.DeploymentsUnderTest = appendPodsets(dps, ns)
-	stateFullSet := FindTestPodSetsByLabel(labels, target, string(configsections.StateFullSet))
-	target.StateFullSetUnderTest = appendPodsets(stateFullSet, ns)
+	stateFulSet := FindTestPodSetsByLabel(labels, target, string(configsections.StateFulSet))
+	target.StateFulSetUnderTest = appendPodsets(stateFulSet, ns)
 	target.Nodes = GetNodesList()
 }
 
@@ -150,8 +150,8 @@ func GetNodesList() (nodes map[string]configsections.Node) {
 // currently partner and fs_diff ones.
 func FindTestPodSetsByLabel(targetLabels []configsections.Label, target *configsections.TestTarget, resourceTypeDeployment string) (podsets []configsections.PodSet) {
 	Type := configsections.Deployment
-	if resourceTypeDeployment == string(configsections.StateFullSet) {
-		Type = configsections.StateFullSet
+	if resourceTypeDeployment == string(configsections.StateFulSet) {
+		Type = configsections.StateFulSet
 	}
 	for _, label := range targetLabels {
 		podsetResourceList, err := GetTargetPodSetsByLabel(label, resourceTypeDeployment)
