@@ -86,13 +86,21 @@ func FindTestTarget(labels []configsections.Label, target *configsections.TestTa
 			target.Operators = append(target.Operators, buildOperatorFromCSVResource(&csv))
 		}
 	}
-	dps := FindTestDeploymentsByLabel(labels, target)
-	for _, dp := range dps {
-		if ns[dp.Namespace] {
-			target.DeploymentsUnderTest = append(target.DeploymentsUnderTest, dp)
+	dps := FindTestPodSetsByLabel(labels, target, string(configsections.Deployment))
+	target.DeploymentsUnderTest = appendPodsets(dps, ns)
+	stateFulSet := FindTestPodSetsByLabel(labels, target, string(configsections.StateFulSet))
+	target.StateFulSetUnderTest = appendPodsets(stateFulSet, ns)
+	target.Nodes = GetNodesList()
+}
+
+// func for appending the pod sets
+func appendPodsets(podsets []configsections.PodSet, ns map[string]bool) (podSet []configsections.PodSet) {
+	for _, ps := range podsets {
+		if ns[ps.Namespace] {
+			podSet = append(podSet, ps)
 		}
 	}
-	target.Nodes = GetNodesList()
+	return podSet
 }
 
 // GetNodesList Function that return a list of node and what is the type of them.
@@ -138,26 +146,32 @@ func GetNodesList() (nodes map[string]configsections.Node) {
 	return nodes
 }
 
-// FindTestDeploymentsByLabel uses the containers' namespace to get its parent deployment. Filters out non CNF test deployments,
+// FindTestPodSetsByLabel uses the containers' namespace to get its parent deployment/statefulset. Filters out non CNF test podsets,deployment/statefulset,
 // currently partner and fs_diff ones.
-func FindTestDeploymentsByLabel(targetLabels []configsections.Label, target *configsections.TestTarget) (deployments []configsections.Deployment) {
+func FindTestPodSetsByLabel(targetLabels []configsections.Label, target *configsections.TestTarget, resourceTypeDeployment string) (podsets []configsections.PodSet) {
+	Type := configsections.Deployment
+	if resourceTypeDeployment == string(configsections.StateFulSet) {
+		Type = configsections.StateFulSet
+	}
 	for _, label := range targetLabels {
-		deploymentResourceList, err := GetTargetDeploymentsByLabel(label)
+		podsetResourceList, err := GetTargetPodSetsByLabel(label, resourceTypeDeployment)
 		if err != nil {
 			log.Error("Unable to get deployment list  Error: ", err)
 		} else {
-			for _, deploymentResource := range deploymentResourceList.Items {
-				deployment := configsections.Deployment{
-					Name:      deploymentResource.GetName(),
-					Namespace: deploymentResource.GetNamespace(),
-					Replicas:  deploymentResource.GetReplicas(),
+			for _, podsetResource := range podsetResourceList.Items {
+				podset := configsections.PodSet{
+					Name:      podsetResource.GetName(),
+					Namespace: podsetResource.GetNamespace(),
+					Replicas:  podsetResource.GetReplicas(),
+					Hpa:       podsetResource.GetHpa(),
+					Type:      Type,
 				}
 
-				deployments = append(deployments, deployment)
+				podsets = append(podsets, podset)
 			}
 		}
 	}
-	return deployments
+	return podsets
 }
 
 // buildPodUnderTest builds a single `configsections.Pod` from a PodResource

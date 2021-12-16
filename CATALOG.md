@@ -388,16 +388,6 @@ Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`oc`
 
-### http://test-network-function.com/tests/deployments
-Property|Description
----|---
-Version|v1.0.0
-Description|A generic test used to read namespace's deployments
-Result Type|normative
-Intrusive|false
-Modifications Persist After Test|false
-Runtime Binaries Required|`oc`
-
 ### http://test-network-function.com/tests/deploymentsnodes
 Property|Description
 ---|---
@@ -663,6 +653,16 @@ Property|Description
 ---|---
 Version|v1.0.0
 Description|A generic test used to get a pod's node
+Result Type|normative
+Intrusive|false
+Modifications Persist After Test|false
+Runtime Binaries Required|`oc`
+
+### http://test-network-function.com/tests/podsets
+Property|Description
+---|---
+Version|v1.0.0
+Description|A generic test used to read namespace's deployments/statefulsets
 Result Type|normative
 Intrusive|false
 Modifications Persist After Test|false

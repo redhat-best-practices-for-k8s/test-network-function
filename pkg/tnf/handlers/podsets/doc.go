@@ -14,12 +14,5 @@
 // with this program; if not, write to the Free Software Foundation, Inc.,
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-package configsections
-
-// Deployment defines a deployment in the cluster.
-type Deployment struct {
-	Name      string
-	Namespace string
-	Replicas  int
-	Hpa       Hpa
-}
+// Package PodSet-deployments/statefulsets provides a test for reading the namespace's PodSet deployments/statefulsets
+package podsets
