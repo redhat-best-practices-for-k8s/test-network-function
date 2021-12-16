@@ -34,6 +34,13 @@ func Test_NewPodSets(t *testing.T) {
 	assert.NotNil(t, newDp.GetPodSets())
 }
 
+func Test_StatefulsetNewPodSets(t *testing.T) {
+	newDp := ps.NewPodSets(testTimeoutDuration, testNamespace, "statefulset")
+	assert.NotNil(t, newDp)
+	assert.Equal(t, testTimeoutDuration, newDp.Timeout())
+	assert.Equal(t, newDp.Result(), tnf.ERROR)
+	assert.NotNil(t, newDp.GetPodSets())
+}
 func Test_ReelFirstPositive(t *testing.T) {
 	newDp := ps.NewPodSets(testTimeoutDuration, testNamespace, resourceType)
 	assert.NotNil(t, newDp)
@@ -43,9 +50,25 @@ func Test_ReelFirstPositive(t *testing.T) {
 	assert.Len(t, matches, 1)
 	assert.Equal(t, testInputSuccess, matches[0])
 }
-
+func Test_StatefulsetReelFirstPositive(t *testing.T) {
+	newDp := ps.NewPodSets(testTimeoutDuration, testNamespace, "statefulset")
+	assert.NotNil(t, newDp)
+	firstStep := newDp.ReelFirst()
+	re := regexp.MustCompile(firstStep.Expect[0])
+	matches := re.FindStringSubmatch(statefulSuccess)
+	assert.Len(t, matches, 1)
+	assert.Equal(t, statefulSuccess, matches[0])
+}
 func Test_ReelFirstNegative(t *testing.T) {
 	newDp := ps.NewPodSets(testTimeoutDuration, testNamespace, resourceType)
+	assert.NotNil(t, newDp)
+	firstStep := newDp.ReelFirst()
+	re := regexp.MustCompile(firstStep.Expect[0])
+	matches := re.FindStringSubmatch(testInputError)
+	assert.Len(t, matches, 0)
+}
+func Test_StatefulsetReelFirstNegative(t *testing.T) {
+	newDp := ps.NewPodSets(testTimeoutDuration, testNamespace, "statefulset")
 	assert.NotNil(t, newDp)
 	firstStep := newDp.ReelFirst()
 	re := regexp.MustCompile(firstStep.Expect[0])
@@ -73,6 +96,29 @@ func Test_ReelMatchSuccess(t *testing.T) {
 		deployment, ok := deployments[name]
 		assert.True(t, ok)
 		assert.Equal(t, expected, deployment)
+	}
+}
+
+func Test_StatefulsetReelMatchSuccess(t *testing.T) {
+	newDp := ps.NewPodSets(testTimeoutDuration, testNamespace, "statefulset")
+	assert.NotNil(t, newDp)
+	step := newDp.ReelMatch("", "", statefulSuccess)
+	assert.Nil(t, step)
+	assert.Equal(t, tnf.SUCCESS, newDp.Result())
+	assert.Len(t, newDp.GetPodSets(), testInputSuccessNumLines)
+
+	expectedDeployments := ps.PodSetMap{
+		"testNamespace:cdi-apiserver":                   {1, 1, 1, 0, 0, 1},
+		"testNamespace:hyperconverged-cluster-operator": {1, 0, 1, 0, 1, 1},
+		"testNamespace:virt-api":                        {2, 2, 2, 0, 0, 2},
+		"testNamespace:vm-import-operator":              {0, 0, 0, 0, 0, 0},
+	}
+	statefulsets := newDp.GetPodSets()
+
+	for name, expected := range expectedDeployments {
+		statefulset, ok := statefulsets[name]
+		assert.True(t, ok)
+		assert.Equal(t, expected, statefulset)
 	}
 }
 
@@ -106,5 +152,23 @@ const (
 	virt-controller                      2          2        2         2           <none>           <none>
 	virt-operator                        2          2        2         2           <none>           <none>
 	virt-template-validator              2          2        2         2           <none>           <none>
+	vm-import-operator                   0          <none>   <none>    <none>      <none>           <none>`
+	statefulSuccess = `NAME                                 REPLICAS   READY    UPDATED   AVAILABLE   UNAVAILABLE  CURRENT 
+	cdi-apiserver                        1          1        1         <none>           <none>           1
+	cdi-deployment                       1          1        1         <none>           <none>           1
+	cdi-operator                         1          1        1         <none>           <none>           1
+	cdi-uploadproxy                      1          1        1         <none>           <none>           1
+	cluster-network-addons-operator      1          1        1         <none>           <none>           1
+	hostpath-provisioner-operator        1          1        1         <none>           <none>           1
+	hyperconverged-cluster-operator      1          <none>   1         <none>      1                1
+	kubemacpool-mac-controller-manager   1          1        1         <none>           <none>           1
+	kubevirt-ssp-operator                1          <none>   1         <none>      1                1
+	nmstate-webhook                      2          2        2         <none>           <none>           2
+	node-maintenance-operator            1          <none>   1         <none>      1                1
+	v2v-vmware                           1          1        1         <none>           <none>           2
+	virt-api                             2          2        2         <none>           <none>           2
+	virt-controller                      2          2        2         <none>           <none>           2
+	virt-operator                        2          2        2         <none>           <none>           2
+	virt-template-validator              2          2        2         <none>           <none>           2
 	vm-import-operator                   0          <none>   <none>    <none>      <none>           <none>`
 )

@@ -35,9 +35,9 @@ type PodSet struct {
 	Replicas    int
 	Ready       int
 	UpToDate    int
-	Available   int
+	Available   int //this param exist in deployment and not exsit on statefulset
 	Unavailable int
-	Current     int
+	Current     int //this param exist in statefulset and not exsit on deployment
 }
 
 // PodSetMap maps a deployment/statefulset name to a PodSet

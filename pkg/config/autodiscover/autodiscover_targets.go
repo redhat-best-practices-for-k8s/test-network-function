@@ -87,14 +87,14 @@ func FindTestTarget(labels []configsections.Label, target *configsections.TestTa
 		}
 	}
 	dps := FindTestPodSetsByLabel(labels, target, string(configsections.Deployment))
-	target.DeploymentsUnderTest = AppendPodsets(dps, ns)
+	target.DeploymentsUnderTest = appendPodsets(dps, ns)
 	stateFullSet := FindTestPodSetsByLabel(labels, target, string(configsections.StateFullSet))
-	target.StateFullSetUnderTest = AppendPodsets(stateFullSet, ns)
+	target.StateFullSetUnderTest = appendPodsets(stateFullSet, ns)
 	target.Nodes = GetNodesList()
 }
 
 // func for appending the pod sets
-func AppendPodsets(podsets []configsections.PodSet, ns map[string]bool) (podSet []configsections.PodSet) {
+func appendPodsets(podsets []configsections.PodSet, ns map[string]bool) (podSet []configsections.PodSet) {
 	for _, ps := range podsets {
 		if ns[ps.Namespace] {
 			podSet = append(podSet, ps)

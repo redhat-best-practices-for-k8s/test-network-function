@@ -29,5 +29,5 @@ type PodSetType string
 
 const (
 	Deployment   PodSetType = "deployment"
-	StateFullSet PodSetType = "StatefulSet"
+	StateFullSet PodSetType = "statefulset"
 )
