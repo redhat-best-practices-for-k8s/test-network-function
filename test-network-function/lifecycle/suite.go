@@ -213,7 +213,7 @@ func runHpaScalingTest(podset *configsections.PodSet) {
 	gomega.Expect(err).To(gomega.BeNil())
 	test.RunAndValidate()
 
-	// Wait until the eployment/statefulset is ready
+	// Wait until the deployment/statefulset is ready
 	notReady := waitForAllPodSetsReady(podset.Namespace, scalingTimeout, scalingPollingPeriod, podset.Type)
 	if notReady != 0 {
 		collectNodeAndPendingPodInfo(podset.Namespace)
