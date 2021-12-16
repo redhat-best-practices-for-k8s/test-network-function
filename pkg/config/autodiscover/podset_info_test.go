@@ -38,14 +38,14 @@ var (
 	testJQFilePath         = path.Join(filePath, testJQFile)
 )
 
-func loadDeployment(filePath string) (deployment DeploymentResource) {
+func loadDeployment(filePath string) (deployment PodSetResource) {
 	contents, err := os.ReadFile(filePath)
 	if err != nil {
-		log.Fatalf("error (%s) loading DeploymentResource %s for testing", err, filePath)
+		log.Fatalf("error (%s) loading PodSetResource %s for testing", err, filePath)
 	}
 	err = jsonUnmarshal(contents, &deployment)
 	if err != nil {
-		log.Fatalf("error (%s) unmarshalling DeploymentResource %s for testing", err, filePath)
+		log.Fatalf("error (%s) unmarshalling PodSetResource %s for testing", err, filePath)
 	}
 	return
 }
@@ -113,11 +113,11 @@ func TestGetTargetDeploymentByNamespace(t *testing.T) {
 		}
 
 		// Run the function and compare the list output
-		list, err := GetTargetDeploymentsByNamespace("test", configsections.Label{
+		list, err := GetTargetPodSetsByNamespace("test", configsections.Label{
 			Prefix: "prefix1",
 			Name:   "name1",
 			Value:  "value1",
-		})
+		}, string(configsections.Deployment))
 		if !tc.badExec && !tc.badJSONUnmarshal {
 			assert.NotNil(t, list)
 			assert.Equal(t, "my-test1", list.Items[0].Metadata.Name)

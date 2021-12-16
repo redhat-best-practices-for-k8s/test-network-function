@@ -27,8 +27,8 @@ import (
 )
 
 const (
-	ocCommand = "oc scale --replicas=%d deployment %s -n %s"
-	regex     = "^deployment.*/%s scaled"
+	ocCommand = "oc scale --replicas=%d %s %s -n %s"
+	regex     = "^%s.*/%s scaled"
 )
 
 // Scaling holds the Scaling handler parameters.
@@ -40,13 +40,13 @@ type Scaling struct {
 }
 
 // NewScaling creates a new Scaling handler.
-func NewScaling(timeout time.Duration, namespace, deploymentName string, replicaCount int) *Scaling {
-	command := fmt.Sprintf(ocCommand, replicaCount, deploymentName, namespace)
+func NewScaling(timeout time.Duration, namespace, podsetName, typesource string, replicaCount int) *Scaling {
+	command := fmt.Sprintf(ocCommand, replicaCount, typesource, podsetName, namespace)
 	return &Scaling{
 		timeout: timeout,
 		result:  tnf.ERROR,
 		args:    strings.Fields(command),
-		regex:   fmt.Sprintf(regex, deploymentName),
+		regex:   fmt.Sprintf(regex, typesource, podsetName),
 	}
 }
 
