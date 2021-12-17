@@ -39,7 +39,7 @@ import (
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/ping"
 	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
-	"github.com/test-network-function/test-network-function/pkg/utils"
+
 	"github.com/test-network-function/test-network-function/test-network-function/results"
 )
 
@@ -71,6 +71,7 @@ type PortDeclared struct {
 type PortListen struct {
 	port     int
 	protocol string
+}
 
 // netTestContext this is a data structure describing a network test context for a given subnet (e.g. network attachment)
 // The test context defines a tester or test initiator, that is initating the pings. It is selected randomly (first container in the list)
@@ -312,9 +313,7 @@ func testNodePort(env *config.TestEnvironment) {
 func getDeclaredPortList(command string, containerNum int, podName, podNamespace string) []PortDeclared {
 	var result []PortDeclared
 	ocCommandToExecute := fmt.Sprintf(command, podName, podNamespace, containerNum)
-	res := utils.ExecuteCommand(ocCommandToExecute, ocCommandTimeOut, interactive.GetContext(expectersVerboseModeEnabled), func() {
-		log.Error("can't run command: ", command)
-	})
+	res, _ := utils.ExecuteCommand(ocCommandToExecute, ocCommandTimeOut, interactive.GetContext(expectersVerboseModeEnabled))
 	x := strings.Split(res, "\n")
 	for _, i := range x {
 		fmt.Println(i)
@@ -345,9 +344,7 @@ func getDeclaredPortList(command string, containerNum int, podName, podNamespace
 }
 
 func getListeningPortList(ocCommand string) []PortListen {
-	res := utils.ExecuteCommand(ocCommand, ocCommandTimeOut, interactive.GetContext(expectersVerboseModeEnabled), func() {
-		log.Error("can't run command: ", ocCommand)
-	})
+	res, _ := utils.ExecuteCommand(ocCommand, ocCommandTimeOut, interactive.GetContext(expectersVerboseModeEnabled))
 	splitRes := strings.Split(res, "\n")
 	var result []PortListen
 	protocolName := ""
