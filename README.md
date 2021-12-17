@@ -115,7 +115,7 @@ When this variable is set, the run-cnf-suites.sh script will deploy/refresh the 
 
 ### Disconnected environment
 In a disconnected environment, only specific versions of images are mirrored to the local repo. For those environments,
-the partner pod image `quay.io/testnetworkfunction/cnf-test-partner` and debug pod image `quay.io/testnetworkfunction/debug-partner` should be mirrored
+the debug pod image `quay.io/testnetworkfunction/debug-partner` should be mirrored
 and `TNF_PARTNER_REPO` should be set to the local repo, e.g.:
 
 ```shell-script
@@ -487,7 +487,7 @@ please contact [Red Hat](https://redhat-connect.gitbook.io/red-hat-partner-conne
 Refer to the rest of the documentation in this file to see how to install and run the tests as well as how to
 interpret the results.
 
-You will need an [OpenShift 4.4 installation](https://docs.openshift.com/container-platform/4.4/welcome/index.html)
+You will need an [OpenShift 4.6 (or newer) installation](https://docs.openshift.com/container-platform/4.6/welcome/index.html)
 running your CNF, and at least one other machine available to host the test suite.  The
 [cnf-certification-test-partner](https://github.com/test-network-function/cnf-certification-test-partner) repository has a very
 simple example of this you can model your setup on.
