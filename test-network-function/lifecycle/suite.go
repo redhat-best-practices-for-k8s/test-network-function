@@ -35,11 +35,11 @@ import (
 	"github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
-	dp "github.com/test-network-function/test-network-function/pkg/tnf/handlers/deployments"
 	dd "github.com/test-network-function/test-network-function/pkg/tnf/handlers/deploymentsdrain"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/graceperiod"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodeselector"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/owners"
+	ps "github.com/test-network-function/test-network-function/pkg/tnf/handlers/podsets"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
 	"github.com/test-network-function/test-network-function/test-network-function/results"
 )
@@ -113,62 +113,78 @@ var _ = ginkgo.Describe(common.LifecycleTestKey, func() {
 			testPodsRecreation(env)
 
 			testScaling(env)
+			testStateFulSetScaling(env)
 		}
 
 		testOwner(env)
 	}
 })
 
-func waitForAllDeploymentsReady(namespace string, timeout, pollingPeriod time.Duration) int { //nolint:unparam // it is fine to use always the same value for timeout
+func waitForAllPodSetsReady(namespace string, timeout, pollingPeriod time.Duration, resourceType configsections.PodSetType) int { //nolint:unparam // it is fine to use always the same value for timeout
 	var elapsed time.Duration
-	var notReadyDeployments []string
+	var notReadyPodSets []string
 
 	for elapsed < timeout {
-		_, notReadyDeployments = getDeployments(namespace)
-		log.Debugf("Waiting for deployments to get ready, remaining: %d deployments", len(notReadyDeployments))
-		if len(notReadyDeployments) == 0 {
+		_, notReadyPodSets = GetPodSets(namespace, resourceType)
+		log.Debugf("Waiting for %s to get ready, remaining: %d PodSets", string(resourceType), len(notReadyPodSets))
+		if len(notReadyPodSets) == 0 {
 			break
 		}
 		time.Sleep(pollingPeriod)
 		elapsed += pollingPeriod
 	}
-	return len(notReadyDeployments)
+	return len(notReadyPodSets)
 }
 
 // restoreDeployments is the last attempt to restore the original test deployments' replicaCount
 func restoreDeployments(env *config.TestEnvironment) {
-	for _, deployment := range env.DeploymentsUnderTest {
+	for i := range env.DeploymentsUnderTest {
 		// For each test deployment in the namespace, refresh the current replicas and compare.
-		deployments, notReadyDeployments := getDeployments(deployment.Namespace)
+		refreshReplicas(&env.DeploymentsUnderTest[i], env)
+	}
+}
 
-		if len(notReadyDeployments) > 0 {
-			// Wait until the deployment is ready
-			notReady := waitForAllDeploymentsReady(deployment.Namespace, scalingTimeout, scalingPollingPeriod)
-			if notReady != 0 {
-				collectNodeAndPendingPodInfo(deployment.Namespace)
-				log.Fatalf("Could not restore deployment replicaCount for namespace %s.", deployment.Namespace)
-			}
+// restoreStateFulSet is the last attempt to restore the original test PodSets' replicaCount
+func restoreStateFulSet(env *config.TestEnvironment) {
+	for i := range env.StateFulSetUnderTest {
+		// For each test StateFulSet in the namespace, refresh the current replicas and compare.
+		refreshReplicas(&env.StateFulSetUnderTest[i], env)
+	}
+}
+
+func refreshReplicas(podset *configsections.PodSet, env *config.TestEnvironment) {
+	podsets, notReadyPodsets := GetPodSets(podset.Namespace, podset.Type)
+
+	if len(notReadyPodsets) > 0 {
+		// Wait until the deployment/replicaset is ready
+		notReady := waitForAllPodSetsReady(podset.Namespace, scalingTimeout, scalingPollingPeriod, podset.Type)
+		if notReady != 0 {
+			collectNodeAndPendingPodInfo(podset.Namespace)
+			log.Fatalf("Could not restore %s replicaCount for namespace %s.", string(podset.Type), podset.Namespace)
 		}
+	}
+	if podset.Hpa.HpaName != "" { // it have hpa and need to update the max min
+		runHpaScalingTest(podset)
+	}
+	key := podset.Namespace + ":" + podset.Name
+	dep, ok := podsets[key]
+	if ok {
+		if dep.Replicas != podset.Replicas {
+			log.Warn(string(podset.Type), podset.Name, " replicaCount (", podset.Replicas, ") needs to be restored.")
 
-		if deployment.Hpa.HpaName != "" { // it have hpa and need to update the max min
-			runHpaScalingTest(deployment)
-		}
-		if deployments[deployment.Name].Replicas != deployment.Replicas {
-			log.Warn("Deployment ", deployment.Name, " replicaCount (", deployment.Replicas, ") needs to be restored.")
-
-			// Try to scale to the original deployment's replicaCount.
-			runScalingTest(deployment)
+			// Try to scale to the original deployments/statefulsets replicaCount.
+			runScalingTest(podset)
 
 			env.SetNeedsRefresh()
 		}
 	}
 }
 
-func closeOcSessionsByDeployment(containers map[configsections.ContainerIdentifier]*config.Container, deployment configsections.Deployment) {
-	log.Debug("close session for deployment=", deployment.Name, " start")
-	defer log.Debug("close session for deployment=", deployment.Name, " done")
+func closeOcSessionsByPodset(containers map[configsections.ContainerIdentifier]*config.Container, podset *configsections.PodSet) {
+	log.Debug("close session for", string(podset.Type), "=", podset.Name, " start")
+	defer log.Debug("close session for", string(podset.Type), "=", podset.Name, " done")
 	for cid, c := range containers {
-		if cid.Namespace == deployment.Namespace && strings.HasPrefix(cid.PodName, deployment.Name+"-") {
+		if cid.Namespace == podset.Namespace && strings.HasPrefix(cid.PodName, podset.Name+"-") {
 			log.Infof("Closing session to %s %s", cid.PodName, cid.ContainerName)
 			c.CloseOc()
 			delete(containers, cid)
@@ -176,32 +192,32 @@ func closeOcSessionsByDeployment(containers map[configsections.ContainerIdentifi
 	}
 }
 
-// runScalingTest Runs a Scaling handler TC and waits for all the deployments to be ready.
-func runScalingTest(deployment configsections.Deployment) {
-	handler := scaling.NewScaling(common.DefaultTimeout, deployment.Namespace, deployment.Name, deployment.Replicas)
+// runScalingTest Runs a Scaling handler TC and waits for all the deployments/statefulset to be ready.
+func runScalingTest(podset *configsections.PodSet) {
+	handler := scaling.NewScaling(common.DefaultTimeout, podset.Namespace, podset.Name, string(podset.Type), podset.Replicas)
 	test, err := tnf.NewTest(common.GetContext().GetExpecter(), handler, []reel.Handler{handler}, common.GetContext().GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
 	test.RunAndValidate()
 
-	// Wait until the deployment is ready
-	notReady := waitForAllDeploymentsReady(deployment.Namespace, scalingTimeout, scalingPollingPeriod)
+	// Wait until the deployment/statefulset is ready
+	notReady := waitForAllPodSetsReady(podset.Namespace, scalingTimeout, scalingPollingPeriod, podset.Type)
 	if notReady != 0 {
-		collectNodeAndPendingPodInfo(deployment.Namespace)
-		ginkgo.Fail(fmt.Sprintf("Failed to scale deployment for namespace %s.", deployment.Namespace))
+		collectNodeAndPendingPodInfo(podset.Namespace)
+		ginkgo.Fail(fmt.Sprintf("Failed to scale deployment for namespace %s.", podset.Namespace))
 	}
 }
 
-func runHpaScalingTest(deployment configsections.Deployment) {
-	handler := scaling.NewHpaScaling(common.DefaultTimeout, deployment.Namespace, deployment.Hpa.HpaName, deployment.Hpa.MinReplicas, deployment.Hpa.MaxReplicas)
+func runHpaScalingTest(podset *configsections.PodSet) {
+	handler := scaling.NewHpaScaling(common.DefaultTimeout, podset.Namespace, podset.Hpa.HpaName, podset.Hpa.MinReplicas, podset.Hpa.MaxReplicas)
 	test, err := tnf.NewTest(common.GetContext().GetExpecter(), handler, []reel.Handler{handler}, common.GetContext().GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
 	test.RunAndValidate()
 
-	// Wait until the deployment is ready
-	notReady := waitForAllDeploymentsReady(deployment.Namespace, scalingTimeout, scalingPollingPeriod)
+	// Wait until the deployment/statefulset is ready
+	notReady := waitForAllPodSetsReady(podset.Namespace, scalingTimeout, scalingPollingPeriod, podset.Type)
 	if notReady != 0 {
-		collectNodeAndPendingPodInfo(deployment.Namespace)
-		ginkgo.Fail(fmt.Sprintf("Failed to auto-scale deployment for namespace %s.", deployment.Namespace))
+		collectNodeAndPendingPodInfo(podset.Namespace)
+		ginkgo.Fail(fmt.Sprintf("Failed to auto-scale %s for namespace %s.", string(podset.Type), podset.Namespace))
 	}
 }
 
@@ -215,31 +231,49 @@ func testScaling(env *config.TestEnvironment) {
 		if len(env.DeploymentsUnderTest) == 0 {
 			ginkgo.Skip("No test deployments found.")
 		}
-		for _, deployment := range env.DeploymentsUnderTest {
-			ginkgo.By(fmt.Sprintf("Scaling Deployment=%s, Replicas=%d (ns=%s)",
-				deployment.Name, deployment.Replicas, deployment.Namespace))
-
-			closeOcSessionsByDeployment(env.ContainersUnderTest, deployment)
-			replicaCount := deployment.Replicas
-			hpa := deployment.Hpa
-			if hpa.HpaName != "" {
-				deployment.Hpa.MinReplicas = replicaCount - 1
-				deployment.Hpa.MaxReplicas = replicaCount - 1
-				runHpaScalingTest(deployment) // scale in
-				deployment.Hpa.MinReplicas = replicaCount
-				deployment.Hpa.MaxReplicas = replicaCount
-				runHpaScalingTest(deployment) // scale out
-			} else {
-				// ScaleIn, removing one pod from the replicaCount
-				deployment.Replicas = replicaCount - 1
-				runScalingTest(deployment)
-
-				// Scaleout, restoring the original replicaCount number
-				deployment.Replicas = replicaCount
-				runScalingTest(deployment)
-			}
+		for i := range env.DeploymentsUnderTest {
+			runScalingfunc(&env.DeploymentsUnderTest[i], env)
 		}
 	})
+}
+func testStateFulSetScaling(env *config.TestEnvironment) {
+	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestScalingIdentifier)
+	ginkgo.It(testID, func() {
+		ginkgo.By("Testing StatefulSet scaling")
+		defer restoreStateFulSet(env)
+		defer env.SetNeedsRefresh()
+
+		if len(env.StateFulSetUnderTest) == 0 {
+			ginkgo.Skip("No test StatefulSet found.")
+		}
+		for i := range env.StateFulSetUnderTest {
+			runScalingfunc(&env.StateFulSetUnderTest[i], env)
+		}
+	})
+}
+
+func runScalingfunc(podset *configsections.PodSet, env *config.TestEnvironment) {
+	ginkgo.By(fmt.Sprintf("Scaling %s=%s, Replicas=%d (ns=%s)", string(podset.Type), podset.Name, podset.Replicas, podset.Namespace))
+
+	closeOcSessionsByPodset(env.ContainersUnderTest, podset)
+	replicaCount := podset.Replicas
+	podsetscale := *podset
+	if podsetscale.Hpa.HpaName != "" {
+		podsetscale.Hpa.MinReplicas = replicaCount - 1
+		podsetscale.Hpa.MaxReplicas = replicaCount - 1
+		runHpaScalingTest(&podsetscale) // scale in
+		podsetscale.Hpa.MinReplicas = replicaCount
+		podsetscale.Hpa.MaxReplicas = replicaCount
+		runHpaScalingTest(&podsetscale) // scale out
+	} else {
+		// ScaleIn, removing one pod from the replicaCount
+		podsetscale.Replicas = replicaCount - 1
+		runScalingTest(&podsetscale)
+
+		// Scaleout, restoring the original replicaCount number
+		podsetscale.Replicas = replicaCount
+		runScalingTest(&podsetscale)
+	}
 }
 
 func testNodeSelector(env *config.TestEnvironment) {
@@ -322,10 +356,15 @@ func shutdownTest(podNamespace, podName string) {
 func cleanupNodeDrain(env *config.TestEnvironment, nodeName string) {
 	uncordonNode(nodeName)
 	for _, ns := range env.NameSpacesUnderTest {
-		notReady := waitForAllDeploymentsReady(ns, scalingTimeout, scalingPollingPeriod)
+		notReady := waitForAllPodSetsReady(ns, scalingTimeout, scalingPollingPeriod, configsections.Deployment)
 		if notReady != 0 {
 			collectNodeAndPendingPodInfo(ns)
 			log.Fatalf("Cleanup after node drain for %s failed, stopping tests to ensure cluster integrity", nodeName)
+		}
+		notReadyStateFulSets := waitForAllPodSetsReady(ns, scalingTimeout, scalingPollingPeriod, configsections.StateFulSet)
+		if notReadyStateFulSets != 0 {
+			collectNodeAndPendingPodInfo(ns)
+			ginkgo.Fail(fmt.Sprintf("Cleanup after node drain for %s failed, stopping tests to ensure cluster integrity", nodeName))
 		}
 	}
 }
@@ -333,23 +372,28 @@ func cleanupNodeDrain(env *config.TestEnvironment, nodeName string) {
 func testNodeDrain(env *config.TestEnvironment, nodeName string) {
 	ginkgo.By(fmt.Sprintf("Testing node drain for %s\n", nodeName))
 	// Ensure the node is uncordoned before exiting the function,
-	// and all deployments are ready
+	// and all podsets(deployments/statefulset) are ready
 	defer cleanupNodeDrain(env, nodeName)
 	// drain node
 	drainNode(nodeName)
 	for _, ns := range env.NameSpacesUnderTest {
-		notReady := waitForAllDeploymentsReady(ns, scalingTimeout, scalingPollingPeriod)
-		if notReady != 0 {
+		notReadyDeployments := waitForAllPodSetsReady(ns, scalingTimeout, scalingPollingPeriod, configsections.Deployment)
+		if notReadyDeployments != 0 {
 			collectNodeAndPendingPodInfo(ns)
 			ginkgo.Fail(fmt.Sprintf("Failed to recover deployments on namespace %s after draining node %s.", ns, nodeName))
 		}
+		notReadyStateFulSets := waitForAllPodSetsReady(ns, scalingTimeout, scalingPollingPeriod, configsections.StateFulSet)
+		if notReadyStateFulSets != 0 {
+			collectNodeAndPendingPodInfo(ns)
+			ginkgo.Fail(fmt.Sprintf("Failed to recover statefulsets on namespace %s after draining node %s.", ns, nodeName))
+		}
 	}
-	// If we got this far, all deployments are ready after draining the node
+	// If we got this far, all deployments/statefulsets are ready after draining the node
 	tnf.ClaimFilePrintf("Node drain for %s succeeded", nodeName)
 }
 
 func testPodsRecreation(env *config.TestEnvironment) {
-	deployments := make(dp.DeploymentMap)
+	deployments := make(ps.PodSetMap)
 	var notReadyDeployments []string
 
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestPodRecreationIdentifier)
@@ -357,8 +401,8 @@ func testPodsRecreation(env *config.TestEnvironment) {
 		ginkgo.By("Testing node draining effect of deployment")
 		ginkgo.By(fmt.Sprintf("test deployment in namespace %s", env.NameSpacesUnderTest))
 		for _, ns := range env.NameSpacesUnderTest {
-			var dps dp.DeploymentMap
-			dps, notReadyDeployments = getDeployments(ns)
+			var dps ps.PodSetMap
+			dps, notReadyDeployments = GetPodSets(ns, "deployment")
 			for dpKey, dp := range dps {
 				deployments[dpKey] = dp
 			}
@@ -385,26 +429,25 @@ func testPodsRecreation(env *config.TestEnvironment) {
 	})
 }
 
-// getDeployments returns map of deployments and names of not-ready deployments
-func getDeployments(namespace string) (deployments dp.DeploymentMap, notReadyDeployments []string) {
+// GetPodSets returns map of podsets(deployments/statefulset) and names of not-ready podsets
+func GetPodSets(namespace string, resourceType configsections.PodSetType) (podsets ps.PodSetMap, notReadypodsets []string) {
 	context := common.GetContext()
-	tester := dp.NewDeployments(common.DefaultTimeout, namespace)
+	tester := ps.NewPodSets(common.DefaultTimeout, namespace, string(resourceType))
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
 	test.RunAndValidate()
 
-	deployments = tester.GetDeployments()
-
-	for name, d := range deployments {
-		if d.Unavailable != 0 || d.Ready != d.Replicas || d.Available != d.Replicas || d.UpToDate != d.Replicas {
-			notReadyDeployments = append(notReadyDeployments, name)
-			log.Tracef("deployment %s: not ready", name)
+	podsets = tester.GetPodSets()
+	for name, d := range podsets {
+		if d.Unavailable != 0 || d.Ready != d.Replicas || (d.Available != d.Replicas && d.Current != d.Replicas) || d.UpToDate != d.Replicas {
+			notReadypodsets = append(notReadypodsets, name)
+			log.Tracef("%s %s: not ready", string(resourceType), name)
 		} else {
-			log.Tracef("deployment %s: ready", name)
+			log.Tracef("%s %s: ready", string(resourceType), name)
 		}
 	}
 
-	return deployments, notReadyDeployments
+	return podsets, notReadypodsets
 }
 
 func collectNodeAndPendingPodInfo(ns string) {

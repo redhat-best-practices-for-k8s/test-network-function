@@ -14,5 +14,20 @@
 // with this program; if not, write to the Free Software Foundation, Inc.,
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-// Package deployments provides a test for reading the namespace's deployments
-package deployments
+package configsections
+
+// PodSet defines a podset (deployment/Statefulset) in the cluster.
+type PodSet struct {
+	Name      string
+	Namespace string
+	Replicas  int
+	Hpa       Hpa
+	Type      PodSetType
+}
+
+type PodSetType string
+
+const (
+	Deployment  PodSetType = "deployment"
+	StateFulSet PodSetType = "statefulset"
+)

@@ -30,7 +30,7 @@ jobs:
       - name: Set up Go 1.17
         uses: actions/setup-go@v2
         with:
-          go-version: 1.17.4
+          go-version: 1.17.5
 
       - name: Check out code into the Go module directory
         uses: actions/checkout@v2
@@ -78,7 +78,7 @@ jobs:
       - name: Set up Go 1.17
         uses: actions/setup-go@v2
         with:
-          go-version: 1.17.4
+          go-version: 1.17.5
 
       - name: Check out code into the Go module directory
         uses: actions/checkout@v2
@@ -104,7 +104,7 @@ jobs:
       - name: Set up Go 1.17
         uses: actions/setup-go@v2
         with:
-          go-version: 1.17.4
+          go-version: 1.17.5
 
       - name: Check out code into the Go module directory
         uses: actions/checkout@v2
@@ -175,9 +175,11 @@ jobs:
       - name: 'Test: Run diagnostic test suite in a TNF container'
         run: ./run-tnf-container.sh ${{ env.TESTING_CMD_PARAMS }} -f diagnostic
 
-      - name: 'Test: Delete HPA from pods and Run the scaling test'
-        run: oc delete hpa test -n tnf
-
+      - name: Delete the deployment and deploy Statefulset pods
+        uses: ./cnf-certification-test-partner/.github/actions/deploy-statefulset-pods
+        with:
+          working_directory: cnf-certification-test-partner
+          
       - name: 'Test: Run generic test suite in a TNF container'
         run: ./run-tnf-container.sh ${{ env.TESTING_CMD_PARAMS }} -f access-control lifecycle platform observablility networking affiliated-certification operator
 
