@@ -289,12 +289,7 @@ func testNodeSelector(env *config.TestEnvironment) {
 			test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 			gomega.Expect(err).To(gomega.BeNil())
 			test.RunAndValidateWithFailureCallback(func() {
-				msg := fmt.Sprintf("The pod specifies nodeSelector/nodeAffinity field, you might want to change it, %s %s", podNamespace, podName)
-				log.Warn(msg)
-				_, err := ginkgo.GinkgoWriter.Write([]byte(msg))
-				if err != nil {
-					log.Errorf("Ginkgo writer could not write because: %s", err)
-				}
+				tnf.ClaimFilePrintf("The pod specifies nodeSelector/nodeAffinity field, you might want to change it, %s %s", podNamespace, podName)
 			})
 		}
 	})
@@ -315,12 +310,7 @@ func testGracePeriod(env *config.TestEnvironment) {
 			test.RunAndValidate()
 			gracePeriod := tester.GetGracePeriod()
 			if gracePeriod == defaultTerminationGracePeriod {
-				msg := fmt.Sprintf("%s %s has terminationGracePeriod set to %d, you might want to change it", podNamespace, podName, defaultTerminationGracePeriod)
-				log.Warn(msg)
-				_, err := ginkgo.GinkgoWriter.Write([]byte(msg))
-				if err != nil {
-					log.Errorf("Ginkgo writer could not write because: %s", err)
-				}
+				tnf.ClaimFilePrintf("%s %s has terminationGracePeriod set to %d, you might want to change it", podNamespace, podName, defaultTerminationGracePeriod)
 			}
 		}
 	})
@@ -329,17 +319,26 @@ func testGracePeriod(env *config.TestEnvironment) {
 func testShutdown(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestShudtownIdentifier)
 	ginkgo.It(testID, func() {
+		failedPods := []configsections.Pod{}
 		ginkgo.By("Testing PUTs are configured with pre-stop lifecycle")
 		for _, podUnderTest := range env.PodsUnderTest {
 			podName := podUnderTest.Name
 			podNamespace := podUnderTest.Namespace
 			ginkgo.By(fmt.Sprintf("should have pre-stop configured %s/%s", podNamespace, podName))
-			shutdownTest(podNamespace, podName)
+			passed := shutdownTest(podNamespace, podName)
+			if !passed {
+				failedPods = append(failedPods, podUnderTest)
+			}
+		}
+		if n := len(failedPods); n > 0 {
+			log.Debugf("Pods without pre-stop configured: %+v", failedPods)
+			ginkgo.Fail(fmt.Sprintf("%d pods do not have pre-stop configured.", n))
 		}
 	})
 }
 
-func shutdownTest(podNamespace, podName string) {
+func shutdownTest(podNamespace, podName string) bool {
+	passed := true
 	context := common.GetContext()
 	values := make(map[string]interface{})
 	values["POD_NAMESPACE"] = podNamespace
@@ -350,7 +349,14 @@ func shutdownTest(podNamespace, podName string) {
 	gomega.Expect(err).To(gomega.BeNil())
 	gomega.Expect(test).ToNot(gomega.BeNil())
 
-	test.RunAndValidate()
+	test.RunWithCallbacks(nil, func() {
+		tnf.ClaimFilePrintf("FAILURE: Pod %s/%s does not have pre-stop configured", podNamespace, podName)
+		passed = false
+	}, func(err error) {
+		tnf.ClaimFilePrintf("ERROR: Pod %s/%s, error: %v", podNamespace, podName, err)
+		passed = false
+	})
+	return passed
 }
 
 func cleanupNodeDrain(env *config.TestEnvironment, nodeName string) {
@@ -520,22 +526,12 @@ func podAntiAffinity(deployment, podNamespace string, replica int) {
 
 	test.RunAndValidateWithFailureCallback(func() {
 		if replica > 1 {
-			msg := fmt.Sprintf("The deployment replica count is %d, but a podAntiAffinity rule is not defined, "+
+			tnf.ClaimFilePrintf("The deployment replica count is %d, but a podAntiAffinity rule is not defined, "+
 				"you might want to change it in deployment %s in namespace %s", replica, deployment, podNamespace)
-			log.Warn(msg)
-			_, err := ginkgo.GinkgoWriter.Write([]byte(msg))
-			if err != nil {
-				log.Errorf("Ginkgo writer could not write because: %s", err)
-			}
 		} else {
-			msg := fmt.Sprintf("The deployment replica count is %d. Pod replica should be > 1 with an "+
+			tnf.ClaimFilePrintf("The deployment replica count is %d. Pod replica should be > 1 with an "+
 				"podAntiAffinity rule defined . You might want to change it in deployment %s in namespace %s",
 				replica, deployment, podNamespace)
-			log.Warn(msg)
-			_, err := ginkgo.GinkgoWriter.Write([]byte(msg))
-			if err != nil {
-				log.Errorf("Ginkgo writer could not write because: %s", err)
-			}
 		}
 	})
 }
@@ -545,6 +541,7 @@ func testOwner(env *config.TestEnvironment) {
 	ginkgo.It(testID, func() {
 		ginkgo.By("Testing owners of CNF pod, should be replicas Set")
 		context := common.GetContext()
+		failedPods := []configsections.Pod{}
 		for _, podUnderTest := range env.PodsUnderTest {
 			podName := podUnderTest.Name
 			podNamespace := podUnderTest.Namespace
@@ -552,7 +549,18 @@ func testOwner(env *config.TestEnvironment) {
 			tester := owners.NewOwners(common.DefaultTimeout, podNamespace, podName)
 			test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 			gomega.Expect(err).To(gomega.BeNil())
-			test.RunAndValidate()
+
+			test.RunWithCallbacks(nil, func() {
+				tnf.ClaimFilePrintf("FAILURE: Pod %s/%s is not owned by a replica set", podNamespace, podName)
+				failedPods = append(failedPods, podUnderTest)
+			}, func(err error) {
+				tnf.ClaimFilePrintf("ERROR: Pod %s/%s, error: %v", podNamespace, podName, err)
+				failedPods = append(failedPods, podUnderTest)
+			})
+		}
+		if n := len(failedPods); n > 0 {
+			log.Debugf("Pods not owned by a replica set: %+v", failedPods)
+			ginkgo.Fail(fmt.Sprintf("%d pods are not owned by a replica set.", n))
 		}
 	})
 }
@@ -561,6 +569,7 @@ func testImagePolicy(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestImagePullPolicyIdentifier)
 	ginkgo.It(testID, func() {
 		context := common.GetContext()
+		failedPods := []configsections.Pod{}
 		for _, podUnderTest := range env.PodsUnderTest {
 			values := make(map[string]interface{})
 			ContainerCount := podUnderTest.ContainerCount
@@ -573,8 +582,18 @@ func testImagePolicy(env *config.TestEnvironment) {
 				gomega.Expect(err).To(gomega.BeNil())
 				gomega.Expect(test).ToNot(gomega.BeNil())
 
-				test.RunAndValidate()
+				test.RunWithCallbacks(nil, func() {
+					tnf.ClaimFilePrintf("FAILURE: Pod %s/%s does not set imagePullPolicy to IfNotPresent", podUnderTest.Namespace, podUnderTest.Name)
+					failedPods = append(failedPods, podUnderTest)
+				}, func(err error) {
+					tnf.ClaimFilePrintf("ERROR: Pod %s/%s, error: %v", podUnderTest.Namespace, podUnderTest.Name, err)
+					failedPods = append(failedPods, podUnderTest)
+				})
 			}
+		}
+		if n := len(failedPods); n > 0 {
+			log.Debugf("Pods with incorrect image pull policy: %+v", failedPods)
+			ginkgo.Fail(fmt.Sprintf("%d pods have incorrect image pull policy.", n))
 		}
 	})
 }
