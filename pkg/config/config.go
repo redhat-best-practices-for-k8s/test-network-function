@@ -290,7 +290,7 @@ func (env *TestEnvironment) doAutodiscover() {
 	env.OperatorsUnderTest = env.Config.Operators
 	env.CrdNames = autodiscover.FindTestCrdNames(env.Config.CrdFilters)
 
-	//log.Infof("Test Configuration: %+v", *env)
+	log.Infof("Test Configuration: %+v", *env)
 
 	env.needsRefresh = false
 }
