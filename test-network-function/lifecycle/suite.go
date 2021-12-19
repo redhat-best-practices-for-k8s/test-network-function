@@ -401,6 +401,8 @@ func testNodeDrain(env *config.TestEnvironment, nodeName string) {
 func testPodsRecreation(env *config.TestEnvironment) {
 	deployments := make(ps.PodSetMap)
 	var notReadyDeployments []string
+	statefulsets := make(ps.PodSetMap)
+	var notReadyStatefulsets []string
 
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestPodRecreationIdentifier)
 	ginkgo.It(testID, func() {
@@ -408,17 +410,22 @@ func testPodsRecreation(env *config.TestEnvironment) {
 		ginkgo.By(fmt.Sprintf("test deployment in namespace %s", env.NameSpacesUnderTest))
 		for _, ns := range env.NameSpacesUnderTest {
 			var dps ps.PodSetMap
-			dps, notReadyDeployments = GetPodSets(ns, "deployment")
+			var sfs ps.PodSetMap
+			dps, notReadyDeployments = GetPodSets(ns, configsections.Deployment)
 			for dpKey, dp := range dps {
 				deployments[dpKey] = dp
 			}
-			// We require that all deployments have the desired number of replicas and are all up to date
-			if len(notReadyDeployments) != 0 {
-				ginkgo.Skip("Can not test when deployments are not ready")
+			sfs, notReadyStatefulsets = GetPodSets(ns, configsections.StateFulSet)
+			for sfKey, sf := range sfs {
+				statefulsets[sfKey] = sf
+			}
+			// We require that all deployments/statefulset have the desired number of replicas and are all up to date
+			if len(notReadyDeployments) != 0 && len(notReadyStatefulsets) != 0 {
+				ginkgo.Skip("Can not test when podsets are not ready")
 			}
 		}
-		if len(deployments) == 0 {
-			ginkgo.Skip("no valid deployment")
+		if len(deployments) == 0 && len(statefulsets) == 0 {
+			ginkgo.Skip("no valid deployment or statefulset")
 		}
 		defer env.SetNeedsRefresh()
 		ginkgo.By("should create new replicas when node is drained")
@@ -426,8 +433,8 @@ func testPodsRecreation(env *config.TestEnvironment) {
 		// This results in lost connectivity for oc sessions
 		env.ResetOc()
 		for _, n := range env.NodesUnderTest {
-			if !n.HasDeployment() {
-				log.Debug("node ", n.Name, " has no deployment, skip draining")
+			if !n.HasPodset() {
+				log.Debug("node ", n.Name, " has no podset, skip draining")
 				continue
 			}
 			testNodeDrain(env, n.Name)

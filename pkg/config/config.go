@@ -84,8 +84,8 @@ type NodeConfig struct {
 	Node configsections.Node
 	// pointer to the container of the debug pod running on the node
 	DebugContainer *Container
-	// deployment indicates if the node has a deployment
-	deployment bool
+	// podset indicates if the node has a podset,deployment/statefulset
+	podset bool
 	// debug indicates if the node should have a debug pod
 	debug bool
 }
@@ -98,8 +98,8 @@ func (n NodeConfig) IsWorker() bool {
 	return n.Node.IsWorker()
 }
 
-func (n NodeConfig) HasDeployment() bool {
-	return n.deployment
+func (n NodeConfig) HasPodset() bool {
+	return n.podset
 }
 func (n NodeConfig) HasDebugPod() bool {
 	return n.DebugContainer != nil
@@ -290,7 +290,7 @@ func (env *TestEnvironment) doAutodiscover() {
 	env.OperatorsUnderTest = env.Config.Operators
 	env.CrdNames = autodiscover.FindTestCrdNames(env.Config.CrdFilters)
 
-	log.Infof("Test Configuration: %+v", *env)
+	//log.Infof("Test Configuration: %+v", *env)
 
 	env.needsRefresh = false
 }
@@ -332,7 +332,7 @@ func (env *TestEnvironment) labelNodes() {
 	}
 }
 
-// create Nodes data from deployment
+// create Nodes data from podset
 func (env *TestEnvironment) createNodes(nodes map[string]configsections.Node) map[string]*NodeConfig {
 	log.Debug("autodiscovery: create nodes  start")
 	defer log.Debug("autodiscovery: create nodes done")
@@ -343,10 +343,10 @@ func (env *TestEnvironment) createNodes(nodes map[string]configsections.Node) ma
 	for _, c := range env.ContainersUnderTest {
 		nodeName := c.NodeName
 		if _, ok := nodesConfig[nodeName]; ok {
-			nodesConfig[nodeName].deployment = true
+			nodesConfig[nodeName].podset = true
 			nodesConfig[nodeName].debug = true
 		} else {
-			log.Warn("node ", nodeName, " has deployment, but not the right labels")
+			log.Warn("node ", nodeName, " has podset, but not the right labels")
 		}
 	}
 	return nodesConfig
