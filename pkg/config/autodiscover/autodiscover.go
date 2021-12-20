@@ -45,8 +45,8 @@ var (
 )
 
 // PerformAutoDiscovery checks the environment variable to see if autodiscovery should be performed
-func PerformAutoDiscovery() (doAuto bool) {
-	doAuto, _ = strconv.ParseBool(os.Getenv(disableAutodiscoverEnvVar))
+func PerformAutoDiscovery() bool {
+	doAuto, _ := strconv.ParseBool(os.Getenv(disableAutodiscoverEnvVar))
 	return !doAuto
 }
 
@@ -86,11 +86,13 @@ var executeOcGetAllCommand = func(resourceType, labelQuery string) string {
 }
 
 // getContainersByLabel builds `config.Container`s from containers in pods matching a label.
-func getContainersByLabel(label configsections.Label) (containers []configsections.ContainerConfig, err error) {
+// Returns slice of ContainerConfig, error.
+func getContainersByLabel(label configsections.Label) ([]configsections.ContainerConfig, error) {
 	pods, err := GetPodsByLabel(label)
 	if err != nil {
 		return nil, err
 	}
+	containers := []configsections.ContainerConfig{}
 	for i := range pods.Items {
 		containers = append(containers, buildContainersFromPodResource(pods.Items[i])...)
 	}
@@ -98,11 +100,13 @@ func getContainersByLabel(label configsections.Label) (containers []configsectio
 }
 
 // getContainerIdentifiersByLabel builds `config.ContainerIdentifier`s from containers in pods matching a label.
-func getContainerIdentifiersByLabel(label configsections.Label) (containerIDs []configsections.ContainerIdentifier, err error) {
+// Returns slice of ContainerIdentifier, error.
+func getContainerIdentifiersByLabel(label configsections.Label) ([]configsections.ContainerIdentifier, error) {
 	containers, err := getContainersByLabel(label)
 	if err != nil {
 		return nil, err
 	}
+	containerIDs := []configsections.ContainerIdentifier{}
 	for _, c := range containers {
 		containerIDs = append(containerIDs, c.ContainerIdentifier)
 	}
@@ -110,7 +114,9 @@ func getContainerIdentifiersByLabel(label configsections.Label) (containerIDs []
 }
 
 // buildContainersFromPodResource builds `configsections.Container`s from a `PodResource`
-func buildContainersFromPodResource(pr *PodResource) (containers []configsections.ContainerConfig) {
+// Returns slice of ContainerConfig
+func buildContainersFromPodResource(pr *PodResource) []configsections.ContainerConfig {
+	containers := []configsections.ContainerConfig{}
 	for _, containerResource := range pr.Spec.Containers {
 		var err error
 		var container configsections.ContainerConfig

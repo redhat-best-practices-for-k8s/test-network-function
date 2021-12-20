@@ -39,8 +39,8 @@ type ContainerConfig struct {
 	MultusIPAddressesPerNet map[string][]string `yaml:"multusIpAddressesPerNet" json:"multusIpAddressesPerNet"`
 }
 
-func (cid *ContainerIdentifier) String() (output string) {
-	output = fmt.Sprintf("node:%s ns:%s podName:%s containerName:%s containerUID:%s containerRuntime:%s",
+func (cid *ContainerIdentifier) String() string {
+	return fmt.Sprintf("node:%s ns:%s podName:%s containerName:%s containerUID:%s containerRuntime:%s",
 		cid.NodeName,
 		cid.Namespace,
 		cid.PodName,
@@ -48,5 +48,4 @@ func (cid *ContainerIdentifier) String() (output string) {
 		cid.ContainerUID,
 		cid.ContainerRuntime,
 	)
-	return
 }

@@ -43,23 +43,23 @@ type CSVResource struct {
 	} `json:"metadata"`
 }
 
-func (csv *CSVResource) hasAnnotation(annotationKey string) (present bool) {
-	_, present = csv.Metadata.Annotations[annotationKey]
-	return
+func (csv *CSVResource) hasAnnotation(annotationKey string) bool {
+	_, present := csv.Metadata.Annotations[annotationKey]
+	return present
 }
 
 // GetAnnotationValue will get the value stored in the given annotation and
 // Unmarshal it into the given var `v`.
-func (csv *CSVResource) GetAnnotationValue(annotationKey string, v interface{}) (err error) {
+func (csv *CSVResource) GetAnnotationValue(annotationKey string, v interface{}) error {
 	if !csv.hasAnnotation(annotationKey) {
 		return fmt.Errorf("failed to find annotation '%s' on CSV '%s/%s'", annotationKey, csv.Metadata.Namespace, csv.Metadata.Name)
 	}
 	val := csv.Metadata.Annotations[annotationKey]
-	err = jsonUnmarshal([]byte(val), v)
+	err := jsonUnmarshal([]byte(val), v)
 	if err != nil {
 		return csv.annotationUnmarshalError(annotationKey, err)
 	}
-	return
+	return err
 }
 
 func (csv *CSVResource) annotationUnmarshalError(annotationKey string, err error) error {

@@ -62,65 +62,72 @@ func (api CertAPIClient) IsOperatorCertified(org, packageName string) bool {
 	return true
 }
 
-// GetImageByID get container image data for the given container Id
-func (api CertAPIClient) GetImageByID(id string) (response string, err error) {
-	var responseData []byte
+// GetImageByID get container image data for the given container Id.  Returns (response, error).
+func (api CertAPIClient) GetImageByID(id string) (string, error) {
+	var response string
 	url := fmt.Sprintf("%s/images/id/%s", apiContainerCatalogExternalBaseEndPoint, id)
-	if responseData, err = api.getRequest(url); err == nil {
+	responseData, err := api.getRequest(url)
+	if err == nil {
 		response = string(responseData)
 	}
-	return
+	return response, err
 }
 
-// GetImageIDByRepository get container image data for the given container Id
-func (api CertAPIClient) GetImageIDByRepository(repository, imageName string) (imageID string, err error) {
-	var responseData []byte
+// GetImageIDByRepository get container image data for the given container Id. Returns (ImageID, error).
+func (api CertAPIClient) GetImageIDByRepository(repository, imageName string) (string, error) {
+	var imageID string
 	url := fmt.Sprintf("%s/%s/%s/images?page_size=1", apiCatalogByRepositoriesBaseEndPoint, repository, imageName)
-	if responseData, err = api.getRequest(url); err == nil {
+	responseData, err := api.getRequest(url)
+	if err == nil {
 		imageID, err = api.getIDFromResponse(responseData)
 	}
-	return
+	return imageID, err
 }
 
-// GetOperatorBundleIDByPackageName get published operator bundle Id by organization and package name
-func (api CertAPIClient) GetOperatorBundleIDByPackageName(org, name string) (imageID string, err error) {
-	var responseData []byte
+// GetOperatorBundleIDByPackageName get published operator bundle Id by organization and package name.
+// Returns (ImageID, error).
+func (api CertAPIClient) GetOperatorBundleIDByPackageName(org, name string) (string, error) {
+	var imageID string
 	url := fmt.Sprintf("%s/bundles?page_size=1&organization=%s&package=%s", apiOperatorCatalogExternalBaseEndPoint, org, name)
-	if responseData, err = api.getRequest(url); err == nil {
+	responseData, err := api.getRequest(url)
+	if err == nil {
 		imageID, err = api.getIDFromResponse(responseData)
 	}
-	return
+	return imageID, err
 }
 
-// getRequest a http call to rest api, returns byte array or error
-func (api CertAPIClient) getRequest(url string) (response []byte, err error) {
+// getRequest a http call to rest api, returns byte array or error. Returns (response, error).
+func (api CertAPIClient) getRequest(url string) ([]byte, error) {
 	req, err := http.NewRequest(http.MethodGet, url, http.NoBody) //nolint:noctx
 	if err != nil {
 		return nil, err
 	}
 	resp, err := api.Client.Do(req)
 	if err != nil {
-		return
+		return nil, err
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode == http.StatusNotFound {
 		err = GetContainer404Error()
-		return
+		return nil, err
 	}
-	if response, err = io.ReadAll(resp.Body); err != nil {
+
+	response, err := io.ReadAll(resp.Body)
+	if err != nil {
 		err = GetContainer404Error()
-		return
+		return nil, err
 	}
-	return
+	return response, nil
 }
 
-// getIDFromResponse searches for first occurrence of id and return
-func (api CertAPIClient) getIDFromResponse(response []byte) (id string, err error) {
+// getIDFromResponse searches for first occurrence of id and return. Returns (id and error).
+func (api CertAPIClient) getIDFromResponse(response []byte) (string, error) {
 	var data interface{}
-	if err = json.Unmarshal(response, &data); err != nil {
+	var id string
+	if err := json.Unmarshal(response, &data); err != nil {
 		log.Errorf("Error calling API Request %v", err.Error())
 		err = GetContainer404Error()
-		return
+		return id, err
 	}
 	m := data.(map[string]interface{})
 	for k, v := range m {
@@ -138,7 +145,7 @@ func (api CertAPIClient) getIDFromResponse(response []byte) (id string, err erro
 		}
 	}
 
-	return
+	return id, nil
 }
 
 // Find key in interface (recursively) and return value as interface

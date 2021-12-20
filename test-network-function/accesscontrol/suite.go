@@ -216,8 +216,8 @@ func getCrsNamespaces(crdName, crdKind string) (map[string]string, error) {
 	return crNamespaces, nil
 }
 
-func testCrsNamespaces(crNames, configNamespaces []string) (invalidCrs map[string][]string) {
-	invalidCrs = map[string][]string{}
+func testCrsNamespaces(crNames, configNamespaces []string) map[string][]string {
+	invalidCrs := map[string][]string{}
 	for _, crdName := range crNames {
 		getCrPluralNameCommand := fmt.Sprintf(ocGetCrPluralNameFormat, crdName)
 		crdPluralName := utils.ExecuteCommandAndValidate(getCrPluralNameCommand, common.DefaultTimeout, common.GetContext(), func() {
