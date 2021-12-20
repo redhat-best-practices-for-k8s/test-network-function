@@ -46,7 +46,6 @@ const (
 	grubKernelCmdlineArgsIdentifierURL    = "http://test-network-function.com/tests/grubKernelCmdlineArgs"
 	sysctlConfigFilesListIdentifierURL    = "http://test-network-function.com/tests/sysctlConfigFilesList"
 	sysctlAllConfigsArgsURL               = "http://test-network-function.com/tests/sysctlAllConfigsArgs"
-	readRemoteFileIdentifierURL           = "http://test-network-function.com/tests/readRemoteFile"
 	uncordonNodeIdentifierURL             = "http://test-network-function.com/tests/node/uncordon"
 	checkSubscriptionIdentifierURL        = "http://test-network-function.com/tests/operator/check-subscription"
 	nodeDebugIdentifierURL                = "http://test-network-function.com/tests/nodedebug"
@@ -431,18 +430,6 @@ var Catalog = map[string]TestCatalogEntry{
 			dependencies.CatBinaryName,
 		},
 	},
-	readRemoteFileIdentifierURL: {
-		Identifier:  ReadRemoteFileURLIdentifier,
-		Description: "A generic test used to read a specified file at a specified node",
-		Type:        Normative,
-		IntrusionSettings: IntrusionSettings{
-			ModifiesSystem:           false,
-			ModificationIsPersistent: false,
-		},
-		BinaryDependencies: []string{
-			dependencies.EchoBinaryName,
-		},
-	},
 	uncordonNodeIdentifierURL: {
 		Identifier:  UncordonNodeURLIdentifier,
 		Description: "A generic test used to uncordon a node",
@@ -758,12 +745,6 @@ var GrubKernelCmdlineArgsURLIdentifier = Identifier{
 // SysctlConfigFilesListURLIdentifier is the Identifier used to represent the generic getCurrentKernelCmdlineArgs test.
 var SysctlConfigFilesListURLIdentifier = Identifier{
 	URL:             sysctlConfigFilesListIdentifierURL,
-	SemanticVersion: versionOne,
-}
-
-// ReadRemoteFileURLIdentifier is the Identifier used to represent the generic getCurrentKernelCmdlineArgs test.
-var ReadRemoteFileURLIdentifier = Identifier{
-	URL:             readRemoteFileIdentifierURL,
 	SemanticVersion: versionOne,
 }
 

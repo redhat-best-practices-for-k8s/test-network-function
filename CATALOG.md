@@ -628,16 +628,6 @@ Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`oc`
 
-### http://test-network-function.com/tests/readRemoteFile
-Property|Description
----|---
-Version|v1.0.0
-Description|A generic test used to read a specified file at a specified node
-Result Type|normative
-Intrusive|false
-Modifications Persist After Test|false
-Runtime Binaries Required|`echo`
-
 ### http://test-network-function.com/tests/rolebinding
 Property|Description
 ---|---
