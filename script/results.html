@@ -219,7 +219,13 @@
                     text += '<td>' + item.testText.replace(/\n/g, '<br>') + '</td>'
                     text += '<td>' + item.duration + '</td>'
                     text += '<td>' + item.state + '</td>'
-                    text += '<td>' + ansi_up.ansi_to_html(item.CapturedTestOutput).replace(/\n/g, '<br>') + '</td></tr>'
+                    if (item.state === "passed") {
+                        output = item.CapturedTestOutput
+                    } else {
+                        output = item.CapturedTestOutput + '\n' + item.failureReason
+                    }
+
+                    text += '<td>' + ansi_up.ansi_to_html(output).replace(/\n/g, '<br>') + '</td></tr>'
                 }
                 text += '</tbody></table>'
                 text += '</div></div></div>'
