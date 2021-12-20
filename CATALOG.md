@@ -418,16 +418,6 @@ Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`grep`, `cut`
 
-### http://test-network-function.com/tests/generic/containerId
-Property|Description
----|---
-Version|v1.0.0
-Description|A test used to check what is the id of the crio generated container this command is run from
-Result Type|normative
-Intrusive|false
-Modifications Persist After Test|false
-Runtime Binaries Required|`cat`
-
 ### http://test-network-function.com/tests/generic/version
 Property|Description
 ---|---
@@ -457,26 +447,6 @@ Result Type|normative
 Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`ls`, `sort`, `head`, `cut`, `oc`
-
-### http://test-network-function.com/tests/hostname
-Property|Description
----|---
-Version|v1.0.0
-Description|A generic test used to check the hostname of a target machine/container.
-Result Type|normative
-Intrusive|false
-Modifications Persist After Test|false
-Runtime Binaries Required|`hostname`
-
-### http://test-network-function.com/tests/hugepages
-Property|Description
----|---
-Version|v1.0.0
-Description|A generic test used to read cluster's hugepages configuration
-Result Type|normative
-Intrusive|false
-Modifications Persist After Test|false
-Runtime Binaries Required|`grep`, `cut`, `oc`, `grep`
 
 ### http://test-network-function.com/tests/imagepullpolicy
 Property|Description
@@ -537,16 +507,6 @@ Result Type|normative
 Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`oc`, `echo`
-
-### http://test-network-function.com/tests/nodehugepages
-Property|Description
----|---
-Version|v1.0.0
-Description|A generic test used to verify a node's hugepages configuration
-Result Type|normative
-Intrusive|false
-Modifications Persist After Test|false
-Runtime Binaries Required|`oc`, `grep`
 
 ### http://test-network-function.com/tests/nodemcname
 Property|Description
@@ -668,16 +628,6 @@ Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`oc`
 
-### http://test-network-function.com/tests/readRemoteFile
-Property|Description
----|---
-Version|v1.0.0
-Description|A generic test used to read a specified file at a specified node
-Result Type|normative
-Intrusive|false
-Modifications Persist After Test|false
-Runtime Binaries Required|`echo`
-
 ### http://test-network-function.com/tests/rolebinding
 Property|Description
 ---|---
@@ -697,16 +647,6 @@ Result Type|normative
 Intrusive|true
 Modifications Persist After Test|false
 Runtime Binaries Required|`oc`
-
-### http://test-network-function.com/tests/serviceaccount
-Property|Description
----|---
-Version|v1.0.0
-Description|A generic test used to extract the CNF pod's ServiceAccount name.
-Result Type|normative
-Intrusive|false
-Modifications Persist After Test|false
-Runtime Binaries Required|`grep`, `cut`
 
 ### http://test-network-function.com/tests/shutdown
 Property|Description

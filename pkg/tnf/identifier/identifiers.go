@@ -21,15 +21,12 @@ import "github.com/test-network-function/test-network-function/pkg/tnf/dependenc
 const (
 	commandIdentifierURL                  = "http://test-network-function.com/tests/command"
 	nodeselectorIdentifierURL             = "http://test-network-function.com/tests/nodeselector"
-	hostnameIdentifierURL                 = "http://test-network-function.com/tests/hostname"
 	ipAddrIdentifierURL                   = "http://test-network-function.com/tests/ipaddr"
 	nodesIdentifierURL                    = "http://test-network-function.com/tests/nodes"
 	operatorIdentifierURL                 = "http://test-network-function.com/tests/operator"
 	pingIdentifierURL                     = "http://test-network-function.com/tests/ping"
 	podIdentifierURL                      = "http://test-network-function.com/tests/container/pod"
 	versionIdentifierURL                  = "http://test-network-function.com/tests/generic/version"
-	containerIDURL                        = "http://test-network-function.com/tests/generic/containerId"
-	serviceAccountIdentifierURL           = "http://test-network-function.com/tests/serviceaccount"
 	roleBindingIdentifierURL              = "http://test-network-function.com/tests/rolebinding"
 	clusterRoleBindingIdentifierURL       = "http://test-network-function.com/tests/clusterrolebinding"
 	nodePortIdentifierURL                 = "http://test-network-function.com/tests/nodeport"
@@ -37,8 +34,6 @@ const (
 	nodeNamesIdentifierURL                = "http://test-network-function.com/tests/nodenames"
 	nodeTaintedIdentifierURL              = "http://test-network-function.com/tests/nodetainted"
 	gracePeriodIdentifierURL              = "http://test-network-function.com/tests/gracePeriod"
-	hugepagesIdentifierURL                = "http://test-network-function.com/tests/hugepages"
-	nodehugepagesIdentifierURL            = "http://test-network-function.com/tests/nodehugepages"
 	podsetsIdentifierURL                  = "http://test-network-function.com/tests/podsets"
 	deploymentsnodesIdentifierURL         = "http://test-network-function.com/tests/deploymentsnodes"
 	deploymentsdrainIdentifierURL         = "http://test-network-function.com/tests/deploymentsdrain"
@@ -51,7 +46,6 @@ const (
 	grubKernelCmdlineArgsIdentifierURL    = "http://test-network-function.com/tests/grubKernelCmdlineArgs"
 	sysctlConfigFilesListIdentifierURL    = "http://test-network-function.com/tests/sysctlConfigFilesList"
 	sysctlAllConfigsArgsURL               = "http://test-network-function.com/tests/sysctlAllConfigsArgs"
-	readRemoteFileIdentifierURL           = "http://test-network-function.com/tests/readRemoteFile"
 	uncordonNodeIdentifierURL             = "http://test-network-function.com/tests/node/uncordon"
 	checkSubscriptionIdentifierURL        = "http://test-network-function.com/tests/operator/check-subscription"
 	nodeDebugIdentifierURL                = "http://test-network-function.com/tests/nodedebug"
@@ -115,18 +109,6 @@ var Catalog = map[string]TestCatalogEntry{
 			ModificationIsPersistent: false,
 		},
 		BinaryDependencies: []string{},
-	},
-	hostnameIdentifierURL: {
-		Identifier:  HostnameIdentifier,
-		Description: "A generic test used to check the hostname of a target machine/container.",
-		Type:        Normative,
-		IntrusionSettings: IntrusionSettings{
-			ModifiesSystem:           false,
-			ModificationIsPersistent: false,
-		},
-		BinaryDependencies: []string{
-			dependencies.HostnameBinaryName,
-		},
 	},
 	ipAddrIdentifierURL: {
 		Identifier:  IPAddrIdentifier,
@@ -217,31 +199,6 @@ var Catalog = map[string]TestCatalogEntry{
 			dependencies.CutBinaryName,
 		},
 	},
-	serviceAccountIdentifierURL: {
-		Identifier:  ServiceAccountIdentifier,
-		Description: "A generic test used to extract the CNF pod's ServiceAccount name.",
-		Type:        Normative,
-		IntrusionSettings: IntrusionSettings{
-			ModifiesSystem:           false,
-			ModificationIsPersistent: false,
-		},
-		BinaryDependencies: []string{
-			dependencies.GrepBinaryName,
-			dependencies.CutBinaryName,
-		},
-	},
-	containerIDURL: {
-		Identifier:  ContainerIDIdentifier,
-		Description: "A test used to check what is the id of the crio generated container this command is run from",
-		Type:        Normative,
-		IntrusionSettings: IntrusionSettings{
-			ModifiesSystem:           false,
-			ModificationIsPersistent: false,
-		},
-		BinaryDependencies: []string{
-			dependencies.CatBinaryName,
-		},
-	},
 	roleBindingIdentifierURL: {
 		Identifier:  RoleBindingIdentifier,
 		Description: "A generic test used to test RoleBindings of CNF pod's ServiceAccount.",
@@ -329,34 +286,6 @@ var Catalog = map[string]TestCatalogEntry{
 		BinaryDependencies: []string{
 			dependencies.GrepBinaryName,
 			dependencies.CutBinaryName,
-		},
-	},
-	hugepagesIdentifierURL: {
-		Identifier:  HugepagesIdentifier,
-		Description: "A generic test used to read cluster's hugepages configuration",
-		Type:        Normative,
-		IntrusionSettings: IntrusionSettings{
-			ModifiesSystem:           false,
-			ModificationIsPersistent: false,
-		},
-		BinaryDependencies: []string{
-			dependencies.GrepBinaryName,
-			dependencies.CutBinaryName,
-			dependencies.OcBinaryName,
-			dependencies.GrepBinaryName,
-		},
-	},
-	nodehugepagesIdentifierURL: {
-		Identifier:  NodeHugepagesIdentifier,
-		Description: "A generic test used to verify a node's hugepages configuration",
-		Type:        Normative,
-		IntrusionSettings: IntrusionSettings{
-			ModifiesSystem:           false,
-			ModificationIsPersistent: false,
-		},
-		BinaryDependencies: []string{
-			dependencies.OcBinaryName,
-			dependencies.GrepBinaryName,
 		},
 	},
 	podsetsIdentifierURL: {
@@ -499,18 +428,6 @@ var Catalog = map[string]TestCatalogEntry{
 		},
 		BinaryDependencies: []string{
 			dependencies.CatBinaryName,
-		},
-	},
-	readRemoteFileIdentifierURL: {
-		Identifier:  ReadRemoteFileURLIdentifier,
-		Description: "A generic test used to read a specified file at a specified node",
-		Type:        Normative,
-		IntrusionSettings: IntrusionSettings{
-			ModifiesSystem:           false,
-			ModificationIsPersistent: false,
-		},
-		BinaryDependencies: []string{
-			dependencies.EchoBinaryName,
 		},
 	},
 	uncordonNodeIdentifierURL: {
@@ -682,12 +599,6 @@ var CommandIdentifier = Identifier{
 	SemanticVersion: versionOne,
 }
 
-// HostnameIdentifier is the Identifier used to represent the generic hostname test case.
-var HostnameIdentifier = Identifier{
-	URL:             hostnameIdentifierURL,
-	SemanticVersion: versionOne,
-}
-
 // IPAddrIdentifier is the Identifier used to represent the generic IP Addr test case.
 var IPAddrIdentifier = Identifier{
 	URL:             ipAddrIdentifierURL,
@@ -730,18 +641,6 @@ var CnfFsDiffIdentifier = Identifier{
 	SemanticVersion: versionOne,
 }
 
-// ContainerIDIdentifier is the Identifier used to represent the generic cnf_fs_diff test.
-var ContainerIDIdentifier = Identifier{
-	URL:             containerIDURL,
-	SemanticVersion: versionOne,
-}
-
-// ServiceAccountIdentifier is the Identifier used to represent the generic serviceAccount test.
-var ServiceAccountIdentifier = Identifier{
-	URL:             serviceAccountIdentifierURL,
-	SemanticVersion: versionOne,
-}
-
 // RoleBindingIdentifier is the Identifier used to represent the generic roleBinding test.
 var RoleBindingIdentifier = Identifier{
 	URL:             roleBindingIdentifierURL,
@@ -780,18 +679,6 @@ var NodeTaintedIdentifier = Identifier{
 // GracePeriodIdentifier is the Identifier used to represent the generic GracePeriod test.
 var GracePeriodIdentifier = Identifier{
 	URL:             gracePeriodIdentifierURL,
-	SemanticVersion: versionOne,
-}
-
-// HugepagesIdentifier is the Identifier used to represent the generic Hugepages test.
-var HugepagesIdentifier = Identifier{
-	URL:             hugepagesIdentifierURL,
-	SemanticVersion: versionOne,
-}
-
-// NodeHugepagesIdentifier is the Identifier used to represent the generic NodeHugepages test.
-var NodeHugepagesIdentifier = Identifier{
-	URL:             nodehugepagesIdentifierURL,
 	SemanticVersion: versionOne,
 }
 
@@ -858,12 +745,6 @@ var GrubKernelCmdlineArgsURLIdentifier = Identifier{
 // SysctlConfigFilesListURLIdentifier is the Identifier used to represent the generic getCurrentKernelCmdlineArgs test.
 var SysctlConfigFilesListURLIdentifier = Identifier{
 	URL:             sysctlConfigFilesListIdentifierURL,
-	SemanticVersion: versionOne,
-}
-
-// ReadRemoteFileURLIdentifier is the Identifier used to represent the generic getCurrentKernelCmdlineArgs test.
-var ReadRemoteFileURLIdentifier = Identifier{
-	URL:             readRemoteFileIdentifierURL,
 	SemanticVersion: versionOne,
 }
 
