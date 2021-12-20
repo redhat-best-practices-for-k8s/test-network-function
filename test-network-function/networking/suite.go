@@ -52,20 +52,10 @@ const (
 	indexPort           = 4
 )
 
-var (
-	expectersVerboseModeEnabled = false
-	PortDeclaredAndListen       []PortDeclared
-	nodeListen                  PortListen
-	protocolName                = ""
-	port                        = ""
-	name                        = ""
-	flag                        = 0
-)
-
 type PortDeclared struct {
-	containerPort int
-	name          string
-	protocol      string
+	port     int
+	name     string
+	protocol string
 }
 
 type PortListen struct {
@@ -310,13 +300,13 @@ func testNodePort(env *config.TestEnvironment) {
 	})
 }
 
-func getDeclaredPortList(command string, containerNum int, podName, podNamespace string) []PortDeclared {
+func getDeclaredPortList(command string, container int, podName, podNamespace string) []PortDeclared {
 	var result []PortDeclared
-	ocCommandToExecute := fmt.Sprintf(command, podName, podNamespace, containerNum)
-	res, _ := utils.ExecuteCommand(ocCommandToExecute, ocCommandTimeOut, interactive.GetContext(expectersVerboseModeEnabled))
+	protocolName, port, name := "", "", ""
+	ocCommandToExecute := fmt.Sprintf(command, podName, podNamespace, container)
+	res, _ := utils.ExecuteCommand(ocCommandToExecute, ocCommandTimeOut, interactive.GetContext(false))
 	x := strings.Split(res, "\n")
 	for _, i := range x {
-		fmt.Println(i)
 		if strings.Contains(i, "containerPort") {
 			s := strings.Split(i, ":")
 			s = strings.Split(s[1], ",")
@@ -330,30 +320,30 @@ func getDeclaredPortList(command string, containerNum int, podName, podNamespace
 		if strings.Contains(i, "protocol") {
 			s := strings.Split(i, ":")
 			protocolName = s[1]
-			flag = 1
+			continue
 		}
-		if flag < 1 {
+		if !(port == "" && name == "" && protocolName == "") {
 			continue
 		}
 		p, _ := strconv.Atoi(strings.TrimSpace(port))
-		noderes := PortDeclared{containerPort: p, name: name, protocol: protocolName}
+		noderes := PortDeclared{port: p, name: name, protocol: protocolName}
 		result = append(result, noderes)
-		flag = 0
 	}
 	return result
 }
 
 func getListeningPortList(ocCommand string) []PortListen {
-	res, _ := utils.ExecuteCommand(ocCommand, ocCommandTimeOut, interactive.GetContext(expectersVerboseModeEnabled))
-	splitRes := strings.Split(res, "\n")
+	res, _ := utils.ExecuteCommand(ocCommand, ocCommandTimeOut, interactive.GetContext(false))
+	lines := strings.Split(res, "\n")
 	var result []PortListen
-	protocolName := ""
-	for _, line := range splitRes {
+	for _, line := range lines {
 		fields := strings.Fields(line)
-		protocolName = fields[indexProtocolName]
+		if indexProtocolName > len(fields) || indexPort > len(fields) {
+			return result
+		}
 		s := strings.Split(fields[indexPort], ":")
 		p, _ := strconv.Atoi(s[1])
-		nodeListen = PortListen{port: p, protocol: protocolName}
+		nodeListen := PortListen{port: p, protocol: fields[indexProtocolName]}
 		result = append(result, nodeListen)
 	}
 	return result
@@ -361,19 +351,17 @@ func getListeningPortList(ocCommand string) []PortListen {
 
 func compareList(declaredPortList []PortDeclared, listeningPortList []PortListen) []PortDeclared {
 	var result []PortDeclared
-	var temp PortDeclared
 	indexElement1 := 0
 	indexElement2 := 0
 
 	for indexElement1 < len(declaredPortList) && indexElement2 < len(listeningPortList) {
-		if declaredPortList[indexElement1].containerPort == listeningPortList[indexElement2].port {
-			temp = declaredPortList[indexElement1]
-			result = append(result, temp)
+		if declaredPortList[indexElement1].port == listeningPortList[indexElement2].port {
+			result = append(result, declaredPortList[indexElement1])
 			indexElement1++
 			indexElement2++
 			continue
 		}
-		if declaredPortList[indexElement1].containerPort < listeningPortList[indexElement2].port {
+		if declaredPortList[indexElement1].port < listeningPortList[indexElement2].port {
 			indexElement1++
 			continue
 		}
@@ -389,18 +377,15 @@ func testListenAndDeclared(env *config.TestEnvironment) []PortDeclared {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestServicesDoNotUseNodeportsIdentifier)
 	ginkgo.It(testID, func() {
 		for _, podUnderTest := range env.PodsUnderTest {
-			ContainerCount := podUnderTest.ContainerCount
-			for i := 0; i < ContainerCount; i++ {
-				podName := podUnderTest.Name
-				podNamespace := podUnderTest.Namespace
-				temp := getDeclaredPortList(CommandPortDeclared, i, podName, podNamespace)
+			for i := 0; i < podUnderTest.ContainerCount; i++ {
+				temp := getDeclaredPortList(CommandPortDeclared, i, podUnderTest.Name, podUnderTest.Namespace)
 				declaredPort = append(declaredPort, temp...)
 			}
 			temp := getListeningPortList(CommandPortListen)
 			listeningPort = append(listeningPort, temp...)
 			// sorting the lists
 			sort.SliceStable(declaredPort, func(i, j int) bool {
-				return declaredPort[i].containerPort < declaredPort[j].containerPort
+				return declaredPort[i].port < declaredPort[j].port
 			})
 			sort.SliceStable(listeningPort, func(i, j int) bool {
 				return listeningPort[i].port < listeningPort[j].port
