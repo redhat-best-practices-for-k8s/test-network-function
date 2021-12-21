@@ -76,7 +76,7 @@ var _ = ginkgo.Describe(common.DiagnosticTestKey, func() {
 			gomega.Expect(len(env.ContainersUnderTest)).ToNot(gomega.Equal(0))
 		})
 		ginkgo.ReportAfterEach(results.RecordResult)
-		testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestclusterVersionIdentifier)
+		testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestClusterVersionIdentifier)
 		ginkgo.It(testID, func() {
 			testOcpVersion()
 		})

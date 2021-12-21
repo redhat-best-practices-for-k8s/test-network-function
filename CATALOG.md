@@ -78,6 +78,15 @@ Description|http://test-network-function.com/testcases/affiliated-certification/
 Result Type|normative
 Suggested Remediation|Ensure that your Operator has passed Red Hat's Operator Certification Program (OCP).
 Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2.12 and Section 6.3.3
+### http://test-network-function.com/testcases/diagnostic/cluster-csi-info
+
+Property|Description
+---|---
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/diagnostic/cluster-csi-info extracts CSI driver information in the cluster.
+Result Type|informative
+Suggested Remediation|
+Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.3.6
 ### http://test-network-function.com/testcases/diagnostic/clusterversion
 
 Property|Description
@@ -627,16 +636,6 @@ Result Type|normative
 Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`oc`
-
-### http://test-network-function.com/tests/readRemoteFile
-Property|Description
----|---
-Version|v1.0.0
-Description|A generic test used to read a specified file at a specified node
-Result Type|normative
-Intrusive|false
-Modifications Persist After Test|false
-Runtime Binaries Required|`echo`
 
 ### http://test-network-function.com/tests/rolebinding
 Property|Description
