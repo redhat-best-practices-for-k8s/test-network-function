@@ -213,6 +213,11 @@ var (
 		Url:     formTestURL(common.LifecycleTestKey, "scaling"),
 		Version: versionOne,
 	}
+	// TestStateFulScalingIdentifier ensures deployment scale in/out operations work correctly.
+	TestStateFulScalingIdentifier = claim.Identifier{
+		Url:     formTestURL(common.LifecycleTestKey, "stateful-scaling"),
+		Version: versionOne,
+	}
 	// TestIsRedHatReleaseIdentifier ensures platform is defined
 	TestIsRedHatReleaseIdentifier = claim.Identifier{
 		Url:     formTestURL(common.PlatformAlterationTestKey, "isredhat-release"),
@@ -580,6 +585,16 @@ the changes for you.`,
 			First, The test starts getting the current replicaCount (N) of the deployment/s with the Pod Under Test. Then, it executes the 
 			scale-in oc command for (N-1) replicas. Lastly, it executes the scale-out oc command, restoring the original replicaCount of the deployment/s.`),
 		Remediation:           `Make sure CNF deployments/replica sets can scale in/out successfully.`,
+		BestPracticeReference: bestPracticeDocV1dot2URL + " Section 6.2",
+	},
+	TestStateFulScalingIdentifier: {
+		Identifier: TestStateFulScalingIdentifier,
+		Type:       normativeResult,
+		Description: formDescription(TestStateFulScalingIdentifier,
+			`tests that CNF deployments support scale in/out operations. 
+			First, The test starts getting the current replicaCount (N) of the statefulset/s with the Pod Under Test. Then, it executes the 
+			scale-in oc command for (N-1) replicas. Lastly, it executes the scale-out oc command, restoring the original replicaCount of the statefulset/s.`),
+		Remediation:           `Make sure CNF statefulsets/replica sets can scale in/out successfully.`,
 		BestPracticeReference: bestPracticeDocV1dot2URL + " Section 6.2",
 	},
 	TestIsRedHatReleaseIdentifier: {
