@@ -223,8 +223,8 @@ var (
 		Url:     formTestURL(common.DiagnosticTestKey, "cluster-csi-info"),
 		Version: versionOne,
 	}
-	// TestclusterVersionIdentifier list Cluster CSIdriver Identifier retrieves Third Party CSI driver info.
-	TestclusterVersionIdentifier = claim.Identifier{
+	// TestClusterVersionIdentifier list Cluster CSIdriver Identifier retrieves Third Party CSI driver info.
+	TestClusterVersionIdentifier = claim.Identifier{
 		Url:     formTestURL(common.DiagnosticTestKey, "clusterversion"),
 		Version: versionOne,
 	}
@@ -597,10 +597,10 @@ the changes for you.`,
 			`extracts CSI driver information in the cluster.`),
 		BestPracticeReference: bestPracticeDocV1dot2URL + " Section 6.3.6",
 	},
-	TestClusterCsiInfoIdentifier: {
-		Identifier: TestclusterVersionIdentifier,
+	TestClusterVersionIdentifier: {
+		Identifier: TestClusterVersionIdentifier,
 		Type:       informativeResult,
-		Description: formDescription(TestclusterVersionIdentifier,
+		Description: formDescription(TestClusterVersionIdentifier,
 			`Extracts OCP versions from the cluster.`),
 		BestPracticeReference: bestPracticeDocV1dot2URL + " Section 6.3.6",
 	},
