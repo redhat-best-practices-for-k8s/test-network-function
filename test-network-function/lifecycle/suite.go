@@ -237,7 +237,7 @@ func testScaling(env *config.TestEnvironment) {
 	})
 }
 func testStateFulSetScaling(env *config.TestEnvironment) {
-	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestStateFulScalingIdentifier)
+	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestStateFulSetScalingIdentifier)
 	ginkgo.It(testID, func() {
 		ginkgo.By("Testing StatefulSet scaling")
 		defer restoreStateFulSet(env)
