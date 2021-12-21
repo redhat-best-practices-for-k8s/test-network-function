@@ -222,7 +222,7 @@ func runHpaScalingTest(podset *configsections.PodSet) {
 }
 
 func testScaling(env *config.TestEnvironment) {
-	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestScalingIdentifier)
+	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestDeploymentScalingIdentifier)
 	ginkgo.It(testID, func() {
 		ginkgo.By("Testing deployment scaling")
 		defer restoreDeployments(env)

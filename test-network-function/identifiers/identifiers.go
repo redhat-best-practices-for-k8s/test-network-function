@@ -208,9 +208,9 @@ var (
 		Url:     formTestURL(common.PlatformAlterationTestKey, "sysctl-config"),
 		Version: versionOne,
 	}
-	// TestScalingIdentifier ensures deployment scale in/out operations work correctly.
-	TestScalingIdentifier = claim.Identifier{
-		Url:     formTestURL(common.LifecycleTestKey, "scaling"),
+	// TestDeploymentScalingIdentifier ensures deployment scale in/out operations work correctly.
+	TestDeploymentScalingIdentifier = claim.Identifier{
+		Url:     formTestURL(common.LifecycleTestKey, "deployment-scaling"),
 		Version: versionOne,
 	}
 	// TestStateFulSetScalingIdentifier ensures statefulset scale in/out operations work correctly.
@@ -577,10 +577,10 @@ the changes for you.`,
 		Remediation:           `You should recreate the node or change the sysctls, recreating is recommended because there might be other unknown changes`,
 		BestPracticeReference: bestPracticeDocV1dot2URL + " Section 6.2",
 	},
-	TestScalingIdentifier: {
-		Identifier: TestScalingIdentifier,
+	TestDeploymentScalingIdentifier: {
+		Identifier: TestDeploymentScalingIdentifier,
 		Type:       normativeResult,
-		Description: formDescription(TestScalingIdentifier,
+		Description: formDescription(TestDeploymentScalingIdentifier,
 			`tests that CNF deployments support scale in/out operations. 
 			First, The test starts getting the current replicaCount (N) of the deployment/s with the Pod Under Test. Then, it executes the 
 			scale-in oc command for (N-1) replicas. Lastly, it executes the scale-out oc command, restoring the original replicaCount of the deployment/s.`),
