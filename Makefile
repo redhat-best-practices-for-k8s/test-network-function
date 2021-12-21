@@ -77,7 +77,8 @@ lint:
 # Build and run unit tests
 test: mocks
 	go build ${COMMON_GO_ARGS} ./...
-	go test -coverprofile=cover.out `go list ./... | grep -v "github.com/test-network-function/test-network-function/test-network-function" | grep -v mock`
+	go test -coverprofile=cover.out -covermode count `go list ./... | grep -v "github.com/test-network-function/test-network-function/test-network-function" | grep -v mock`
+	go tool cover -func cover.out
 
 # generate the test catalog in JSON
 build-catalog-json: build-tnf-tool
