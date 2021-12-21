@@ -166,17 +166,20 @@ func processContainerIpsPerNet(containerID *configsections.ContainerIdentifier,
 }
 
 // runNetworkingTests takes a map netTestContext, e.g. one context per network attachment
-// and runs pings test with it
-func runNetworkingTests(netsUnderTest map[string]netTestContext, count int) {
+// and runs pings test with it. Returns a network name to a slice of bad target IPs map.
+func runNetworkingTests(netsUnderTest map[string]netTestContext, count int) map[string][]string {
 	tnf.ClaimFilePrintf("%s", printNetTestContextMap(netsUnderTest))
 	log.Debugf("%s", printNetTestContextMap(netsUnderTest))
 	if len(netsUnderTest) == 0 {
 		ginkgo.Skip("There are no networks to test, skipping test")
 	}
+
+	badNets := map[string][]string{} // maps a net name to a list of failed destination IPs
 	for netName, netUnderTest := range netsUnderTest {
 		if len(netUnderTest.destTargets) == 0 {
 			ginkgo.Skip(fmt.Sprintf("There are no containers to ping for network %s. A minimum of 2 containers is needed to run a ping test (a source and a destination) Skipping test", netName))
 		}
+		ginkgo.By(fmt.Sprintf("Ping tests on network %s. Number of target IPs: %d", netName, len(netUnderTest.destTargets)))
 		m := make(map[string]bool)
 		for _, aDestIP := range netUnderTest.destTargets {
 			podName := aDestIP.containerIdentifier.PodName
@@ -190,14 +193,18 @@ func runNetworkingTests(netsUnderTest map[string]netTestContext, count int) {
 				netUnderTest.testerSource.ip, aDestIP.containerIdentifier.PodName,
 				aDestIP.containerIdentifier.ContainerName,
 				aDestIP.ip))
-			testPing(netUnderTest.testerContainerNodeOc,
-				netUnderTest.testerSource.containerIdentifier.NodeName,
-				netUnderTest.testerSource.containerIdentifier.ContainerUID,
-				netUnderTest.testerSource.containerIdentifier.ContainerRuntime,
-				aDestIP.ip,
-				count)
+			testPass := testPing(netUnderTest.testerContainerNodeOc, netUnderTest.testerSource.containerIdentifier, aDestIP, count)
+			if !testPass {
+				if failedDestIps, netFound := badNets[netName]; netFound {
+					badNets[netName] = append(failedDestIps, aDestIP.ip)
+				} else {
+					badNets[netName] = []string{aDestIP.ip}
+				}
+			}
 		}
 	}
+
+	return badNets
 }
 func testDefaultNetworkConnectivity(env *config.TestEnvironment, count int) {
 	ginkgo.When("Testing Default network connectivity", func() {
@@ -217,7 +224,12 @@ func testDefaultNetworkConnectivity(env *config.TestEnvironment, count int) {
 				nodeOc := env.NodesUnderTest[cut.NodeName].DebugContainer.GetOc()
 				processContainerIpsPerNet(&cut.ContainerIdentifier, netKey, defaultIPAddress, netsUnderTest, nodeOc)
 			}
-			runNetworkingTests(netsUnderTest, count)
+			badNets := runNetworkingTests(netsUnderTest, count)
+
+			if n := len(badNets); n > 0 {
+				log.Warnf("Failed nets: %+v", badNets)
+				ginkgo.Fail(fmt.Sprintf("%d nets failed the default network ping test.", n))
+			}
 		})
 	})
 }
@@ -239,39 +251,79 @@ func testMultusNetworkConnectivity(env *config.TestEnvironment, count int) {
 					processContainerIpsPerNet(&cut.ContainerIdentifier, netKey, multusIPAddress, netsUnderTest, nodeOc)
 				}
 			}
-			runNetworkingTests(netsUnderTest, count)
+			badNets := runNetworkingTests(netsUnderTest, count)
+
+			if n := len(badNets); n > 0 {
+				log.Warnf("Failed nets: %+v", badNets)
+				ginkgo.Fail(fmt.Sprintf("%d nets failed the multus ping test.", n))
+			}
 		})
 	})
 }
 
 // Test that a container can ping a target IP address.
-func testPing(initiatingPodNodeOc *interactive.Oc, nodeName, containerID, runtime, targetPodIPAddress string, count int) {
-	log.Infof("Sending ICMP traffic(%s to %s)", initiatingPodNodeOc.GetPodName(), targetPodIPAddress)
+func testPing(initiatingPodNodeOc *interactive.Oc, sourceContainerID *configsections.ContainerIdentifier, targetContainerIP containerIP, count int) bool {
+	log.Infof("Sending ICMP traffic(%s to %s)", initiatingPodNodeOc.GetPodName(), targetContainerIP.ip)
 	env := config.GetTestEnvironment()
 	gomega.Expect(env).To(gomega.Not(gomega.BeNil()))
-	gomega.Expect(env.NodesUnderTest[nodeName]).To(gomega.Not(gomega.BeNil()))
-	gomega.Expect(env.NodesUnderTest[nodeName].DebugContainer.GetOc()).To(gomega.Not(gomega.BeNil()))
-	nodeOc := env.NodesUnderTest[nodeName].DebugContainer.GetOc()
-	containerPID := utils.GetContainerPID(nodeName, nodeOc, containerID, runtime)
-	pingTester := ping.NewPingNsenter(common.DefaultTimeout, containerPID, targetPodIPAddress, count)
+	gomega.Expect(env.NodesUnderTest[sourceContainerID.NodeName]).To(gomega.Not(gomega.BeNil()))
+	gomega.Expect(env.NodesUnderTest[sourceContainerID.NodeName].DebugContainer.GetOc()).To(gomega.Not(gomega.BeNil()))
+	nodeOc := env.NodesUnderTest[sourceContainerID.NodeName].DebugContainer.GetOc()
+	containerPID := utils.GetContainerPID(sourceContainerID.NodeName, nodeOc, sourceContainerID.ContainerUID, sourceContainerID.ContainerRuntime)
+	pingTester := ping.NewPingNsenter(common.DefaultTimeout, containerPID, targetContainerIP.ip, count)
 	test, err := tnf.NewTest(initiatingPodNodeOc.GetExpecter(), pingTester, []reel.Handler{pingTester}, initiatingPodNodeOc.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
-	test.RunAndValidate()
-	transmitted, received, errors := pingTester.GetStats()
-	gomega.Expect(received).To(gomega.Equal(transmitted))
-	gomega.Expect(errors).To(gomega.BeZero())
+
+	sourcePodName := initiatingPodNodeOc.GetPodName()
+	targetPodName := targetContainerIP.containerIdentifier.PodName
+
+	testResult := false
+	test.RunWithCallbacks(func() {
+		transmitted, received, errors := pingTester.GetStats()
+		if received == transmitted && errors == 0 {
+			log.Infof("Ping test from pod %s to pod %s (ip %s) succeeded. Tx/Rx/Err: %d/%d/%d",
+				sourcePodName, targetPodName, targetContainerIP.ip, transmitted, received, errors)
+			testResult = true
+		} else {
+			tnf.ClaimFilePrintf("Ping test from pod %s to pod %s (ip: %s) failed. Tx/Rx/Err: %d/%d/%d",
+				sourcePodName, targetPodName, targetContainerIP.ip, transmitted, received, errors)
+		}
+	}, func() {
+		tnf.ClaimFilePrintf("FAILURE: Ping test from pod %s to pod %s (ip: %s) failed.",
+			sourcePodName, targetPodName, targetContainerIP.ip)
+	}, func(err error) {
+		tnf.ClaimFilePrintf("ERROR: Ping test from pod %s to pod %s (ip: %s) failed. Error: %v",
+			sourcePodName, targetPodName, targetContainerIP.ip, err)
+		if reel.IsTimeout(err) {
+			env.NodesUnderTest[sourceContainerID.NodeName].DebugContainer.CloseOc()
+		}
+	})
+
+	return testResult
 }
 
 func testNodePort(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestServicesDoNotUseNodeportsIdentifier)
 	ginkgo.It(testID, func() {
+		badNamespaces := []string{}
 		context := common.GetContext()
 		for _, ns := range env.NameSpacesUnderTest {
 			ginkgo.By(fmt.Sprintf("Testing services in namespace %s", ns))
 			tester := nodeport.NewNodePort(common.DefaultTimeout, ns)
 			test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 			gomega.Expect(err).To(gomega.BeNil())
-			test.RunAndValidate()
+			test.RunWithCallbacks(nil, func() {
+				tnf.ClaimFilePrintf("Namespace %s has one or more nodePort/s", ns)
+				badNamespaces = append(badNamespaces, ns)
+			}, func(err error) {
+				tnf.ClaimFilePrintf("nodePort test on namespace %s failed. Error: %v", ns, err)
+				badNamespaces = append(badNamespaces, ns)
+			})
+		}
+
+		if n := len(badNamespaces); n > 0 {
+			log.Warnf("Failed namespaces: %+v", badNamespaces)
+			ginkgo.Fail(fmt.Sprintf("%d namespaces have nodePort/s.", n))
 		}
 	})
 }
