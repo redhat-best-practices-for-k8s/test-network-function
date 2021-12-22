@@ -218,12 +218,13 @@ func buildOperatorFromCSVResource(csv *CSVResource) (op configsections.Operator)
 }
 
 // getConfiguredOperatorTests loads the `configuredTestFile` used by the `operator` specs and extracts
-// the names of test groups from it.
-func getConfiguredOperatorTests() (opTests []string) {
+// the names of test groups from it.  Returns slice of strings.
+func getConfiguredOperatorTests() []string {
+	var opTests []string
 	configuredTests, err := testcases.LoadConfiguredTestFile(testcases.ConfiguredTestFile)
 	if err != nil {
 		log.Errorf("failed to load %s, continuing with no tests", testcases.ConfiguredTestFile)
-		return []string{}
+		return opTests
 	}
 	for _, configuredTest := range configuredTests.OperatorTest {
 		opTests = append(opTests, configuredTest.Name)
