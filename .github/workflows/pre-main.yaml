@@ -157,7 +157,7 @@ jobs:
       # Perform smoke tests.
 
       - name: 'Test: Run test suites'
-        run: ./run-cnf-suites.sh --focus access-control diagnostic lifecycle platform observablility networking affiliated-certification operator
+        run: ./run-cnf-suites.sh --focus access-control diagnostic lifecycle platform observability networking affiliated-certification operator
 
       - name: Upload smoke test results as an artifact
         uses: actions/upload-artifact@v2
@@ -197,7 +197,7 @@ jobs:
           working_directory: cnf-certification-test-partner
           
       - name: 'Test: Run generic test suite in a TNF container'
-        run: ./run-tnf-container.sh ${{ env.TESTING_CMD_PARAMS }} -f access-control lifecycle platform observablility networking affiliated-certification operator
+        run: ./run-tnf-container.sh ${{ env.TESTING_CMD_PARAMS }} -f access-control lifecycle platform observability networking affiliated-certification operator
 
       - name: Upload container test results as an artifact
         uses: actions/upload-artifact@v2
