@@ -100,16 +100,17 @@ func (pr *PodResource) GetAnnotationValue(annotationKey string, v interface{}) (
 // First, if the cnf-certification-specific annotation "test-network-function.com/defaultnetworkinterface" is present
 // then the value of that will be decoded and returned. It must be a single JSON-encoded string.
 // Next, if the "k8s.v1.cni.cncf.io/networks-status" annotation is present then the first entry where `default == true`
-// will be used. Note that this annotation may not be present outside OpenShift.
-func (pr *PodResource) getDefaultNetworkDeviceFromAnnotations() (iface string, err error) {
+// will be used. Note that this annotation may not be present outside OpenShift.  Returns (interface, error).
+func (pr *PodResource) getDefaultNetworkDeviceFromAnnotations() (string, error) {
 	// Note: The `GetAnnotationValue` method does not distinguish between bad encoding and a missing annotation, which is needed here.
+	var iface string
 	if val, present := pr.Metadata.Annotations[namespacedDefaultNetworkInterfaceKey]; present {
-		err = jsonUnmarshal([]byte(val), &iface)
-		return
+		err := jsonUnmarshal([]byte(val), &iface)
+		return iface, err
 	}
 	if val, present := pr.Metadata.Annotations[cniNetworksStatusKey]; present {
 		var cniInfo []cniNetworkInterface
-		err = jsonUnmarshal([]byte(val), &cniInfo)
+		err := jsonUnmarshal([]byte(val), &cniInfo)
 		if err != nil {
 			return "", pr.annotationUnmarshalError(cniNetworksStatusKey, err)
 		}
@@ -124,16 +125,17 @@ func (pr *PodResource) getDefaultNetworkDeviceFromAnnotations() (iface string, e
 
 // getPodIPsPerNet gets the IPs of a pod.
 // CNI annotation "k8s.v1.cni.cncf.io/networks-status".
-func (pr *PodResource) getPodIPsPerNet() (ips map[string][]string, err error) {
+// Returns (ips, error).
+func (pr *PodResource) getPodIPsPerNet() (map[string][]string, error) {
 	// This is a map indexed with the network name (network attachment) and
 	// listing all the IPs created in this subnet and belonging to the pod namespace
 	// The list of ips pr net is parsed from the content of the "k8s.v1.cni.cncf.io/networks-status" annotation.
 	// see file pkg/config/autodiscover/testdata/testtarget.json for an example of such annotation
-	ips = make(map[string][]string)
+	ips := make(map[string][]string)
 
 	if val, present := pr.Metadata.Annotations[cniNetworksStatusKey]; present {
 		var cniInfo []cniNetworkInterface
-		err = jsonUnmarshal([]byte(val), &cniInfo)
+		err := jsonUnmarshal([]byte(val), &cniInfo)
 		if err != nil {
 			return nil, pr.annotationUnmarshalError(cniNetworksStatusKey, err)
 		}
@@ -144,11 +146,11 @@ func (pr *PodResource) getPodIPsPerNet() (ips map[string][]string, err error) {
 				ips[cniInterface.Name] = cniInterface.IPs
 			}
 		}
-		return
+		return ips, nil
 	}
 	log.Warn("Could not establish pod IPs from annotations, please manually set the 'test-network-function.com/multusips' annotation for complete test coverage")
 
-	return
+	return ips, nil
 }
 
 func (pr *PodResource) annotationUnmarshalError(annotationKey string, err error) error {
