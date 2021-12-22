@@ -43,7 +43,7 @@ const (
 )
 
 // netTestContext this is a data structure describing a network test context for a given subnet (e.g. network attachment)
-// The test context defines a tester or test initiator, that is initating the pings. It is selected randomly (first container in the list)
+// The test context defines a tester or test initiator, that is initiating the pings. It is selected randomly (first container in the list)
 // It also defines a list of destination ping targets corresponding to the other containers IPs on this subnet
 type netTestContext struct {
 	// testerContainerNodeOc session context to access the node running the container selected to initiate tests

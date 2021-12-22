@@ -52,7 +52,7 @@ func (a *Assertions) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	// Unmarshall the assertions Array.
+	// Unmarshal the assertions Array.
 	if err := a.unmarshalAssertionsJSON(objMap); err != nil {
 		return err
 	}
