@@ -131,7 +131,7 @@ type CniPlugin struct {
 type NodeHwInfo struct {
 	NodeName string
 	Lscpu    map[string]string   // lscpu output parsed as entry to value map
-	Ifconfig map[string][]string // ifconfig output parsed as interface name to output lines map
+	IPconfig map[string][]string // 'ip a' output parsed as interface name to output lines map
 	Lsblk    interface{}         // 'lsblk -J' output un-marshaled into an unknown type
 	Lspci    []string            // lspci output parsed to individual lines
 }
@@ -231,12 +231,12 @@ func testNodesHwInfo() {
 	gomega.Expect(workerNodeName).ToNot(gomega.BeEmpty())
 	nodesHwInfo.Master.NodeName = masterNodeName
 	nodesHwInfo.Master.Lscpu = getNodeLscpu(masterNodeName)
-	nodesHwInfo.Master.Ifconfig = getNodeIfconfig(masterNodeName)
+	nodesHwInfo.Master.IPconfig = getNodeIPconfig(masterNodeName)
 	nodesHwInfo.Master.Lsblk = getNodeLsblk(masterNodeName)
 	nodesHwInfo.Master.Lspci = getNodeLspci(masterNodeName)
 	nodesHwInfo.Worker.NodeName = workerNodeName
 	nodesHwInfo.Worker.Lscpu = getNodeLscpu(workerNodeName)
-	nodesHwInfo.Worker.Ifconfig = getNodeIfconfig(workerNodeName)
+	nodesHwInfo.Worker.IPconfig = getNodeIPconfig(workerNodeName)
 	nodesHwInfo.Worker.Lsblk = getNodeLsblk(workerNodeName)
 	nodesHwInfo.Worker.Lspci = getNodeLspci(workerNodeName)
 }
@@ -259,9 +259,9 @@ func getNodeLscpu(nodeName string) map[string]string {
 	return result
 }
 
-func getNodeIfconfig(nodeName string) map[string][]string {
-	const command = "ifconfig"
-	const numSplitSubstrings = 2
+func getNodeIPconfig(nodeName string) map[string][]string {
+	const command = "ip a"
+	const numSplitSubstrings = 3
 	result := map[string][]string{}
 	env = config.GetTestEnvironment()
 	nodes := env.NodesUnderTest
@@ -277,8 +277,8 @@ func getNodeIfconfig(nodeName string) map[string][]string {
 		}
 		if line[0] != ' ' {
 			fields := strings.SplitN(line, ":", numSplitSubstrings)
-			deviceName = fields[0]
-			line = fields[1]
+			deviceName = fields[1]
+			line = fields[2]
 		}
 		result[deviceName] = append(result[deviceName], strings.TrimSpace(line))
 	}
