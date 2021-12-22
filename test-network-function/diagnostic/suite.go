@@ -22,7 +22,7 @@ import (
 )
 
 const (
-	// defaultTimeoutSeconds contains the default timeout in secons.
+	// defaultTimeoutSeconds contains the default timeout in seconds.
 	defaultTimeoutSeconds = 20
 )
 
