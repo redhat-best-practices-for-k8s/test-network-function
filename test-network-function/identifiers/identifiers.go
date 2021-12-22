@@ -565,7 +565,7 @@ the changes for you.`,
 	TestSysctlConfigsIdentifier: {
 		Identifier: TestSysctlConfigsIdentifier,
 		Type:       normativeResult,
-		Description: formDescription(TestPodRecreationIdentifier,
+		Description: formDescription(TestSysctlConfigsIdentifier,
 			`tests that no one has changed the node's sysctl configs after the node
 			was created, the tests works by checking if the sysctl configs are consistent with the
 			MachineConfig CR which defines how the node should be configured`),
