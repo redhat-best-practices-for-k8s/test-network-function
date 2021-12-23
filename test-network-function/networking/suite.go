@@ -37,6 +37,7 @@ import (
 	"github.com/test-network-function/test-network-function/pkg/tnf"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodeport"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/ping"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/podnodename"
 	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
 
@@ -45,7 +46,7 @@ import (
 
 const (
 	CommandPortDeclared = "oc get pod %s -n %s -o json  | jq -r '.spec.containers[%d].ports'"
-	CommandPortListen   = "ss -tulwnH"
+	CommandPortListen   = "ss"
 	defaultNumPings     = 5
 	ocCommandTimeOut    = time.Second * 10
 	indexProtocolName   = 0
@@ -300,10 +301,10 @@ func testNodePort(env *config.TestEnvironment) {
 	})
 }
 
-func getDeclaredPortList(command string, container int, podName, podNamespace string) []PortDeclared {
+func getDeclaredPortList(container int, podName, podNamespace string) []PortDeclared {
 	var result []PortDeclared
 	protocolName, port, name := "", "", ""
-	ocCommandToExecute := fmt.Sprintf(command, podName, podNamespace, container)
+	ocCommandToExecute := fmt.Sprintf(CommandPortDeclared, podName, podNamespace, container)
 	res, _ := utils.ExecuteCommand(ocCommandToExecute, ocCommandTimeOut, interactive.GetContext(false))
 	x := strings.Split(res, "\n")
 	for _, i := range x {
@@ -320,20 +321,24 @@ func getDeclaredPortList(command string, container int, podName, podNamespace st
 		if strings.Contains(i, "protocol") {
 			s := strings.Split(i, ":")
 			protocolName = s[1]
-			continue
 		}
-		if !(port == "" && name == "" && protocolName == "") {
+		if port == "" || name == "" || protocolName == "" {
 			continue
 		}
 		p, _ := strconv.Atoi(strings.TrimSpace(port))
+		name = strings.TrimSpace(strings.ReplaceAll(name, "\"", ""))
+		protocolName = strings.TrimSpace(strings.ReplaceAll(protocolName, "\"", ""))
 		noderes := PortDeclared{port: p, name: name, protocol: protocolName}
 		result = append(result, noderes)
+		port, name, protocolName = "", "", ""
 	}
 	return result
 }
 
-func getListeningPortList(ocCommand string) []PortListen {
-	res, _ := utils.ExecuteCommand(ocCommand, ocCommandTimeOut, interactive.GetContext(false))
+func getListeningPortList(temp []string) []PortListen {
+	listeningPortCommand := strings.Join(temp, " ")
+	fmt.Println(listeningPortCommand)
+	res, _ := utils.ExecuteCommand(listeningPortCommand, ocCommandTimeOut, interactive.GetContext(false))
 	lines := strings.Split(res, "\n")
 	var result []PortListen
 	for _, line := range lines {
@@ -349,40 +354,57 @@ func getListeningPortList(ocCommand string) []PortListen {
 	return result
 }
 
-func compareList(declaredPortList []PortDeclared, listeningPortList []PortListen) []PortDeclared {
-	var result []PortDeclared
+func checkIfListenIsDeclared(declaredPortList []PortDeclared, listeningPortList []PortListen) bool {
 	indexElement1 := 0
 	indexElement2 := 0
 
 	for indexElement1 < len(declaredPortList) && indexElement2 < len(listeningPortList) {
 		if declaredPortList[indexElement1].port == listeningPortList[indexElement2].port {
-			result = append(result, declaredPortList[indexElement1])
 			indexElement1++
 			indexElement2++
 			continue
 		}
-		if declaredPortList[indexElement1].port < listeningPortList[indexElement2].port {
-			indexElement1++
-			continue
+		if listeningPortList[indexElement2].port < declaredPortList[indexElement1].port {
+			return false
 		}
-		indexElement2++
+		indexElement1++
 	}
-	return result
+	return true
 }
 
-func testListenAndDeclared(env *config.TestEnvironment) []PortDeclared {
+func testListenAndDeclared(env *config.TestEnvironment) {
 	var declaredPort []PortDeclared
 	var listeningPort []PortListen
-	var PortDeclaredAndListen []PortDeclared
+	var x *config.Container
+	res := true
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestServicesDoNotUseNodeportsIdentifier)
 	ginkgo.It(testID, func() {
 		for _, podUnderTest := range env.PodsUnderTest {
 			for i := 0; i < podUnderTest.ContainerCount; i++ {
-				temp := getDeclaredPortList(CommandPortDeclared, i, podUnderTest.Name, podUnderTest.Namespace)
+				temp := getDeclaredPortList(i, podUnderTest.Name, podUnderTest.Namespace)
 				declaredPort = append(declaredPort, temp...)
 			}
-			temp := getListeningPortList(CommandPortListen)
-			listeningPort = append(listeningPort, temp...)
+
+			nodeName := podnodename.NewPodNodeName(common.DefaultTimeout, podUnderTest.Name, podUnderTest.Namespace)
+			context := common.GetContext()
+			test, err := tnf.NewTest(context.GetExpecter(), nodeName, []reel.Handler{nodeName}, context.GetErrorChannel())
+			gomega.Expect(err).To(gomega.BeNil())
+			test.RunAndValidate()
+			nodeOc := env.NodesUnderTest[nodeName.GetNodeName()].DebugContainer.GetOc()
+			for _, cut := range env.ContainersUnderTest {
+				fmt.Println(cut)
+				if cut.ContainerIdentifier.PodName == podUnderTest.Name && cut.ContainerIdentifier.Namespace == podUnderTest.Namespace {
+					x = cut
+					break
+				}
+			}
+			containerPID := utils.GetContainerPID(nodeName.GetNodeName(), nodeOc, x.ContainerUID, x.ContainerRuntime)
+
+			temp := []string{utils.AddNsenterPrefix(containerPID), CommandPortListen, "-tulwnH"}
+			fmt.Println(temp)
+			temp1 := getListeningPortList(temp)
+			listeningPort = append(listeningPort, temp1...)
+
 			// sorting the lists
 			sort.SliceStable(declaredPort, func(i, j int) bool {
 				return declaredPort[i].port < declaredPort[j].port
@@ -391,9 +413,10 @@ func testListenAndDeclared(env *config.TestEnvironment) []PortDeclared {
 				return listeningPort[i].port < listeningPort[j].port
 			})
 			// compare between declaredPort,listeningPort and return the common.
-			res := compareList(declaredPort, listeningPort)
-			PortDeclaredAndListen = append(PortDeclaredAndListen, res...)
+			res = checkIfListenIsDeclared(declaredPort, listeningPort)
+			if !res {
+				ginkgo.Fail("TC failed")
+			}
 		}
 	})
-	return PortDeclaredAndListen
 }
