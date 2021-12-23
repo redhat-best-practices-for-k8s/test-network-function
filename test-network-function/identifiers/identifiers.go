@@ -208,9 +208,14 @@ var (
 		Url:     formTestURL(common.PlatformAlterationTestKey, "sysctl-config"),
 		Version: versionOne,
 	}
-	// TestScalingIdentifier ensures deployment scale in/out operations work correctly.
-	TestScalingIdentifier = claim.Identifier{
-		Url:     formTestURL(common.LifecycleTestKey, "scaling"),
+	// TestDeploymentScalingIdentifier ensures deployment scale in/out operations work correctly.
+	TestDeploymentScalingIdentifier = claim.Identifier{
+		Url:     formTestURL(common.LifecycleTestKey, "deployment-scaling"),
+		Version: versionOne,
+	}
+	// TestStateFulSetScalingIdentifier ensures statefulset scale in/out operations work correctly.
+	TestStateFulSetScalingIdentifier = claim.Identifier{
+		Url:     formTestURL(common.LifecycleTestKey, "statefulset-scaling"),
 		Version: versionOne,
 	}
 	// TestIsRedHatReleaseIdentifier ensures platform is defined
@@ -572,14 +577,28 @@ the changes for you.`,
 		Remediation:           `You should recreate the node or change the sysctls, recreating is recommended because there might be other unknown changes`,
 		BestPracticeReference: bestPracticeDocV1dot2URL + " Section 6.2",
 	},
-	TestScalingIdentifier: {
-		Identifier: TestScalingIdentifier,
+	TestDeploymentScalingIdentifier: {
+		Identifier: TestDeploymentScalingIdentifier,
 		Type:       normativeResult,
-		Description: formDescription(TestScalingIdentifier,
+		Description: formDescription(TestDeploymentScalingIdentifier,
 			`tests that CNF deployments support scale in/out operations. 
 			First, The test starts getting the current replicaCount (N) of the deployment/s with the Pod Under Test. Then, it executes the 
-			scale-in oc command for (N-1) replicas. Lastly, it executes the scale-out oc command, restoring the original replicaCount of the deployment/s.`),
+			scale-in oc command for (N-1) replicas. Lastly, it executes the scale-out oc command, restoring the original replicaCount of the deployment/s.
+		    In case of deployments that are managed by HPA the test is changing the min and max value to deployment Replica - 1 during scale-in and the 
+			original replicaCount again for both min/max during the scale-out stage. lastly its restoring the original min/max replica of the deployment/s`),
 		Remediation:           `Make sure CNF deployments/replica sets can scale in/out successfully.`,
+		BestPracticeReference: bestPracticeDocV1dot2URL + " Section 6.2",
+	},
+	TestStateFulSetScalingIdentifier: {
+		Identifier: TestStateFulSetScalingIdentifier,
+		Type:       normativeResult,
+		Description: formDescription(TestStateFulSetScalingIdentifier,
+			`tests that CNF statefulsets support scale in/out operations. 
+			First, The test starts getting the current replicaCount (N) of the statefulset/s with the Pod Under Test. Then, it executes the 
+			scale-in oc command for (N-1) replicas. Lastly, it executes the scale-out oc command, restoring the original replicaCount of the statefulset/s.
+			In case of statefulsets that are managed by HPA the test is changing the min and max value to statefulset Replica - 1 during scale-in and the 
+			original replicaCount again for both min/max during the scale-out stage. lastly its restoring the original min/max replica of the statefulset/s`),
+		Remediation:           `Make sure CNF statefulsets/replica sets can scale in/out successfully.`,
 		BestPracticeReference: bestPracticeDocV1dot2URL + " Section 6.2",
 	},
 	TestIsRedHatReleaseIdentifier: {
