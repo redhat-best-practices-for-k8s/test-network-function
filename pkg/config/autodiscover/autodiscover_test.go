@@ -92,7 +92,7 @@ func TestGetContainersByLabel(t *testing.T) {
 			name:           "",
 			value:          "", // no value
 			filename:       "testdata/testpods_empty.json",
-			expectedOutput: []configsections.ContainerConfig(nil),
+			expectedOutput: []configsections.ContainerConfig{},
 		},
 	}
 	origCommand := executeOcGetAllCommand
@@ -164,7 +164,7 @@ func TestGetContainerIdentifiersByLabel(t *testing.T) {
 			name:           "",
 			value:          "", // no value
 			filename:       "testdata/testpods_empty.json",
-			expectedOutput: []configsections.ContainerIdentifier(nil),
+			expectedOutput: []configsections.ContainerIdentifier{},
 		},
 	}
 

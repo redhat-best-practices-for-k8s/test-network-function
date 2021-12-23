@@ -15,6 +15,7 @@ validation_junit.xml
 jsontest-cli
 gradetool
 test-out.json
+cover.out
 
 # Explicitly don't track mocks.  mocks should be built on request.
 pkg/tnf/mocks/mock_tester.go

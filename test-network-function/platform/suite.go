@@ -552,7 +552,7 @@ func getMachineConfig(mcName string) (machineConfig, error) {
 	var mc machineConfig
 	err := json.Unmarshal([]byte(mcJSON), &mc)
 	if err != nil {
-		return machineConfig{}, fmt.Errorf("failed to unmarshall (err: %v)", err)
+		return machineConfig{}, fmt.Errorf("failed to unmarshal (err: %v)", err)
 	}
 
 	return mc, nil
@@ -673,7 +673,7 @@ func getNodeMachineConfig(nodeName string, machineconfigs map[string]machineConf
 
 	mc, err := getMachineConfig(mcName)
 	if err != nil {
-		ginkgo.Fail(fmt.Sprintf("Unable to unmarshall mc %s from node %s", mcName, nodeName))
+		ginkgo.Fail(fmt.Sprintf("Unable to unmarshal mc %s from node %s", mcName, nodeName))
 	}
 	machineconfigs[mcName] = mc
 

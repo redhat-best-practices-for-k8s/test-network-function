@@ -43,7 +43,7 @@ const (
 )
 
 // netTestContext this is a data structure describing a network test context for a given subnet (e.g. network attachment)
-// The test context defines a tester or test initiator, that is initating the pings. It is selected randomly (first container in the list)
+// The test context defines a tester or test initiator, that is initiating the pings. It is selected randomly (first container in the list)
 // It also defines a list of destination ping targets corresponding to the other containers IPs on this subnet
 type netTestContext struct {
 	// testerContainerNodeOc session context to access the node running the container selected to initiate tests
@@ -62,26 +62,26 @@ type containerIP struct {
 	containerIdentifier *configsections.ContainerIdentifier
 }
 
-func (testContext netTestContext) String() (output string) {
-	output = fmt.Sprintf("From initiating container: %s\n", testContext.testerSource.String())
+func (testContext netTestContext) String() string {
+	output := fmt.Sprintf("From initiating container: %s\n", testContext.testerSource.String())
 	if len(testContext.destTargets) == 0 {
 		output = "--> No target containers to test for this network" //nolint:goconst // this is only one time
 	}
 	for _, target := range testContext.destTargets {
 		output += fmt.Sprintf("--> To target container: %s\n", target.String())
 	}
-	return
+	return output
 }
 
-func (cip *containerIP) String() (output string) {
-	output = fmt.Sprintf("%s ( %s )",
+func (cip *containerIP) String() string {
+	return fmt.Sprintf("%s ( %s )",
 		cip.ip,
 		cip.containerIdentifier.String(),
 	)
-	return
 }
 
-func printNetTestContextMap(netsUnderTest map[string]netTestContext) (output string) {
+func printNetTestContextMap(netsUnderTest map[string]netTestContext) string {
+	var output string
 	if len(netsUnderTest) == 0 {
 		output = "No networks to test.\n" //nolint:goconst // this is only one time
 	}
@@ -89,7 +89,7 @@ func printNetTestContextMap(netsUnderTest map[string]netTestContext) (output str
 		output += fmt.Sprintf("***Test for Network attachment: %s\n", netName)
 		output += fmt.Sprintf("%s\n", netUnderTest.String())
 	}
-	return
+	return output
 }
 
 //
