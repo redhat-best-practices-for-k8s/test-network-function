@@ -110,12 +110,10 @@ var _ = ginkgo.Describe(common.NetworkingTestKey, func() {
 		ginkgo.ReportAfterEach(results.RecordResult)
 
 		ginkgo.Context("Both Pods are on the Default network", func() {
-			// for each container under test, ensure bidirectional ICMP traffic between the container and the orchestrator.
 			testDefaultNetworkConnectivity(env, defaultNumPings)
 		})
 
 		ginkgo.Context("Both Pods are connected via a Multus Overlay Network", func() {
-			// Unidirectional test;  for each container under test, attempt to ping the target Multus IP addresses.
 			testMultusNetworkConnectivity(env, defaultNumPings)
 		})
 		ginkgo.Context("Should not have type of nodePort", func() {
