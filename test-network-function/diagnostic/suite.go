@@ -122,9 +122,11 @@ var _ = ginkgo.Describe(common.DiagnosticTestKey, func() {
 })
 
 // CniPlugin holds info about a CNI plugin
+// The JSON fields come from the jq output
 type CniPlugin struct {
-	Name    string
-	version string
+	Name    string      `json:"name"`
+	Version string      `json:"version"`
+	Plugins interface{} `json:"plugins"`
 }
 
 // NodeHwInfo node HW info
@@ -186,7 +188,8 @@ func getWorkerNodeName(env *config.TestEnvironment) string {
 }
 
 func listNodeCniPlugins(nodeName string) []CniPlugin {
-	const command = "cat /host/etc/cni/net.d/[0-999]* | jq -r .name,.cniVersion"
+	// This command will return a JSON array, with the name, cniVersion and plugins fields from the cat output
+	const command = "cat /host/etc/cni/net.d/[0-999]* | jq -s '[ .[] | {name:.name, version:.cniVersion, plugins: .plugins}]'"
 	result := []CniPlugin{}
 	nodes := config.GetTestEnvironment().NodesUnderTest
 	context := nodes[nodeName].DebugContainer.GetOc()
@@ -194,13 +197,8 @@ func listNodeCniPlugins(nodeName string) []CniPlugin {
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
 	test.RunAndValidate()
-	gomega.Expect(len(tester.Processed)%2 == 0).To(gomega.BeTrue())
-	for i := 0; i < len(tester.Processed); i += 2 {
-		result = append(result, CniPlugin{
-			tester.Processed[i],
-			tester.Processed[i+1],
-		})
-	}
+	err = json.Unmarshal([]byte(tester.Raw), &result)
+	gomega.Expect(err).To(gomega.BeNil())
 	return result
 }
 
