@@ -150,31 +150,48 @@ func outputTestCases() {
 		return keys[i].Url < keys[j].Url
 	})
 
-	// with the url ordered, we go one by one
-	// Extract the suite from url
-	// fmt.Sprintf("%s/%s/%s", url, suite, name)
-	// new structure whatever
-	// if suite not in structure keys
-	//    add suite
-	// add[suite].append[url]
-	//to have something like
-	// structure {
-	//	DiagnosticTestKey: [url3, url4, url5]
-	//  ...
-	// }
-	// then iterate by suite(keys), and print all the urls from each suite
-	// Iterating the map by sorted identifier URL
-	for _, k := range keys {
-		fmt.Println()
-		fmt.Fprintf(os.Stdout, "### %s\n", identifiers.Catalog[k].Identifier.Url)
-		fmt.Println()
-		fmt.Println("Property|Description")
-		fmt.Println("---|---")
-		fmt.Fprintf(os.Stdout, "Version|%s\n", identifiers.Catalog[k].Identifier.Version)
-		fmt.Fprintf(os.Stdout, "Description|%s\n", strings.ReplaceAll(identifiers.Catalog[k].Description, "\n", " "))
-		fmt.Fprintf(os.Stdout, "Result Type|%s\n", identifiers.Catalog[k].Type)
-		fmt.Fprintf(os.Stdout, "Suggested Remediation|%s\n", strings.ReplaceAll(identifiers.Catalog[k].Remediation, "\n", " "))
-		fmt.Fprintf(os.Stdout, "Best Practice Reference|%s\n", strings.ReplaceAll(identifiers.Catalog[k].BestPracticeReference, "\n", " "))
+	// want to do something like
+	// {
+	// 	networking: [{
+	// 		test_name: "service-type"
+	// 		urls: catalog.identifier // catalog.identifier=url and version
+	// 	}
+	// }, ......]
+
+	type CatalogElement struct {
+		TestName string
+		Url      claim.Identifier
+	}
+
+	catalog := make(map[string][]CatalogElement)
+
+	var element CatalogElement
+
+	for _, i := range keys {
+		suite_name := getSuiteNameFromUrl(i.Url)
+		suite := suite_name[0]
+		test_name := suite_name[1]
+		element.TestName = test_name
+		element.Url = i
+		catalog[suite] = append(catalog[suite], element)
+
+	}
+	fmt.Println(catalog)
+
+	for _, i := range catalog {
+		fmt.Println(i) // I have to check how to interact with the catalog
+		for _, k := range keys {
+			fmt.Println()
+			fmt.Fprintf(os.Stdout, "### %s\n", identifiers.Catalog[k].Identifier.Url)
+			fmt.Println()
+			fmt.Println("Property|Description")
+			fmt.Println("---|---")
+			fmt.Fprintf(os.Stdout, "Version|%s\n", identifiers.Catalog[k].Identifier.Version)
+			fmt.Fprintf(os.Stdout, "Description|%s\n", strings.ReplaceAll(identifiers.Catalog[k].Description, "\n", " "))
+			fmt.Fprintf(os.Stdout, "Result Type|%s\n", identifiers.Catalog[k].Type)
+			fmt.Fprintf(os.Stdout, "Suggested Remediation|%s\n", strings.ReplaceAll(identifiers.Catalog[k].Remediation, "\n", " "))
+			fmt.Fprintf(os.Stdout, "Best Practice Reference|%s\n", strings.ReplaceAll(identifiers.Catalog[k].BestPracticeReference, "\n", " "))
+		}
 	}
 	fmt.Println()
 	fmt.Println()
