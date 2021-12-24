@@ -174,7 +174,6 @@ type TestEnvironment struct {
 	// ContainersToExcludeFromConnectivityTests is a set used for storing the containers that should be excluded from
 	// connectivity testing.
 	ContainersToExcludeFromConnectivityTests map[configsections.ContainerIdentifier]interface{}
-	TestOrchestrator                         *Container
 	Config                                   configsections.TestConfiguration
 	// loaded tracks if the config has been loaded to prevent it being reloaded.
 	loaded bool
@@ -224,7 +223,6 @@ func (env *TestEnvironment) reset() {
 	env.ResetOc()
 	env.Config.Partner = configsections.TestPartner{}
 	env.Config.TestTarget = configsections.TestTarget{}
-	env.TestOrchestrator = nil
 	// Delete Oc debug sessions before re-creating them
 	for name, node := range env.NodesUnderTest {
 		if node.debug {
