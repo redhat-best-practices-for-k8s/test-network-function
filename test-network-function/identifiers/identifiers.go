@@ -60,6 +60,8 @@ var (
 	// TestIdToClaimId converts the testcase short ID to the claim identifier
 	TestIDToClaimID = map[string]claim.Identifier{}
 
+	// BaseDomain for the test cases
+	TestIDBaseDomain = url
 	// TestHostResourceIdentifier tests container best practices.
 	TestHostResourceIdentifier = claim.Identifier{
 		Url:     formTestURL(common.AccessControlTestKey, "host-resource"),

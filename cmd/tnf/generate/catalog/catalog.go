@@ -116,21 +116,56 @@ func emitTextFromFile(filename string) error {
 	return nil
 }
 
+func getSuiteNameFromUrl(url string) []string {
+	base_domain := identifiers.TestIDBaseDomain + "/"
+	result := strings.Split(url, base_domain)
+	// len 2, because returns [0] before base_domain and [1] after base_domain
+	if len(result) > 2 {
+		fmt.Println("error")
+		return nil
+	}
+	suite_name := strings.Split(result[1], "/")
+	return suite_name
+}
+
 // outputTestCases outputs the Markdown representation for test cases from the catalog to stdout.
 func outputTestCases() {
 	// Building a separate data structure to store the key order for the map
 	keys := make([]claim.Identifier, 0, len(identifiers.Catalog))
 	for k := range identifiers.Catalog {
+		suite_name := getSuiteNameFromUrl(k.Url)
+		fmt.Println("suite " + suite_name[0] + " name test " + suite_name[1])
+		// we could split the url to extract the tests cases in the same way
+		// than urls were composed:  fmt.Sprintf("%s/%s/%s", url, suite, name)
+		// we extract the suite and the name
+		// then we organize keys not in one dimension but in
+		// { [suite: [url], suite:[url]] }
 		keys = append(keys, k)
+
 	}
 
 	// Sorting the map by identifier URL
 	sort.Slice(keys, func(i, j int) bool {
+
 		return keys[i].Url < keys[j].Url
 	})
 
+	// with the url ordered, we go one by one
+	// Extract the suite from url
+	// fmt.Sprintf("%s/%s/%s", url, suite, name)
+	// new structure whatever
+	// if suite not in structure keys
+	//    add suite
+	// add[suite].append[url]
+	//to have something like
+	// structure {
+	//	DiagnosticTestKey: [url3, url4, url5]
+	//  ...
+	// }
+	// then iterate by suite(keys), and print all the urls from each suite
 	// Iterating the map by sorted identifier URL
 	for _, k := range keys {
+		fmt.Println()
 		fmt.Fprintf(os.Stdout, "### %s\n", identifiers.Catalog[k].Identifier.Url)
 		fmt.Println()
 		fmt.Println("Property|Description")
