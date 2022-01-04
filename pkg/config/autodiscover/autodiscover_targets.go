@@ -175,8 +175,10 @@ func FindTestPodSetsByLabel(targetLabels []configsections.Label, target *configs
 }
 
 // buildPodUnderTest builds a single `configsections.Pod` from a PodResource
-func buildPodUnderTest(pr *PodResource) (podUnderTest configsections.Pod) {
+func buildPodUnderTest(pr *PodResource) (podUnderTest *configsections.Pod) {
 	var err error
+	var pod configsections.Pod
+	podUnderTest = &pod
 	podUnderTest.Namespace = pr.Metadata.Namespace
 	podUnderTest.Name = pr.Metadata.Name
 	podUnderTest.ServiceAccount = pr.Spec.ServiceAccount
@@ -188,6 +190,14 @@ func buildPodUnderTest(pr *PodResource) (podUnderTest configsections.Pod) {
 		podUnderTest.Tests = testcases.GetConfiguredPodTests()
 	} else {
 		podUnderTest.Tests = tests
+	}
+	// Get a list of all the containers present in the pod
+	allContainersInPod := buildContainersFromPodResource(pr)
+	if len(allContainersInPod) > 0 {
+		// Pick the first container in the list to use as the network context
+		podUnderTest.Container.ContainerConfig = allContainersInPod[0]
+	} else {
+		log.Errorf("There are no containers in pod %s in namespace %s", podUnderTest.Name, podUnderTest.Namespace)
 	}
 	return
 }

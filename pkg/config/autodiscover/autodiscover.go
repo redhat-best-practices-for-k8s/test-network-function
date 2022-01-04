@@ -85,7 +85,7 @@ var executeOcGetAllCommand = func(resourceType, labelQuery string) string {
 	return match
 }
 
-// getContainersByLabel builds `config.Container`s from containers in pods matching a label.
+// getContainersByLabel builds `configsections.Container`s from containers in pods matching a label.
 // Returns slice of ContainerConfig, error.
 func getContainersByLabel(label configsections.Label) ([]configsections.ContainerConfig, error) {
 	pods, err := GetPodsByLabel(label)

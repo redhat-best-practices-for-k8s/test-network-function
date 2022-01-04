@@ -32,4 +32,7 @@ type Pod struct {
 
 	// Tests this is list of test that need to run against the Pod.
 	Tests []string `yaml:"tests" json:"tests"`
+
+	// Representation of the container in this pod used to run networing tests
+	Container `yaml:"containerfornettests" json:"containerfornettests"`
 }

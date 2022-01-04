@@ -18,7 +18,81 @@ package configsections
 
 import (
 	"fmt"
+	"time"
+
+	"github.com/onsi/gomega"
+	log "github.com/sirupsen/logrus"
+	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
 )
+
+const (
+	defaultTimeoutSeconds = 10
+)
+
+var (
+	expectersVerboseModeEnabled = false
+	// DefaultTimeout for creating new interactive sessions (oc, ssh, tty)
+	DefaultTimeout = time.Duration(defaultTimeoutSeconds) * time.Second
+)
+
+// Container is a construct which follows the Container design pattern.  Essentially, a Container holds the
+// pertinent information to perform a test against or using an Operating System Container.  This includes facets such
+// as the reference to the interactive.Oc instance, the reference to the test configuration, and the default network
+// IP address.
+type Container struct {
+	ContainerConfig
+	Oc                      *interactive.Oc
+	DefaultNetworkIPAddress string `yaml:"defaultnetworkipaddress" json:"defaultnetworkipaddress"`
+}
+
+// Helper used to instantiate an OpenShift Client Session.
+func GetOcSession(pod, container, namespace string, timeout time.Duration, options ...interactive.Option) *interactive.Oc {
+	// Spawn an interactive OC shell using a goroutine (needed to avoid cross expect.Expecter interaction).  Extract the
+	// Oc reference from the goroutine through a channel.  Performs basic sanity checking that the Oc session is set up
+	// correctly.
+	var containerOc *interactive.Oc
+	ocChan := make(chan *interactive.Oc)
+
+	goExpectSpawner := interactive.NewGoExpectSpawner()
+	var spawner interactive.Spawner = goExpectSpawner
+
+	go func() {
+		oc, outCh, err := interactive.SpawnOc(&spawner, pod, container, namespace, timeout, options...)
+		gomega.Expect(outCh).ToNot(gomega.BeNil())
+		gomega.Expect(err).To(gomega.BeNil())
+		// Set up a go routine which reads from the error channel
+		go func() {
+			log.Debugf("start watching the session with container %s/%s", oc.GetPodName(), oc.GetPodContainerName())
+			select {
+			case err := <-outCh:
+				log.Fatalf("OC session to container %s/%s is broken due to: %v, aborting the test run", oc.GetPodName(), oc.GetPodContainerName(), err)
+			case <-oc.GetDoneChannel():
+				log.Debugf("stop watching the session with container %s/%s", oc.GetPodName(), oc.GetPodContainerName())
+			}
+		}()
+		ocChan <- oc
+	}()
+
+	containerOc = <-ocChan
+
+	gomega.Expect(containerOc).ToNot(gomega.BeNil())
+
+	return containerOc
+}
+
+func (c *Container) GetOc() *interactive.Oc {
+	if c.Oc == nil {
+		c.Oc = GetOcSession(c.PodName, c.ContainerName, c.Namespace, DefaultTimeout, interactive.Verbose(expectersVerboseModeEnabled), interactive.SendTimeout(DefaultTimeout))
+	}
+	return c.Oc
+}
+
+func (c *Container) CloseOc() {
+	if c.Oc != nil {
+		c.Oc.Close()
+		c.Oc = nil
+	}
+}
 
 // ContainerIdentifier is a complex key representing a unique container.
 type ContainerIdentifier struct {
@@ -36,7 +110,7 @@ type ContainerConfig struct {
 	// OpenShift Default network interface name (i.e., eth0)
 	DefaultNetworkDevice string `yaml:"defaultNetworkDevice" json:"defaultNetworkDevice"`
 	// MultusIPAddressesPerNet are the overlay IPs.
-	MultusIPAddressesPerNet map[string][]string `yaml:"multusIpAddressesPerNet" json:"multusIpAddressesPerNet"`
+	MultusIPAddressesPerNet map[string][]string `yaml:"multusIpAddressesPerNet,omitempty" json:"multusIpAddressesPerNet,omitempty"`
 }
 
 func (cid *ContainerIdentifier) String() string {

@@ -111,7 +111,7 @@ func loadDeploymentsConfig() {
 }
 
 func loadPodConfig() {
-	test.PodsUnderTest = []Pod{
+	test.PodsUnderTest = []*Pod{
 		{
 			Name:      cnfName,
 			Namespace: testNameSpace,
