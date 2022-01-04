@@ -81,6 +81,11 @@ var (
 	}
 )
 
+type CatalogElement struct {
+	testName   string
+	identifier claim.Identifier // {url and version}
+}
+
 // cmdJoin is a utility method abstracted from strings.Join which shims in better formatting for markdown files.
 func cmdJoin(elems []string, sep string) string {
 	switch len(elems) {
@@ -116,16 +121,106 @@ func emitTextFromFile(filename string) error {
 	return nil
 }
 
-func getSuiteNameFromUrl(url string) []string {
-	base_domain := identifiers.TestIDBaseDomain + "/"
+func getSuiteAndTestFromUrl(url string, base_domain string) []string {
 	result := strings.Split(url, base_domain)
 	// len 2, because returns [0] before base_domain and [1] after base_domain
 	if len(result) > 2 {
 		fmt.Println("error")
 		return nil
 	}
-	suite_name := strings.Split(result[1], "/")
-	return suite_name
+
+	suite_test := strings.Split(result[1], "/")
+	return suite_test
+}
+
+// it turns a list of identifiers
+// { url, version  }
+// and takes urls like http://test-network-function.com/testcases/SuiteName/TestName
+// to build a more structured catalogue
+// {
+//     suiteNameA: [testName [identifiers], testName2 [identifiers] ]
+//     suiteNameB: [testName3 [identifiers], testName4 [identifiers] ]
+// }
+func createPrintableCatalogFromIdentifiers(keys []claim.Identifier) map[string][]CatalogElement {
+	base_domain := identifiers.TestIDBaseDomain + "/"
+
+	catalog := make(map[string][]CatalogElement)
+	// we need the list of suite's names
+	var element CatalogElement
+
+	for _, i := range keys {
+		suite_test := getSuiteAndTestFromUrl(i.Url, base_domain)
+		suite_name := suite_test[0]
+		test_name := suite_test[1]
+		element.testName = test_name
+		element.identifier = i
+		catalog[suite_name] = append(catalog[suite_name], element)
+	}
+	return catalog
+}
+
+// it turns a list of urls http://test-network-function.com/testcases/SuiteName/TestName
+// to build a more structured catalogue
+// {
+//     suiteNameA: [testName [identifiers], testName2 [identifiers] ]
+//     suiteNameB: [testName3 [identifiers], testName4 [identifiers] ]
+// }
+func createPrintableCatalogFromUrls(urls []string) map[string][]CatalogElement {
+	base_domain := identifier.TestIDBaseDomain
+
+	catalog := make(map[string][]CatalogElement)
+	// we need the list of suite's names
+	var element CatalogElement
+	for _, url := range urls {
+		fmt.Println(url)
+		suite_test := getSuiteAndTestFromUrl(url, base_domain)
+		suite_name := suite_test[0]
+		test_name := suite_test[1]
+		element.testName = test_name
+		element.identifier = claim.Identifier{Url: url}
+		catalog[suite_name] = append(catalog[suite_name], element)
+
+	}
+	return catalog
+}
+
+func getSuitesFromIdentifiers(keys []claim.Identifier) []string {
+	base_domain := identifiers.TestIDBaseDomain + "/"
+	var suites []string
+
+	for _, i := range keys {
+		suite_test := getSuiteAndTestFromUrl(i.Url, base_domain)
+		suite_name := suite_test[0]
+		suites = append(suites, suite_name)
+	}
+	return Unique(suites)
+}
+
+func getSuitesFromUrls(urls []string) []string {
+	base_domain := identifier.TestIDBaseDomain + "/"
+	var suites []string
+
+	for _, url := range urls {
+		suite_test := getSuiteAndTestFromUrl(url, base_domain)
+		suite_name := suite_test[0]
+		suites = append(suites, suite_name)
+	}
+	return Unique(suites)
+}
+
+func Unique(slice []string) []string {
+	// create a map with all the values as key
+	uniqMap := make(map[string]struct{})
+	for _, v := range slice {
+		uniqMap[v] = struct{}{}
+	}
+
+	// turn the map keys into a slice
+	uniqSlice := make([]string, 0, len(uniqMap))
+	for v := range uniqMap {
+		uniqSlice = append(uniqSlice, v)
+	}
+	return uniqSlice
 }
 
 // outputTestCases outputs the Markdown representation for test cases from the catalog to stdout.
@@ -133,64 +228,37 @@ func outputTestCases() {
 	// Building a separate data structure to store the key order for the map
 	keys := make([]claim.Identifier, 0, len(identifiers.Catalog))
 	for k := range identifiers.Catalog {
-		suite_name := getSuiteNameFromUrl(k.Url)
-		fmt.Println("suite " + suite_name[0] + " name test " + suite_name[1])
-		// we could split the url to extract the tests cases in the same way
-		// than urls were composed:  fmt.Sprintf("%s/%s/%s", url, suite, name)
-		// we extract the suite and the name
-		// then we organize keys not in one dimension but in
-		// { [suite: [url], suite:[url]] }
 		keys = append(keys, k)
-
 	}
 
 	// Sorting the map by identifier URL
 	sort.Slice(keys, func(i, j int) bool {
-
 		return keys[i].Url < keys[j].Url
 	})
 
-	// want to do something like
-	// {
-	// 	networking: [{
-	// 		test_name: "service-type"
-	// 		urls: catalog.identifier // catalog.identifier=url and version
-	// 	}
-	// }, ......]
+	catalog := createPrintableCatalogFromIdentifiers(keys)
+	// we need the list of suite's names
+	suites := getSuitesFromIdentifiers(keys)
 
-	type CatalogElement struct {
-		TestName string
-		Url      claim.Identifier
-	}
-
-	catalog := make(map[string][]CatalogElement)
-
-	var element CatalogElement
-
-	for _, i := range keys {
-		suite_name := getSuiteNameFromUrl(i.Url)
-		suite := suite_name[0]
-		test_name := suite_name[1]
-		element.TestName = test_name
-		element.Url = i
-		catalog[suite] = append(catalog[suite], element)
-
-	}
-	fmt.Println(catalog)
-
-	for _, i := range catalog {
-		fmt.Println(i) // I have to check how to interact with the catalog
-		for _, k := range keys {
+	for _, suite := range suites {
+		fmt.Println()
+		fmt.Fprintf(os.Stdout, "### %s\n", suite)
+		fmt.Println()
+		for _, k := range catalog[suite] {
 			fmt.Println()
-			fmt.Fprintf(os.Stdout, "### %s\n", identifiers.Catalog[k].Identifier.Url)
+			fmt.Fprintf(os.Stdout, "#### %s\n", k.testName)
 			fmt.Println()
+
 			fmt.Println("Property|Description")
 			fmt.Println("---|---")
-			fmt.Fprintf(os.Stdout, "Version|%s\n", identifiers.Catalog[k].Identifier.Version)
-			fmt.Fprintf(os.Stdout, "Description|%s\n", strings.ReplaceAll(identifiers.Catalog[k].Description, "\n", " "))
-			fmt.Fprintf(os.Stdout, "Result Type|%s\n", identifiers.Catalog[k].Type)
-			fmt.Fprintf(os.Stdout, "Suggested Remediation|%s\n", strings.ReplaceAll(identifiers.Catalog[k].Remediation, "\n", " "))
-			fmt.Fprintf(os.Stdout, "Best Practice Reference|%s\n", strings.ReplaceAll(identifiers.Catalog[k].BestPracticeReference, "\n", " "))
+			fmt.Fprintf(os.Stdout, "Test Name|%s\n", k.testName)
+			fmt.Fprintf(os.Stdout, "Url|%s\n", k.identifier.Url)
+			fmt.Fprintf(os.Stdout, "Version|%s\n", k.identifier.Version)
+
+			fmt.Fprintf(os.Stdout, "Description|%s\n", strings.ReplaceAll(identifiers.Catalog[k.identifier].Description, "\n", " "))
+			fmt.Fprintf(os.Stdout, "Result Type|%s\n", identifiers.Catalog[k.identifier].Type)
+			fmt.Fprintf(os.Stdout, "Suggested Remediation|%s\n", strings.ReplaceAll(identifiers.Catalog[k.identifier].Remediation, "\n", " "))
+			fmt.Fprintf(os.Stdout, "Best Practice Reference|%s\n", strings.ReplaceAll(identifiers.Catalog[k.identifier].BestPracticeReference, "\n", " "))
 		}
 	}
 	fmt.Println()
@@ -204,24 +272,40 @@ func outputTestCaseBuildingBlocks() {
 	keys := make([]string, 0, len(identifier.Catalog))
 	for k := range identifier.Catalog {
 		keys = append(keys, k)
+		fmt.Println(k)
 	}
 
 	// Sorting the map by identifier URL
 	sort.Strings(keys)
 
-	// Iterating the map by sorted identifier URL
-	for _, k := range keys {
-		fmt.Fprintf(os.Stdout, "### %s", identifier.Catalog[k].Identifier.URL)
+	catalog := createPrintableCatalogFromUrls(keys)
+	// we need the list of suite's names
+	suites := getSuitesFromUrls(keys)
+	// Iterating the map by suites and test names
+
+	for _, suite := range suites {
 		fmt.Println()
-		fmt.Println("Property|Description")
-		fmt.Println("---|---")
-		fmt.Fprintf(os.Stdout, "Version|%s\n", identifier.Catalog[k].Identifier.SemanticVersion)
-		fmt.Fprintf(os.Stdout, "Description|%s\n", identifier.Catalog[k].Description)
-		fmt.Fprintf(os.Stdout, "Result Type|%s\n", identifier.Catalog[k].Type)
-		fmt.Fprintf(os.Stdout, "Intrusive|%t\n", identifier.Catalog[k].IntrusionSettings.ModifiesSystem)
-		fmt.Fprintf(os.Stdout, "Modifications Persist After Test|%t\n", identifier.Catalog[k].IntrusionSettings.ModificationIsPersistent)
-		fmt.Fprintf(os.Stdout, "Runtime Binaries Required|%s\n", cmdJoin(identifier.Catalog[k].BinaryDependencies, ", "))
+		fmt.Fprintf(os.Stdout, "### %s\n", suite)
 		fmt.Println()
+		for _, k := range catalog[suite] {
+
+			fmt.Println()
+			fmt.Fprintf(os.Stdout, "#### %s\n", k.testName)
+			fmt.Println()
+
+			fmt.Println()
+			fmt.Println("Property|Description")
+			fmt.Println("---|---")
+			fmt.Fprintf(os.Stdout, "Test Name|%s\n", k.testName)
+			fmt.Fprintf(os.Stdout, "Url|%s", identifier.Catalog[k.identifier.Url].Identifier.URL)
+			fmt.Fprintf(os.Stdout, "Version|%s\n", identifier.Catalog[k.identifier.Url].Identifier.SemanticVersion)
+			fmt.Fprintf(os.Stdout, "Description|%s\n", identifier.Catalog[k.identifier.Url].Description)
+			fmt.Fprintf(os.Stdout, "Result Type|%s\n", identifier.Catalog[k.identifier.Url].Type)
+			fmt.Fprintf(os.Stdout, "Intrusive|%t\n", identifier.Catalog[k.identifier.Url].IntrusionSettings.ModifiesSystem)
+			fmt.Fprintf(os.Stdout, "Modifications Persist After Test|%t\n", identifier.Catalog[k.identifier.Url].IntrusionSettings.ModificationIsPersistent)
+			fmt.Fprintf(os.Stdout, "Runtime Binaries Required|%s\n", cmdJoin(identifier.Catalog[k.identifier.Url].BinaryDependencies, ", "))
+			fmt.Println()
+		}
 	}
 }
 
