@@ -260,7 +260,6 @@ func outputTestCases() {
 			fmt.Fprintf(os.Stdout, "Test Name|%s\n", k.testName)
 			fmt.Fprintf(os.Stdout, "Url|%s\n", k.identifier.Url)
 			fmt.Fprintf(os.Stdout, "Version|%s\n", k.identifier.Version)
-
 			fmt.Fprintf(os.Stdout, "Description|%s\n", strings.ReplaceAll(identifiers.Catalog[k.identifier].Description, "\n", " "))
 			fmt.Fprintf(os.Stdout, "Result Type|%s\n", identifiers.Catalog[k.identifier].Type)
 			fmt.Fprintf(os.Stdout, "Suggested Remediation|%s\n", strings.ReplaceAll(identifiers.Catalog[k.identifier].Remediation, "\n", " "))
@@ -278,7 +277,6 @@ func outputTestCaseBuildingBlocks() {
 	keys := make([]string, 0, len(identifier.Catalog))
 	for k := range identifier.Catalog {
 		keys = append(keys, k)
-		fmt.Println(k)
 	}
 
 	// Sorting the map by identifier URL
@@ -287,7 +285,6 @@ func outputTestCaseBuildingBlocks() {
 	catalog := createPrintableCatalogFromUrls(keys)
 
 	for i := 0; i < len(catalog); i++ {
-		fmt.Println("number", i)
 		for _, k := range catalog[i] {
 
 			fmt.Println()
@@ -298,7 +295,7 @@ func outputTestCaseBuildingBlocks() {
 			fmt.Println("Property|Description")
 			fmt.Println("---|---")
 			fmt.Fprintf(os.Stdout, "Test Name|%s\n", k.testName)
-			fmt.Fprintf(os.Stdout, "Url|%s", identifier.Catalog[k.identifier.Url].Identifier.URL)
+			fmt.Fprintf(os.Stdout, "Url|%s\n", identifier.Catalog[k.identifier.Url].Identifier.URL)
 			fmt.Fprintf(os.Stdout, "Version|%s\n", identifier.Catalog[k.identifier.Url].Identifier.SemanticVersion)
 			fmt.Fprintf(os.Stdout, "Description|%s\n", identifier.Catalog[k.identifier.Url].Description)
 			fmt.Fprintf(os.Stdout, "Result Type|%s\n", identifier.Catalog[k.identifier.Url].Type)
