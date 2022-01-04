@@ -121,6 +121,9 @@ func emitTextFromFile(filename string) error {
 	return nil
 }
 
+// it extracts the suite name and test name from an url such as
+// http://test-network-function.com/tests-case/SuitName/TestName
+
 func getSuiteAndTestFromUrl(url string, base_domain string) []string {
 	result := strings.Split(url, base_domain)
 	// len 2, because returns [0] before base_domain and [1] after base_domain
@@ -131,6 +134,20 @@ func getSuiteAndTestFromUrl(url string, base_domain string) []string {
 
 	suite_test := strings.Split(result[1], "/")
 	return suite_test
+}
+
+// it extracts the test name and test name from an url such as
+// http://test-network-function.com/tests/TestName
+
+func getTestFromUrl(url string, base_domain string) string {
+	result := strings.Split(url, base_domain)
+	// len 2, because returns [0] before base_domain and [1] after base_domain
+	if len(result) > 2 {
+		fmt.Println("error")
+		return ""
+	}
+	test_name := result[1]
+	return test_name
 }
 
 // it turns a list of identifiers
@@ -159,27 +176,27 @@ func createPrintableCatalogFromIdentifiers(keys []claim.Identifier) map[string][
 	return catalog
 }
 
-// it turns a list of urls http://test-network-function.com/testcases/SuiteName/TestName
+// it turns a list of urls http://test-network-function.com/tests/TestName
 // to build a more structured catalogue
 // {
-//     suiteNameA: [testName [identifiers], testName2 [identifiers] ]
-//     suiteNameB: [testName3 [identifiers], testName4 [identifiers] ]
+//     0: [testName [identifiers], testName2 [identifiers] ]
+//     1: [testName3 [identifiers], testName4 [identifiers] ]
 // }
-func createPrintableCatalogFromUrls(urls []string) map[string][]CatalogElement {
-	base_domain := identifier.TestIDBaseDomain
+func createPrintableCatalogFromUrls(urls []string) map[int][]CatalogElement {
+	base_domain := identifier.TestIDBaseDomain + "/"
 
-	catalog := make(map[string][]CatalogElement)
+	catalog := make(map[int][]CatalogElement)
 	// we need the list of suite's names
 	var element CatalogElement
+	var c int = 0
+
 	for _, url := range urls {
 		fmt.Println(url)
-		suite_test := getSuiteAndTestFromUrl(url, base_domain)
-		suite_name := suite_test[0]
-		test_name := suite_test[1]
+		test_name := getTestFromUrl(url, base_domain)
 		element.testName = test_name
 		element.identifier = claim.Identifier{Url: url}
-		catalog[suite_name] = append(catalog[suite_name], element)
-
+		catalog[c] = append(catalog[c], element)
+		c++
 	}
 	return catalog
 }
@@ -190,18 +207,6 @@ func getSuitesFromIdentifiers(keys []claim.Identifier) []string {
 
 	for _, i := range keys {
 		suite_test := getSuiteAndTestFromUrl(i.Url, base_domain)
-		suite_name := suite_test[0]
-		suites = append(suites, suite_name)
-	}
-	return Unique(suites)
-}
-
-func getSuitesFromUrls(urls []string) []string {
-	base_domain := identifier.TestIDBaseDomain + "/"
-	var suites []string
-
-	for _, url := range urls {
-		suite_test := getSuiteAndTestFromUrl(url, base_domain)
 		suite_name := suite_test[0]
 		suites = append(suites, suite_name)
 	}
@@ -240,6 +245,7 @@ func outputTestCases() {
 	// we need the list of suite's names
 	suites := getSuitesFromIdentifiers(keys)
 
+	// Iterating the map by test and suite names
 	for _, suite := range suites {
 		fmt.Println()
 		fmt.Fprintf(os.Stdout, "### %s\n", suite)
@@ -279,18 +285,13 @@ func outputTestCaseBuildingBlocks() {
 	sort.Strings(keys)
 
 	catalog := createPrintableCatalogFromUrls(keys)
-	// we need the list of suite's names
-	suites := getSuitesFromUrls(keys)
-	// Iterating the map by suites and test names
 
-	for _, suite := range suites {
-		fmt.Println()
-		fmt.Fprintf(os.Stdout, "### %s\n", suite)
-		fmt.Println()
-		for _, k := range catalog[suite] {
+	for i := 0; i < len(catalog); i++ {
+		fmt.Println("number", i)
+		for _, k := range catalog[i] {
 
 			fmt.Println()
-			fmt.Fprintf(os.Stdout, "#### %s\n", k.testName)
+			fmt.Fprintf(os.Stdout, "### %s\n", k.testName)
 			fmt.Println()
 
 			fmt.Println()
