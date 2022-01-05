@@ -17,6 +17,7 @@
 package lifecycle
 
 import (
+	"encoding/json"
 	"fmt"
 	"path"
 	"strings"
@@ -25,6 +26,7 @@ import (
 	"github.com/test-network-function/test-network-function/pkg/config"
 	"github.com/test-network-function/test-network-function/pkg/config/configsections"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/scaling"
+	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
 	"github.com/test-network-function/test-network-function/pkg/tnf/testcases"
 	"github.com/test-network-function/test-network-function/pkg/utils"
 
@@ -36,7 +38,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
 	dd "github.com/test-network-function/test-network-function/pkg/tnf/handlers/deploymentsdrain"
-	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/graceperiod"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodeselector"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/owners"
 	ps "github.com/test-network-function/test-network-function/pkg/tnf/handlers/podsets"
@@ -295,23 +296,61 @@ func testNodeSelector(env *config.TestEnvironment) {
 	})
 }
 
+func testTerminationGracePeriodOnPodSet(podsetsUnderTests *[]configsections.PodSet, context *interactive.Context) []configsections.PodSet {
+	const ocCommandTemplate = "oc get %s %s -n %s -o jsonpath={.metadata.annotations\\.\"kubectl\\.kubernetes\\.io/last-applied-configuration\"}"
+
+	type lastAppliedConfigType struct {
+		Spec struct {
+			Template struct {
+				Spec struct {
+					TerminationGracePeriodSeconds int
+				}
+			}
+		}
+	}
+
+	badPodsets := []configsections.PodSet{}
+	for _, podset := range *podsetsUnderTests {
+		ocCommand := fmt.Sprintf(ocCommandTemplate, podset.Type, podset.Name, podset.Namespace)
+		lastAppliedConfigString, err := utils.ExecuteCommand(ocCommand, common.DefaultTimeout, context)
+		if err != nil {
+			ginkgo.Fail(fmt.Sprintf("%s %s (ns %s): failed to get last-applied-configuration field", podset.Type, podset.Name, podset.Namespace))
+		}
+		lastAppliedConfig := lastAppliedConfigType{}
+
+		// Use -1 as default value, in case the param was not set.
+		lastAppliedConfig.Spec.Template.Spec.TerminationGracePeriodSeconds = -1
+
+		err = json.Unmarshal([]byte(lastAppliedConfigString), &lastAppliedConfig)
+		if err != nil {
+			ginkgo.Fail(fmt.Sprintf("%s %s (ns %s): failed to unmarshall last-applied-configuration string (%s)", podset.Type, podset.Name, podset.Namespace, lastAppliedConfigString))
+		}
+
+		if lastAppliedConfig.Spec.Template.Spec.TerminationGracePeriodSeconds == -1 {
+			tnf.ClaimFilePrintf("%s %s (ns %s) template's spec does not have a terminationGracePeriodSeconds value set. Default value (%d) will be used.",
+				podset.Type, podset.Name, podset.Namespace, defaultTerminationGracePeriod)
+			badPodsets = append(badPodsets, podset)
+		} else {
+			log.Infof("%s %s (ns %s) last-applied-configuration's terminationGracePeriodSeconds: %d", podset.Type, podset.Name, podset.Namespace, lastAppliedConfig.Spec.Template.Spec.TerminationGracePeriodSeconds)
+		}
+	}
+
+	return badPodsets
+}
+
 func testGracePeriod(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestNonDefaultGracePeriodIdentifier)
 	ginkgo.It(testID, func() {
 		ginkgo.By("Test terminationGracePeriod")
 		context := common.GetContext()
-		for _, podUnderTest := range env.PodsUnderTest {
-			podName := podUnderTest.Name
-			podNamespace := podUnderTest.Namespace
-			ginkgo.By(fmt.Sprintf("Testing pod terminationGracePeriod %s %s", podNamespace, podName))
-			tester := graceperiod.NewGracePeriod(common.DefaultTimeout, podName, podNamespace)
-			test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
-			gomega.Expect(err).To(gomega.BeNil())
-			test.RunAndValidate()
-			gracePeriod := tester.GetGracePeriod()
-			if gracePeriod == defaultTerminationGracePeriod {
-				tnf.ClaimFilePrintf("%s %s has terminationGracePeriod set to %d, you might want to change it", podNamespace, podName, defaultTerminationGracePeriod)
-			}
+
+		badDeployments := testTerminationGracePeriodOnPodSet(&env.DeploymentsUnderTest, context)
+		badStatefulsets := testTerminationGracePeriodOnPodSet(&env.StateFulSetUnderTest, context)
+
+		if numDeps, numSts := len(badDeployments), len(badStatefulsets); numDeps > 0 || numSts > 0 {
+			log.Debugf("deployments/statefulsets found without terminationGracePeriodSeconds param. Deployments: %+v, Statefulsets: %+v",
+				badDeployments, badStatefulsets)
+			ginkgo.Fail(fmt.Sprintf("Found %d deployments and %d statefulsets without terminacionGracePerdiodSeconds param.", numDeps, numSts))
 		}
 	})
 }
