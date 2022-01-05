@@ -177,8 +177,7 @@ func FindTestPodSetsByLabel(targetLabels []configsections.Label, target *configs
 // buildPodUnderTest builds a single `configsections.Pod` from a PodResource
 func buildPodUnderTest(pr *PodResource) (podUnderTest *configsections.Pod) {
 	var err error
-	var pod configsections.Pod
-	podUnderTest = &pod
+	podUnderTest := &configsections.Pod{}
 	podUnderTest.Namespace = pr.Metadata.Namespace
 	podUnderTest.Name = pr.Metadata.Name
 	podUnderTest.ServiceAccount = pr.Spec.ServiceAccount
