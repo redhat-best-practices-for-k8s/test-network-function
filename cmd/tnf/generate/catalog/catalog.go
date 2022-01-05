@@ -128,7 +128,7 @@ func getSuiteAndTestFromUrl(url string, base_domain string) []string {
 	result := strings.Split(url, base_domain)
 	// len 2, because returns [0] before base_domain and [1] after base_domain
 	if len(result) > 2 {
-		fmt.Println("error")
+		fmt.Fprintf(os.Stderr, "Identifier Url not valid\n")
 		return nil
 	}
 
@@ -143,7 +143,7 @@ func getTestFromUrl(url string, base_domain string) string {
 	result := strings.Split(url, base_domain)
 	// len 2, because returns [0] before base_domain and [1] after base_domain
 	if len(result) > 2 {
-		fmt.Println("error")
+		fmt.Fprintf(os.Stderr, "Identifier Url not valid\n")
 		return ""
 	}
 	test_name := result[1]
@@ -167,6 +167,9 @@ func createPrintableCatalogFromIdentifiers(keys []claim.Identifier) map[string][
 
 	for _, i := range keys {
 		suite_test := getSuiteAndTestFromUrl(i.Url, base_domain)
+		if suite_test == nil {
+			return nil
+		}
 		suite_name := suite_test[0]
 		test_name := suite_test[1]
 		element.testName = test_name
@@ -193,6 +196,9 @@ func createPrintableCatalogFromUrls(urls []string) map[int][]CatalogElement {
 	for _, url := range urls {
 		fmt.Println(url)
 		test_name := getTestFromUrl(url, base_domain)
+		if test_name == "" {
+			return nil
+		}
 		element.testName = test_name
 		element.identifier = claim.Identifier{Url: url}
 		catalog[c] = append(catalog[c], element)
@@ -242,6 +248,9 @@ func outputTestCases() {
 	})
 
 	catalog := createPrintableCatalogFromIdentifiers(keys)
+	if catalog == nil {
+		return
+	}
 	// we need the list of suite's names
 	suites := getSuitesFromIdentifiers(keys)
 
@@ -283,6 +292,9 @@ func outputTestCaseBuildingBlocks() {
 	sort.Strings(keys)
 
 	catalog := createPrintableCatalogFromUrls(keys)
+	if catalog == nil {
+		return
+	}
 
 	for i := 0; i < len(catalog); i++ {
 		for _, k := range catalog[i] {
