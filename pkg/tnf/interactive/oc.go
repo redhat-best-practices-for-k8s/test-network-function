@@ -43,12 +43,10 @@ type Oc struct {
 	timeout time.Duration
 	// options for expecter, such as expect.Verbose(true)
 	opts []Option
-	// the underlying subprocess implementation, tailored to OpenShift Client
-	expecter *expect.Expecter
 	// error during the spawn process
 	spawnErr error
-	// error channel for interactive error stream
-	errorChannel <-chan error
+	// interactive context (expector and error channel)
+	*Context
 	// done channel to notify the go routine that monitors the error channel
 	doneChannel chan bool
 }
@@ -61,7 +59,7 @@ func SpawnOc(spawner *Spawner, pod, container, namespace string, timeout time.Du
 		return nil, context.GetErrorChannel(), err
 	}
 	errorChannel := context.GetErrorChannel()
-	return &Oc{pod: pod, container: container, namespace: namespace, timeout: timeout, opts: opts, expecter: context.GetExpecter(), spawnErr: err, errorChannel: errorChannel, doneChannel: make(chan bool)}, errorChannel, nil
+	return &Oc{pod: pod, container: container, namespace: namespace, timeout: timeout, opts: opts, spawnErr: err, Context: context, doneChannel: make(chan bool)}, errorChannel, nil
 }
 
 // GetExpecter returns a reference to the expect.Expecter reference used to control the OpenShift client.
