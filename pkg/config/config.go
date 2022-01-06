@@ -213,14 +213,14 @@ func (env *TestEnvironment) doAutodiscover() {
 		env.ContainersToExcludeFromConnectivityTests[cid] = ""
 	}
 
-	env.ContainersUnderTest = env.createContainersNoIP(env.Config.ContainerConfigList)
+	env.ContainersUnderTest = env.createContainers(env.Config.ContainerList)
 	env.PodsUnderTest = env.Config.PodsUnderTest
 
 	// Discover nodes early on since they might be used to run commands by discovery
 	// But after getting a node list in FindTestTarget() and a container under test list in env.ContainersUnderTest
 	env.discoverNodes()
 
-	env.recordContainersDefaultIP(env.ContainersUnderTest)
+	env.recordPodsDefaultIP(env.PodsUnderTest)
 	for _, cid := range env.Config.Partner.ContainersDebugList {
 		env.ContainersToExcludeFromConnectivityTests[cid.ContainerIdentifier] = ""
 	}
@@ -329,32 +329,23 @@ func (env *TestEnvironment) discoverNodes() {
 
 // createContainers contains the general steps involved in creating "oc" sessions and other configuration. A map of the
 // aggregate information is returned. No IP is populated yet in this step
-func (env *TestEnvironment) createContainersNoIP(containerDefinitions []configsections.ContainerConfig) map[configsections.ContainerIdentifier]*configsections.Container {
+func (env *TestEnvironment) createContainers(containerDefinitions []configsections.Container) map[configsections.ContainerIdentifier]*configsections.Container {
 	createdContainers := make(map[configsections.ContainerIdentifier]*configsections.Container)
 	for _, c := range containerDefinitions {
 		oc := configsections.GetOcSession(c.PodName, c.ContainerName, c.Namespace, DefaultTimeout, interactive.Verbose(expectersVerboseModeEnabled), interactive.SendTimeout(DefaultTimeout))
-		var defaultIPAddress = "UNKNOWN"
-
 		createdContainers[c.ContainerIdentifier] = &configsections.Container{
-			ContainerConfig:         c,
-			Oc:                      oc,
-			DefaultNetworkIPAddress: defaultIPAddress,
+			ContainerIdentifier: c.ContainerIdentifier,
+			Oc:                  oc,
 		}
 	}
 	return createdContainers
 }
 
-// createContainers contains the general steps involved in creating "oc" sessions and other configuration. A map of the
-// aggregate information is returned.
-func (env *TestEnvironment) createContainers(containerDefinitions []configsections.ContainerConfig) map[configsections.ContainerIdentifier]*configsections.Container {
-	containers := env.createContainersNoIP(containerDefinitions)
-	env.recordContainersDefaultIP(containers)
-	return containers
-}
-
 // recordContainersDefaultIP default IP populated in container map
-func (env *TestEnvironment) recordContainersDefaultIP(containers map[configsections.ContainerIdentifier]*configsections.Container) {
-	for id, c := range containers {
+func (env *TestEnvironment) recordPodsDefaultIP(pods []*configsections.Pod) {
+	for _, p := range pods {
+		// the first container is used to get the network namespace
+		c := p.ContainerList[0]
 		var defaultIPAddress = "UNKNOWN"
 		var err error
 		if _, ok := env.ContainersToExcludeFromConnectivityTests[c.ContainerIdentifier]; !ok {
@@ -363,7 +354,7 @@ func (env *TestEnvironment) recordContainersDefaultIP(containers map[configsecti
 					c.NodeName,
 					c.ContainerUID,
 					c.ContainerRuntime,
-					c.DefaultNetworkDevice)
+					p.DefaultNetworkDevice)
 				if err != nil {
 					log.Warnf("Failed to get default network ip, Adding container pod:%s container:%s ns:%s to the ExcludeFromConnectivityTests list due to: %v",
 						c.PodName,
@@ -374,15 +365,7 @@ func (env *TestEnvironment) recordContainersDefaultIP(containers map[configsecti
 				}
 			}
 		}
-		containers[id].DefaultNetworkIPAddress = defaultIPAddress
-	}
-	// Fill the default Ip address of the pod, by getting it from the container selected by us to run the networking tests
-	// Find the container based on the container identifier in the pod object. Get the Ip address from the container and update the pod
-	for key, pod := range env.PodsUnderTest {
-		if _, ok := containers[pod.ContainerConfig.ContainerIdentifier]; ok {
-			pod.DefaultNetworkIPAddress = containers[pod.ContainerConfig.ContainerIdentifier].DefaultNetworkIPAddress
-			env.PodsUnderTest[key] = pod
-		}
+		p.DefaultNetworkIPAddress = defaultIPAddress
 	}
 }
 

@@ -40,9 +40,8 @@ var (
 // as the reference to the interactive.Oc instance, the reference to the test configuration, and the default network
 // IP address.
 type Container struct {
-	ContainerConfig
-	Oc                      *interactive.Oc
-	DefaultNetworkIPAddress string `yaml:"defaultnetworkipaddress" json:"defaultnetworkipaddress"`
+	ContainerIdentifier
+	Oc *interactive.Oc
 }
 
 // Helper used to instantiate an OpenShift Client Session.
@@ -102,15 +101,6 @@ type ContainerIdentifier struct {
 	NodeName         string `yaml:"nodeName" json:"nodeName"`
 	ContainerUID     string `yaml:"containerUID" json:"containerUID"`
 	ContainerRuntime string `yaml:"containerRuntime" json:"containerRuntime"`
-}
-
-// ContainerConfig contains the payload of container facets.
-type ContainerConfig struct {
-	ContainerIdentifier `yaml:",inline"`
-	// OpenShift Default network interface name (i.e., eth0)
-	DefaultNetworkDevice string `yaml:"defaultNetworkDevice" json:"defaultNetworkDevice"`
-	// MultusIPAddressesPerNet are the overlay IPs.
-	MultusIPAddressesPerNet map[string][]string `yaml:"multusIpAddressesPerNet,omitempty" json:"multusIpAddressesPerNet,omitempty"`
 }
 
 func (cid *ContainerIdentifier) String() string {

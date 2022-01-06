@@ -204,17 +204,19 @@ func testDefaultNetworkConnectivity(env *config.TestEnvironment, count int) {
 		ginkgo.It(testID, func() {
 			netsUnderTest := make(map[string]netTestContext)
 			for _, pod := range env.PodsUnderTest {
-				if _, ok := env.ContainersToExcludeFromConnectivityTests[pod.ContainerIdentifier]; ok {
-					tnf.ClaimFilePrintf("Skipping container %s because it is excluded from connectivity tests (default interface)", pod.PodName)
+				// The first container is used to get the network namespace
+				aContainerInPod := pod.ContainerList[0]
+				if _, ok := env.ContainersToExcludeFromConnectivityTests[aContainerInPod.ContainerIdentifier]; ok {
+					tnf.ClaimFilePrintf("Skipping pod %s because it is excluded from connectivity tests (default interface)", pod.Name)
 					continue
 				}
 				netKey := "default" //nolint:goconst // only used once
 				defaultIPAddress := []string{pod.DefaultNetworkIPAddress}
 				gomega.Expect(env).To(gomega.Not(gomega.BeNil()))
-				gomega.Expect(env.NodesUnderTest[pod.NodeName]).To(gomega.Not(gomega.BeNil()))
-				gomega.Expect(env.NodesUnderTest[pod.NodeName].DebugContainer.GetOc()).To(gomega.Not(gomega.BeNil()))
-				nodeOc := env.NodesUnderTest[pod.NodeName].DebugContainer.GetOc()
-				processContainerIpsPerNet(&pod.ContainerIdentifier, netKey, defaultIPAddress, netsUnderTest, nodeOc)
+				gomega.Expect(env.NodesUnderTest[aContainerInPod.NodeName]).To(gomega.Not(gomega.BeNil()))
+				gomega.Expect(env.NodesUnderTest[aContainerInPod.NodeName].DebugContainer.GetOc()).To(gomega.Not(gomega.BeNil()))
+				nodeOc := env.NodesUnderTest[aContainerInPod.NodeName].DebugContainer.GetOc()
+				processContainerIpsPerNet(&aContainerInPod.ContainerIdentifier, netKey, defaultIPAddress, netsUnderTest, nodeOc)
 			}
 			badNets := runNetworkingTests(netsUnderTest, count)
 
@@ -230,17 +232,19 @@ func testMultusNetworkConnectivity(env *config.TestEnvironment, count int) {
 		testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestICMPv4ConnectivityIdentifier)
 		ginkgo.It(testID, func() {
 			netsUnderTest := make(map[string]netTestContext)
-			for _, cut := range env.ContainersUnderTest {
-				if _, ok := env.ContainersToExcludeFromConnectivityTests[cut.ContainerIdentifier]; ok {
-					tnf.ClaimFilePrintf("Skipping container %s because it is excluded from connectivity tests (multus interface)", cut.PodName)
+			for _, pod := range env.PodsUnderTest {
+				// The first container is used to get the network namespace
+				aContainerInPod := pod.ContainerList[0]
+				if _, ok := env.ContainersToExcludeFromConnectivityTests[aContainerInPod.ContainerIdentifier]; ok {
+					tnf.ClaimFilePrintf("Skipping pod %s because it is excluded from connectivity tests (multus interface)", pod.Name)
 					continue
 				}
-				for netKey, multusIPAddress := range cut.MultusIPAddressesPerNet {
+				for netKey, multusIPAddress := range pod.MultusIPAddressesPerNet {
 					gomega.Expect(env).To(gomega.Not(gomega.BeNil()))
-					gomega.Expect(env.NodesUnderTest[cut.NodeName]).To(gomega.Not(gomega.BeNil()))
-					gomega.Expect(env.NodesUnderTest[cut.NodeName].DebugContainer.GetOc()).To(gomega.Not(gomega.BeNil()))
-					nodeOc := env.NodesUnderTest[cut.NodeName].DebugContainer.GetOc()
-					processContainerIpsPerNet(&cut.ContainerIdentifier, netKey, multusIPAddress, netsUnderTest, nodeOc)
+					gomega.Expect(env.NodesUnderTest[aContainerInPod.NodeName]).To(gomega.Not(gomega.BeNil()))
+					gomega.Expect(env.NodesUnderTest[aContainerInPod.NodeName].DebugContainer.GetOc()).To(gomega.Not(gomega.BeNil()))
+					nodeOc := env.NodesUnderTest[aContainerInPod.NodeName].DebugContainer.GetOc()
+					processContainerIpsPerNet(&aContainerInPod.ContainerIdentifier, netKey, multusIPAddress, netsUnderTest, nodeOc)
 				}
 			}
 			badNets := runNetworkingTests(netsUnderTest, count)

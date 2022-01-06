@@ -33,6 +33,14 @@ type Pod struct {
 	// Tests this is list of test that need to run against the Pod.
 	Tests []string `yaml:"tests" json:"tests"`
 
+	DefaultNetworkIPAddress string `yaml:"defaultnetworkipaddress" json:"defaultnetworkipaddress"`
+
+	// OpenShift Default network interface name (i.e., eth0)
+	DefaultNetworkDevice string `yaml:"defaultNetworkDevice" json:"defaultNetworkDevice"`
+
+	// MultusIPAddressesPerNet are the overlay IPs.
+	MultusIPAddressesPerNet map[string][]string `yaml:"multusIpAddressesPerNet,omitempty" json:"multusIpAddressesPerNet,omitempty"`
+
 	// Representation of the container in this pod used to run networing tests
-	Container `yaml:"containerfornettests" json:"containerfornettests"`
+	ContainerList []Container `yaml:"containerfornettests,omitempty" json:"containerfornettests,omitempty"`
 }

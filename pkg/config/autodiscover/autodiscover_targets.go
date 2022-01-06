@@ -57,7 +57,7 @@ func FindTestTarget(labels []configsections.Label, target *configsections.TestTa
 			for _, pod := range pods.Items {
 				if ns[pod.Metadata.Namespace] {
 					target.PodsUnderTest = append(target.PodsUnderTest, buildPodUnderTest(pod))
-					target.ContainerConfigList = append(target.ContainerConfigList, buildContainersFromPodResource(pod)...)
+					target.ContainerList = append(target.ContainerList, buildContainers(pod)...)
 				} else {
 					target.NonValidPods = append(target.NonValidPods, buildPodUnderTest(pod))
 				}
@@ -182,6 +182,14 @@ func buildPodUnderTest(pr *PodResource) (podUnderTest *configsections.Pod) {
 	podUnderTest.Name = pr.Metadata.Name
 	podUnderTest.ServiceAccount = pr.Spec.ServiceAccount
 	podUnderTest.ContainerCount = len(pr.Spec.Containers)
+	podUnderTest.DefaultNetworkDevice, err = pr.getDefaultNetworkDeviceFromAnnotations()
+	if err != nil {
+		log.Warnf("error encountered getting default network device: %s", err)
+	}
+	podUnderTest.MultusIPAddressesPerNet, err = pr.getPodIPsPerNet()
+	if err != nil {
+		log.Warnf("error encountered getting multus IPs: %s", err)
+	}
 	var tests []string
 	err = pr.GetAnnotationValue(podTestsAnnotationName, &tests)
 	if err != nil {
@@ -191,14 +199,14 @@ func buildPodUnderTest(pr *PodResource) (podUnderTest *configsections.Pod) {
 		podUnderTest.Tests = tests
 	}
 	// Get a list of all the containers present in the pod
-	allContainersInPod := buildContainersFromPodResource(pr)
+	allContainersInPod := buildContainers(pr)
 	if len(allContainersInPod) > 0 {
 		// Pick the first container in the list to use as the network context
-		podUnderTest.Container.ContainerConfig = allContainersInPod[0]
+		podUnderTest.ContainerList = allContainersInPod
 	} else {
 		log.Errorf("There are no containers in pod %s in namespace %s", podUnderTest.Name, podUnderTest.Namespace)
 	}
-	return
+	return podUnderTest
 }
 
 // buildOperatorFromCSVResource builds a single `configsections.Operator` from a CSVResource

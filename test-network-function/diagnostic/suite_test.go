@@ -41,10 +41,8 @@ func TestGetMasterAndWorkerNodeName(t *testing.T) {
 							Labels: []string{configsections.MasterLabel},
 						},
 						DebugContainer: &configsections.Container{
-							ContainerConfig: configsections.ContainerConfig{
-								ContainerIdentifier: configsections.ContainerIdentifier{
-									PodName: "debugTest",
-								},
+							ContainerIdentifier: configsections.ContainerIdentifier{
+								PodName: "debugTest",
 							},
 						},
 					},
@@ -62,10 +60,8 @@ func TestGetMasterAndWorkerNodeName(t *testing.T) {
 							Labels: []string{configsections.WorkerLabel},
 						},
 						DebugContainer: &configsections.Container{
-							ContainerConfig: configsections.ContainerConfig{
-								ContainerIdentifier: configsections.ContainerIdentifier{
-									PodName: "debugTest",
-								},
+							ContainerIdentifier: configsections.ContainerIdentifier{
+								PodName: "debugTest",
 							},
 						},
 					},
@@ -98,10 +94,8 @@ func TestGetMasterAndWorkerNodeName(t *testing.T) {
 							Labels: []string{configsections.WorkerLabel},
 						},
 						DebugContainer: &configsections.Container{
-							ContainerConfig: configsections.ContainerConfig{
-								ContainerIdentifier: configsections.ContainerIdentifier{
-									PodName: "debugTest",
-								},
+							ContainerIdentifier: configsections.ContainerIdentifier{
+								PodName: "debugTest",
 							},
 						},
 					},
@@ -119,10 +113,8 @@ func TestGetMasterAndWorkerNodeName(t *testing.T) {
 							Labels: []string{configsections.MasterLabel},
 						},
 						DebugContainer: &configsections.Container{
-							ContainerConfig: configsections.ContainerConfig{
-								ContainerIdentifier: configsections.ContainerIdentifier{
-									PodName: "debugTest",
-								},
+							ContainerIdentifier: configsections.ContainerIdentifier{
+								PodName: "debugTest",
 							},
 						},
 					},

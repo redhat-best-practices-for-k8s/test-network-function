@@ -67,7 +67,7 @@ type TestConfiguration struct {
 // TestPartner contains the helper containers that can be used to facilitate tests
 type TestPartner struct {
 	// DebugPods
-	ContainersDebugList []ContainerConfig `yaml:"debugContainers,omitempty" json:"debugContainers,omitempty"`
+	ContainersDebugList []Container `yaml:"debugContainers,omitempty" json:"debugContainers,omitempty"`
 }
 
 // TestTarget is a collection of resources under test
@@ -82,7 +82,7 @@ type TestTarget struct {
 	// without belonging to namespaces under test
 	NonValidPods []*Pod
 	// ContainerConfigList is the list of containers that needs to be tested.
-	ContainerConfigList []ContainerConfig `yaml:"containersUnderTest" json:"containersUnderTest"`
+	ContainerList []Container `yaml:"containersUnderTest" json:"containersUnderTest"`
 	// ExcludeContainersFromConnectivityTests excludes specific containers from network connectivity tests.  This is particularly useful for containers that don't have ping available.
 	ExcludeContainersFromConnectivityTests []ContainerIdentifier `yaml:"excludeContainersFromConnectivityTests" json:"excludeContainersFromConnectivityTests"`
 	// Operator is the list of operator objects that needs to be tested.
