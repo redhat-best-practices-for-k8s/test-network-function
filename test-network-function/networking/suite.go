@@ -18,7 +18,6 @@ package networking
 
 import (
 	"fmt"
-	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -45,24 +44,18 @@ import (
 )
 
 const (
-	CommandPortDeclared = "oc get pod %s -n %s -o json  | jq -r '.spec.containers[%d].ports'"
-	CommandPortListen   = "ss"
+	commandportdeclared = "oc get pod %s -n %s -o json  | jq -r '.spec.containers[%d].ports'"
+	commandportlisten   = "ss -tulwnH"
 	defaultNumPings     = 5
 	ocCommandTimeOut    = time.Second * 10
-	indexProtocolName   = 0
-	indexPort           = 4
+	indexprotocolname   = 0
+	indexport           = 4
 )
 
-type PortDeclared struct {
-	port     int
-	name     string
-	protocol string
-}
-
-type PortListen struct {
-	port     int
-	protocol string
-}
+var (
+	declaredPort  = make(map[int]string)
+	listeningPort = make(map[int]string)
+)
 
 // netTestContext this is a data structure describing a network test context for a given subnet (e.g. network attachment)
 // The test context defines a tester or test initiator, that is initating the pings. It is selected randomly (first container in the list)
@@ -301,10 +294,9 @@ func testNodePort(env *config.TestEnvironment) {
 	})
 }
 
-func getDeclaredPortList(container int, podName, podNamespace string) []PortDeclared {
-	var result []PortDeclared
+func getDeclaredPortList(container int, podName, podNamespace string) {
 	protocolName, port, name := "", "", ""
-	ocCommandToExecute := fmt.Sprintf(CommandPortDeclared, podName, podNamespace, container)
+	ocCommandToExecute := fmt.Sprintf(commandportdeclared, podName, podNamespace, container)
 	res, _ := utils.ExecuteCommand(ocCommandToExecute, ocCommandTimeOut, interactive.GetContext(false))
 	x := strings.Split(res, "\n")
 	for _, i := range x {
@@ -328,61 +320,44 @@ func getDeclaredPortList(container int, podName, podNamespace string) []PortDecl
 		p, _ := strconv.Atoi(strings.TrimSpace(port))
 		name = strings.TrimSpace(strings.ReplaceAll(name, "\"", ""))
 		protocolName = strings.TrimSpace(strings.ReplaceAll(protocolName, "\"", ""))
-		noderes := PortDeclared{port: p, name: name, protocol: protocolName}
-		result = append(result, noderes)
+		declaredPort[p] = name + " " + protocolName
 		port, name, protocolName = "", "", ""
 	}
-	return result
 }
 
-func getListeningPortList(temp []string) []PortListen {
-	listeningPortCommand := strings.Join(temp, " ")
+func getListeningPortList(commandlisten []string, nodeOc *interactive.Context) {
+	listeningPortCommand := strings.Join(commandlisten, " ")
 	fmt.Println(listeningPortCommand)
-	res, _ := utils.ExecuteCommand(listeningPortCommand, ocCommandTimeOut, interactive.GetContext(false))
+	res, _ := utils.ExecuteCommand(listeningPortCommand, ocCommandTimeOut, nodeOc)
 	lines := strings.Split(res, "\n")
-	var result []PortListen
 	for _, line := range lines {
 		fields := strings.Fields(line)
-		if indexProtocolName > len(fields) || indexPort > len(fields) {
-			return result
+		if indexprotocolname > len(fields) || indexport > len(fields) {
+			return
 		}
-		s := strings.Split(fields[indexPort], ":")
+		s := strings.Split(fields[indexport], ":")
 		p, _ := strconv.Atoi(s[1])
-		nodeListen := PortListen{port: p, protocol: fields[indexProtocolName]}
-		result = append(result, nodeListen)
+		listeningPort[p] = fields[indexprotocolname]
 	}
-	return result
 }
 
-func checkIfListenIsDeclared(declaredPortList []PortDeclared, listeningPortList []PortListen) bool {
-	indexElement1 := 0
-	indexElement2 := 0
-
-	for indexElement1 < len(declaredPortList) && indexElement2 < len(listeningPortList) {
-		if declaredPortList[indexElement1].port == listeningPortList[indexElement2].port {
-			indexElement1++
-			indexElement2++
-			continue
-		}
-		if listeningPortList[indexElement2].port < declaredPortList[indexElement1].port {
+func checkIfListenIsDeclared() bool {
+	for k := range listeningPort {
+		_, ok := declaredPort[k]
+		if !ok {
 			return false
 		}
-		indexElement1++
 	}
 	return true
 }
 
 func testListenAndDeclared(env *config.TestEnvironment) {
-	var declaredPort []PortDeclared
-	var listeningPort []PortListen
 	var x *config.Container
-	res := true
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestServicesDoNotUseNodeportsIdentifier)
 	ginkgo.It(testID, func() {
 		for _, podUnderTest := range env.PodsUnderTest {
 			for i := 0; i < podUnderTest.ContainerCount; i++ {
-				temp := getDeclaredPortList(i, podUnderTest.Name, podUnderTest.Namespace)
-				declaredPort = append(declaredPort, temp...)
+				getDeclaredPortList(i, podUnderTest.Name, podUnderTest.Namespace)
 			}
 
 			nodeName := podnodename.NewPodNodeName(common.DefaultTimeout, podUnderTest.Name, podUnderTest.Namespace)
@@ -400,20 +375,11 @@ func testListenAndDeclared(env *config.TestEnvironment) {
 			}
 			containerPID := utils.GetContainerPID(nodeName.GetNodeName(), nodeOc, x.ContainerUID, x.ContainerRuntime)
 
-			temp := []string{utils.AddNsenterPrefix(containerPID), CommandPortListen, "-tulwnH"}
-			fmt.Println(temp)
-			temp1 := getListeningPortList(temp)
-			listeningPort = append(listeningPort, temp1...)
+			commandlisten := []string{utils.AddNsenterPrefix(containerPID), commandportlisten}
 
-			// sorting the lists
-			sort.SliceStable(declaredPort, func(i, j int) bool {
-				return declaredPort[i].port < declaredPort[j].port
-			})
-			sort.SliceStable(listeningPort, func(i, j int) bool {
-				return listeningPort[i].port < listeningPort[j].port
-			})
+			getListeningPortList(commandlisten, nodeOc.Context)
 			// compare between declaredPort,listeningPort and return the common.
-			res = checkIfListenIsDeclared(declaredPort, listeningPort)
+			res := checkIfListenIsDeclared()
 			if !res {
 				ginkgo.Fail("TC failed")
 			}
