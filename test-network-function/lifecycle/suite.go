@@ -180,7 +180,7 @@ func refreshReplicas(podset *configsections.PodSet, env *config.TestEnvironment)
 	}
 }
 
-func closeOcSessionsByPodset(containers map[configsections.ContainerIdentifier]*config.Container, podset *configsections.PodSet) {
+func closeOcSessionsByPodset(containers map[configsections.ContainerIdentifier]*configsections.Container, podset *configsections.PodSet) {
 	log.Debug("close session for", string(podset.Type), "=", podset.Name, " start")
 	defer log.Debug("close session for", string(podset.Type), "=", podset.Name, " done")
 	for cid, c := range containers {
@@ -319,7 +319,7 @@ func testGracePeriod(env *config.TestEnvironment) {
 func testShutdown(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestShudtownIdentifier)
 	ginkgo.It(testID, func() {
-		failedPods := []configsections.Pod{}
+		failedPods := []*configsections.Pod{}
 		ginkgo.By("Testing PUTs are configured with pre-stop lifecycle")
 		for _, podUnderTest := range env.PodsUnderTest {
 			podName := podUnderTest.Name
@@ -548,7 +548,7 @@ func testOwner(env *config.TestEnvironment) {
 	ginkgo.It(testID, func() {
 		ginkgo.By("Testing owners of CNF pod, should be replicas Set")
 		context := common.GetContext()
-		failedPods := []configsections.Pod{}
+		failedPods := []*configsections.Pod{}
 		for _, podUnderTest := range env.PodsUnderTest {
 			podName := podUnderTest.Name
 			podNamespace := podUnderTest.Namespace
@@ -576,7 +576,7 @@ func testImagePolicy(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestImagePullPolicyIdentifier)
 	ginkgo.It(testID, func() {
 		context := common.GetContext()
-		failedPods := []configsections.Pod{}
+		failedPods := []*configsections.Pod{}
 		for _, podUnderTest := range env.PodsUnderTest {
 			values := make(map[string]interface{})
 			ContainerCount := podUnderTest.ContainerCount

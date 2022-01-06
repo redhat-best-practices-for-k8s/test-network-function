@@ -28,6 +28,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/test-network-function/test-network-function/pkg/config"
+	"github.com/test-network-function/test-network-function/pkg/config/configsections"
 	"github.com/test-network-function/test-network-function/pkg/tnf/testcases"
 
 	"github.com/test-network-function/test-network-function/test-network-function/common"
@@ -168,7 +169,7 @@ func testIsRedHatRelease(env *config.TestEnvironment) {
 }
 
 // testContainerIsRedHatRelease tests whether the container attached to oc is Red Hat based.
-func testContainerIsRedHatRelease(cut *config.Container) {
+func testContainerIsRedHatRelease(cut *configsections.Container) {
 	podName := cut.GetOc().GetPodName()
 	containerName := cut.GetOc().GetPodContainerName()
 	context := cut.GetOc()
