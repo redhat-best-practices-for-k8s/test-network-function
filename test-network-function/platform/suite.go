@@ -499,9 +499,8 @@ func getNodeNumaHugePages(node *config.NodeConfig) (hugepages numaHugePagesPerSi
 	const numRegexFields = 4
 
 	// This command must run inside the node, so we'll need the node's context to run commands inside the debug daemonset pod.
-	context := interactive.NewContext(node.DebugContainer.GetOc().GetExpecter(), node.DebugContainer.GetOc().GetErrorChannel())
 	var commandErr error
-	hugepagesCmdOut := utils.ExecuteCommandAndValidate(cmd, commandTimeout, context, func() {
+	hugepagesCmdOut := utils.ExecuteCommandAndValidate(cmd, commandTimeout, node.DebugContainer.GetOc().Context, func() {
 		commandErr = fmt.Errorf("failed to get node %s hugepages per numa", node.Name)
 	})
 	if commandErr != nil {
