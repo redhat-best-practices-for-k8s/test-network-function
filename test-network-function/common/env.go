@@ -25,9 +25,7 @@ import (
 	"time"
 
 	"github.com/onsi/ginkgo"
-	"github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
-	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
 )
 
 var (
@@ -53,15 +51,6 @@ var TcClaimLogPrintf = func(format string, args ...interface{}) {
 	if err != nil {
 		log.Errorf("Ginkgo writer could not write msg '%s' because: %s", message, err)
 	}
-}
-
-// GetContext spawns a new shell session and returns its context
-func GetContext() *interactive.Context {
-	context, err := interactive.SpawnShell(interactive.CreateGoExpectSpawner(), DefaultTimeout, interactive.Verbose(LogLevelTraceEnabled), interactive.SendTimeout(DefaultTimeout))
-	gomega.Expect(err).To(gomega.BeNil())
-	gomega.Expect(context).ToNot(gomega.BeNil())
-	gomega.Expect(context.GetExpecter()).ToNot(gomega.BeNil())
-	return context
 }
 
 // IsNonOcpCluster returns true when the env var is set, OCP only test would be skipped based on this flag

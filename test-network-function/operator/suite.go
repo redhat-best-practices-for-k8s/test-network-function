@@ -73,6 +73,7 @@ var _ = ginkgo.Describe(testSpecName, func() {
 			}
 		})
 		ginkgo.ReportAfterEach(results.RecordResult)
+		ginkgo.AfterEach(env.CloseLocalShellContext)
 		defer ginkgo.GinkgoRecover()
 		ginkgo.Context("Runs test on operators", func() {
 			itRunsTestsOnOperator(env)
@@ -92,7 +93,7 @@ func testOperatorsAreInstalledViaOLM(env *config.TestEnvironment) {
 			values["SUBSCRIPTION_NAME"] = operatorInTest.SubscriptionName
 			values["SUBSCRIPTION_NAMESPACE"] = operatorInTest.Namespace
 			tester, handlers := utils.NewGenericTesterAndValidate(relativecheckSubscriptionTestPath, relativeSchemaPath, values)
-			context := common.GetContext()
+			context := env.GetLocalShellContext()
 			test, err := tnf.NewTest(context.GetExpecter(), *tester, handlers, context.GetErrorChannel())
 			gomega.Expect(err).To(gomega.BeNil())
 			gomega.Expect(test).ToNot(gomega.BeNil())
@@ -147,7 +148,7 @@ func runTestsOnOperator(env *config.TestEnvironment, testCase testcases.BaseTest
 			cmdArgs := strings.Split(fmt.Sprintf(testCase.Command, args...), " ")
 			opInTest := operator.NewOperator(cmdArgs, name, op.Namespace, testCase.ExpectedStatus, testCase.ResultType, testCase.Action, common.DefaultTimeout)
 			gomega.Expect(opInTest).ToNot(gomega.BeNil())
-			context := common.GetContext()
+			context := env.GetLocalShellContext()
 			test, err := tnf.NewTest(context.GetExpecter(), opInTest, []reel.Handler{opInTest}, context.GetErrorChannel())
 			gomega.Expect(err).To(gomega.BeNil())
 			gomega.Expect(test).ToNot(gomega.BeNil())

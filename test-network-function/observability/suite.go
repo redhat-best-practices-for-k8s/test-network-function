@@ -62,6 +62,7 @@ var _ = ginkgo.Describe(common.ObservabilityTestKey, func() {
 			gomega.Expect(len(env.ContainersUnderTest)).ToNot(gomega.Equal(0))
 		})
 		ginkgo.ReportAfterEach(results.RecordResult)
+		ginkgo.AfterEach(env.CloseLocalShellContext)
 		testLogging()
 		testCrds()
 	}
@@ -75,7 +76,7 @@ func testLogging() {
 			cutIdentifier := &cut.ContainerIdentifier
 			ginkgo.By(fmt.Sprintf("Test container: %+v. should emit at least one line of log to stderr/stdout", cutIdentifier))
 
-			context := common.GetContext()
+			context := env.GetLocalShellContext()
 
 			values := make(map[string]interface{})
 			values["POD_NAMESPACE"] = cutIdentifier.Namespace
@@ -108,7 +109,7 @@ func testCrds() {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestCrdsStatusSubresourceIdentifier)
 	ginkgo.It(testID, func() {
 		ginkgo.By("CRDs should have a status subresource")
-		context := common.GetContext()
+		context := env.GetLocalShellContext()
 		failedCrds := []string{}
 		for _, crdName := range env.CrdNames {
 			ginkgo.By("Testing CRD " + crdName)

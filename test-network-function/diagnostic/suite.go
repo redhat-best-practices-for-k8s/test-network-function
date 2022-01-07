@@ -76,6 +76,7 @@ var _ = ginkgo.Describe(common.DiagnosticTestKey, func() {
 			gomega.Expect(len(env.ContainersUnderTest)).ToNot(gomega.Equal(0))
 		})
 		ginkgo.ReportAfterEach(results.RecordResult)
+		ginkgo.AfterEach(env.CloseLocalShellContext)
 		testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestClusterVersionIdentifier)
 		ginkgo.It(testID, func() {
 			testOcpVersion()
@@ -83,7 +84,7 @@ var _ = ginkgo.Describe(common.DiagnosticTestKey, func() {
 
 		testID = identifiers.XformToGinkgoItIdentifier(identifiers.TestExtractNodeInformationIdentifier)
 		ginkgo.It(testID, func() {
-			context := common.GetContext()
+			context := env.GetLocalShellContext()
 
 			tester, handlers, jsonParseResult, err := generic.NewGenericFromJSONFile(relativeNodesTestPath, relativeSchemaPath)
 			gomega.Expect(err).To(gomega.BeNil())
@@ -203,7 +204,7 @@ func listNodeCniPlugins(nodeName string) []CniPlugin {
 }
 
 func testOcpVersion() {
-	context := common.GetContext()
+	context := env.GetLocalShellContext()
 	tester := clusterversion.NewClusterVersion(defaultTestTimeout)
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
@@ -312,7 +313,7 @@ func getNodeLspci(nodeName string) []string {
 
 // check CSI driver info in cluster
 func listClusterCSIInfo() {
-	context := common.GetContext()
+	context := env.GetLocalShellContext()
 	tester, handlers, result, err := generic.NewGenericFromJSONFile(relativeCsiDriverTestPath, common.RelativeSchemaPath)
 	gomega.Expect(err).To(gomega.BeNil())
 	gomega.Expect(result).ToNot(gomega.BeNil())
