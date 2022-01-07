@@ -9,173 +9,7 @@ The catalog for test-network-function contains a variety of `Test Cases`, as wel
 
 Test Cases are the specifications used to perform a meaningful test.  Test cases may run once, or several times against several targets.  CNF Certification includes a number of normative and informative tests to ensure CNFs follow best practices.  Here is the list of available Test Cases:
 
-### lifecycle
-
-
-#### container-shutdown
-
-Property|Description
----|---
-Test Name|container-shutdown
-Url|http://test-network-function.com/testcases/lifecycle/container-shutdown
-Version|v1.0.0
-Description|http://test-network-function.com/testcases/lifecycle/container-shutdown Ensure that the containers lifecycle pre-stop management feature is configured.
-Result Type|normative
-Suggested Remediation| 		It's considered best-practices to define prestop for proper management of container lifecycle. 		The prestop can be used to gracefully stop the container and clean resources (e.g., DB connection). 		 		The prestop can be configured using : 		 1) Exec : executes the supplied command inside the container 		 2) HTTP : executes HTTP request against the specified endpoint. 		 		When defined. K8s will handle shutdown of the container using the following: 		1) K8s first execute the preStop hook inside the container. 		2) K8s will wait for a grace period. 		3) K8s will clean the remaining processes using KILL signal.		 			
-Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2
-
-#### deployment-scaling
-
-Property|Description
----|---
-Test Name|deployment-scaling
-Url|http://test-network-function.com/testcases/lifecycle/deployment-scaling
-Version|v1.0.0
-Description|http://test-network-function.com/testcases/lifecycle/deployment-scaling tests that CNF deployments support scale in/out operations.  			First, The test starts getting the current replicaCount (N) of the deployment/s with the Pod Under Test. Then, it executes the  			scale-in oc command for (N-1) replicas. Lastly, it executes the scale-out oc command, restoring the original replicaCount of the deployment/s. 		    In case of deployments that are managed by HPA the test is changing the min and max value to deployment Replica - 1 during scale-in and the  			original replicaCount again for both min/max during the scale-out stage. lastly its restoring the original min/max replica of the deployment/s
-Result Type|normative
-Suggested Remediation|Make sure CNF deployments/replica sets can scale in/out successfully.
-Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2
-
-#### image-pull-policy
-
-Property|Description
----|---
-Test Name|image-pull-policy
-Url|http://test-network-function.com/testcases/lifecycle/image-pull-policy
-Version|v1.0.0
-Description|http://test-network-function.com/testcases/lifecycle/image-pull-policy Ensure that the containers under test are using IfNotPresent as Image Pull Policy..
-Result Type|normative
-Suggested Remediation|Ensure that the containers under test are using IfNotPresent as Image Pull Policy.
-Best Practice Reference|https://docs.google.com/document/d/1wRHMk1ZYUSVmgp_4kxvqjVOKwolsZ5hDXjr5MLy-wbg/edit#  Section 15.6
-
-#### pod-high-availability
-
-Property|Description
----|---
-Test Name|pod-high-availability
-Url|http://test-network-function.com/testcases/lifecycle/pod-high-availability
-Version|v1.0.0
-Description|http://test-network-function.com/testcases/lifecycle/pod-high-availability ensures that CNF Pods specify podAntiAffinity rules and replica value is set to more than 1.
-Result Type|informative
-Suggested Remediation|In high availability cases, Pod podAntiAffinity rule should be specified for pod scheduling and pod replica value is set to more than 1 .
-Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2
-
-#### pod-owner-type
-
-Property|Description
----|---
-Test Name|pod-owner-type
-Url|http://test-network-function.com/testcases/lifecycle/pod-owner-type
-Version|v1.0.0
-Description|http://test-network-function.com/testcases/lifecycle/pod-owner-type tests that CNF Pod(s) are deployed as part of a ReplicaSet(s)/StatefulSet(s).
-Result Type|normative
-Suggested Remediation|Deploy the CNF using ReplicaSet/StatefulSet.
-Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.3.3 and 6.3.8
-
-#### pod-recreation
-
-Property|Description
----|---
-Test Name|pod-recreation
-Url|http://test-network-function.com/testcases/lifecycle/pod-recreation
-Version|v1.0.0
-Description|http://test-network-function.com/testcases/lifecycle/pod-recreation tests that a CNF is configured to support High Availability.   			First, this test cordons and drains a Node that hosts the CNF Pod.   			Next, the test ensures that OpenShift can re-instantiate the Pod on another Node,  			and that the actual replica count matches the desired replica count.
-Result Type|normative
-Suggested Remediation|Ensure that CNF Pod(s) utilize a configuration that supports High Availability.   			Additionally, ensure that there are available Nodes in the OpenShift cluster that can be utilized in the event that a host Node fails.
-Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2
-
-#### pod-scheduling
-
-Property|Description
----|---
-Test Name|pod-scheduling
-Url|http://test-network-function.com/testcases/lifecycle/pod-scheduling
-Version|v1.0.0
-Description|http://test-network-function.com/testcases/lifecycle/pod-scheduling ensures that CNF Pods do not specify nodeSelector or nodeAffinity.  In most cases, Pods should allow for instantiation on any underlying Node.
-Result Type|informative
-Suggested Remediation|In most cases, Pod's should not specify their host Nodes through nodeSelector or nodeAffinity.  However, there are cases in which CNFs require specialized hardware specific to a particular class of Node.  As such, this test is purely informative, and will not prevent a CNF from being certified. However, one should have an appropriate justification as to why nodeSelector and/or nodeAffinity is utilized by a CNF.
-Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2
-
-#### pod-termination-grace-period
-
-Property|Description
----|---
-Test Name|pod-termination-grace-period
-Url|http://test-network-function.com/testcases/lifecycle/pod-termination-grace-period
-Version|v1.0.0
-Description|http://test-network-function.com/testcases/lifecycle/pod-termination-grace-period tests whether the terminationGracePeriod is CNF-specific, or if the default (30s) is utilized.  This test is informative, and will not affect CNF Certification.  In many cases, the default terminationGracePeriod is perfectly acceptable for a CNF.
-Result Type|informative
-Suggested Remediation|Choose a terminationGracePeriod that is appropriate for your given CNF.  If the default (30s) is appropriate, then feel free to ignore this informative message.  This test is meant to raise awareness around how Pods are terminated, and to suggest that a CNF is configured based on its requirements.  In addition to a terminationGracePeriod, consider utilizing a termination hook in the case that your application requires special shutdown instructions.
-Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2
-
-#### statefulset-scaling
-
-Property|Description
----|---
-Test Name|statefulset-scaling
-Url|http://test-network-function.com/testcases/lifecycle/statefulset-scaling
-Version|v1.0.0
-Description|http://test-network-function.com/testcases/lifecycle/statefulset-scaling tests that CNF statefulsets support scale in/out operations.  			First, The test starts getting the current replicaCount (N) of the statefulset/s with the Pod Under Test. Then, it executes the  			scale-in oc command for (N-1) replicas. Lastly, it executes the scale-out oc command, restoring the original replicaCount of the statefulset/s. 			In case of statefulsets that are managed by HPA the test is changing the min and max value to statefulset Replica - 1 during scale-in and the  			original replicaCount again for both min/max during the scale-out stage. lastly its restoring the original min/max replica of the statefulset/s
-Result Type|normative
-Suggested Remediation|Make sure CNF statefulsets/replica sets can scale in/out successfully.
-Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2
-
-### networking
-
-
-#### icmpv4-connectivity
-
-Property|Description
----|---
-Test Name|icmpv4-connectivity
-Url|http://test-network-function.com/testcases/networking/icmpv4-connectivity
-Version|v1.0.0
-Description|http://test-network-function.com/testcases/networking/icmpv4-connectivity checks that each CNF Container is able to communicate via ICMPv4 on the Default OpenShift network.  This test case requires the Deployment of the debug daemonset. 
-Result Type|normative
-Suggested Remediation|Ensure that the CNF is able to communicate via the Default OpenShift network.  In some rare cases, CNFs may require routing table changes in order to communicate over the Default network.  In other cases, if the Container base image does not provide the "ip" or "ping" binaries, this test may not be applicable.  For instructions on how to exclude a particular container from ICMPv4 connectivity tests, consult: [README.md](https://github.com/test-network-function/test-network-function#issue-161-some-containers-under-test-do-not-contain-ping-or-ip-binary-utilities).
-Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2
-
-#### service-type
-
-Property|Description
----|---
-Test Name|service-type
-Url|http://test-network-function.com/testcases/networking/service-type
-Version|v1.0.0
-Description|http://test-network-function.com/testcases/networking/service-type tests that each CNF Service does not utilize NodePort(s).
-Result Type|normative
-Suggested Remediation|Ensure Services are not configured to use NodePort(s).
-Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.3.1
-
-### observability
-
-
-#### container-logging
-
-Property|Description
----|---
-Test Name|container-logging
-Url|http://test-network-function.com/testcases/observability/container-logging
-Version|v1.0.0
-Description|http://test-network-function.com/testcases/observability/container-logging check that all containers under test use standard input output and standard error when logging
-Result Type|informative
-Suggested Remediation|make sure containers are not redirecting stdout/stderr
-Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 11.1
-
-#### crd-status
-
-Property|Description
----|---
-Test Name|crd-status
-Url|http://test-network-function.com/testcases/observability/crd-status
-Version|v1.0.0
-Description|http://test-network-function.com/testcases/observability/crd-status checks that all CRDs have a status subresource specification.
-Result Type|informative
-Suggested Remediation|make sure that all the CRDs have a meaningful status specification.
-Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2
-
 ### operator
-
 
 #### install-source
 
@@ -188,7 +22,6 @@ Description|http://test-network-function.com/testcases/operator/install-source t
 Result Type|normative
 Suggested Remediation|Ensure that your Operator is installed via OLM.
 Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2.12 and Section 6.3.3
-
 #### install-status
 
 Property|Description
@@ -203,7 +36,6 @@ Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/site
 
 ### platform-alteration
 
-
 #### base-image
 
 Property|Description
@@ -215,7 +47,6 @@ Description|http://test-network-function.com/testcases/platform-alteration/base-
 Result Type|normative
 Suggested Remediation|Ensure that Container applications do not modify the Container Base Image.  In particular, ensure that the following directories are not modified: 1) /var/lib/rpm 2) /var/lib/dpkg 3) /bin 4) /sbin 5) /lib 6) /lib64 7) /usr/bin 8) /usr/sbin 9) /usr/lib 10) /usr/lib64 Ensure that all required binaries are built directly into the container image, and are not installed post startup.
 Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2.2
-
 #### boot-params
 
 Property|Description
@@ -227,7 +58,6 @@ Description|http://test-network-function.com/testcases/platform-alteration/boot-
 Result Type|normative
 Suggested Remediation|Ensure that boot parameters are set directly through the MachineConfigOperator, or indirectly through the PerformanceAddonOperator.  Boot parameters should not be changed directly through the Node, as OpenShift should manage the changes for you.
 Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2.13 and 6.2.14
-
 #### hugepages-config
 
 Property|Description
@@ -239,7 +69,6 @@ Description|http://test-network-function.com/testcases/platform-alteration/hugep
 Result Type|normative
 Suggested Remediation|HugePage settings should be configured either directly through the MachineConfigOperator or indirectly using the PerformanceAddonOperator.  This ensures that OpenShift is aware of the special MachineConfig requirements, and can provision your CNF on a Node that is part of the corresponding MachineConfigSet.  Avoid making changes directly to an underlying Node, and let OpenShift handle the heavy lifting of configuring advanced settings.
 Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2
-
 #### isredhat-release
 
 Property|Description
@@ -251,7 +80,6 @@ Description|http://test-network-function.com/testcases/platform-alteration/isred
 Result Type|normative
 Suggested Remediation|build a new docker image that's based on UBI (redhat universal base image).
 Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2
-
 #### sysctl-config
 
 Property|Description
@@ -263,7 +91,6 @@ Description|http://test-network-function.com/testcases/platform-alteration/sysct
 Result Type|normative
 Suggested Remediation|You should recreate the node or change the sysctls, recreating is recommended because there might be other unknown changes
 Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2
-
 #### tainted-node-kernel
 
 Property|Description
@@ -278,7 +105,6 @@ Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/site
 
 ### access-control
 
-
 #### cluster-role-bindings
 
 Property|Description
@@ -290,7 +116,6 @@ Description|http://test-network-function.com/testcases/access-control/cluster-ro
 Result Type|normative
 Suggested Remediation|In most cases, Pod's should not have ClusterRoleBindings.  The suggested remediation is to remove the need for ClusterRoleBindings, if possible.
 Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2.10 and 6.3.6
-
 #### host-resource
 
 Property|Description
@@ -302,7 +127,6 @@ Description|http://test-network-function.com/testcases/access-control/host-resou
 Result Type|normative
 Suggested Remediation|Ensure that each Pod in the CNF abides by the suggested best practices listed in the test description.  In some rare cases, not all best practices can be followed.  For example, some CNFs may be required to run as root.  Such exceptions should be handled on a case-by-case basis, and should provide a proper justification as to why the best practice(s) cannot be followed.
 Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2
-
 #### namespace
 
 Property|Description
@@ -314,7 +138,6 @@ Description|http://test-network-function.com/testcases/access-control/namespace 
 Result Type|normative
 Suggested Remediation|Ensure that your CNF utilizes namespaces declared in the yaml config file. Additionally, the namespaces should not start with "default, openshift-, istio- or aspenmesh-", except in rare cases.
 Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2, 16.3.8 & 16.3.9
-
 #### pod-automount-service-account-token
 
 Property|Description
@@ -326,7 +149,6 @@ Description|http://test-network-function.com/testcases/access-control/pod-automo
 Result Type|normative
 Suggested Remediation|check that pod has automountServiceAccountToken set to false or pod is attached to service account which has automountServiceAccountToken set to false
 Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 13.7
-
 #### pod-role-bindings
 
 Property|Description
@@ -338,7 +160,6 @@ Description|http://test-network-function.com/testcases/access-control/pod-role-b
 Result Type|normative
 Suggested Remediation|Ensure the CNF is not configured to use RoleBinding(s) in a non-CNF Namespace.
 Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.3.3 and 6.3.5
-
 #### pod-service-account
 
 Property|Description
@@ -353,7 +174,6 @@ Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/site
 
 ### affiliated-certification
 
-
 #### container-is-certified
 
 Property|Description
@@ -365,7 +185,6 @@ Description|http://test-network-function.com/testcases/affiliated-certification/
 Result Type|normative
 Suggested Remediation|Ensure that your container has passed the Red Hat Container Certification Program (CCP).
 Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.3.7
-
 #### operator-is-certified
 
 Property|Description
@@ -380,7 +199,6 @@ Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/site
 
 ### diagnostic
 
-
 #### cluster-csi-info
 
 Property|Description
@@ -392,7 +210,6 @@ Description|http://test-network-function.com/testcases/diagnostic/cluster-csi-in
 Result Type|informative
 Suggested Remediation|
 Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.3.6
-
 #### clusterversion
 
 Property|Description
@@ -404,7 +221,6 @@ Description|http://test-network-function.com/testcases/diagnostic/clusterversion
 Result Type|informative
 Suggested Remediation|
 Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.3.6
-
 #### extract-node-information
 
 Property|Description
@@ -416,7 +232,6 @@ Description|http://test-network-function.com/testcases/diagnostic/extract-node-i
 Result Type|informative
 Suggested Remediation|
 Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.3.6
-
 #### list-cni-plugins
 
 Property|Description
@@ -428,7 +243,6 @@ Description|http://test-network-function.com/testcases/diagnostic/list-cni-plugi
 Result Type|normative
 Suggested Remediation|
 Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2.4 and 6.3.7
-
 #### nodes-hw-info
 
 Property|Description
@@ -441,6 +255,157 @@ Result Type|normative
 Suggested Remediation|
 Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2
 
+### lifecycle
+
+#### container-shutdown
+
+Property|Description
+---|---
+Test Name|container-shutdown
+Url|http://test-network-function.com/testcases/lifecycle/container-shutdown
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/lifecycle/container-shutdown Ensure that the containers lifecycle pre-stop management feature is configured.
+Result Type|normative
+Suggested Remediation| 		It's considered best-practices to define prestop for proper management of container lifecycle. 		The prestop can be used to gracefully stop the container and clean resources (e.g., DB connection). 		 		The prestop can be configured using : 		 1) Exec : executes the supplied command inside the container 		 2) HTTP : executes HTTP request against the specified endpoint. 		 		When defined. K8s will handle shutdown of the container using the following: 		1) K8s first execute the preStop hook inside the container. 		2) K8s will wait for a grace period. 		3) K8s will clean the remaining processes using KILL signal.		 			
+Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2
+#### deployment-scaling
+
+Property|Description
+---|---
+Test Name|deployment-scaling
+Url|http://test-network-function.com/testcases/lifecycle/deployment-scaling
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/lifecycle/deployment-scaling tests that CNF deployments support scale in/out operations.  			First, The test starts getting the current replicaCount (N) of the deployment/s with the Pod Under Test. Then, it executes the  			scale-in oc command for (N-1) replicas. Lastly, it executes the scale-out oc command, restoring the original replicaCount of the deployment/s. 		    In case of deployments that are managed by HPA the test is changing the min and max value to deployment Replica - 1 during scale-in and the  			original replicaCount again for both min/max during the scale-out stage. lastly its restoring the original min/max replica of the deployment/s
+Result Type|normative
+Suggested Remediation|Make sure CNF deployments/replica sets can scale in/out successfully.
+Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2
+#### image-pull-policy
+
+Property|Description
+---|---
+Test Name|image-pull-policy
+Url|http://test-network-function.com/testcases/lifecycle/image-pull-policy
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/lifecycle/image-pull-policy Ensure that the containers under test are using IfNotPresent as Image Pull Policy..
+Result Type|normative
+Suggested Remediation|Ensure that the containers under test are using IfNotPresent as Image Pull Policy.
+Best Practice Reference|https://docs.google.com/document/d/1wRHMk1ZYUSVmgp_4kxvqjVOKwolsZ5hDXjr5MLy-wbg/edit#  Section 15.6
+#### pod-high-availability
+
+Property|Description
+---|---
+Test Name|pod-high-availability
+Url|http://test-network-function.com/testcases/lifecycle/pod-high-availability
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/lifecycle/pod-high-availability ensures that CNF Pods specify podAntiAffinity rules and replica value is set to more than 1.
+Result Type|informative
+Suggested Remediation|In high availability cases, Pod podAntiAffinity rule should be specified for pod scheduling and pod replica value is set to more than 1 .
+Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2
+#### pod-owner-type
+
+Property|Description
+---|---
+Test Name|pod-owner-type
+Url|http://test-network-function.com/testcases/lifecycle/pod-owner-type
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/lifecycle/pod-owner-type tests that CNF Pod(s) are deployed as part of a ReplicaSet(s)/StatefulSet(s).
+Result Type|normative
+Suggested Remediation|Deploy the CNF using ReplicaSet/StatefulSet.
+Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.3.3 and 6.3.8
+#### pod-recreation
+
+Property|Description
+---|---
+Test Name|pod-recreation
+Url|http://test-network-function.com/testcases/lifecycle/pod-recreation
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/lifecycle/pod-recreation tests that a CNF is configured to support High Availability.   			First, this test cordons and drains a Node that hosts the CNF Pod.   			Next, the test ensures that OpenShift can re-instantiate the Pod on another Node,  			and that the actual replica count matches the desired replica count.
+Result Type|normative
+Suggested Remediation|Ensure that CNF Pod(s) utilize a configuration that supports High Availability.   			Additionally, ensure that there are available Nodes in the OpenShift cluster that can be utilized in the event that a host Node fails.
+Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2
+#### pod-scheduling
+
+Property|Description
+---|---
+Test Name|pod-scheduling
+Url|http://test-network-function.com/testcases/lifecycle/pod-scheduling
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/lifecycle/pod-scheduling ensures that CNF Pods do not specify nodeSelector or nodeAffinity.  In most cases, Pods should allow for instantiation on any underlying Node.
+Result Type|informative
+Suggested Remediation|In most cases, Pod's should not specify their host Nodes through nodeSelector or nodeAffinity.  However, there are cases in which CNFs require specialized hardware specific to a particular class of Node.  As such, this test is purely informative, and will not prevent a CNF from being certified. However, one should have an appropriate justification as to why nodeSelector and/or nodeAffinity is utilized by a CNF.
+Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2
+#### pod-termination-grace-period
+
+Property|Description
+---|---
+Test Name|pod-termination-grace-period
+Url|http://test-network-function.com/testcases/lifecycle/pod-termination-grace-period
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/lifecycle/pod-termination-grace-period tests whether the terminationGracePeriod is CNF-specific, or if the default (30s) is utilized.  This test is informative, and will not affect CNF Certification.  In many cases, the default terminationGracePeriod is perfectly acceptable for a CNF.
+Result Type|informative
+Suggested Remediation|Choose a terminationGracePeriod that is appropriate for your given CNF.  If the default (30s) is appropriate, then feel free to ignore this informative message.  This test is meant to raise awareness around how Pods are terminated, and to suggest that a CNF is configured based on its requirements.  In addition to a terminationGracePeriod, consider utilizing a termination hook in the case that your application requires special shutdown instructions.
+Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2
+#### statefulset-scaling
+
+Property|Description
+---|---
+Test Name|statefulset-scaling
+Url|http://test-network-function.com/testcases/lifecycle/statefulset-scaling
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/lifecycle/statefulset-scaling tests that CNF statefulsets support scale in/out operations.  			First, The test starts getting the current replicaCount (N) of the statefulset/s with the Pod Under Test. Then, it executes the  			scale-in oc command for (N-1) replicas. Lastly, it executes the scale-out oc command, restoring the original replicaCount of the statefulset/s. 			In case of statefulsets that are managed by HPA the test is changing the min and max value to statefulset Replica - 1 during scale-in and the  			original replicaCount again for both min/max during the scale-out stage. lastly its restoring the original min/max replica of the statefulset/s
+Result Type|normative
+Suggested Remediation|Make sure CNF statefulsets/replica sets can scale in/out successfully.
+Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2
+
+### networking
+
+#### icmpv4-connectivity
+
+Property|Description
+---|---
+Test Name|icmpv4-connectivity
+Url|http://test-network-function.com/testcases/networking/icmpv4-connectivity
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/networking/icmpv4-connectivity checks that each CNF Container is able to communicate via ICMPv4 on the Default OpenShift network.  This test case requires the Deployment of the debug daemonset. 
+Result Type|normative
+Suggested Remediation|Ensure that the CNF is able to communicate via the Default OpenShift network.  In some rare cases, CNFs may require routing table changes in order to communicate over the Default network.  In other cases, if the Container base image does not provide the "ip" or "ping" binaries, this test may not be applicable.  For instructions on how to exclude a particular container from ICMPv4 connectivity tests, consult: [README.md](https://github.com/test-network-function/test-network-function#issue-161-some-containers-under-test-do-not-contain-ping-or-ip-binary-utilities).
+Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2
+#### service-type
+
+Property|Description
+---|---
+Test Name|service-type
+Url|http://test-network-function.com/testcases/networking/service-type
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/networking/service-type tests that each CNF Service does not utilize NodePort(s).
+Result Type|normative
+Suggested Remediation|Ensure Services are not configured to use NodePort(s).
+Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.3.1
+
+### observability
+
+#### container-logging
+
+Property|Description
+---|---
+Test Name|container-logging
+Url|http://test-network-function.com/testcases/observability/container-logging
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/observability/container-logging check that all containers under test use standard input output and standard error when logging
+Result Type|informative
+Suggested Remediation|make sure containers are not redirecting stdout/stderr
+Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 11.1
+#### crd-status
+
+Property|Description
+---|---
+Test Name|crd-status
+Url|http://test-network-function.com/testcases/observability/crd-status
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/observability/crd-status checks that all CRDs have a status subresource specification.
+Result Type|informative
+Suggested Remediation|make sure that all the CRDs have a meaningful status specification.
+Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2
 
 ## Test Case Building Blocks Catalog
 
@@ -483,7 +448,6 @@ http://test-network-function.com/tests/shutdown
 http://test-network-function.com/tests/sysctlAllConfigsArgs
 http://test-network-function.com/tests/sysctlConfigFilesList
 http://test-network-function.com/tests/testPodHighAvailability
-
 ### automountservice
 
 
@@ -497,7 +461,6 @@ Result Type|normative
 Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`oc`
-
 
 ### clusterVersion
 
@@ -513,7 +476,6 @@ Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`oc`
 
-
 ### clusterrolebinding
 
 
@@ -527,7 +489,6 @@ Result Type|normative
 Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`oc`
-
 
 ### command
 
@@ -543,7 +504,6 @@ Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|
 
-
 ### container/pod
 
 
@@ -557,7 +517,6 @@ Result Type|normative
 Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`jq`, `oc`
-
 
 ### crdStatusExistence
 
@@ -573,7 +532,6 @@ Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`oc`, `jq`
 
-
 ### csiDriver
 
 
@@ -587,7 +545,6 @@ Result Type|normative
 Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`oc`
-
 
 ### currentKernelCmdlineArgs
 
@@ -603,7 +560,6 @@ Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`cat`
 
-
 ### daemonset
 
 
@@ -617,7 +573,6 @@ Result Type|normative
 Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`oc`
-
 
 ### deploymentsdrain
 
@@ -633,7 +588,6 @@ Intrusive|true
 Modifications Persist After Test|true
 Runtime Binaries Required|`jq`, `echo`
 
-
 ### deploymentsnodes
 
 
@@ -647,7 +601,6 @@ Result Type|normative
 Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`oc`, `grep`
-
 
 ### generic/cnf_fs_diff
 
@@ -663,7 +616,6 @@ Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`grep`, `cut`
 
-
 ### generic/version
 
 
@@ -677,7 +629,6 @@ Result Type|normative
 Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`cat`
-
 
 ### gracePeriod
 
@@ -693,7 +644,6 @@ Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`grep`, `cut`
 
-
 ### grubKernelCmdlineArgs
 
 
@@ -707,7 +657,6 @@ Result Type|normative
 Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`ls`, `sort`, `head`, `cut`, `oc`
-
 
 ### imagepullpolicy
 
@@ -723,7 +672,6 @@ Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`oc`
 
-
 ### ipaddr
 
 
@@ -737,7 +685,6 @@ Result Type|normative
 Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`ip`
-
 
 ### logging
 
@@ -753,7 +700,6 @@ Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`oc`, `wc`
 
-
 ### mckernelarguments
 
 
@@ -767,7 +713,6 @@ Result Type|normative
 Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`oc`, `jq`, `echo`
-
 
 ### node/uncordon
 
@@ -783,7 +728,6 @@ Intrusive|true
 Modifications Persist After Test|true
 Runtime Binaries Required|`oc`
 
-
 ### nodedebug
 
 
@@ -797,7 +741,6 @@ Result Type|normative
 Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`oc`, `echo`
-
 
 ### nodemcname
 
@@ -813,7 +756,6 @@ Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`oc`, `grep`
 
-
 ### nodenames
 
 
@@ -827,7 +769,6 @@ Result Type|normative
 Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`oc`
-
 
 ### nodeport
 
@@ -843,7 +784,6 @@ Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`oc`, `grep`
 
-
 ### nodes
 
 
@@ -857,7 +797,6 @@ Result Type|
 Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`oc`
-
 
 ### nodeselector
 
@@ -873,7 +812,6 @@ Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`oc`, `grep`
 
-
 ### nodetainted
 
 
@@ -887,7 +825,6 @@ Result Type|informative
 Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`oc`, `cat`, `echo`
-
 
 ### operator
 
@@ -903,7 +840,6 @@ Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`jq`, `oc`
 
-
 ### operator/check-subscription
 
 
@@ -917,7 +853,6 @@ Result Type|normative
 Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`oc`
-
 
 ### owners
 
@@ -933,7 +868,6 @@ Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`cat`
 
-
 ### ping
 
 
@@ -947,7 +881,6 @@ Result Type|normative
 Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`ping`
-
 
 ### podnodename
 
@@ -963,7 +896,6 @@ Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`oc`
 
-
 ### podsets
 
 
@@ -977,7 +909,6 @@ Result Type|normative
 Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`oc`
-
 
 ### rolebinding
 
@@ -993,7 +924,6 @@ Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`cat`, `oc`
 
-
 ### scaling
 
 
@@ -1007,7 +937,6 @@ Result Type|normative
 Intrusive|true
 Modifications Persist After Test|false
 Runtime Binaries Required|`oc`
-
 
 ### shutdown
 
@@ -1023,7 +952,6 @@ Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`oc`
 
-
 ### sysctlAllConfigsArgs
 
 
@@ -1038,7 +966,6 @@ Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`sysctl`
 
-
 ### sysctlConfigFilesList
 
 
@@ -1052,7 +979,6 @@ Result Type|normative
 Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`cat`
-
 
 ### testPodHighAvailability
 

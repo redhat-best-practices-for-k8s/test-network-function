@@ -594,7 +594,7 @@ var Catalog = map[string]TestCatalogEntry{
 	},
 }
 
-// BaseDomain for the test cases building blocks
+// TestIDBaseDomain is the BaseDomain for the IDs of test cases building blocks
 var TestIDBaseDomain = urlTests
 
 // CommandIdentifier is  the Identifier used to represent the generic command test case.
