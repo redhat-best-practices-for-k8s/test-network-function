@@ -53,7 +53,7 @@ func FindDebugPods(tp *configsections.TestPartner) {
 		log.Panic("can't find debug pods, make sure daemonset debug is deployed properly")
 	}
 	for _, pod := range pods.Items {
-		tp.ContainersDebugList = append(tp.ContainersDebugList, buildContainersFromPodResource(pod)[0])
+		tp.ContainersDebugList = append(tp.ContainersDebugList, buildContainers(pod)[0])
 	}
 }
 
