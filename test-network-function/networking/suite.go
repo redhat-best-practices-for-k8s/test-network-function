@@ -385,7 +385,7 @@ func testListenAndDeclared(env *config.TestEnvironment) {
 			// compare between declaredPort,listeningPort and return the common.
 			res := checkIfListenIsDeclared(listeningPort, declaredPort)
 			if !res {
-				ginkgo.Fail("TC failed!")
+				ginkgo.Fail("TC failed.")
 			}
 		}
 	})
