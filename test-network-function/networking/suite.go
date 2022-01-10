@@ -294,7 +294,7 @@ func testNodePort(env *config.TestEnvironment) {
 	})
 }
 
-func getDeclaredPortList(container int, podName, podNamespace string) {
+func getDeclaredPortList(container int, podName, podNamespace string, declaredPort map[int]string) map[int]string {
 	protocolName, port, name := "", "", ""
 	ocCommandToExecute := fmt.Sprintf(commandportdeclared, podName, podNamespace, container)
 	res, _ := utils.ExecuteCommand(ocCommandToExecute, ocCommandTimeOut, interactive.GetContext(false))
@@ -323,9 +323,10 @@ func getDeclaredPortList(container int, podName, podNamespace string) {
 		declaredPort[p] = name + " " + protocolName
 		port, name, protocolName = "", "", ""
 	}
+	return declaredPort
 }
 
-func getListeningPortList(commandlisten []string, nodeOc *interactive.Context) {
+func getListeningPortList(commandlisten []string, nodeOc *interactive.Context, listeningPort map[int]string) map[int]string {
 	listeningPortCommand := strings.Join(commandlisten, " ")
 	fmt.Println(listeningPortCommand)
 	res, _ := utils.ExecuteCommand(listeningPortCommand, ocCommandTimeOut, nodeOc)
@@ -333,15 +334,16 @@ func getListeningPortList(commandlisten []string, nodeOc *interactive.Context) {
 	for _, line := range lines {
 		fields := strings.Fields(line)
 		if indexprotocolname > len(fields) || indexport > len(fields) {
-			return
+			return listeningPort
 		}
 		s := strings.Split(fields[indexport], ":")
 		p, _ := strconv.Atoi(s[1])
 		listeningPort[p] = fields[indexprotocolname]
 	}
+	return listeningPort
 }
 
-func checkIfListenIsDeclared() bool {
+func checkIfListenIsDeclared(listeningPort, declaredPort map[int]string) bool {
 	for k := range listeningPort {
 		_, ok := declaredPort[k]
 		if !ok {
@@ -352,12 +354,14 @@ func checkIfListenIsDeclared() bool {
 }
 
 func testListenAndDeclared(env *config.TestEnvironment) {
+	declaredPort = make(map[int]string)
+	listeningPort = make(map[int]string)
 	var x *config.Container
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestServicesDoNotUseNodeportsIdentifier)
 	ginkgo.It(testID, func() {
 		for _, podUnderTest := range env.PodsUnderTest {
 			for i := 0; i < podUnderTest.ContainerCount; i++ {
-				getDeclaredPortList(i, podUnderTest.Name, podUnderTest.Namespace)
+				declaredPort = getDeclaredPortList(i, podUnderTest.Name, podUnderTest.Namespace, declaredPort)
 			}
 
 			nodeName := podnodename.NewPodNodeName(common.DefaultTimeout, podUnderTest.Name, podUnderTest.Namespace)
@@ -377,9 +381,9 @@ func testListenAndDeclared(env *config.TestEnvironment) {
 
 			commandlisten := []string{utils.AddNsenterPrefix(containerPID), commandportlisten}
 
-			getListeningPortList(commandlisten, nodeOc.Context)
+			listeningPort = getListeningPortList(commandlisten, nodeOc.Context, listeningPort)
 			// compare between declaredPort,listeningPort and return the common.
-			res := checkIfListenIsDeclared()
+			res := checkIfListenIsDeclared(listeningPort, declaredPort)
 			if !res {
 				ginkgo.Fail("TC failed")
 			}
