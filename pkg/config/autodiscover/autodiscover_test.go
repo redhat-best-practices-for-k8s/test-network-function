@@ -62,7 +62,7 @@ func TestBuildLabelQuery(t *testing.T) {
 
 func TestGetContainersByLabel(t *testing.T) {
 	testCases := []struct {
-		expectedOutput []configsections.ContainerConfig
+		expectedOutput []configsections.Container
 		prefix         string
 		name           string
 		value          string
@@ -73,7 +73,7 @@ func TestGetContainersByLabel(t *testing.T) {
 			name:     "testname",
 			value:    "testvalue",
 			filename: "testdata/testpods_withlabel.json",
-			expectedOutput: []configsections.ContainerConfig{
+			expectedOutput: []configsections.Container{
 				{
 					ContainerIdentifier: configsections.ContainerIdentifier{
 						Namespace:        "kube-system",
@@ -83,7 +83,6 @@ func TestGetContainersByLabel(t *testing.T) {
 						ContainerUID:     "cf794b9e8c2448815b8b5a47b354c9bf9414a04f6fa567ac3b059851ed6757ab",
 						ContainerRuntime: "docker",
 					},
-					MultusIPAddressesPerNet: map[string][]string{},
 				},
 			},
 		},
@@ -92,7 +91,7 @@ func TestGetContainersByLabel(t *testing.T) {
 			name:           "",
 			value:          "", // no value
 			filename:       "testdata/testpods_empty.json",
-			expectedOutput: []configsections.ContainerConfig{},
+			expectedOutput: []configsections.Container{},
 		},
 	}
 	origCommand := executeOcGetAllCommand

@@ -85,16 +85,16 @@ var executeOcGetAllCommand = func(resourceType, labelQuery string) string {
 	return match
 }
 
-// getContainersByLabel builds `config.Container`s from containers in pods matching a label.
+// getContainersByLabel builds `configsections.Container`s from containers in pods matching a label.
 // Returns slice of ContainerConfig, error.
-func getContainersByLabel(label configsections.Label) ([]configsections.ContainerConfig, error) {
+func getContainersByLabel(label configsections.Label) ([]configsections.Container, error) {
 	pods, err := GetPodsByLabel(label)
 	if err != nil {
 		return nil, err
 	}
-	containers := []configsections.ContainerConfig{}
+	containers := []configsections.Container{}
 	for i := range pods.Items {
-		containers = append(containers, buildContainersFromPodResource(pods.Items[i])...)
+		containers = append(containers, buildContainers(pods.Items[i])...)
 	}
 	return containers, nil
 }
@@ -113,13 +113,12 @@ func getContainerIdentifiersByLabel(label configsections.Label) ([]configsection
 	return containerIDs, nil
 }
 
-// buildContainersFromPodResource builds `configsections.Container`s from a `PodResource`
-// Returns slice of ContainerConfig
-func buildContainersFromPodResource(pr *PodResource) []configsections.ContainerConfig {
-	containers := []configsections.ContainerConfig{}
+// buildContainers builds a container list
+// Returns slice of Container
+func buildContainers(pr *PodResource) []configsections.Container {
+	containers := []configsections.Container{}
 	for _, containerResource := range pr.Spec.Containers {
-		var err error
-		var container configsections.ContainerConfig
+		var container configsections.Container
 		container.Namespace = pr.Metadata.Namespace
 		container.PodName = pr.Metadata.Name
 		container.ContainerName = containerResource.Name
@@ -135,16 +134,7 @@ func buildContainersFromPodResource(pr *PodResource) []configsections.ContainerC
 				}
 			}
 		}
-		container.DefaultNetworkDevice, err = pr.getDefaultNetworkDeviceFromAnnotations()
-		if err != nil {
-			log.Warnf("error encountered getting default network device: %s", err)
-		}
 
-		container.MultusIPAddressesPerNet, err = pr.getPodIPsPerNet()
-		if err != nil {
-			log.Warnf("error encountered getting multus IPs: %s", err)
-			err = nil
-		}
 		log.Debugf("added container: %s", container.String())
 		containers = append(containers, container)
 	}
