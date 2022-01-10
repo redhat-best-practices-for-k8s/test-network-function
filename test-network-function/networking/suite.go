@@ -18,6 +18,9 @@ package networking
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
+	"time"
 
 	"github.com/test-network-function/test-network-function/pkg/config"
 	"github.com/test-network-function/test-network-function/pkg/tnf/testcases"
@@ -32,6 +35,7 @@ import (
 	"github.com/test-network-function/test-network-function/pkg/tnf"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodeport"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/ping"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/podnodename"
 	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
 	"github.com/test-network-function/test-network-function/pkg/utils"
@@ -39,7 +43,12 @@ import (
 )
 
 const (
-	defaultNumPings = 5
+	commandportdeclared = "oc get pod %s -n %s -o json  | jq -r '.spec.containers[%d].ports'"
+	commandportlisten   = "ss -tulwnH"
+	defaultNumPings     = 5
+	ocCommandTimeOut    = time.Second * 10
+	indexprotocolname   = 0
+	indexport           = 4
 )
 
 // netTestContext this is a data structure describing a network test context for a given subnet (e.g. network attachment)
@@ -119,6 +128,9 @@ var _ = ginkgo.Describe(common.NetworkingTestKey, func() {
 		})
 		ginkgo.Context("Should not have type of nodePort", func() {
 			testNodePort(env)
+		})
+		ginkgo.Context("Should not have type of listen port and declared port", func() {
+			testListenAndDeclared(env)
 		})
 	}
 })
@@ -321,6 +333,102 @@ func testNodePort(env *config.TestEnvironment) {
 		if n := len(badNamespaces); n > 0 {
 			log.Warnf("Failed namespaces: %+v", badNamespaces)
 			ginkgo.Fail(fmt.Sprintf("%d namespaces have nodePort/s.", n))
+		}
+	})
+}
+
+func getDeclaredPortList(container int, podName, podNamespace string, declaredPort map[int]string) map[int]string {
+	protocolName, port, name := "", "", ""
+	ocCommandToExecute := fmt.Sprintf(commandportdeclared, podName, podNamespace, container)
+	res, _ := utils.ExecuteCommand(ocCommandToExecute, ocCommandTimeOut, interactive.GetContext(false))
+	x := strings.Split(res, "\n")
+	for _, i := range x {
+		if strings.Contains(i, "containerPort") {
+			s := strings.Split(i, ":")
+			s = strings.Split(s[1], ",")
+			port = s[0]
+		}
+		if strings.Contains(i, "name") {
+			s := strings.Split(i, ":")
+			s = strings.Split(s[1], ",")
+			name = s[0]
+		}
+		if strings.Contains(i, "protocol") {
+			s := strings.Split(i, ":")
+			protocolName = s[1]
+		}
+		if port == "" || name == "" || protocolName == "" {
+			continue
+		}
+		p, _ := strconv.Atoi(strings.TrimSpace(port))
+		name = strings.TrimSpace(strings.ReplaceAll(name, "\"", ""))
+		protocolName = strings.TrimSpace(strings.ReplaceAll(protocolName, "\"", ""))
+		declaredPort[p] = name + " " + protocolName
+		port, name, protocolName = "", "", ""
+	}
+	return declaredPort
+}
+
+func getListeningPortList(commandlisten []string, nodeOc *interactive.Context, listeningPort map[int]string) map[int]string {
+	listeningPortCommand := strings.Join(commandlisten, " ")
+	fmt.Println(listeningPortCommand)
+	res, _ := utils.ExecuteCommand(listeningPortCommand, ocCommandTimeOut, nodeOc)
+	lines := strings.Split(res, "\n")
+	for _, line := range lines {
+		fields := strings.Fields(line)
+		if indexprotocolname > len(fields) || indexport > len(fields) {
+			return listeningPort
+		}
+		s := strings.Split(fields[indexport], ":")
+		p, _ := strconv.Atoi(s[1])
+		listeningPort[p] = fields[indexprotocolname]
+	}
+	return listeningPort
+}
+
+func checkIfListenIsDeclared(listeningPort, declaredPort map[int]string) bool {
+	for k := range listeningPort {
+		_, ok := declaredPort[k]
+		if !ok {
+			return false
+		}
+	}
+	return true
+}
+
+func testListenAndDeclared(env *config.TestEnvironment) {
+	declaredPort := make(map[int]string)
+	listeningPort := make(map[int]string)
+	var x *configsections.Container
+	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestServicesDoNotUseNodeportsIdentifier)
+	ginkgo.It(testID, func() {
+		for _, podUnderTest := range env.PodsUnderTest {
+			for i := 0; i < podUnderTest.ContainerCount; i++ {
+				declaredPort = getDeclaredPortList(i, podUnderTest.Name, podUnderTest.Namespace, declaredPort)
+			}
+
+			nodeName := podnodename.NewPodNodeName(common.DefaultTimeout, podUnderTest.Name, podUnderTest.Namespace)
+			context := common.GetContext()
+			test, err := tnf.NewTest(context.GetExpecter(), nodeName, []reel.Handler{nodeName}, context.GetErrorChannel())
+			gomega.Expect(err).To(gomega.BeNil())
+			test.RunAndValidate()
+			nodeOc := env.NodesUnderTest[nodeName.GetNodeName()].DebugContainer.GetOc()
+			for _, cut := range env.ContainersUnderTest {
+				if cut.ContainerIdentifier.PodName == podUnderTest.Name && cut.ContainerIdentifier.Namespace == podUnderTest.Namespace {
+					x = cut
+					break
+				}
+			}
+			containerPID := utils.GetContainerPID(nodeName.GetNodeName(), nodeOc, x.ContainerUID, x.ContainerRuntime)
+
+			commandlisten := []string{utils.AddNsenterPrefix(containerPID), commandportlisten}
+
+			listeningPort = getListeningPortList(commandlisten, nodeOc.Context, listeningPort)
+			// compare between declaredPort,listeningPort and return the common.
+			res := checkIfListenIsDeclared(listeningPort, declaredPort)
+			if !res {
+				ginkgo.Fail("TC failed.")
+			}
 		}
 	})
 }
