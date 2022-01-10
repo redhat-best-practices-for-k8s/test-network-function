@@ -52,11 +52,6 @@ const (
 	indexport           = 4
 )
 
-var (
-	declaredPort  = make(map[int]string)
-	listeningPort = make(map[int]string)
-)
-
 // netTestContext this is a data structure describing a network test context for a given subnet (e.g. network attachment)
 // The test context defines a tester or test initiator, that is initating the pings. It is selected randomly (first container in the list)
 // It also defines a list of destination ping targets corresponding to the other containers IPs on this subnet
@@ -354,8 +349,8 @@ func checkIfListenIsDeclared(listeningPort, declaredPort map[int]string) bool {
 }
 
 func testListenAndDeclared(env *config.TestEnvironment) {
-	declaredPort = make(map[int]string)
-	listeningPort = make(map[int]string)
+	declaredPort := make(map[int]string)
+	listeningPort := make(map[int]string)
 	var x *config.Container
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestServicesDoNotUseNodeportsIdentifier)
 	ginkgo.It(testID, func() {
