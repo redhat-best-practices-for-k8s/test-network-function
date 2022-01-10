@@ -22,7 +22,7 @@ import (
 )
 
 const (
-	// defaultTimeoutSeconds contains the default timeout in secons.
+	// defaultTimeoutSeconds contains the default timeout in seconds.
 	defaultTimeoutSeconds = 20
 )
 
@@ -76,7 +76,7 @@ var _ = ginkgo.Describe(common.DiagnosticTestKey, func() {
 			gomega.Expect(len(env.ContainersUnderTest)).ToNot(gomega.Equal(0))
 		})
 		ginkgo.ReportAfterEach(results.RecordResult)
-		testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestclusterVersionIdentifier)
+		testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestClusterVersionIdentifier)
 		ginkgo.It(testID, func() {
 			testOcpVersion()
 		})
@@ -122,16 +122,18 @@ var _ = ginkgo.Describe(common.DiagnosticTestKey, func() {
 })
 
 // CniPlugin holds info about a CNI plugin
+// The JSON fields come from the jq output
 type CniPlugin struct {
-	Name    string
-	version string
+	Name    string      `json:"name"`
+	Version string      `json:"version"`
+	Plugins interface{} `json:"plugins"`
 }
 
 // NodeHwInfo node HW info
 type NodeHwInfo struct {
 	NodeName string
 	Lscpu    map[string]string   // lscpu output parsed as entry to value map
-	Ifconfig map[string][]string // ifconfig output parsed as interface name to output lines map
+	IPconfig map[string][]string // 'ip a' output parsed as interface name to output lines map
 	Lsblk    interface{}         // 'lsblk -J' output un-marshaled into an unknown type
 	Lspci    []string            // lspci output parsed to individual lines
 }
@@ -186,7 +188,8 @@ func getWorkerNodeName(env *config.TestEnvironment) string {
 }
 
 func listNodeCniPlugins(nodeName string) []CniPlugin {
-	const command = "cat /host/etc/cni/net.d/[0-999]* | jq -r .name,.cniVersion"
+	// This command will return a JSON array, with the name, cniVersion and plugins fields from the cat output
+	const command = "cat /host/etc/cni/net.d/[0-999]* | jq -s '[ .[] | {name:.name, version:.cniVersion, plugins: .plugins}]'"
 	result := []CniPlugin{}
 	nodes := config.GetTestEnvironment().NodesUnderTest
 	context := nodes[nodeName].DebugContainer.GetOc()
@@ -194,13 +197,8 @@ func listNodeCniPlugins(nodeName string) []CniPlugin {
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
 	test.RunAndValidate()
-	gomega.Expect(len(tester.Processed)%2 == 0).To(gomega.BeTrue())
-	for i := 0; i < len(tester.Processed); i += 2 {
-		result = append(result, CniPlugin{
-			tester.Processed[i],
-			tester.Processed[i+1],
-		})
-	}
+	err = json.Unmarshal([]byte(tester.Raw), &result)
+	gomega.Expect(err).To(gomega.BeNil())
 	return result
 }
 
@@ -231,12 +229,12 @@ func testNodesHwInfo() {
 	gomega.Expect(workerNodeName).ToNot(gomega.BeEmpty())
 	nodesHwInfo.Master.NodeName = masterNodeName
 	nodesHwInfo.Master.Lscpu = getNodeLscpu(masterNodeName)
-	nodesHwInfo.Master.Ifconfig = getNodeIfconfig(masterNodeName)
+	nodesHwInfo.Master.IPconfig = getNodeIPconfig(masterNodeName)
 	nodesHwInfo.Master.Lsblk = getNodeLsblk(masterNodeName)
 	nodesHwInfo.Master.Lspci = getNodeLspci(masterNodeName)
 	nodesHwInfo.Worker.NodeName = workerNodeName
 	nodesHwInfo.Worker.Lscpu = getNodeLscpu(workerNodeName)
-	nodesHwInfo.Worker.Ifconfig = getNodeIfconfig(workerNodeName)
+	nodesHwInfo.Worker.IPconfig = getNodeIPconfig(workerNodeName)
 	nodesHwInfo.Worker.Lsblk = getNodeLsblk(workerNodeName)
 	nodesHwInfo.Worker.Lspci = getNodeLspci(workerNodeName)
 }
@@ -259,9 +257,9 @@ func getNodeLscpu(nodeName string) map[string]string {
 	return result
 }
 
-func getNodeIfconfig(nodeName string) map[string][]string {
-	const command = "ifconfig"
-	const numSplitSubstrings = 2
+func getNodeIPconfig(nodeName string) map[string][]string {
+	const command = "ip a"
+	const numSplitSubstrings = 3
 	result := map[string][]string{}
 	env = config.GetTestEnvironment()
 	nodes := env.NodesUnderTest
@@ -277,8 +275,8 @@ func getNodeIfconfig(nodeName string) map[string][]string {
 		}
 		if line[0] != ' ' {
 			fields := strings.SplitN(line, ":", numSplitSubstrings)
-			deviceName = fields[0]
-			line = fields[1]
+			deviceName = fields[1]
+			line = fields[2]
 		}
 		result[deviceName] = append(result[deviceName], strings.TrimSpace(line))
 	}

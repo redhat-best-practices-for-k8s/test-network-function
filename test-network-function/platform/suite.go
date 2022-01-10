@@ -1,4 +1,4 @@
-// Copyright (C) 2020-2021 Red Hat, Inc.
+// Copyright (C) 2020-2022 Red Hat, Inc.
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -28,6 +28,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/test-network-function/test-network-function/pkg/config"
+	"github.com/test-network-function/test-network-function/pkg/config/configsections"
 	"github.com/test-network-function/test-network-function/pkg/tnf/testcases"
 
 	"github.com/test-network-function/test-network-function/test-network-function/common"
@@ -168,7 +169,7 @@ func testIsRedHatRelease(env *config.TestEnvironment) {
 }
 
 // testContainerIsRedHatRelease tests whether the container attached to oc is Red Hat based.
-func testContainerIsRedHatRelease(cut *config.Container) {
+func testContainerIsRedHatRelease(cut *configsections.Container) {
 	podName := cut.GetOc().GetPodName()
 	containerName := cut.GetOc().GetPodContainerName()
 	context := cut.GetOc()
@@ -443,7 +444,7 @@ func logMcKernelArgumentsHugepages(hugepagesPerSize map[int]int, defhugepagesz i
 }
 
 // getMcHugepagesFromMcKernelArguments gets the hugepages params from machineconfig's kernelArguments
-func getMcHugepagesFromMcKernelArguments(mc *machineConfig) (hugepagesPerSize map[int]int, defhugepagesz int, err error) {
+func getMcHugepagesFromMcKernelArguments(mc *machineConfig) (hugepagesPerSize map[int]int, defhugepagesz int) {
 	defhugepagesz = RhelDefaultHugepagesz
 	hugepagesPerSize = map[int]int{}
 
@@ -457,11 +458,14 @@ func getMcHugepagesFromMcKernelArguments(mc *machineConfig) (hugepagesPerSize ma
 
 		key, value := keyValueSlice[0], keyValueSlice[1]
 		if key == HugepagesParam && value != "" {
-			if _, sizeFound := hugepagesPerSize[hugepagesz]; !sizeFound {
-				return map[int]int{}, RhelDefaultHugepagesz, fmt.Errorf("found hugepages count without size in kernelArguments: %v", mc.Spec.KernelArguments)
-			}
 			hugepages, _ := strconv.Atoi(value)
-			hugepagesPerSize[hugepagesz] = hugepages
+			if _, sizeFound := hugepagesPerSize[hugepagesz]; sizeFound {
+				// hugepagesz was parsed before.
+				hugepagesPerSize[hugepagesz] = hugepages
+			} else {
+				// use RHEL's default size for this count.
+				hugepagesPerSize[RhelDefaultHugepagesz] = hugepages
+			}
 		}
 
 		if key == HugepageszParam && value != "" {
@@ -485,7 +489,7 @@ func getMcHugepagesFromMcKernelArguments(mc *machineConfig) (hugepagesPerSize ma
 	}
 
 	logMcKernelArgumentsHugepages(hugepagesPerSize, defhugepagesz)
-	return hugepagesPerSize, defhugepagesz, nil
+	return hugepagesPerSize, defhugepagesz
 }
 
 // getNodeNumaHugePages gets the actual node's hugepages config based on /sys/devices/system/node/nodeX files.
@@ -495,9 +499,8 @@ func getNodeNumaHugePages(node *config.NodeConfig) (hugepages numaHugePagesPerSi
 	const numRegexFields = 4
 
 	// This command must run inside the node, so we'll need the node's context to run commands inside the debug daemonset pod.
-	context := interactive.NewContext(node.DebugContainer.GetOc().GetExpecter(), node.DebugContainer.GetOc().GetErrorChannel())
 	var commandErr error
-	hugepagesCmdOut := utils.ExecuteCommandAndValidate(cmd, commandTimeout, context, func() {
+	hugepagesCmdOut := utils.ExecuteCommandAndValidate(cmd, commandTimeout, node.DebugContainer.GetOc().Context, func() {
 		commandErr = fmt.Errorf("failed to get node %s hugepages per numa", node.Name)
 	})
 	if commandErr != nil {
@@ -549,7 +552,7 @@ func getMachineConfig(mcName string) (machineConfig, error) {
 	var mc machineConfig
 	err := json.Unmarshal([]byte(mcJSON), &mc)
 	if err != nil {
-		return machineConfig{}, fmt.Errorf("failed to unmarshall (err: %v)", err)
+		return machineConfig{}, fmt.Errorf("failed to unmarshal (err: %v)", err)
 	}
 
 	return mc, nil
@@ -670,7 +673,7 @@ func getNodeMachineConfig(nodeName string, machineconfigs map[string]machineConf
 
 	mc, err := getMachineConfig(mcName)
 	if err != nil {
-		ginkgo.Fail(fmt.Sprintf("Unable to unmarshall mc %s from node %s", mcName, nodeName))
+		ginkgo.Fail(fmt.Sprintf("Unable to unmarshal mc %s from node %s", mcName, nodeName))
 	}
 	machineconfigs[mcName] = mc
 
@@ -707,10 +710,7 @@ func testHugepages(env *config.TestEnvironment) {
 			// KernelArguments params will only be used in case no systemd units were found.
 			if len(mcSystemdHugepages) == 0 {
 				ginkgo.By("Comparing MC KernelArguments hugepages info against node values.")
-				hugepagesPerSize, _, err := getMcHugepagesFromMcKernelArguments(&mc)
-				if err != nil {
-					ginkgo.Fail(fmt.Sprintf("Unable to get mc kernelArguments hugepages from node %s. Error: %v", node.Name, err))
-				}
+				hugepagesPerSize, _ := getMcHugepagesFromMcKernelArguments(&mc)
 				if pass, err := testNodeHugepagesWithKernelArgs(node.Name, nodeNumaHugePages, hugepagesPerSize); !pass {
 					log.Error(err)
 					badNodes = append(badNodes, node.Name)

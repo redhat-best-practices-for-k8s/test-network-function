@@ -1,4 +1,4 @@
-// Copyright (C) 2020-2021 Red Hat, Inc.
+// Copyright (C) 2020-2022 Red Hat, Inc.
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -52,7 +52,7 @@ func (a *Assertions) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	// Unmarshall the assertions Array.
+	// Unmarshal the assertions Array.
 	if err := a.unmarshalAssertionsJSON(objMap); err != nil {
 		return err
 	}

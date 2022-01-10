@@ -8,7 +8,7 @@
               <property name="RandomSeed" value="1634315726"></property>
               <property name="RandomizeAllSpecs" value="false"></property>
               <property name="LabelFilter" value=""></property>
-              <property name="FocusStrings" value="operator|affiliated-certification|networking|observablility|platform|lifecycle|access-control|diagnostic,operator|affiliated-certification|networking|observablility|platform|lifecycle|access-control|diagnostic"></property>
+              <property name="FocusStrings" value="operator|affiliated-certification|networking|observability|platform|lifecycle|access-control|diagnostic,operator|affiliated-certification|networking|observability|platform|lifecycle|access-control|diagnostic"></property>
               <property name="SkipStrings" value=""></property>
               <property name="FocusFiles" value=""></property>
               <property name="SkipFiles" value=""></property>

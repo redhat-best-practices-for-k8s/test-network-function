@@ -57,7 +57,7 @@ func FindTestTarget(labels []configsections.Label, target *configsections.TestTa
 			for _, pod := range pods.Items {
 				if ns[pod.Metadata.Namespace] {
 					target.PodsUnderTest = append(target.PodsUnderTest, buildPodUnderTest(pod))
-					target.ContainerConfigList = append(target.ContainerConfigList, buildContainersFromPodResource(pod)...)
+					target.ContainerList = append(target.ContainerList, buildContainers(pod)...)
 				} else {
 					target.NonValidPods = append(target.NonValidPods, buildPodUnderTest(pod))
 				}
@@ -175,12 +175,21 @@ func FindTestPodSetsByLabel(targetLabels []configsections.Label, target *configs
 }
 
 // buildPodUnderTest builds a single `configsections.Pod` from a PodResource
-func buildPodUnderTest(pr *PodResource) (podUnderTest configsections.Pod) {
+func buildPodUnderTest(pr *PodResource) (podUnderTest *configsections.Pod) {
 	var err error
+	podUnderTest = &configsections.Pod{}
 	podUnderTest.Namespace = pr.Metadata.Namespace
 	podUnderTest.Name = pr.Metadata.Name
 	podUnderTest.ServiceAccount = pr.Spec.ServiceAccount
 	podUnderTest.ContainerCount = len(pr.Spec.Containers)
+	podUnderTest.DefaultNetworkDevice, err = pr.getDefaultNetworkDeviceFromAnnotations()
+	if err != nil {
+		log.Warnf("error encountered getting default network device: %s", err)
+	}
+	podUnderTest.MultusIPAddressesPerNet, err = pr.getPodIPsPerNet()
+	if err != nil {
+		log.Warnf("error encountered getting multus IPs: %s", err)
+	}
 	var tests []string
 	err = pr.GetAnnotationValue(podTestsAnnotationName, &tests)
 	if err != nil {
@@ -189,7 +198,15 @@ func buildPodUnderTest(pr *PodResource) (podUnderTest configsections.Pod) {
 	} else {
 		podUnderTest.Tests = tests
 	}
-	return
+	// Get a list of all the containers present in the pod
+	allContainersInPod := buildContainers(pr)
+	if len(allContainersInPod) > 0 {
+		// Pick the first container in the list to use as the network context
+		podUnderTest.ContainerList = allContainersInPod
+	} else {
+		log.Errorf("There are no containers in pod %s in namespace %s", podUnderTest.Name, podUnderTest.Namespace)
+	}
+	return podUnderTest
 }
 
 // buildOperatorFromCSVResource builds a single `configsections.Operator` from a CSVResource
@@ -218,12 +235,13 @@ func buildOperatorFromCSVResource(csv *CSVResource) (op configsections.Operator)
 }
 
 // getConfiguredOperatorTests loads the `configuredTestFile` used by the `operator` specs and extracts
-// the names of test groups from it.
-func getConfiguredOperatorTests() (opTests []string) {
+// the names of test groups from it.  Returns slice of strings.
+func getConfiguredOperatorTests() []string {
+	var opTests []string
 	configuredTests, err := testcases.LoadConfiguredTestFile(testcases.ConfiguredTestFile)
 	if err != nil {
 		log.Errorf("failed to load %s, continuing with no tests", testcases.ConfiguredTestFile)
-		return []string{}
+		return opTests
 	}
 	for _, configuredTest := range configuredTests.OperatorTest {
 		opTests = append(opTests, configuredTest.Name)

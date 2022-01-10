@@ -1,4 +1,4 @@
-// Copyright (C) 2020-2021 Red Hat, Inc.
+// Copyright (C) 2020-2022 Red Hat, Inc.
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -45,7 +45,7 @@ var (
 
 	// crdTestPath is the file location of the CRD status existence test case relative to the project root.
 	crdTestPath = path.Join("pkg", "tnf", "handlers", "crdstatusexistence", "crdstatusexistence.json")
-	// relativeCrdTestPath is the relatieve path to the crdstatusexistence.json test case.
+	// relativeCrdTestPath is the relative path to the crdstatusexistence.json test case.
 	relativeCrdTestPath = path.Join(common.PathRelativeToRoot, crdTestPath)
 	// testCrdsTimeout is the timeout in seconds for the CRDs TC.
 	testCrdsTimeout = 10 * time.Second

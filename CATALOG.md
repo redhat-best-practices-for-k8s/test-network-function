@@ -78,6 +78,15 @@ Description|http://test-network-function.com/testcases/affiliated-certification/
 Result Type|normative
 Suggested Remediation|Ensure that your Operator has passed Red Hat's Operator Certification Program (OCP).
 Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2.12 and Section 6.3.3
+### http://test-network-function.com/testcases/diagnostic/cluster-csi-info
+
+Property|Description
+---|---
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/diagnostic/cluster-csi-info extracts CSI driver information in the cluster.
+Result Type|informative
+Suggested Remediation|
+Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.3.6
 ### http://test-network-function.com/testcases/diagnostic/clusterversion
 
 Property|Description
@@ -122,6 +131,15 @@ Version|v1.0.0
 Description|http://test-network-function.com/testcases/lifecycle/container-shutdown Ensure that the containers lifecycle pre-stop management feature is configured.
 Result Type|normative
 Suggested Remediation| 		It's considered best-practices to define prestop for proper management of container lifecycle. 		The prestop can be used to gracefully stop the container and clean resources (e.g., DB connection). 		 		The prestop can be configured using : 		 1) Exec : executes the supplied command inside the container 		 2) HTTP : executes HTTP request against the specified endpoint. 		 		When defined. K8s will handle shutdown of the container using the following: 		1) K8s first execute the preStop hook inside the container. 		2) K8s will wait for a grace period. 		3) K8s will clean the remaining processes using KILL signal.		 			
+Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2
+### http://test-network-function.com/testcases/lifecycle/deployment-scaling
+
+Property|Description
+---|---
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/lifecycle/deployment-scaling tests that CNF deployments support scale in/out operations.  			First, The test starts getting the current replicaCount (N) of the deployment/s with the Pod Under Test. Then, it executes the  			scale-in oc command for (N-1) replicas. Lastly, it executes the scale-out oc command, restoring the original replicaCount of the deployment/s. 		    In case of deployments that are managed by HPA the test is changing the min and max value to deployment Replica - 1 during scale-in and the  			original replicaCount again for both min/max during the scale-out stage. lastly its restoring the original min/max replica of the deployment/s
+Result Type|normative
+Suggested Remediation|Make sure CNF deployments/replica sets can scale in/out successfully.
 Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2
 ### http://test-network-function.com/testcases/lifecycle/image-pull-policy
 
@@ -177,14 +195,14 @@ Description|http://test-network-function.com/testcases/lifecycle/pod-termination
 Result Type|informative
 Suggested Remediation|Choose a terminationGracePeriod that is appropriate for your given CNF.  If the default (30s) is appropriate, then feel free to ignore this informative message.  This test is meant to raise awareness around how Pods are terminated, and to suggest that a CNF is configured based on its requirements.  In addition to a terminationGracePeriod, consider utilizing a termination hook in the case that your application requires special shutdown instructions.
 Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2
-### http://test-network-function.com/testcases/lifecycle/scaling
+### http://test-network-function.com/testcases/lifecycle/statefulset-scaling
 
 Property|Description
 ---|---
 Version|v1.0.0
-Description|http://test-network-function.com/testcases/lifecycle/scaling tests that CNF deployments support scale in/out operations.  			First, The test starts getting the current replicaCount (N) of the deployment/s with the Pod Under Test. Then, it executes the  			scale-in oc command for (N-1) replicas. Lastly, it executes the scale-out oc command, restoring the original replicaCount of the deployment/s.
+Description|http://test-network-function.com/testcases/lifecycle/statefulset-scaling tests that CNF statefulsets support scale in/out operations.  			First, The test starts getting the current replicaCount (N) of the statefulset/s with the Pod Under Test. Then, it executes the  			scale-in oc command for (N-1) replicas. Lastly, it executes the scale-out oc command, restoring the original replicaCount of the statefulset/s. 			In case of statefulsets that are managed by HPA the test is changing the min and max value to statefulset Replica - 1 during scale-in and the  			original replicaCount again for both min/max during the scale-out stage. lastly its restoring the original min/max replica of the statefulset/s
 Result Type|normative
-Suggested Remediation|Make sure CNF deployments/replica sets can scale in/out successfully.
+Suggested Remediation|Make sure CNF statefulsets/replica sets can scale in/out successfully.
 Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2
 ### http://test-network-function.com/testcases/networking/icmpv4-connectivity
 
@@ -281,7 +299,7 @@ Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/site
 Property|Description
 ---|---
 Version|v1.0.0
-Description|http://test-network-function.com/testcases/lifecycle/pod-recreation tests that no one has changed the node's sysctl configs after the node 			was created, the tests works by checking if the sysctl configs are consistent with the 			MachineConfig CR which defines how the node should be configured
+Description|http://test-network-function.com/testcases/platform-alteration/sysctl-config tests that no one has changed the node's sysctl configs after the node 			was created, the tests works by checking if the sysctl configs are consistent with the 			MachineConfig CR which defines how the node should be configured
 Result Type|normative
 Suggested Remediation|You should recreate the node or change the sysctls, recreating is recommended because there might be other unknown changes
 Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2
@@ -418,16 +436,6 @@ Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`grep`, `cut`
 
-### http://test-network-function.com/tests/generic/containerId
-Property|Description
----|---
-Version|v1.0.0
-Description|A test used to check what is the id of the crio generated container this command is run from
-Result Type|normative
-Intrusive|false
-Modifications Persist After Test|false
-Runtime Binaries Required|`cat`
-
 ### http://test-network-function.com/tests/generic/version
 Property|Description
 ---|---
@@ -457,26 +465,6 @@ Result Type|normative
 Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`ls`, `sort`, `head`, `cut`, `oc`
-
-### http://test-network-function.com/tests/hostname
-Property|Description
----|---
-Version|v1.0.0
-Description|A generic test used to check the hostname of a target machine/container.
-Result Type|normative
-Intrusive|false
-Modifications Persist After Test|false
-Runtime Binaries Required|`hostname`
-
-### http://test-network-function.com/tests/hugepages
-Property|Description
----|---
-Version|v1.0.0
-Description|A generic test used to read cluster's hugepages configuration
-Result Type|normative
-Intrusive|false
-Modifications Persist After Test|false
-Runtime Binaries Required|`grep`, `cut`, `oc`, `grep`
 
 ### http://test-network-function.com/tests/imagepullpolicy
 Property|Description
@@ -537,16 +525,6 @@ Result Type|normative
 Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`oc`, `echo`
-
-### http://test-network-function.com/tests/nodehugepages
-Property|Description
----|---
-Version|v1.0.0
-Description|A generic test used to verify a node's hugepages configuration
-Result Type|normative
-Intrusive|false
-Modifications Persist After Test|false
-Runtime Binaries Required|`oc`, `grep`
 
 ### http://test-network-function.com/tests/nodemcname
 Property|Description
@@ -668,16 +646,6 @@ Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`oc`
 
-### http://test-network-function.com/tests/readRemoteFile
-Property|Description
----|---
-Version|v1.0.0
-Description|A generic test used to read a specified file at a specified node
-Result Type|normative
-Intrusive|false
-Modifications Persist After Test|false
-Runtime Binaries Required|`echo`
-
 ### http://test-network-function.com/tests/rolebinding
 Property|Description
 ---|---
@@ -697,16 +665,6 @@ Result Type|normative
 Intrusive|true
 Modifications Persist After Test|false
 Runtime Binaries Required|`oc`
-
-### http://test-network-function.com/tests/serviceaccount
-Property|Description
----|---
-Version|v1.0.0
-Description|A generic test used to extract the CNF pod's ServiceAccount name.
-Result Type|normative
-Intrusive|false
-Modifications Persist After Test|false
-Runtime Binaries Required|`grep`, `cut`
 
 ### http://test-network-function.com/tests/shutdown
 Property|Description

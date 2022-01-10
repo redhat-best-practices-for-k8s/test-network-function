@@ -45,8 +45,8 @@ var (
 )
 
 // PerformAutoDiscovery checks the environment variable to see if autodiscovery should be performed
-func PerformAutoDiscovery() (doAuto bool) {
-	doAuto, _ = strconv.ParseBool(os.Getenv(disableAutodiscoverEnvVar))
+func PerformAutoDiscovery() bool {
+	doAuto, _ := strconv.ParseBool(os.Getenv(disableAutodiscoverEnvVar))
 	return !doAuto
 }
 
@@ -85,35 +85,40 @@ var executeOcGetAllCommand = func(resourceType, labelQuery string) string {
 	return match
 }
 
-// getContainersByLabel builds `config.Container`s from containers in pods matching a label.
-func getContainersByLabel(label configsections.Label) (containers []configsections.ContainerConfig, err error) {
+// getContainersByLabel builds `configsections.Container`s from containers in pods matching a label.
+// Returns slice of ContainerConfig, error.
+func getContainersByLabel(label configsections.Label) ([]configsections.Container, error) {
 	pods, err := GetPodsByLabel(label)
 	if err != nil {
 		return nil, err
 	}
+	containers := []configsections.Container{}
 	for i := range pods.Items {
-		containers = append(containers, buildContainersFromPodResource(pods.Items[i])...)
+		containers = append(containers, buildContainers(pods.Items[i])...)
 	}
 	return containers, nil
 }
 
 // getContainerIdentifiersByLabel builds `config.ContainerIdentifier`s from containers in pods matching a label.
-func getContainerIdentifiersByLabel(label configsections.Label) (containerIDs []configsections.ContainerIdentifier, err error) {
+// Returns slice of ContainerIdentifier, error.
+func getContainerIdentifiersByLabel(label configsections.Label) ([]configsections.ContainerIdentifier, error) {
 	containers, err := getContainersByLabel(label)
 	if err != nil {
 		return nil, err
 	}
+	containerIDs := []configsections.ContainerIdentifier{}
 	for _, c := range containers {
 		containerIDs = append(containerIDs, c.ContainerIdentifier)
 	}
 	return containerIDs, nil
 }
 
-// buildContainersFromPodResource builds `configsections.Container`s from a `PodResource`
-func buildContainersFromPodResource(pr *PodResource) (containers []configsections.ContainerConfig) {
+// buildContainers builds a container list
+// Returns slice of Container
+func buildContainers(pr *PodResource) []configsections.Container {
+	containers := []configsections.Container{}
 	for _, containerResource := range pr.Spec.Containers {
-		var err error
-		var container configsections.ContainerConfig
+		var container configsections.Container
 		container.Namespace = pr.Metadata.Namespace
 		container.PodName = pr.Metadata.Name
 		container.ContainerName = containerResource.Name
@@ -129,16 +134,7 @@ func buildContainersFromPodResource(pr *PodResource) (containers []configsection
 				}
 			}
 		}
-		container.DefaultNetworkDevice, err = pr.getDefaultNetworkDeviceFromAnnotations()
-		if err != nil {
-			log.Warnf("error encountered getting default network device: %s", err)
-		}
 
-		container.MultusIPAddressesPerNet, err = pr.getPodIPsPerNet()
-		if err != nil {
-			log.Warnf("error encountered getting multus IPs: %s", err)
-			err = nil
-		}
 		log.Debugf("added container: %s", container.String())
 		containers = append(containers, container)
 	}
