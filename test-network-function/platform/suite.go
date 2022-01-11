@@ -161,7 +161,7 @@ var _ = ginkgo.Describe(common.PlatformAlterationTestKey, func() {
 // testIsRedHatRelease fetch the configuration and test containers attached to oc is Red Hat based.
 func testIsRedHatRelease(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestIsRedHatReleaseIdentifier)
-	ginkgo.It(testID, func() {
+	ginkgo.It(testID, ginkgo.Label(testID), func() {
 		ginkgo.By("should report a proper Red Hat version")
 		for _, cut := range env.ContainersUnderTest {
 			testContainerIsRedHatRelease(cut)
@@ -185,7 +185,7 @@ func testContainerIsRedHatRelease(cut *configsections.Container) {
 func testContainersFsDiff(env *config.TestEnvironment) {
 	ginkgo.Context("Container does not have additional packages installed", func() {
 		testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestUnalteredBaseImageIdentifier)
-		ginkgo.It(testID, func() {
+		ginkgo.It(testID, ginkgo.Label(testID), func() {
 			var badContainers []string
 			var errContainers []string
 			for _, cut := range env.ContainersUnderTest {
@@ -313,7 +313,7 @@ func getSysctlConfigArgs(context *interactive.Oc) map[string]string {
 
 func testBootParams(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestUnalteredStartupBootParamsIdentifier)
-	ginkgo.It(testID, func() {
+	ginkgo.It(testID, ginkgo.Label(testID), func() {
 		context := env.GetLocalShellContext()
 		for _, cut := range env.ContainersUnderTest {
 			podName := cut.GetOc().GetPodName()
@@ -345,7 +345,7 @@ func testBootParamsHelper(context *interactive.Context, podName, podNamespace st
 
 func testSysctlConfigs(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestSysctlConfigsIdentifier)
-	ginkgo.It(testID, func() {
+	ginkgo.It(testID, ginkgo.Label(testID), func() {
 		for _, podUnderTest := range env.PodsUnderTest {
 			podName := podUnderTest.Name
 			podNameSpace := podUnderTest.Namespace
@@ -383,7 +383,7 @@ func printTainted(bitmap uint64) string {
 
 func testTainted(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestNonTaintedNodeKernelsIdentifier)
-	ginkgo.It(testID, func() {
+	ginkgo.It(testID, ginkgo.Label(testID), func() {
 		ginkgo.By("Testing tainted nodes in cluster")
 
 		var taintedNodes []string
@@ -681,7 +681,7 @@ func getNodeMachineConfig(nodeName string, machineconfigs map[string]machineConf
 
 func testHugepages(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestHugepagesNotManuallyManipulated)
-	ginkgo.It(testID, func() {
+	ginkgo.It(testID, ginkgo.Label(testID), func() {
 		// Map to save already retrieved and parsed machineconfigs.
 		machineconfigs := map[string]machineConfig{}
 		var badNodes []string

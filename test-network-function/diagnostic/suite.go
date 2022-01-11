@@ -78,14 +78,13 @@ var _ = ginkgo.Describe(common.DiagnosticTestKey, func() {
 		ginkgo.ReportAfterEach(results.RecordResult)
 		ginkgo.AfterEach(env.CloseLocalShellContext)
 		testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestClusterVersionIdentifier)
-		ginkgo.It(testID, func() {
+		ginkgo.It(testID, ginkgo.Label(testID), func() {
 			testOcpVersion()
 		})
 
 		testID = identifiers.XformToGinkgoItIdentifier(identifiers.TestExtractNodeInformationIdentifier)
-		ginkgo.It(testID, func() {
+		ginkgo.It(testID, ginkgo.Label(testID), func() {
 			context := env.GetLocalShellContext()
-
 			tester, handlers, jsonParseResult, err := generic.NewGenericFromJSONFile(relativeNodesTestPath, relativeSchemaPath)
 			gomega.Expect(err).To(gomega.BeNil())
 			gomega.Expect(jsonParseResult).ToNot(gomega.BeNil())
@@ -108,15 +107,15 @@ var _ = ginkgo.Describe(common.DiagnosticTestKey, func() {
 			gomega.Expect(err).To(gomega.BeNil())
 		})
 		testID = identifiers.XformToGinkgoItIdentifier(identifiers.TestListCniPluginsIdentifier)
-		ginkgo.It(testID, func() {
+		ginkgo.It(testID, ginkgo.Label(testID), func() {
 			testCniPlugins()
 		})
 		testID = identifiers.XformToGinkgoItIdentifier(identifiers.TestNodesHwInfoIdentifier)
-		ginkgo.It(testID, func() {
+		ginkgo.It(testID, ginkgo.Label(testID), func() {
 			testNodesHwInfo()
 		})
 		testID = identifiers.XformToGinkgoItIdentifier(identifiers.TestClusterCsiInfoIdentifier)
-		ginkgo.It(testID, func() {
+		ginkgo.It(testID, ginkgo.Label(testID), func() {
 			listClusterCSIInfo()
 		})
 	}

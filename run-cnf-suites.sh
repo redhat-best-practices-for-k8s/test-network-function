@@ -4,7 +4,7 @@ set -x
 export OUTPUT_LOC="$PWD/test-network-function"
 
 usage() {
-	echo "$0 [-o OUTPUT_LOC] [-f SUITE...] -s [SUITE...]"
+	echo "$0 [-o OUTPUT_LOC] [-f SUITE...] -s [SUITE...] [-l LABEL...]"
 	echo "Call the script and list the test suites to run"
 	echo "  e.g."
 	echo "    $0 [ARGS] -f access-control lifecycle"
@@ -20,6 +20,7 @@ usage_error() {
 
 FOCUS=""
 SKIP=""
+LABEL=""
 BASEDIR=$(dirname $(realpath $0))
 # Parge args beginning with "-"
 while [[ $1 == -* ]]; do
@@ -41,6 +42,11 @@ while [[ $1 == -* ]]; do
         		FOCUS="$2|$FOCUS"
         		shift
         	done;;
+        -l|--label)
+            while (( "$#" >= 2 )) && ! [[ $2 = --* ]]  && ! [[ $2 = -* ]] ; do
+                LABEL="$2|$LABEL"
+                shift
+            done;;
     	-*) echo "invalid option: $1" 1>&2; usage_error;;
 	esac
 	shift
@@ -65,6 +71,7 @@ trap html_output EXIT
 
 FOCUS=${FOCUS%?}  # strip the trailing "|" from the concatenation
 SKIP=${SKIP%?} # strip the trailing "|" from the concatenation
+LABEL=${LABEL%?} # strip the trailing "|" from the concatenation
 
 res=`oc version | grep  Server`
 if [ -z "$res" ]
@@ -88,11 +95,16 @@ fi
 
 echo "Running with focus '$FOCUS'"
 echo "Running with skip  '$SKIP'"
+echo "Running with label filter '$LABEL'"
 echo "Report will be output to '$OUTPUT_LOC'"
 echo "ginkgo arguments '${GINKGO_ARGS}'"
 SKIP_STRING=""
+LABLE_STRING=""
 if [ -n "$SKIP" ]; then
 	SKIP_STRING=-ginkgo.skip="$SKIP"
 fi
+if [ -n "$LABEL" ]; then
+    LABEL_STRING=-ginkgo.label-filter="$LABEL"
+fi
 
-cd ./test-network-function && ./test-network-function.test -ginkgo.focus="$FOCUS" $SKIP_STRING ${GINKGO_ARGS}
+cd ./test-network-function && ./test-network-function.test -ginkgo.focus="$FOCUS" $SKIP_STRING $LABEL_STRING ${GINKGO_ARGS}
