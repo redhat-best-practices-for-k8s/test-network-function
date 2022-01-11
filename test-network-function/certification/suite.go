@@ -184,7 +184,7 @@ func testCSICertified(env *config.TestEnvironment) {
 			ginkgo.Skip("No CSI operators to check configured ")
 		}
 
-		ginkgo.By(fmt.Sprintf("Verify operator as certified. Number of operators to check: %d", len(operatorsToQuery)))
+		ginkgo.By(fmt.Sprintf("Verify operator as certified. Number of operators to check: %d", len(csioperatorsToQuery)))
 		if len(csioperatorsToQuery) > 0 {
 			certAPIClient = api.NewHTTPClient()
 			var failedOperators []string
