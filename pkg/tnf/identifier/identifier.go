@@ -97,7 +97,12 @@ func XformToGinkgoItIdentifier(identifier Identifier) string {
 
 // XformToGinkgoItIdentifierExtended transform the claim.Identifier into a test Id that can be used to skip
 // specific tests
+// returns empty string if identifierURL was not correct about the base domain
+// for the url of tests
 func XformToGinkgoItIdentifierExtended(identifier Identifier, extra string) string {
+	if !strings.HasPrefix(identifier.URL, urlTests+"/") {
+		return ""
+	}
 	itID := strings.ReplaceAll(strings.TrimPrefix(identifier.URL, urlTests+"/"), "/", "-")
 	var key string
 	if extra != "" {
@@ -106,4 +111,8 @@ func XformToGinkgoItIdentifierExtended(identifier Identifier, extra string) stri
 		key = itID
 	}
 	return key
+}
+
+func GetIdentifierURLBaseDomain() string {
+	return urlTests
 }

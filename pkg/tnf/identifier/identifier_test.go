@@ -83,3 +83,43 @@ func TestIdentifier_UnmarshalJSON(t *testing.T) {
 		}
 	}
 }
+
+func TestXformToGinkgoItIdentifier(t *testing.T) {
+	type testURLTestName struct {
+		URL      string
+		testName string
+	}
+	testsURLOk := []testURLTestName{
+		{
+			URL:      identifier.GetIdentifierURLBaseDomain() + "/command",
+			testName: "command",
+		},
+		{
+			URL:      identifier.GetIdentifierURLBaseDomain() + "/whatever",
+			testName: "whatever",
+		},
+	}
+
+	testsURLWrong := []testURLTestName{
+		{
+			URL:      "http://test-network-function.org/tests" + "/command",
+			testName: "command",
+		},
+		{
+			URL:      "http://test-network-function.es/functional-tests" + "/whatever",
+			testName: "whatever",
+		},
+	}
+
+	for _, test := range testsURLOk {
+		id := identifier.Identifier{URL: test.URL, SemanticVersion: ""}
+		testName := identifier.XformToGinkgoItIdentifier(id)
+		assert.Equal(t, testName, test.testName)
+	}
+
+	for _, test := range testsURLWrong {
+		id := identifier.Identifier{URL: test.URL, SemanticVersion: ""}
+		testName := identifier.XformToGinkgoItIdentifier(id)
+		assert.Equal(t, testName, "")
+	}
+}
