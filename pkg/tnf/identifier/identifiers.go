@@ -16,10 +16,11 @@
 
 package identifier
 
-import "github.com/test-network-function/test-network-function/pkg/tnf/dependencies"
+import (
+	"github.com/test-network-function/test-network-function/pkg/tnf/dependencies"
+)
 
 const (
-	urlTests                              = "http://test-network-function.com/tests"
 	commandIdentifierURL                  = urlTests + "/command"
 	nodeselectorIdentifierURL             = urlTests + "/nodeselector"
 	ipAddrIdentifierURL                   = urlTests + "/ipaddr"

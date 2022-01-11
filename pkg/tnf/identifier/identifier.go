@@ -20,6 +20,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"strings"
 
 	"github.com/Masterminds/semver/v3"
 )
@@ -29,6 +30,8 @@ const (
 	semanticVersionKey = "version"
 	// urlKey is the JSON key representing a URL payload.
 	urlKey = "url"
+
+	urlTests = "http://test-network-function.com/tests"
 )
 
 // Identifier is a per tnf.Test unique identifier.
@@ -84,4 +87,23 @@ func (i *Identifier) UnmarshalJSON(b []byte) error {
 	}
 
 	return i.unmarshalSemanticVersion(objMap)
+}
+
+// XformToGinkgoItIdentifier transform the Identifier into a test Id that can be used to skip
+// specific tests
+func XformToGinkgoItIdentifier(identifier Identifier) string {
+	return XformToGinkgoItIdentifierExtended(identifier, "")
+}
+
+// XformToGinkgoItIdentifierExtended transform the claim.Identifier into a test Id that can be used to skip
+// specific tests
+func XformToGinkgoItIdentifierExtended(identifier Identifier, extra string) string {
+	itID := strings.ReplaceAll(strings.TrimPrefix(identifier.URL, urlTests+"/"), "/", "-")
+	var key string
+	if extra != "" {
+		key = itID + "-" + extra
+	} else {
+		key = itID
+	}
+	return key
 }

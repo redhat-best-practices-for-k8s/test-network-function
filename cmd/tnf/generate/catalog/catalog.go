@@ -174,6 +174,7 @@ func createPrintableCatalogFromIdentifiers(keys []claim.Identifier) map[string][
 
 	for _, i := range keys {
 		suiteTest := getSuiteAndTestFromURL(i.Url, baseDomain)
+		//suiteTest := identifiers.XformToGinkgoItIdentifier(i)
 		if suiteTest == nil {
 			return nil
 		}
@@ -193,15 +194,15 @@ func createPrintableCatalogFromIdentifiers(keys []claim.Identifier) map[string][
 //     1: [testName3 [identifiers], testName4 [identifiers] ]
 // }
 func createPrintableCatalogFromUrls(urls []string) map[int][]catalogElement {
-	baseDomain := identifier.TestIDBaseDomain + "/"
+	// baseDomain := identifier.TestIDBaseDomain + "/"
 
 	catalog := make(map[int][]catalogElement)
-	// we need the list of suite's names
 	var element catalogElement
 	var c = 0
 	for _, url := range urls {
-		fmt.Println(url)
-		testName := getTestFromURL(url, baseDomain)
+		// testName := getTestFromURL(url, baseDomain)
+		testName := identifier.XformToGinkgoItIdentifier(identifier.Identifier{URL: url})
+
 		if testName == "" {
 			return nil
 		}
