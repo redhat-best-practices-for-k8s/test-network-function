@@ -30,6 +30,7 @@ import (
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/clusterrolebinding"
 	containerpkg "github.com/test-network-function/test-network-function/pkg/tnf/handlers/container"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/rolebinding"
+	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
 	"github.com/test-network-function/test-network-function/pkg/tnf/testcases"
 	"github.com/test-network-function/test-network-function/pkg/utils"
@@ -66,6 +67,7 @@ var _ = ginkgo.Describe(common.AccessControlTestKey, func() {
 		})
 
 		ginkgo.ReportAfterEach(results.RecordResult)
+		ginkgo.AfterEach(env.CloseLocalShellContext)
 
 		testNamespace(env)
 
@@ -114,7 +116,7 @@ func runTestOnPods(env *config.TestEnvironment, testCmd testcases.BaseTestCase, 
 	const noContainerIdx = -1
 	testID := identifiers.XformToGinkgoItIdentifierExtended(identifiers.TestHostResourceIdentifier, testCmd.Name)
 	ginkgo.It(testID, func() {
-		context := common.GetContext()
+		context := env.GetLocalShellContext()
 		failedTcs := map[string][]failedTcInfo{} // maps a pod name to a slice of failed TCs
 		for _, podUnderTest := range env.PodsUnderTest {
 			podName := podUnderTest.Name
@@ -186,14 +188,14 @@ func runTestOnPods(env *config.TestEnvironment, testCmd testcases.BaseTestCase, 
 	})
 }
 
-func getCrsNamespaces(crdName, crdKind string) (map[string]string, error) {
+func getCrsNamespaces(crdName, crdKind string, context *interactive.Context) (map[string]string, error) {
 	const expectedNumFields = 2
 	const crNameFieldIdx = 0
 	const namespaceFieldIdx = 0
 
 	gomega.Expect(crdKind).NotTo(gomega.BeEmpty())
 	getCrNamespaceCommand := fmt.Sprintf(ocGetCrNamespaceFormat, crdKind)
-	cmdOut := utils.ExecuteCommandAndValidate(getCrNamespaceCommand, common.DefaultTimeout, common.GetContext(), func() {
+	cmdOut := utils.ExecuteCommandAndValidate(getCrNamespaceCommand, common.DefaultTimeout, context, func() {
 		common.TcClaimLogPrintf("CRD %s: Failed to get CRs (kind=%s)", crdName, crdKind)
 	})
 
@@ -216,15 +218,15 @@ func getCrsNamespaces(crdName, crdKind string) (map[string]string, error) {
 	return crNamespaces, nil
 }
 
-func testCrsNamespaces(crNames, configNamespaces []string) map[string][]string {
+func testCrsNamespaces(crNames, configNamespaces []string, context *interactive.Context) map[string][]string {
 	invalidCrs := map[string][]string{}
 	for _, crdName := range crNames {
 		getCrPluralNameCommand := fmt.Sprintf(ocGetCrPluralNameFormat, crdName)
-		crdPluralName := utils.ExecuteCommandAndValidate(getCrPluralNameCommand, common.DefaultTimeout, common.GetContext(), func() {
+		crdPluralName := utils.ExecuteCommandAndValidate(getCrPluralNameCommand, common.DefaultTimeout, context, func() {
 			common.TcClaimLogPrintf("CRD %s: Failed to get CR plural name.", crdName)
 		})
 
-		crNamespaces, err := getCrsNamespaces(crdName, crdPluralName)
+		crNamespaces, err := getCrsNamespaces(crdName, crdPluralName, context)
 		if err != nil {
 			ginkgo.Fail(fmt.Sprintf("Failed to get CRs for CRD %s - Error: %v", crdName, err))
 		}
@@ -284,7 +286,7 @@ func testNamespace(env *config.TestEnvironment) {
 			}
 
 			ginkgo.By(fmt.Sprintf("CRs from autodiscovered CRDs should belong to the configured namespaces: %v", env.NameSpacesUnderTest))
-			invalidCrs := testCrsNamespaces(env.CrdNames, env.NameSpacesUnderTest)
+			invalidCrs := testCrsNamespaces(env.CrdNames, env.NameSpacesUnderTest, env.GetLocalShellContext())
 
 			if invalidCrsNum := len(invalidCrs); invalidCrsNum > 0 {
 				for crdName, crs := range invalidCrs {
@@ -336,7 +338,7 @@ func testAutomountService(env *config.TestEnvironment) {
 			podNamespace := podUnderTest.Namespace
 			serviceAccountName := podUnderTest.ServiceAccount
 			gomega.Expect(serviceAccountName).ToNot(gomega.BeEmpty())
-			context := common.GetContext()
+			context := env.GetLocalShellContext()
 			tester := automountservice.NewAutomountService(automountservice.WithNamespace(podNamespace), automountservice.WithServiceAccount(serviceAccountName))
 			test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 			gomega.Expect(err).To(gomega.BeNil())
@@ -393,7 +395,7 @@ func testRoleBindings(env *config.TestEnvironment) {
 			podName := podUnderTest.Name
 			podNamespace := podUnderTest.Namespace
 			serviceAccountName := podUnderTest.ServiceAccount
-			context := common.GetContext()
+			context := env.GetLocalShellContext()
 			ginkgo.By(fmt.Sprintf("Testing role binding  %s %s", podNamespace, podName))
 			if serviceAccountName == "" {
 				ginkgo.Skip("Can not test when serviceAccountName is empty. Please check previous tests for failures")
@@ -426,7 +428,7 @@ func testClusterRoleBindings(env *config.TestEnvironment) {
 			podName := podUnderTest.Name
 			podNamespace := podUnderTest.Namespace
 			serviceAccountName := podUnderTest.ServiceAccount
-			context := common.GetContext()
+			context := env.GetLocalShellContext()
 			ginkgo.By(fmt.Sprintf("Testing cluster role binding  %s %s", podNamespace, podName))
 			if serviceAccountName == "" {
 				ginkgo.Skip("Can not test when serviceAccountName is empty. Please check previous tests for failures")
