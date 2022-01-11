@@ -1,4 +1,4 @@
-// Copyright (C) 2020-2021 Red Hat, Inc.
+// Copyright (C) 2020-2022 Red Hat, Inc.
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -309,7 +309,7 @@ func testServiceAccount(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestPodServiceAccountBestPracticesIdentifier)
 	ginkgo.It(testID, func() {
 		ginkgo.By("Should have a valid ServiceAccount name")
-		failedPods := []configsections.Pod{}
+		failedPods := []*configsections.Pod{}
 		for _, podUnderTest := range env.PodsUnderTest {
 			ginkgo.By(fmt.Sprintf("Testing service account for pod %s (ns: %s)", podUnderTest.Name, podUnderTest.Namespace))
 			if podUnderTest.ServiceAccount == "" {
@@ -387,7 +387,7 @@ func testAutomountService(env *config.TestEnvironment) {
 func testRoleBindings(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestPodRoleBindingsBestPracticesIdentifier)
 	ginkgo.It(testID, func() {
-		failedPods := []configsections.Pod{}
+		failedPods := []*configsections.Pod{}
 		ginkgo.By("Should not have RoleBinding in other namespaces")
 		for _, podUnderTest := range env.PodsUnderTest {
 			podName := podUnderTest.Name
@@ -421,7 +421,7 @@ func testClusterRoleBindings(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestPodClusterRoleBindingsBestPracticesIdentifier)
 	ginkgo.It(testID, func() {
 		ginkgo.By("Should not have ClusterRoleBindings")
-		failedPods := []configsections.Pod{}
+		failedPods := []*configsections.Pod{}
 		for _, podUnderTest := range env.PodsUnderTest {
 			podName := podUnderTest.Name
 			podNamespace := podUnderTest.Namespace

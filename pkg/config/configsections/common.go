@@ -1,4 +1,4 @@
-// Copyright (C) 2020-2021 Red Hat, Inc.
+// Copyright (C) 2020-2022 Red Hat, Inc.
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -67,7 +67,7 @@ type TestConfiguration struct {
 // TestPartner contains the helper containers that can be used to facilitate tests
 type TestPartner struct {
 	// DebugPods
-	ContainersDebugList []ContainerConfig `yaml:"debugContainers,omitempty" json:"debugContainers,omitempty"`
+	ContainersDebugList []Container `yaml:"debugContainers,omitempty" json:"debugContainers,omitempty"`
 }
 
 // TestTarget is a collection of resources under test
@@ -77,12 +77,12 @@ type TestTarget struct {
 	// StateFulSetUnderTest is the list of statefulset that contain pods under test.
 	StateFulSetUnderTest []PodSet `yaml:"stateFulSetUnderTest" json:"stateFulSetUnderTest"`
 	// PodsUnderTest is the list of the pods that needs to be tested. Each entry is a single pod to be tested.
-	PodsUnderTest []Pod `yaml:"podsUnderTest,omitempty" json:"podsUnderTest,omitempty"`
+	PodsUnderTest []*Pod `yaml:"podsUnderTest,omitempty" json:"podsUnderTest,omitempty"`
 	// NonValidPods contains a list of pods that share the same labels with Pods Under Test
 	// without belonging to namespaces under test
-	NonValidPods []Pod
+	NonValidPods []*Pod
 	// ContainerConfigList is the list of containers that needs to be tested.
-	ContainerConfigList []ContainerConfig `yaml:"containersUnderTest" json:"containersUnderTest"`
+	ContainerList []Container `yaml:"containersUnderTest" json:"containersUnderTest"`
 	// ExcludeContainersFromConnectivityTests excludes specific containers from network connectivity tests.  This is particularly useful for containers that don't have ping available.
 	ExcludeContainersFromConnectivityTests []ContainerIdentifier `yaml:"excludeContainersFromConnectivityTests" json:"excludeContainersFromConnectivityTests"`
 	// Operator is the list of operator objects that needs to be tested.

@@ -40,11 +40,9 @@ func TestGetMasterAndWorkerNodeName(t *testing.T) {
 						Node: configsections.Node{
 							Labels: []string{configsections.MasterLabel},
 						},
-						DebugContainer: &config.Container{
-							ContainerConfig: configsections.ContainerConfig{
-								ContainerIdentifier: configsections.ContainerIdentifier{
-									PodName: "debugTest",
-								},
+						DebugContainer: &configsections.Container{
+							ContainerIdentifier: configsections.ContainerIdentifier{
+								PodName: "debugTest",
 							},
 						},
 					},
@@ -61,11 +59,9 @@ func TestGetMasterAndWorkerNodeName(t *testing.T) {
 						Node: configsections.Node{
 							Labels: []string{configsections.WorkerLabel},
 						},
-						DebugContainer: &config.Container{
-							ContainerConfig: configsections.ContainerConfig{
-								ContainerIdentifier: configsections.ContainerIdentifier{
-									PodName: "debugTest",
-								},
+						DebugContainer: &configsections.Container{
+							ContainerIdentifier: configsections.ContainerIdentifier{
+								PodName: "debugTest",
 							},
 						},
 					},
@@ -97,11 +93,9 @@ func TestGetMasterAndWorkerNodeName(t *testing.T) {
 						Node: configsections.Node{
 							Labels: []string{configsections.WorkerLabel},
 						},
-						DebugContainer: &config.Container{
-							ContainerConfig: configsections.ContainerConfig{
-								ContainerIdentifier: configsections.ContainerIdentifier{
-									PodName: "debugTest",
-								},
+						DebugContainer: &configsections.Container{
+							ContainerIdentifier: configsections.ContainerIdentifier{
+								PodName: "debugTest",
 							},
 						},
 					},
@@ -118,11 +112,9 @@ func TestGetMasterAndWorkerNodeName(t *testing.T) {
 						Node: configsections.Node{
 							Labels: []string{configsections.MasterLabel},
 						},
-						DebugContainer: &config.Container{
-							ContainerConfig: configsections.ContainerConfig{
-								ContainerIdentifier: configsections.ContainerIdentifier{
-									PodName: "debugTest",
-								},
+						DebugContainer: &configsections.Container{
+							ContainerIdentifier: configsections.ContainerIdentifier{
+								PodName: "debugTest",
 							},
 						},
 					},

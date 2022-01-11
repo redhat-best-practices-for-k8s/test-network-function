@@ -22,20 +22,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestBuildContainersFromPodResource(t *testing.T) {
+func TestBuildContainers(t *testing.T) {
 	subjectPod := loadPodResource(testSubjectFilePath)
-	subjectContainers := buildContainersFromPodResource(&subjectPod)
+	subjectContainers := buildContainers(&subjectPod)
 	assert.Equal(t, 1, len(subjectContainers))
 
 	assert.Equal(t, "tnf", subjectContainers[0].Namespace)
 	assert.Equal(t, "I'mAPodName", subjectContainers[0].PodName)
 	assert.Equal(t, "I'mAContainer", subjectContainers[0].ContainerName)
-
-	// Check correct order of precedence for network devices
-	assert.Equal(t, "eth0", subjectContainers[0].DefaultNetworkDevice)
-
-	// test-network-function.com/multusips should be used for the test subject container.
-	assert.Equal(t, 2, len(subjectContainers[0].MultusIPAddressesPerNet))
-	assert.Equal(t, "3.3.3.3", subjectContainers[0].MultusIPAddressesPerNet["default/macvlan-conf1"][0])
-	assert.Equal(t, "4.4.4.4", subjectContainers[0].MultusIPAddressesPerNet["default/macvlan-conf2"][0])
 }

@@ -1,4 +1,4 @@
-// Copyright (C) 2020-2021 Red Hat, Inc.
+// Copyright (C) 2020-2022 Red Hat, Inc.
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -28,6 +28,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/test-network-function/test-network-function/pkg/config"
+	"github.com/test-network-function/test-network-function/pkg/config/configsections"
 	"github.com/test-network-function/test-network-function/pkg/tnf/testcases"
 
 	"github.com/test-network-function/test-network-function/test-network-function/common"
@@ -168,7 +169,7 @@ func testIsRedHatRelease(env *config.TestEnvironment) {
 }
 
 // testContainerIsRedHatRelease tests whether the container attached to oc is Red Hat based.
-func testContainerIsRedHatRelease(cut *config.Container) {
+func testContainerIsRedHatRelease(cut *configsections.Container) {
 	podName := cut.GetOc().GetPodName()
 	containerName := cut.GetOc().GetPodContainerName()
 	context := cut.GetOc()
@@ -498,9 +499,8 @@ func getNodeNumaHugePages(node *config.NodeConfig) (hugepages numaHugePagesPerSi
 	const numRegexFields = 4
 
 	// This command must run inside the node, so we'll need the node's context to run commands inside the debug daemonset pod.
-	context := interactive.NewContext(node.DebugContainer.GetOc().GetExpecter(), node.DebugContainer.GetOc().GetErrorChannel())
 	var commandErr error
-	hugepagesCmdOut := utils.ExecuteCommandAndValidate(cmd, commandTimeout, context, func() {
+	hugepagesCmdOut := utils.ExecuteCommandAndValidate(cmd, commandTimeout, node.DebugContainer.GetOc().Context, func() {
 		commandErr = fmt.Errorf("failed to get node %s hugepages per numa", node.Name)
 	})
 	if commandErr != nil {
