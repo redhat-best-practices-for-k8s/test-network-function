@@ -8,6 +8,14 @@ The catalog for test-network-function contains a variety of `Test Cases`, as wel
 ## Test Case Catalog
 
 Test Cases are the specifications used to perform a meaningful test.  Test cases may run once, or several times against several targets.  CNF Certification includes a number of normative and informative tests to ensure CNFs follow best practices.  Here is the list of available Test Cases:
+operator
+platform-alteration
+access-control
+affiliated-certification
+diagnostic
+lifecycle
+networking
+observability
 
 ### operator
 
@@ -409,46 +417,7 @@ Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/site
 
 ## Test Case Building Blocks Catalog
 
-A number of Test Case Building Blocks, or `tnf.Test`s, are included out of the box.  This is a summary of the available implementations:http://test-network-function.com/tests/automountservice
-http://test-network-function.com/tests/clusterVersion
-http://test-network-function.com/tests/clusterrolebinding
-http://test-network-function.com/tests/command
-http://test-network-function.com/tests/container/pod
-http://test-network-function.com/tests/crdStatusExistence
-http://test-network-function.com/tests/csiDriver
-http://test-network-function.com/tests/currentKernelCmdlineArgs
-http://test-network-function.com/tests/daemonset
-http://test-network-function.com/tests/deploymentsdrain
-http://test-network-function.com/tests/deploymentsnodes
-http://test-network-function.com/tests/generic/cnf_fs_diff
-http://test-network-function.com/tests/generic/version
-http://test-network-function.com/tests/gracePeriod
-http://test-network-function.com/tests/grubKernelCmdlineArgs
-http://test-network-function.com/tests/imagepullpolicy
-http://test-network-function.com/tests/ipaddr
-http://test-network-function.com/tests/logging
-http://test-network-function.com/tests/mckernelarguments
-http://test-network-function.com/tests/node/uncordon
-http://test-network-function.com/tests/nodedebug
-http://test-network-function.com/tests/nodemcname
-http://test-network-function.com/tests/nodenames
-http://test-network-function.com/tests/nodeport
-http://test-network-function.com/tests/nodes
-http://test-network-function.com/tests/nodeselector
-http://test-network-function.com/tests/nodetainted
-http://test-network-function.com/tests/operator
-http://test-network-function.com/tests/operator/check-subscription
-http://test-network-function.com/tests/owners
-http://test-network-function.com/tests/ping
-http://test-network-function.com/tests/podnodename
-http://test-network-function.com/tests/podsets
-http://test-network-function.com/tests/rolebinding
-http://test-network-function.com/tests/scaling
-http://test-network-function.com/tests/shutdown
-http://test-network-function.com/tests/sysctlAllConfigsArgs
-http://test-network-function.com/tests/sysctlConfigFilesList
-http://test-network-function.com/tests/testPodHighAvailability
-### automountservice
+A number of Test Case Building Blocks, or `tnf.Test`s, are included out of the box.  This is a summary of the available implementations:### automountservice
 
 
 Property|Description
@@ -504,12 +473,12 @@ Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|
 
-### container/pod
+### container-pod
 
 
 Property|Description
 ---|---
-Test Name|container/pod
+Test Name|container-pod
 Url|http://test-network-function.com/tests/container/pod
 Version|v1.0.0
 Description|A container-specific test suite used to verify various aspects of the underlying container.
@@ -602,12 +571,12 @@ Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`oc`, `grep`
 
-### generic/cnf_fs_diff
+### generic-cnf_fs_diff
 
 
 Property|Description
 ---|---
-Test Name|generic/cnf_fs_diff
+Test Name|generic-cnf_fs_diff
 Url|http://test-network-function.com/tests/generic/cnf_fs_diff
 Version|v1.0.0
 Description|A test used to check if there were no installation during container runtime
@@ -616,12 +585,12 @@ Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`grep`, `cut`
 
-### generic/version
+### generic-version
 
 
 Property|Description
 ---|---
-Test Name|generic/version
+Test Name|generic-version
 Url|http://test-network-function.com/tests/generic/version
 Version|v1.0.0
 Description|A generic test used to determine if a target container/machine is based on RHEL.
@@ -714,12 +683,12 @@ Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`oc`, `jq`, `echo`
 
-### node/uncordon
+### node-uncordon
 
 
 Property|Description
 ---|---
-Test Name|node/uncordon
+Test Name|node-uncordon
 Url|http://test-network-function.com/tests/node/uncordon
 Version|v1.0.0
 Description|A generic test used to uncordon a node
@@ -840,12 +809,12 @@ Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`jq`, `oc`
 
-### operator/check-subscription
+### operator-check-subscription
 
 
 Property|Description
 ---|---
-Test Name|operator/check-subscription
+Test Name|operator-check-subscription
 Url|http://test-network-function.com/tests/operator/check-subscription
 Version|v1.0.0
 Description|A test used to check the subscription of a given operator
