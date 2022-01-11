@@ -170,6 +170,7 @@ type TestEnvironment struct {
 	NameSpacesUnderTest  []string
 	CrdNames             []string
 	NodesUnderTest       map[string]*NodeConfig
+	Csi                  []configsections.Csi
 
 	// ContainersToExcludeFromConnectivityTests is a set used for storing the containers that should be excluded from
 	// connectivity testing.
@@ -287,6 +288,7 @@ func (env *TestEnvironment) doAutodiscover() {
 	}
 	env.DeploymentsUnderTest = env.Config.DeploymentsUnderTest
 	env.StateFulSetUnderTest = env.Config.StateFulSetUnderTest
+	env.Csi = env.Config.Csi
 	env.OperatorsUnderTest = env.Config.Operators
 	env.CrdNames = autodiscover.FindTestCrdNames(env.Config.CrdFilters)
 

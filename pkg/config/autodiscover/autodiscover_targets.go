@@ -91,6 +91,28 @@ func FindTestTarget(labels []configsections.Label, target *configsections.TestTa
 	stateFulSet := FindTestPodSetsByLabel(labels, target, string(configsections.StateFulSet))
 	target.StateFulSetUnderTest = appendPodsets(stateFulSet, ns)
 	target.Nodes = GetNodesList()
+	target.Csi = getCsi()
+}
+func getCsi() (csiset []configsections.Csi) {
+	csilist, err := GetTargetCsi()
+	if err != nil {
+		log.Error("Unable to get csi list  Error: ", err)
+		return nil
+	}
+	for _, csi := range csilist {
+		if csi != "" {
+			org, pack := getpackageandorg(csi)
+			csiconf := configsections.Csi{
+				Name:         csi,
+				Organization: org,
+				Packag:       pack,
+			}
+
+			csiset = append(csiset, csiconf)
+		}
+
+	}
+	return csiset
 }
 
 // func for appending the pod sets

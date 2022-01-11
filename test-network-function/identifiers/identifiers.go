@@ -120,6 +120,11 @@ var (
 		Url:     formTestURL(common.AffiliatedCertTestKey, "operator-is-certified"),
 		Version: versionOne,
 	}
+	// TestCSIOperatorIsCertifiedIdentifier tests that an Operator has passed Operator certification.
+	TestCSIOperatorIsCertifiedIdentifier = claim.Identifier{
+		Url:     formTestURL(common.AffiliatedCertTestKey, "operator-csi-is-certified"),
+		Version: versionOne,
+	}
 	// TestOperatorIsInstalledViaOLMIdentifier tests that an Operator is installed via OLM.
 	TestOperatorIsInstalledViaOLMIdentifier = claim.Identifier{
 		Url:     formTestURL(common.OperatorTestKey, "install-source"),
@@ -388,6 +393,14 @@ with no resourceNames under its rules.`),
 		Type:        normativeResult,
 		Remediation: `Ensure that your Operator has passed Red Hat's Operator Certification Program (OCP).`,
 		Description: formDescription(TestOperatorIsCertifiedIdentifier,
+			`tests whether CNF Operators listed in the configuration file have passed the Red Hat Operator Certification Program (OCP).`),
+		BestPracticeReference: bestPracticeDocV1dot2URL + " Section 6.2.12 and Section 6.3.3",
+	},
+	TestCSIOperatorIsCertifiedIdentifier: {
+		Identifier:  TestCSIOperatorIsCertifiedIdentifier,
+		Type:        normativeResult,
+		Remediation: `Ensure that your Operator has passed Red Hat's Operator Certification Program (OCP).`,
+		Description: formDescription(TestCSIOperatorIsCertifiedIdentifier,
 			`tests whether CNF Operators listed in the configuration file have passed the Red Hat Operator Certification Program (OCP).`),
 		BestPracticeReference: bestPracticeDocV1dot2URL + " Section 6.2.12 and Section 6.3.3",
 	},

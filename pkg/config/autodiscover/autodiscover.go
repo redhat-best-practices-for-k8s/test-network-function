@@ -37,7 +37,7 @@ const (
 	anyLabelValue    = ""
 	ocCommand        = "oc get %s -n %s -o json -l %s"
 	ocAllCommand     = "oc get %s -A -o json -l %s"
-	ocCommandTimeOut = time.Second * 10
+	ocCommandTimeOut = time.Second * 50
 )
 
 var (

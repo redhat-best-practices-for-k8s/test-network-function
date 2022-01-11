@@ -23,6 +23,7 @@ import (
 	"github.com/onsi/ginkgo"
 	log "github.com/sirupsen/logrus"
 	"github.com/test-network-function/test-network-function/internal/api"
+	"github.com/test-network-function/test-network-function/pkg/config"
 	configpkg "github.com/test-network-function/test-network-function/pkg/config"
 	"github.com/test-network-function/test-network-function/pkg/config/configsections"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
@@ -51,6 +52,7 @@ var _ = ginkgo.Describe(common.AffiliatedCertTestKey, func() {
 
 		testContainerCertificationStatus()
 		testOperatorCertificationStatus()
+		testCSICertified(env)
 	}
 })
 
@@ -157,6 +159,47 @@ func testOperatorCertificationStatus() {
 				if !isCertified {
 					tnf.ClaimFilePrintf("Operator %s (organization %s) failed to be certified.", operator.Name, operator.Organization)
 					failedOperators = append(failedOperators, operator)
+				} else {
+					log.Info(fmt.Sprintf("Operator %s (organization %s) certified OK.", operator.Name, operator.Organization))
+				}
+			}
+			if allOperatorsToQueryEmpty {
+				ginkgo.Skip("No operators to check because either operator name or organization is empty for all operators in tnf_config.yml")
+			}
+
+			if n := len(failedOperators); n > 0 {
+				log.Warnf("Operators that failed to be certified: %+v", failedOperators)
+				ginkgo.Fail(fmt.Sprintf("%d operators failed to be certified.", n))
+			}
+		}
+	})
+}
+
+func testCSICertified(env *config.TestEnvironment) {
+	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestCSIOperatorIsCertifiedIdentifier)
+	ginkgo.It(testID, func() {
+		csioperatorsToQuery := env.Csi
+
+		if len(csioperatorsToQuery) == 0 {
+			ginkgo.Skip("No CSI operators to check configured ")
+		}
+
+		ginkgo.By(fmt.Sprintf("Verify operator as certified. Number of operators to check: %d", len(operatorsToQuery)))
+		if len(csioperatorsToQuery) > 0 {
+			certAPIClient = api.NewHTTPClient()
+			var failedOperators []string
+			allOperatorsToQueryEmpty := true
+			for _, operator := range csioperatorsToQuery {
+				if operator.Packag == "" || operator.Organization == "" {
+					tnf.ClaimFilePrintf("Operator name = \"%s\" or organization = \"%s\" is missing, skipping this operator to query", operator.Name, operator.Organization)
+					continue
+				}
+				allOperatorsToQueryEmpty = false
+				ginkgo.By(fmt.Sprintf("Should eventually be verified as certified (operator %s/%s)", operator.Organization, operator.Packag))
+				isCertified := waitForCertificationRequestToSuccess(getOperatorCertificationRequestFunction(operator.Organization, operator.Packag), apiRequestTimeout)
+				if !isCertified {
+					tnf.ClaimFilePrintf("Operator %s (organization %s) failed to be certified.", operator.Packag, operator.Organization)
+					failedOperators = append(failedOperators, operator.Name)
 				} else {
 					log.Info(fmt.Sprintf("Operator %s (organization %s) certified OK.", operator.Name, operator.Organization))
 				}
