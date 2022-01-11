@@ -261,6 +261,24 @@ func XformToGinkgoItIdentifierExtended(identifier claim.Identifier, extra string
 	return key
 }
 
+// it extracts the suite name and test name from a claim.Identifier based
+// on the const url which contains a base domain
+// From a claim.Identifier.url:
+//   http://test-network-function.com/tests-case/SuitName/TestName
+// It extracts SuitNAme and TestName
+
+func GetSuiteAndTestFromIdentifier(identifier claim.Identifier) []string {
+	result := strings.Split(identifier.Url, url+"/")
+	const SPLITN = 2
+	// len 2, the baseDomain can appear only once in the url
+	// so it returns what you have previous and before basedomain
+	if len(result) != SPLITN {
+		return nil
+	}
+	suiteTest := strings.Split(result[1], "/")
+	return suiteTest
+}
+
 // Catalog is the JUnit testcase catalog of tests.
 var Catalog = map[claim.Identifier]TestCaseDescription{
 

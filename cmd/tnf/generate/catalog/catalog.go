@@ -121,42 +121,6 @@ func emitTextFromFile(filename string) error {
 	return nil
 }
 
-// it extracts the suite name and test name from an url such as
-// http://test-network-function.com/tests-case/SuitName/TestName
-
-func getSuiteAndTestFromURL(url, baseDomain string) []string {
-	result := strings.Split(url, baseDomain)
-	const SPLITN = 2
-	// len 2, the baseDomain can appear only once in the url
-	// so it returns what you have previous and before basedomain
-
-	if len(result) > SPLITN {
-		fmt.Fprintf(os.Stderr, "Identifier Url not valid\n")
-		return nil
-	}
-
-	suiteTest := strings.Split(result[1], "/")
-	return suiteTest
-}
-
-// it extracts the test name and test name from an url such as
-// http://test-network-function.com/tests/TestName
-
-func getTestFromURL(url, baseDomain string) string {
-	const SPLITN = 2
-	// len 2, the baseDomain can appear only once in the url
-	// so it returns what you have previous and before basedomain
-
-	result := strings.Split(url, baseDomain)
-	// len 2, because returns [0] before baseDomain and [1] after baseDomain
-	if len(result) > SPLITN {
-		fmt.Fprintf(os.Stderr, "Identifier Url not valid\n")
-		return ""
-	}
-	testName := result[1]
-	return testName
-}
-
 // it turns a list of identifiers
 // { url, version  }
 // and takes urls like http://test-network-function.com/testcases/SuiteName/TestName
@@ -166,16 +130,14 @@ func getTestFromURL(url, baseDomain string) string {
 //     suiteNameB: [testName3 [identifiers], testName4 [identifiers] ]
 // }
 func createPrintableCatalogFromIdentifiers(keys []claim.Identifier) map[string][]catalogElement {
-	baseDomain := identifiers.TestIDBaseDomain + "/"
-
 	catalog := make(map[string][]catalogElement)
 	// we need the list of suite's names
 	var element catalogElement
 
 	for _, i := range keys {
-		suiteTest := getSuiteAndTestFromURL(i.Url, baseDomain)
-		//suiteTest := identifiers.XformToGinkgoItIdentifier(i)
+		suiteTest := identifiers.GetSuiteAndTestFromIdentifier(i)
 		if suiteTest == nil {
+			fmt.Fprintf(os.Stderr, "Identifier Url not valid\n")
 			return nil
 		}
 		suiteName := suiteTest[0]
@@ -194,15 +156,11 @@ func createPrintableCatalogFromIdentifiers(keys []claim.Identifier) map[string][
 //     1: [testName3 [identifiers], testName4 [identifiers] ]
 // }
 func createPrintableCatalogFromUrls(urls []string) map[int][]catalogElement {
-	// baseDomain := identifier.TestIDBaseDomain + "/"
-
 	catalog := make(map[int][]catalogElement)
 	var element catalogElement
 	var c = 0
 	for _, url := range urls {
-		// testName := getTestFromURL(url, baseDomain)
 		testName := identifier.XformToGinkgoItIdentifier(identifier.Identifier{URL: url})
-
 		if testName == "" {
 			return nil
 		}
@@ -215,14 +173,14 @@ func createPrintableCatalogFromUrls(urls []string) map[int][]catalogElement {
 }
 
 func getSuitesFromIdentifiers(keys []claim.Identifier) []string {
-	baseDomain := identifiers.TestIDBaseDomain + "/"
 	var suites []string
 
 	for _, i := range keys {
-		suiteTest := getSuiteAndTestFromURL(i.Url, baseDomain)
+		suiteTest := identifiers.GetSuiteAndTestFromIdentifier(i)
 		suiteName := suiteTest[0]
 		suites = append(suites, suiteName)
 	}
+
 	return Unique(suites)
 }
 
@@ -237,6 +195,7 @@ func Unique(slice []string) []string {
 	uniqSlice := make([]string, 0, len(uniqMap))
 	for v := range uniqMap {
 		uniqSlice = append(uniqSlice, v)
+		fmt.Println(v)
 	}
 	return uniqSlice
 }
