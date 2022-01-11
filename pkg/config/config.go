@@ -120,6 +120,29 @@ type TestEnvironment struct {
 	loaded bool
 	// set when an intrusive test has done something that would cause Pod/Container to be recreated
 	needsRefresh bool
+	// context for executing command in local shell
+	localShell *interactive.Context
+}
+
+func (env *TestEnvironment) GetLocalShellContext() *interactive.Context {
+	if env.localShell == nil {
+		context, err := interactive.SpawnShell(interactive.CreateGoExpectSpawner(), DefaultTimeout, interactive.Verbose(expectersVerboseModeEnabled), interactive.SendTimeout(DefaultTimeout))
+		gomega.Expect(err).To(gomega.BeNil())
+		gomega.Expect(context).ToNot(gomega.BeNil())
+		gomega.Expect(context.GetExpecter()).ToNot(gomega.BeNil())
+		env.localShell = context
+	}
+	return env.localShell
+}
+
+func (env *TestEnvironment) CloseLocalShellContext() {
+	if env.localShell != nil {
+		err := (*env.localShell.GetExpecter()).Close()
+		if err != nil {
+			log.Warnf("Failed to close local shell context due to %v", err)
+		}
+		env.localShell = nil
+	}
 }
 
 // loadConfigFromFile loads a config file once.
