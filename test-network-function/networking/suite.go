@@ -51,6 +51,11 @@ const (
 	indexport           = 4
 )
 
+type key struct {
+	port     int
+	protocol string
+}
+
 // netTestContext this is a data structure describing a network test context for a given subnet (e.g. network attachment)
 // The test context defines a tester or test initiator, that is initiating the pings. It is selected randomly (first container in the list)
 // It also defines a list of destination ping targets corresponding to the other containers IPs on this subnet
@@ -336,11 +341,12 @@ func testNodePort(env *config.TestEnvironment) {
 		}
 	})
 }
-
-func getDeclaredPortList(container int, podName, podNamespace string, declaredPort map[int]string) map[int]string {
+func parseVariable(res string, declaredPorts map[key]string) {
+	var k key
+	if res == "" {
+		return
+	}
 	protocolName, port, name := "", "", ""
-	ocCommandToExecute := fmt.Sprintf(commandportdeclared, podName, podNamespace, container)
-	res, _ := utils.ExecuteCommand(ocCommandToExecute, ocCommandTimeOut, interactive.GetContext(false))
 	x := strings.Split(res, "\n")
 	for _, i := range x {
 		if strings.Contains(i, "containerPort") {
@@ -363,32 +369,48 @@ func getDeclaredPortList(container int, podName, podNamespace string, declaredPo
 		p, _ := strconv.Atoi(strings.TrimSpace(port))
 		name = strings.TrimSpace(strings.ReplaceAll(name, "\"", ""))
 		protocolName = strings.TrimSpace(strings.ReplaceAll(protocolName, "\"", ""))
-		declaredPort[p] = name + " " + protocolName
+		k.port, k.protocol = p, strings.ToUpper(protocolName)
+		declaredPorts[k] = name
 		port, name, protocolName = "", "", ""
 	}
-	return declaredPort
+}
+func declaredPortList(container int, podName, podNamespace string, declaredPorts map[key]string) {
+	ocCommandToExecute := fmt.Sprintf(commandportdeclared, podName, podNamespace, container)
+	res, _ := utils.ExecuteCommand(ocCommandToExecute, ocCommandTimeOut, interactive.GetContext(false))
+	if res == "" {
+		return
+	}
+	parseVariable(res, declaredPorts)
 }
 
-func getListeningPortList(commandlisten []string, nodeOc *interactive.Context, listeningPort map[int]string) map[int]string {
+func listeningPortList(commandlisten []string, nodeOc *interactive.Context, listeningPort map[key]string) {
+	var k key
 	listeningPortCommand := strings.Join(commandlisten, " ")
 	fmt.Println(listeningPortCommand)
 	res, _ := utils.ExecuteCommand(listeningPortCommand, ocCommandTimeOut, nodeOc)
+	if res == "" {
+		return
+	}
 	lines := strings.Split(res, "\n")
 	for _, line := range lines {
 		fields := strings.Fields(line)
 		if indexprotocolname > len(fields) || indexport > len(fields) {
-			return listeningPort
+			return
 		}
 		s := strings.Split(fields[indexport], ":")
 		p, _ := strconv.Atoi(s[1])
-		listeningPort[p] = fields[indexprotocolname]
+		k.port = p
+		k.protocol = strings.ToUpper(fields[indexprotocolname])
+		listeningPort[k] = ""
 	}
-	return listeningPort
 }
 
-func checkIfListenIsDeclared(listeningPort, declaredPort map[int]string) bool {
-	for k := range listeningPort {
-		_, ok := declaredPort[k]
+func checkIfListenIsDeclared(listeningPorts, declaredPorts map[key]string) bool {
+	if len(listeningPorts) == 0 || len(declaredPorts) == 0 {
+		return false
+	}
+	for k := range listeningPorts {
+		_, ok := declaredPorts[k]
 		if !ok {
 			return false
 		}
@@ -397,14 +419,14 @@ func checkIfListenIsDeclared(listeningPort, declaredPort map[int]string) bool {
 }
 
 func testListenAndDeclared(env *config.TestEnvironment) {
-	declaredPort := make(map[int]string)
-	listeningPort := make(map[int]string)
+	declaredPorts := make(map[key]string)
+	listeningPorts := make(map[key]string)
 	var x *configsections.Container
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestServicesDoNotUseNodeportsIdentifier)
 	ginkgo.It(testID, func() {
 		for _, podUnderTest := range env.PodsUnderTest {
 			for i := 0; i < podUnderTest.ContainerCount; i++ {
-				declaredPort = getDeclaredPortList(i, podUnderTest.Name, podUnderTest.Namespace, declaredPort)
+				declaredPortList(i, podUnderTest.Name, podUnderTest.Namespace, declaredPorts)
 			}
 
 			nodeName := podnodename.NewPodNodeName(common.DefaultTimeout, podUnderTest.Name, podUnderTest.Namespace)
@@ -423,11 +445,11 @@ func testListenAndDeclared(env *config.TestEnvironment) {
 
 			commandlisten := []string{utils.AddNsenterPrefix(containerPID), commandportlisten}
 
-			listeningPort = getListeningPortList(commandlisten, nodeOc.Context, listeningPort)
+			listeningPortList(commandlisten, nodeOc.Context, listeningPorts)
 			// compare between declaredPort,listeningPort and return the common.
-			res := checkIfListenIsDeclared(listeningPort, declaredPort)
+			res := checkIfListenIsDeclared(listeningPorts, declaredPorts)
 			if !res {
-				ginkgo.Fail("TC failed.")
+				ginkgo.Fail("TC failed : port is listening but not declared.")
 			}
 		}
 	})
