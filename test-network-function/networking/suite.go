@@ -341,7 +341,7 @@ func testNodePort(env *config.TestEnvironment) {
 		}
 	})
 }
-func parseVariable(res string, declaredPorts map[key]string) {
+func parseVariables(res string, declaredPorts map[key]string) {
 	var k key
 	if res == "" {
 		return
@@ -380,7 +380,7 @@ func declaredPortList(container int, podName, podNamespace string, declaredPorts
 	if res == "" {
 		return
 	}
-	parseVariable(res, declaredPorts)
+	parseVariables(res, declaredPorts)
 }
 
 func listeningPortList(commandlisten []string, nodeOc *interactive.Context, listeningPort map[key]string) {
