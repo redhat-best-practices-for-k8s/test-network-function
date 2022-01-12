@@ -644,6 +644,7 @@ the changes for you.`,
 		Type:       normativeResult,
 		Description: formDescription(TestPodAutomountServiceAccountIdentifier,
 			`check that all pods under test have automountServiceAccountToken set to false`),
-		Remediation: `check that pod has automountServiceAccountToken set to false or pod is attached to service account which has automountServiceAccountToken set to false`,
+		Remediation:           `check that pod has automountServiceAccountToken set to false or pod is attached to service account which has automountServiceAccountToken set to false`,
+		BestPracticeReference: bestPracticeDocV1dot2URL + " Section 13.7",
 	},
 }
