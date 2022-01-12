@@ -23,7 +23,6 @@ import (
 	"github.com/onsi/ginkgo"
 	log "github.com/sirupsen/logrus"
 	"github.com/test-network-function/test-network-function/internal/api"
-	"github.com/test-network-function/test-network-function/pkg/config"
 	configpkg "github.com/test-network-function/test-network-function/pkg/config"
 	"github.com/test-network-function/test-network-function/pkg/config/configsections"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
@@ -175,7 +174,7 @@ func testOperatorCertificationStatus() {
 	})
 }
 
-func testCSICertified(env *config.TestEnvironment) {
+func testCSICertified(env *configpkg.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestCSIOperatorIsCertifiedIdentifier)
 	ginkgo.It(testID, func() {
 		csioperatorsToQuery := env.Csi

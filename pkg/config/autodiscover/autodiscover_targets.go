@@ -107,10 +107,8 @@ func getCsi() (csiset []configsections.Csi) {
 				Organization: org,
 				Packag:       pack,
 			}
-
 			csiset = append(csiset, csiconf)
 		}
-
 	}
 	return csiset
 }
