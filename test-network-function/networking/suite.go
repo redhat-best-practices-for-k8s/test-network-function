@@ -430,7 +430,7 @@ func testListenAndDeclared(env *config.TestEnvironment) {
 			}
 
 			nodeName := podnodename.NewPodNodeName(common.DefaultTimeout, podUnderTest.Name, podUnderTest.Namespace)
-			context := common.GetContext()
+			context := env.GetLocalShellContext()
 			test, err := tnf.NewTest(context.GetExpecter(), nodeName, []reel.Handler{nodeName}, context.GetErrorChannel())
 			gomega.Expect(err).To(gomega.BeNil())
 			test.RunAndValidate()
