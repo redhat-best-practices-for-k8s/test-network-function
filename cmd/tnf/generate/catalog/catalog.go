@@ -121,13 +121,18 @@ func emitTextFromFile(filename string) error {
 	return nil
 }
 
-// it turns a list of identifiers
-// { url, version  }
-// and takes urls like http://test-network-function.com/testcases/SuiteName/TestName
-// to build a more structured catalogue
+// createPrintableCatalogFromIdentifiers creates an structured catalogue.
+// Decompose claim.Identifier urls like http://test-network-function.com/testcases/SuiteName/TestName
+// to get SuiteNames and TestNames and build a "more printable" catalogue in the way of:
 // {
-//     suiteNameA: [testName [identifiers], testName2 [identifiers] ]
-//     suiteNameB: [testName3 [identifiers], testName4 [identifiers] ]
+//     suiteNameA: [
+//					{testName, identifier{url, version}},
+//					{testName2, identifier{url, version}}
+//                ]
+//     suiteNameB: [
+//					{testName3, identifier{url, version}},
+//					{testName4, identifier{url, version}}
+//                ]
 // }
 func createPrintableCatalogFromIdentifiers(keys []claim.Identifier) map[string][]catalogElement {
 	catalog := make(map[string][]catalogElement)
@@ -148,11 +153,12 @@ func createPrintableCatalogFromIdentifiers(keys []claim.Identifier) map[string][
 	return catalog
 }
 
-// it turns a list of urls http://test-network-function.com/tests/TestName
-// to build a more structured catalogue
+// createPrintableCatalogFromUrls creates an structured catalogue.
+// Decompose urls like http://test-network-function.com/tests/TestName
+// to get Tesnames and build a "more printable" catalogue in the way of:
 // {
-//     0: [testName [identifiers], testName2 [identifiers] ]
-//     1: [testName3 [identifiers], testName4 [identifiers] ]
+//     0: {testName, identifier{url, version}},
+//	   1: {testName2, identifier{url, version}}
 // }
 func createPrintableCatalogFromUrls(urls []string) map[int][]catalogElement {
 	catalog := make(map[int][]catalogElement)
