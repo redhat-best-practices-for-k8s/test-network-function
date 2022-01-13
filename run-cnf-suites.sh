@@ -99,7 +99,7 @@ echo "Running with label filter '$LABEL'"
 echo "Report will be output to '$OUTPUT_LOC'"
 echo "ginkgo arguments '${GINKGO_ARGS}'"
 SKIP_STRING=""
-LABLE_STRING=""
+LABEL_STRING=""
 if [ -n "$SKIP" ]; then
 	SKIP_STRING=-ginkgo.skip="$SKIP"
 fi
