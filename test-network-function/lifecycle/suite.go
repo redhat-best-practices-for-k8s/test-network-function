@@ -408,7 +408,10 @@ func testGracePeriod(env *config.TestEnvironment) {
 		if numPods > 0 {
 			log.Debugf("Pods found without terminationGracePeriodSeconds param set: %+v", badPods)
 		}
-		ginkgo.Fail(fmt.Sprintf("Found %d deployments, %d statefulsets and %d pods without terminationGracePeriodSeconds param set.", numDeps, numSts, numPods))
+
+		if numDeps > 0 || numSts > 0 || numPods > 0 {
+			ginkgo.Fail(fmt.Sprintf("Found %d deployments, %d statefulsets and %d pods without terminationGracePeriodSeconds param set.", numDeps, numSts, numPods))
+		}
 	})
 }
 
