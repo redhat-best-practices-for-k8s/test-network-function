@@ -70,7 +70,7 @@ var _ = ginkgo.Describe(common.ObservabilityTestKey, func() {
 
 func testLogging() {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestLoggingIdentifier)
-	ginkgo.It(testID, func() {
+	ginkgo.It(testID, ginkgo.Label(testID), func() {
 		failedCutIds := []*configsections.ContainerIdentifier{}
 		for _, cut := range env.ContainersUnderTest {
 			cutIdentifier := &cut.ContainerIdentifier
@@ -107,7 +107,7 @@ func testLogging() {
 
 func testCrds() {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestCrdsStatusSubresourceIdentifier)
-	ginkgo.It(testID, func() {
+	ginkgo.It(testID, ginkgo.Label(testID), func() {
 		ginkgo.By("CRDs should have a status subresource")
 		context := env.GetLocalShellContext()
 		failedCrds := []string{}

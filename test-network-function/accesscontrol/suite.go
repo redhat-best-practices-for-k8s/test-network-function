@@ -115,7 +115,7 @@ func addFailedTcInfo(failedTcs map[string][]failedTcInfo, tc, pod, ns string, co
 func runTestOnPods(env *config.TestEnvironment, testCmd testcases.BaseTestCase, testType string) {
 	const noContainerIdx = -1
 	testID := identifiers.XformToGinkgoItIdentifierExtended(identifiers.TestHostResourceIdentifier, testCmd.Name)
-	ginkgo.It(testID, func() {
+	ginkgo.It(testID, ginkgo.Label(testID), func() {
 		context := env.GetLocalShellContext()
 		failedTcs := map[string][]failedTcInfo{} // maps a pod name to a slice of failed TCs
 		for _, podUnderTest := range env.PodsUnderTest {
@@ -258,7 +258,7 @@ func testCrsNamespaces(crNames, configNamespaces []string, context *interactive.
 func testNamespace(env *config.TestEnvironment) {
 	ginkgo.When("test CNF namespaces", func() {
 		testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestNamespaceBestPracticesIdentifier)
-		ginkgo.It(testID, func() {
+		ginkgo.It(testID, ginkgo.Label(testID), func() {
 			ginkgo.By(fmt.Sprintf("CNF resources' namespaces should not have any of the following prefixes: %v", invalidNamespacePrefixes))
 			var failedNamespaces []string
 			for _, namespace := range env.NameSpacesUnderTest {
@@ -309,7 +309,7 @@ func testRoles(env *config.TestEnvironment) {
 
 func testServiceAccount(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestPodServiceAccountBestPracticesIdentifier)
-	ginkgo.It(testID, func() {
+	ginkgo.It(testID, ginkgo.Label(testID), func() {
 		ginkgo.By("Should have a valid ServiceAccount name")
 		failedPods := []*configsections.Pod{}
 		for _, podUnderTest := range env.PodsUnderTest {
@@ -329,7 +329,7 @@ func testServiceAccount(env *config.TestEnvironment) {
 //nolint:funlen
 func testAutomountService(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestPodAutomountServiceAccountIdentifier)
-	ginkgo.It(testID, func() {
+	ginkgo.It(testID, ginkgo.Label(testID), func() {
 		ginkgo.By("Should have automountServiceAccountToken set to false")
 		msg := []string{}
 		for _, podUnderTest := range env.PodsUnderTest {
@@ -387,7 +387,7 @@ func testAutomountService(env *config.TestEnvironment) {
 
 func testRoleBindings(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestPodRoleBindingsBestPracticesIdentifier)
-	ginkgo.It(testID, func() {
+	ginkgo.It(testID, ginkgo.Label(testID), func() {
 		failedPods := []*configsections.Pod{}
 		ginkgo.By("Should not have RoleBinding in other namespaces")
 		for _, podUnderTest := range env.PodsUnderTest {
@@ -419,7 +419,7 @@ func testRoleBindings(env *config.TestEnvironment) {
 
 func testClusterRoleBindings(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestPodClusterRoleBindingsBestPracticesIdentifier)
-	ginkgo.It(testID, func() {
+	ginkgo.It(testID, ginkgo.Label(testID), func() {
 		ginkgo.By("Should not have ClusterRoleBindings")
 		failedPods := []*configsections.Pod{}
 		for _, podUnderTest := range env.PodsUnderTest {

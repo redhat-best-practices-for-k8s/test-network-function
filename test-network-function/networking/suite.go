@@ -202,7 +202,7 @@ func runNetworkingTests(netsUnderTest map[string]netTestContext, count int) map[
 func testDefaultNetworkConnectivity(env *config.TestEnvironment, count int) {
 	ginkgo.When("Testing Default network connectivity", func() {
 		testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestICMPv4ConnectivityIdentifier)
-		ginkgo.It(testID, func() {
+		ginkgo.It(testID, ginkgo.Label(testID), func() {
 			netsUnderTest := make(map[string]netTestContext)
 			for _, pod := range env.PodsUnderTest {
 				// The first container is used to get the network namespace
@@ -231,7 +231,7 @@ func testDefaultNetworkConnectivity(env *config.TestEnvironment, count int) {
 func testMultusNetworkConnectivity(env *config.TestEnvironment, count int) {
 	ginkgo.When("Testing Multus network connectivity", func() {
 		testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestICMPv4ConnectivityIdentifier)
-		ginkgo.It(testID, func() {
+		ginkgo.It(testID, ginkgo.Label(testID), func() {
 			netsUnderTest := make(map[string]netTestContext)
 			for _, pod := range env.PodsUnderTest {
 				// The first container is used to get the network namespace
@@ -301,7 +301,7 @@ func testPing(initiatingPodNodeOc *interactive.Oc, sourceContainerID *configsect
 
 func testNodePort(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestServicesDoNotUseNodeportsIdentifier)
-	ginkgo.It(testID, func() {
+	ginkgo.It(testID, ginkgo.Label(testID), func() {
 		badNamespaces := []string{}
 		context := env.GetLocalShellContext()
 		for _, ns := range env.NameSpacesUnderTest {
