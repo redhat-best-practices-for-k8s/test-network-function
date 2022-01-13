@@ -99,6 +99,7 @@ var _ = ginkgo.Describe(common.LifecycleTestKey, func() {
 		})
 
 		ginkgo.ReportAfterEach(results.RecordResult)
+		ginkgo.AfterEach(env.CloseLocalShellContext)
 
 		testImagePolicy(env)
 
@@ -121,12 +122,12 @@ var _ = ginkgo.Describe(common.LifecycleTestKey, func() {
 	}
 })
 
-func waitForAllPodSetsReady(namespace string, timeout, pollingPeriod time.Duration, resourceType configsections.PodSetType) int { //nolint:unparam // it is fine to use always the same value for timeout
+func waitForAllPodSetsReady(namespace string, timeout, pollingPeriod time.Duration, resourceType configsections.PodSetType, context *interactive.Context) int { //nolint:unparam // it is fine to use always the same value for timeout
 	var elapsed time.Duration
 	var notReadyPodSets []string
 
 	for elapsed < timeout {
-		_, notReadyPodSets = GetPodSets(namespace, resourceType)
+		_, notReadyPodSets = GetPodSets(namespace, resourceType, context)
 		log.Debugf("Waiting for %s to get ready, remaining: %d PodSets", string(resourceType), len(notReadyPodSets))
 		if len(notReadyPodSets) == 0 {
 			break
@@ -154,18 +155,18 @@ func restoreStateFulSet(env *config.TestEnvironment) {
 }
 
 func refreshReplicas(podset *configsections.PodSet, env *config.TestEnvironment) {
-	podsets, notReadyPodsets := GetPodSets(podset.Namespace, podset.Type)
+	podsets, notReadyPodsets := GetPodSets(podset.Namespace, podset.Type, env.GetLocalShellContext())
 
 	if len(notReadyPodsets) > 0 {
 		// Wait until the deployment/replicaset is ready
-		notReady := waitForAllPodSetsReady(podset.Namespace, scalingTimeout, scalingPollingPeriod, podset.Type)
+		notReady := waitForAllPodSetsReady(podset.Namespace, scalingTimeout, scalingPollingPeriod, podset.Type, env.GetLocalShellContext())
 		if notReady != 0 {
-			collectNodeAndPendingPodInfo(podset.Namespace)
+			collectNodeAndPendingPodInfo(podset.Namespace, env.GetLocalShellContext())
 			log.Fatalf("Could not restore %s replicaCount for namespace %s.", string(podset.Type), podset.Namespace)
 		}
 	}
 	if podset.Hpa.HpaName != "" { // it have hpa and need to update the max min
-		runHpaScalingTest(podset)
+		runHpaScalingTest(podset, env.GetLocalShellContext())
 	}
 	key := podset.Namespace + ":" + podset.Name
 	dep, ok := podsets[key]
@@ -174,7 +175,7 @@ func refreshReplicas(podset *configsections.PodSet, env *config.TestEnvironment)
 			log.Warn(string(podset.Type), podset.Name, " replicaCount (", podset.Replicas, ") needs to be restored.")
 
 			// Try to scale to the original deployments/statefulsets replicaCount.
-			runScalingTest(podset)
+			runScalingTest(podset, env.GetLocalShellContext())
 
 			env.SetNeedsRefresh()
 		}
@@ -194,30 +195,30 @@ func closeOcSessionsByPodset(containers map[configsections.ContainerIdentifier]*
 }
 
 // runScalingTest Runs a Scaling handler TC and waits for all the deployments/statefulset to be ready.
-func runScalingTest(podset *configsections.PodSet) {
+func runScalingTest(podset *configsections.PodSet, context *interactive.Context) {
 	handler := scaling.NewScaling(common.DefaultTimeout, podset.Namespace, podset.Name, string(podset.Type), podset.Replicas)
-	test, err := tnf.NewTest(common.GetContext().GetExpecter(), handler, []reel.Handler{handler}, common.GetContext().GetErrorChannel())
+	test, err := tnf.NewTest(context.GetExpecter(), handler, []reel.Handler{handler}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
 	test.RunAndValidate()
 
 	// Wait until the deployment/statefulset is ready
-	notReady := waitForAllPodSetsReady(podset.Namespace, scalingTimeout, scalingPollingPeriod, podset.Type)
+	notReady := waitForAllPodSetsReady(podset.Namespace, scalingTimeout, scalingPollingPeriod, podset.Type, context)
 	if notReady != 0 {
-		collectNodeAndPendingPodInfo(podset.Namespace)
+		collectNodeAndPendingPodInfo(podset.Namespace, context)
 		ginkgo.Fail(fmt.Sprintf("Failed to scale deployment for namespace %s.", podset.Namespace))
 	}
 }
 
-func runHpaScalingTest(podset *configsections.PodSet) {
+func runHpaScalingTest(podset *configsections.PodSet, context *interactive.Context) {
 	handler := scaling.NewHpaScaling(common.DefaultTimeout, podset.Namespace, podset.Hpa.HpaName, podset.Hpa.MinReplicas, podset.Hpa.MaxReplicas)
-	test, err := tnf.NewTest(common.GetContext().GetExpecter(), handler, []reel.Handler{handler}, common.GetContext().GetErrorChannel())
+	test, err := tnf.NewTest(context.GetExpecter(), handler, []reel.Handler{handler}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
 	test.RunAndValidate()
 
 	// Wait until the deployment/statefulset is ready
-	notReady := waitForAllPodSetsReady(podset.Namespace, scalingTimeout, scalingPollingPeriod, podset.Type)
+	notReady := waitForAllPodSetsReady(podset.Namespace, scalingTimeout, scalingPollingPeriod, podset.Type, context)
 	if notReady != 0 {
-		collectNodeAndPendingPodInfo(podset.Namespace)
+		collectNodeAndPendingPodInfo(podset.Namespace, context)
 		ginkgo.Fail(fmt.Sprintf("Failed to auto-scale %s for namespace %s.", string(podset.Type), podset.Namespace))
 	}
 }
@@ -262,18 +263,18 @@ func runScalingfunc(podset *configsections.PodSet, env *config.TestEnvironment) 
 	if podsetscale.Hpa.HpaName != "" {
 		podsetscale.Hpa.MinReplicas = replicaCount - 1
 		podsetscale.Hpa.MaxReplicas = replicaCount - 1
-		runHpaScalingTest(&podsetscale) // scale in
+		runHpaScalingTest(&podsetscale, env.GetLocalShellContext()) // scale in
 		podsetscale.Hpa.MinReplicas = replicaCount
 		podsetscale.Hpa.MaxReplicas = replicaCount
-		runHpaScalingTest(&podsetscale) // scale out
+		runHpaScalingTest(&podsetscale, env.GetLocalShellContext()) // scale out
 	} else {
 		// ScaleIn, removing one pod from the replicaCount
 		podsetscale.Replicas = replicaCount - 1
-		runScalingTest(&podsetscale)
+		runScalingTest(&podsetscale, env.GetLocalShellContext())
 
 		// Scaleout, restoring the original replicaCount number
 		podsetscale.Replicas = replicaCount
-		runScalingTest(&podsetscale)
+		runScalingTest(&podsetscale, env.GetLocalShellContext())
 	}
 }
 
@@ -281,7 +282,7 @@ func testNodeSelector(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestPodNodeSelectorAndAffinityBestPractices)
 	ginkgo.It(testID, func() {
 		ginkgo.By("Testing pod nodeSelector")
-		context := common.GetContext()
+		context := env.GetLocalShellContext()
 		for _, podUnderTest := range env.PodsUnderTest {
 			podName := podUnderTest.Name
 			podNamespace := podUnderTest.Namespace
@@ -389,7 +390,7 @@ func testGracePeriod(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestNonDefaultGracePeriodIdentifier)
 	ginkgo.It(testID, func() {
 		ginkgo.By("Test terminationGracePeriod")
-		context := common.GetContext()
+		context := env.GetLocalShellContext()
 
 		badDeployments := testTerminationGracePeriodOnPodSet(env.DeploymentsUnderTest, context)
 		badStatefulsets := testTerminationGracePeriodOnPodSet(env.StateFulSetUnderTest, context)
@@ -420,7 +421,7 @@ func testShutdown(env *config.TestEnvironment) {
 			podName := podUnderTest.Name
 			podNamespace := podUnderTest.Namespace
 			ginkgo.By(fmt.Sprintf("should have pre-stop configured %s/%s", podNamespace, podName))
-			passed := shutdownTest(podNamespace, podName)
+			passed := shutdownTest(podNamespace, podName, env.GetLocalShellContext())
 			if !passed {
 				failedPods = append(failedPods, podUnderTest)
 			}
@@ -432,9 +433,8 @@ func testShutdown(env *config.TestEnvironment) {
 	})
 }
 
-func shutdownTest(podNamespace, podName string) bool {
+func shutdownTest(podNamespace, podName string, context *interactive.Context) bool {
 	passed := true
-	context := common.GetContext()
 	values := make(map[string]interface{})
 	values["POD_NAMESPACE"] = podNamespace
 	values["POD_NAME"] = podName
@@ -455,16 +455,16 @@ func shutdownTest(podNamespace, podName string) bool {
 }
 
 func cleanupNodeDrain(env *config.TestEnvironment, nodeName string) {
-	uncordonNode(nodeName)
+	uncordonNode(nodeName, env.GetLocalShellContext())
 	for _, ns := range env.NameSpacesUnderTest {
-		notReady := waitForAllPodSetsReady(ns, scalingTimeout, scalingPollingPeriod, configsections.Deployment)
+		notReady := waitForAllPodSetsReady(ns, scalingTimeout, scalingPollingPeriod, configsections.Deployment, env.GetLocalShellContext())
 		if notReady != 0 {
-			collectNodeAndPendingPodInfo(ns)
+			collectNodeAndPendingPodInfo(ns, env.GetLocalShellContext())
 			log.Fatalf("Cleanup after node drain for %s failed, stopping tests to ensure cluster integrity", nodeName)
 		}
-		notReadyStateFulSets := waitForAllPodSetsReady(ns, scalingTimeout, scalingPollingPeriod, configsections.StateFulSet)
+		notReadyStateFulSets := waitForAllPodSetsReady(ns, scalingTimeout, scalingPollingPeriod, configsections.StateFulSet, env.GetLocalShellContext())
 		if notReadyStateFulSets != 0 {
-			collectNodeAndPendingPodInfo(ns)
+			collectNodeAndPendingPodInfo(ns, env.GetLocalShellContext())
 			ginkgo.Fail(fmt.Sprintf("Cleanup after node drain for %s failed, stopping tests to ensure cluster integrity", nodeName))
 		}
 	}
@@ -476,16 +476,16 @@ func testNodeDrain(env *config.TestEnvironment, nodeName string) {
 	// and all podsets(deployments/statefulset) are ready
 	defer cleanupNodeDrain(env, nodeName)
 	// drain node
-	drainNode(nodeName)
+	drainNode(nodeName, env.GetLocalShellContext())
 	for _, ns := range env.NameSpacesUnderTest {
-		notReadyDeployments := waitForAllPodSetsReady(ns, scalingTimeout, scalingPollingPeriod, configsections.Deployment)
+		notReadyDeployments := waitForAllPodSetsReady(ns, scalingTimeout, scalingPollingPeriod, configsections.Deployment, env.GetLocalShellContext())
 		if notReadyDeployments != 0 {
-			collectNodeAndPendingPodInfo(ns)
+			collectNodeAndPendingPodInfo(ns, env.GetLocalShellContext())
 			ginkgo.Fail(fmt.Sprintf("Failed to recover deployments on namespace %s after draining node %s.", ns, nodeName))
 		}
-		notReadyStateFulSets := waitForAllPodSetsReady(ns, scalingTimeout, scalingPollingPeriod, configsections.StateFulSet)
+		notReadyStateFulSets := waitForAllPodSetsReady(ns, scalingTimeout, scalingPollingPeriod, configsections.StateFulSet, env.GetLocalShellContext())
 		if notReadyStateFulSets != 0 {
-			collectNodeAndPendingPodInfo(ns)
+			collectNodeAndPendingPodInfo(ns, env.GetLocalShellContext())
 			ginkgo.Fail(fmt.Sprintf("Failed to recover statefulsets on namespace %s after draining node %s.", ns, nodeName))
 		}
 	}
@@ -506,11 +506,11 @@ func testPodsRecreation(env *config.TestEnvironment) {
 		for _, ns := range env.NameSpacesUnderTest {
 			var dps ps.PodSetMap
 			var sfs ps.PodSetMap
-			dps, notReadyDeployments = GetPodSets(ns, configsections.Deployment)
+			dps, notReadyDeployments = GetPodSets(ns, configsections.Deployment, env.GetLocalShellContext())
 			for dpKey, dp := range dps {
 				deployments[dpKey] = dp
 			}
-			sfs, notReadyStatefulsets = GetPodSets(ns, configsections.StateFulSet)
+			sfs, notReadyStatefulsets = GetPodSets(ns, configsections.StateFulSet, env.GetLocalShellContext())
 			for sfKey, sf := range sfs {
 				statefulsets[sfKey] = sf
 			}
@@ -538,8 +538,7 @@ func testPodsRecreation(env *config.TestEnvironment) {
 }
 
 // GetPodSets returns map of podsets(deployments/statefulset) and names of not-ready podsets
-func GetPodSets(namespace string, resourceType configsections.PodSetType) (podsets ps.PodSetMap, notReadypodsets []string) {
-	context := common.GetContext()
+func GetPodSets(namespace string, resourceType configsections.PodSetType, context *interactive.Context) (podsets ps.PodSetMap, notReadypodsets []string) {
 	tester := ps.NewPodSets(common.DefaultTimeout, namespace, string(resourceType))
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
@@ -558,9 +557,7 @@ func GetPodSets(namespace string, resourceType configsections.PodSetType) (podse
 	return podsets, notReadypodsets
 }
 
-func collectNodeAndPendingPodInfo(ns string) {
-	context := common.GetContext()
-
+func collectNodeAndPendingPodInfo(ns string, context *interactive.Context) {
 	nodeStatus, _ := utils.ExecuteCommand("oc get nodes -o json | jq '.items[]|{name:.metadata.name, taints:.spec.taints}'", common.DefaultTimeout, context)
 	common.TcClaimLogPrintf("Namespace: %s\nNode status:\n%s", ns, nodeStatus)
 
@@ -573,8 +570,7 @@ func collectNodeAndPendingPodInfo(ns string) {
 	common.TcClaimLogPrintf("Events:\n%s", events)
 }
 
-func drainNode(node string) {
-	context := common.GetContext()
+func drainNode(node string, context *interactive.Context) {
 	tester := dd.NewDeploymentsDrain(drainTimeout, node)
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
@@ -584,8 +580,7 @@ func drainNode(node string) {
 	}
 }
 
-func uncordonNode(node string) {
-	context := common.GetContext()
+func uncordonNode(node string, context *interactive.Context) {
 	values := make(map[string]interface{})
 	values["NODE"] = node
 	tester, handlers := utils.NewGenericTesterAndValidate(relativeNodesTestPath, common.RelativeSchemaPath, values)
@@ -609,15 +604,14 @@ func testPodAntiAffinity(env *config.TestEnvironment) {
 			for _, deployment := range env.DeploymentsUnderTest {
 				ginkgo.By(fmt.Sprintf("Testing Pod AntiAffinity on Deployment=%s, Replicas=%d (ns=%s)",
 					deployment.Name, deployment.Replicas, deployment.Namespace))
-				podAntiAffinity(deployment.Name, deployment.Namespace, deployment.Replicas)
+				podAntiAffinity(deployment.Name, deployment.Namespace, deployment.Replicas, env.GetLocalShellContext())
 			}
 		})
 	})
 }
 
 // check pod antiaffinity definition for a deployment
-func podAntiAffinity(deployment, podNamespace string, replica int) {
-	context := common.GetContext()
+func podAntiAffinity(deployment, podNamespace string, replica int, context *interactive.Context) {
 	values := make(map[string]interface{})
 	values["DEPLOYMENT_NAME"] = deployment
 	values["DEPLOYMENT_NAMESPACE"] = podNamespace
@@ -642,7 +636,7 @@ func testOwner(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestPodDeploymentBestPracticesIdentifier)
 	ginkgo.It(testID, func() {
 		ginkgo.By("Testing owners of CNF pod, should be replicas Set")
-		context := common.GetContext()
+		context := env.GetLocalShellContext()
 		failedPods := []*configsections.Pod{}
 		for _, podUnderTest := range env.PodsUnderTest {
 			podName := podUnderTest.Name
@@ -670,7 +664,7 @@ func testOwner(env *config.TestEnvironment) {
 func testImagePolicy(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestImagePullPolicyIdentifier)
 	ginkgo.It(testID, func() {
-		context := common.GetContext()
+		context := env.GetLocalShellContext()
 		failedPods := []*configsections.Pod{}
 		for _, podUnderTest := range env.PodsUnderTest {
 			values := make(map[string]interface{})
