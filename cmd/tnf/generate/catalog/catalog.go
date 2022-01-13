@@ -132,8 +132,6 @@ func emitTextFromFile(filename string) error {
 func createPrintableCatalogFromIdentifiers(keys []claim.Identifier) map[string][]catalogElement {
 	catalog := make(map[string][]catalogElement)
 	// we need the list of suite's names
-	var element catalogElement
-
 	for _, i := range keys {
 		suiteTest := identifiers.GetSuiteAndTestFromIdentifier(i)
 		if suiteTest == nil {
@@ -142,11 +140,9 @@ func createPrintableCatalogFromIdentifiers(keys []claim.Identifier) map[string][
 		}
 		suiteName := suiteTest[0]
 		testName := suiteTest[1]
-		element.testName = testName
-		element.identifier = i
 		catalog[suiteName] = append(catalog[suiteName], catalogElement{
-		    testName: testName,
-		    identifier: i
+			testName:   testName,
+			identifier: i,
 		})
 	}
 	return catalog
@@ -160,22 +156,17 @@ func createPrintableCatalogFromIdentifiers(keys []claim.Identifier) map[string][
 // }
 func createPrintableCatalogFromUrls(urls []string) map[int][]catalogElement {
 	catalog := make(map[int][]catalogElement)
-	var element catalogElement
-	var c = 0
-	for _, url := range urls {
+	for i, url := range urls {
 		testName := identifier.XformToGinkgoItIdentifier(identifier.Identifier{URL: url})
 		if testName == "" {
 			return nil
 		}
-		element.testName = testName
-		element.identifier = claim.Identifier{Url: url}
-		catalog[c] = append(catalog[c], catalogElement{
-		   testName: testName,
-		   identifier: claim.Identifier{
-		      Url: url;
-		   }
+		catalog[i] = append(catalog[i], catalogElement{
+			testName: testName,
+			identifier: claim.Identifier{
+				Url: url,
+			},
 		})
-		c++
 	}
 	return catalog
 }
