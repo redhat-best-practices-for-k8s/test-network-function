@@ -437,10 +437,10 @@ func testClusterRoleBindings(env *config.TestEnvironment) {
 			test, err := tnf.NewTest(context.GetExpecter(), crbTester, []reel.Handler{crbTester}, context.GetErrorChannel())
 			gomega.Expect(err).To(gomega.BeNil())
 			test.RunWithCallbacks(nil, func() {
-				tnf.ClaimFilePrintf("FAILURE: Pod %s (ns: %s) clusterRoleBindings: %v", podName, podNamespace, crbTester.GetClusterRoleBindings())
+				tnf.ClaimFilePrintf("FAILURE: Pod: %s (ns: %s) SA: %s clusterRoleBindings: %v", podName, podNamespace, serviceAccountName, crbTester.GetClusterRoleBindings())
 				failedPods = append(failedPods, podUnderTest)
 			}, func(err error) {
-				tnf.ClaimFilePrintf("ERROR: Pod %s (ns: %s) clusterRoleBindings: %v, error: %v", podName, podNamespace, crbTester.GetClusterRoleBindings(), err)
+				tnf.ClaimFilePrintf("ERROR: Pod: %s (ns: %s) SA: %s clusterRoleBindings: %v, error: %v", podName, podNamespace, serviceAccountName, crbTester.GetClusterRoleBindings(), err)
 				failedPods = append(failedPods, podUnderTest)
 			})
 		}
