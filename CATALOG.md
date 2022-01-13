@@ -41,7 +41,7 @@ Version|v1.0.0
 Description|http://test-network-function.com/testcases/access-control/pod-automount-service-account-token check that all pods under test have automountServiceAccountToken set to false
 Result Type|normative
 Suggested Remediation|check that pod has automountServiceAccountToken set to false or pod is attached to service account which has automountServiceAccountToken set to false
-Best Practice Reference|
+Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 13.7
 ### http://test-network-function.com/testcases/access-control/pod-role-bindings
 
 Property|Description
