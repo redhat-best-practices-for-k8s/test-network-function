@@ -24,10 +24,10 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/spf13/cobra"
 	"github.com/test-network-function/test-network-function-claim/pkg/claim"
 	"github.com/test-network-function/test-network-function/test-network-function/identifiers"
 
-	"github.com/spf13/cobra"
 	"github.com/test-network-function/test-network-function/pkg/tnf/identifier"
 )
 
