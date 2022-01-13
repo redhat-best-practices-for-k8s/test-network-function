@@ -160,19 +160,19 @@ func createPrintableCatalogFromIdentifiers(keys []claim.Identifier) map[string][
 //     0: {testName, identifier{url, version}},
 //	   1: {testName2, identifier{url, version}}
 // }
-func createPrintableCatalogFromUrls(urls []string) map[int][]catalogElement {
-	catalog := make(map[int][]catalogElement)
+func createPrintableCatalogFromUrls(urls []string) map[int]catalogElement {
+	catalog := make(map[int]catalogElement)
 	for i, url := range urls {
 		testName := identifier.XformToGinkgoItIdentifier(identifier.Identifier{URL: url})
 		if testName == "" {
 			return nil
 		}
-		catalog[i] = append(catalog[i], catalogElement{
+		catalog[i] = catalogElement{
 			testName: testName,
 			identifier: claim.Identifier{
 				Url: url,
 			},
-		})
+		}
 	}
 	return catalog
 }
@@ -261,24 +261,23 @@ func outputTestCaseBuildingBlocks() {
 		return
 	}
 
-	for i := 0; i < len(catalog); i++ {
-		for _, k := range catalog[i] {
-			fmt.Fprintf(os.Stdout, "### %s\n", k.testName)
-			fmt.Println()
-			fmt.Println()
-			fmt.Println("Property|Description")
-			fmt.Println("---|---")
-			fmt.Fprintf(os.Stdout, "Test Name|%s\n", k.testName)
-			fmt.Fprintf(os.Stdout, "Url|%s\n", identifier.Catalog[k.identifier.Url].Identifier.URL)
-			fmt.Fprintf(os.Stdout, "Version|%s\n", identifier.Catalog[k.identifier.Url].Identifier.SemanticVersion)
-			fmt.Fprintf(os.Stdout, "Description|%s\n", identifier.Catalog[k.identifier.Url].Description)
-			fmt.Fprintf(os.Stdout, "Result Type|%s\n", identifier.Catalog[k.identifier.Url].Type)
-			fmt.Fprintf(os.Stdout, "Intrusive|%t\n", identifier.Catalog[k.identifier.Url].IntrusionSettings.ModifiesSystem)
-			fmt.Fprintf(os.Stdout, "Modifications Persist After Test|%t\n", identifier.Catalog[k.identifier.Url].IntrusionSettings.ModificationIsPersistent)
-			fmt.Fprintf(os.Stdout, "Runtime Binaries Required|%s\n", cmdJoin(identifier.Catalog[k.identifier.Url].BinaryDependencies, ", "))
-			fmt.Println()
-		}
+	for _, k := range catalog {
+		fmt.Fprintf(os.Stdout, "### %s\n", k.testName)
+		fmt.Println()
+		fmt.Println()
+		fmt.Println("Property|Description")
+		fmt.Println("---|---")
+		fmt.Fprintf(os.Stdout, "Test Name|%s\n", k.testName)
+		fmt.Fprintf(os.Stdout, "Url|%s\n", identifier.Catalog[k.identifier.Url].Identifier.URL)
+		fmt.Fprintf(os.Stdout, "Version|%s\n", identifier.Catalog[k.identifier.Url].Identifier.SemanticVersion)
+		fmt.Fprintf(os.Stdout, "Description|%s\n", identifier.Catalog[k.identifier.Url].Description)
+		fmt.Fprintf(os.Stdout, "Result Type|%s\n", identifier.Catalog[k.identifier.Url].Type)
+		fmt.Fprintf(os.Stdout, "Intrusive|%t\n", identifier.Catalog[k.identifier.Url].IntrusionSettings.ModifiesSystem)
+		fmt.Fprintf(os.Stdout, "Modifications Persist After Test|%t\n", identifier.Catalog[k.identifier.Url].IntrusionSettings.ModificationIsPersistent)
+		fmt.Fprintf(os.Stdout, "Runtime Binaries Required|%s\n", cmdJoin(identifier.Catalog[k.identifier.Url].BinaryDependencies, ", "))
+		fmt.Println()
 	}
+
 }
 
 // runGenerateMarkdownCmd generates a markdown test catalog.
