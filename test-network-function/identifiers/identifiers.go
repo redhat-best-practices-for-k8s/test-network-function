@@ -122,7 +122,7 @@ var (
 	}
 	// TestCSIOperatorIsCertifiedIdentifier tests that an CSI Operator has passed Operator certification.
 	TestCSIOperatorIsCertifiedIdentifier = claim.Identifier{
-		Url:     formTestURL(common.AffiliatedCertTestKey, "operator-csi-is-certified"),
+		Url:     formTestURL(common.AffiliatedCertTestKey, "csi-operator"),
 		Version: versionOne,
 	}
 	// TestOperatorIsInstalledViaOLMIdentifier tests that an Operator is installed via OLM.

@@ -49,7 +49,7 @@ func GetPackageandOrg(csi string) (packag, organization string) {
 
 // GetTargetCsi will return the csidriver list.
 func GetTargetCsi() ([]string, error) {
-	ocCmd := csicommand
+	ocCmd := csiCommand
 
 	out := execCommandOutput(ocCmd)
 
