@@ -184,9 +184,7 @@ func getSuitesFromIdentifiers(keys []claim.Identifier) []string {
 	var suites []string
 
 	for _, i := range keys {
-		suiteTest := identifiers.GetSuiteAndTestFromIdentifier(i)
-		suiteName := suiteTest[0]
-		suites = append(suites, suiteName)
+		suites = append(suites, identifiers.GetSuiteAndTestFromIdentifier(i)[0])
 	}
 
 	return Unique(suites)
