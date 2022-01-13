@@ -85,7 +85,7 @@ var _ = ginkgo.Describe(testSpecName, func() {
 // testOperatorsAreInstalledViaOLM ensures all configured operators have a proper OLM subscription.
 func testOperatorsAreInstalledViaOLM(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestOperatorIsInstalledViaOLMIdentifier)
-	ginkgo.It(testID, func() {
+	ginkgo.It(testID, ginkgo.Label(testID), func() {
 		badOperators := []configsections.Operator{}
 		for _, operatorInTest := range env.OperatorsUnderTest {
 			ginkgo.By(fmt.Sprintf("%s in namespace %s Should have a valid subscription", operatorInTest.SubscriptionName, operatorInTest.Namespace))
@@ -135,7 +135,7 @@ func itRunsTestsOnOperator(env *config.TestEnvironment) {
 //nolint:gocritic // ignore hugeParam error. Pointers to loop iterator vars are bad and `testCmd` is likely to be such.
 func runTestsOnOperator(env *config.TestEnvironment, testCase testcases.BaseTestCase) {
 	testID := identifiers.XformToGinkgoItIdentifierExtended(identifiers.TestOperatorInstallStatusIdentifier, testCase.Name)
-	ginkgo.It(testID, func() {
+	ginkgo.It(testID, ginkgo.Label(testID), func() {
 		badOperators := []configsections.Operator{}
 		for _, op := range env.OperatorsUnderTest {
 			if testCase.ExpectedType == testcases.Function {

@@ -44,9 +44,9 @@ func NewClusterRoleBinding(timeout time.Duration, serviceAccountName, podNamespa
 		timeout: timeout,
 		result:  tnf.ERROR,
 		args: []string{
-			"oc get clusterrolebindings -o custom-columns='NAME:metadata.name,SERVICE_ACCOUNTS:subjects[?(@.kind==\"ServiceAccount\")]' | grep -E '" +
+			"oc get clusterrolebindings -o custom-columns='NAME:metadata.name,SERVICE_ACCOUNTS:subjects[?(@.kind==\"ServiceAccount\")]' | grep -E ' name:" +
 				serviceAccountSubString +
-				"|SERVICE_ACCOUNTS'"},
+				" |SERVICE_ACCOUNTS'"},
 	}
 }
 

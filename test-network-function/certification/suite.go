@@ -91,7 +91,7 @@ func waitForCertificationRequestToSuccess(certificationRequestFunc func() bool, 
 func testContainerCertificationStatus() {
 	// Query API for certification status of listed containers
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestContainerIsCertifiedIdentifier)
-	ginkgo.It(testID, func() {
+	ginkgo.It(testID, ginkgo.Label(testID), func() {
 		env := configpkg.GetTestEnvironment()
 		containersToQuery := env.Config.CertifiedContainerInfo
 
@@ -135,7 +135,7 @@ func testContainerCertificationStatus() {
 //nolint:dupl
 func testOperatorCertificationStatus() {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestOperatorIsCertifiedIdentifier)
-	ginkgo.It(testID, func() {
+	ginkgo.It(testID, ginkgo.Label(testID), func() {
 		operatorsToQuery := configpkg.GetTestEnvironment().Config.CertifiedOperatorInfo
 
 		if len(operatorsToQuery) == 0 {
