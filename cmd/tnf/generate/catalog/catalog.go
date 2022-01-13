@@ -169,7 +169,12 @@ func createPrintableCatalogFromUrls(urls []string) map[int][]catalogElement {
 		}
 		element.testName = testName
 		element.identifier = claim.Identifier{Url: url}
-		catalog[c] = append(catalog[c], element)
+		catalog[c] = append(catalog[c], catalogElement{
+		   testName: testName,
+		   identifier: claim.Identifier{
+		      Url: url;
+		   }
+		})
 		c++
 	}
 	return catalog
