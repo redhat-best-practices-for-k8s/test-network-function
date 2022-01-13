@@ -385,7 +385,6 @@ func testAutomountService(env *config.TestEnvironment) {
 	})
 }
 
-//nolint: dupl // we could create a generic function for cluster and normal role bindings, but it would be large and full of ifs
 func testRoleBindings(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestPodRoleBindingsBestPracticesIdentifier)
 	ginkgo.It(testID, ginkgo.Label(testID), func() {
@@ -418,7 +417,6 @@ func testRoleBindings(env *config.TestEnvironment) {
 	})
 }
 
-//nolint: dupl // we could create a generic function for cluster and normal role bindings, but it would be large and full of ifs
 func testClusterRoleBindings(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestPodClusterRoleBindingsBestPracticesIdentifier)
 	ginkgo.It(testID, ginkgo.Label(testID), func() {
@@ -437,10 +435,10 @@ func testClusterRoleBindings(env *config.TestEnvironment) {
 			test, err := tnf.NewTest(context.GetExpecter(), crbTester, []reel.Handler{crbTester}, context.GetErrorChannel())
 			gomega.Expect(err).To(gomega.BeNil())
 			test.RunWithCallbacks(nil, func() {
-				tnf.ClaimFilePrintf("FAILURE: Pod %s (ns: %s) clusterRoleBindings: %v", podName, podNamespace, crbTester.GetClusterRoleBindings())
+				tnf.ClaimFilePrintf("FAILURE: Pod: %s (ns: %s) SA: %s clusterRoleBindings: %v", podName, podNamespace, serviceAccountName, crbTester.GetClusterRoleBindings())
 				failedPods = append(failedPods, podUnderTest)
 			}, func(err error) {
-				tnf.ClaimFilePrintf("ERROR: Pod %s (ns: %s) clusterRoleBindings: %v, error: %v", podName, podNamespace, crbTester.GetClusterRoleBindings(), err)
+				tnf.ClaimFilePrintf("ERROR: Pod: %s (ns: %s) SA: %s clusterRoleBindings: %v, error: %v", podName, podNamespace, serviceAccountName, crbTester.GetClusterRoleBindings(), err)
 				failedPods = append(failedPods, podUnderTest)
 			})
 		}
