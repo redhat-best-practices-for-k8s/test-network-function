@@ -101,7 +101,7 @@ func getCsi() (csiset []configsections.Csi) {
 	}
 	for _, csi := range csilist {
 		if csi != "" {
-			org, pack := getpackageandorg(csi)
+			pack, org := getpackageandorg(csi)
 			csiconf := configsections.Csi{
 				Name:         csi,
 				Organization: org,

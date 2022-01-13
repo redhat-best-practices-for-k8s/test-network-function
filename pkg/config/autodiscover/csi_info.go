@@ -13,14 +13,32 @@ var (
 )
 
 func getpackageandorg(csi string) (packag, organization string) {
-	orgpack := fmt.Sprintf("./get-csi-info.sh %s", csi)
-	out := execCommandOutput(orgpack)
-	packag = ""
-	organization = ""
+	command := fmt.Sprintf("oc get pods -A -o go-template='{{ range .items}}{{ $alllabels := .metadata.labels}}{{ $namespace := .metadata.namespace}}{{ range .spec.containers }}{{ range .args }}{{if eq . \"--driver-name=%s\"}}{{ range $label,$value := $alllabels}}{{if eq $label \"app.kubernetes.io/managed-by\"}}{{$value}} {{$namespace}}{{end}}{{end}}{{end}}{{end}}{{end}}{{end}}'", csi)
+	out := execCommandOutput(command)
+	operatorname := ""
+	namespace := ""
+	subscription := ""
 	if out != "" {
 		out := strings.Split(out, " ")
-		packag = out[0]
-		organization = out[1]
+		operatorname = out[0]
+		namespace = out[1]
+	}
+	command = fmt.Sprintf("oc get deployment %s -n %s -o go-template='{{ range $label,$value := .metadata.labels}}{{$label}}{{print \"\n\"}}{{end}}' |grep \"operators.coreos.com\"| sed \"s#operators.coreos.com/##g\"", operatorname, namespace)
+	out = execCommandOutput(command)
+	if out != "" {
+		operatorname = out
+	}
+	command = fmt.Sprintf("oc get operator %s -o go-template='{{ range .status.components.refs }}{{if eq .kind \"Subscription\"}}{{.name}}{{end}}{{end}}'", operatorname)
+	out = execCommandOutput(command)
+	if out != "" {
+		subscription = out
+	}
+	command = fmt.Sprintf("oc get subscription -n %s %s -o go-template='{{.spec.source}} {{.spec.name}}'", namespace, subscription)
+	out = execCommandOutput(command)
+	if out != "" {
+		out := strings.Split(out, " ")
+		organization = out[0]
+		packag = out[1]
 	}
 	return packag, organization
 }
