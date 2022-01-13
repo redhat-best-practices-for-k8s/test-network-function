@@ -177,7 +177,7 @@ func testOperatorCertificationStatus() {
 
 func testCSICertified(env *configpkg.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestCSIOperatorIsCertifiedIdentifier)
-	ginkgo.It(testID, func() {
+	ginkgo.It(testID, ginkgo.Label(testID), func() {
 		csioperatorsToQuery := env.Csi
 
 		if len(csioperatorsToQuery) == 0 {
