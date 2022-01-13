@@ -145,6 +145,7 @@ var _ = ginkgo.Describe(common.PlatformAlterationTestKey, func() {
 			gomega.Expect(len(env.ContainersUnderTest)).ToNot(gomega.Equal(0))
 		})
 		ginkgo.ReportAfterEach(results.RecordResult)
+		ginkgo.AfterEach(env.CloseLocalShellContext)
 		// use this boolean to turn off tests that require OS packages
 		if !common.IsNonOcpCluster() {
 			testContainersFsDiff(env)
@@ -313,7 +314,7 @@ func getSysctlConfigArgs(context *interactive.Oc) map[string]string {
 func testBootParams(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestUnalteredStartupBootParamsIdentifier)
 	ginkgo.It(testID, func() {
-		context := common.GetContext()
+		context := env.GetLocalShellContext()
 		for _, cut := range env.ContainersUnderTest {
 			podName := cut.GetOc().GetPodName()
 			podNameSpace := cut.GetOc().GetPodNamespace()
@@ -348,13 +349,13 @@ func testSysctlConfigs(env *config.TestEnvironment) {
 		for _, podUnderTest := range env.PodsUnderTest {
 			podName := podUnderTest.Name
 			podNameSpace := podUnderTest.Namespace
-			testSysctlConfigsHelper(podName, podNameSpace)
+			testSysctlConfigsHelper(podName, podNameSpace, env.GetLocalShellContext())
 		}
 	})
 }
-func testSysctlConfigsHelper(podName, podNamespace string) {
+
+func testSysctlConfigsHelper(podName, podNamespace string, context *interactive.Context) {
 	ginkgo.By(fmt.Sprintf("Testing sysctl config files for the pod's node %s/%s", podNamespace, podName))
-	context := common.GetContext()
 	nodeName := getPodNodeName(context, podName, podNamespace)
 	env := config.GetTestEnvironment()
 	nodeOc := env.NodesUnderTest[nodeName].DebugContainer.GetOc()
@@ -537,11 +538,9 @@ func getNodeNumaHugePages(node *config.NodeConfig) (hugepages numaHugePagesPerSi
 }
 
 // getMachineConfig gets the machineconfig in json format does the unmarshalling.
-func getMachineConfig(mcName string) (machineConfig, error) {
+func getMachineConfig(mcName string, context *interactive.Context) (machineConfig, error) {
 	var commandErr error
 
-	// Local shell context is needed for the command handler.
-	context := common.GetContext()
 	mcJSON := utils.ExecuteCommandAndValidate(fmt.Sprintf("oc get mc %s -o json", mcName), commandTimeout, context, func() {
 		commandErr = fmt.Errorf("failed to get json machineconfig %s", mcName)
 	})
@@ -662,8 +661,8 @@ func testNodeHugepagesWithKernelArgs(nodeName string, nodeNumaHugePages numaHuge
 	return true, nil
 }
 
-func getNodeMachineConfig(nodeName string, machineconfigs map[string]machineConfig) machineConfig {
-	mcName := strings.Trim(getMcName(common.GetContext(), nodeName), "\"")
+func getNodeMachineConfig(nodeName string, machineconfigs map[string]machineConfig, context *interactive.Context) machineConfig {
+	mcName := strings.Trim(getMcName(context, nodeName), "\"")
 	log.Infof("Node %s is using machineconfig %s", nodeName, mcName)
 
 	if mc, exists := machineconfigs[mcName]; exists {
@@ -671,7 +670,7 @@ func getNodeMachineConfig(nodeName string, machineconfigs map[string]machineConf
 		return mc
 	}
 
-	mc, err := getMachineConfig(mcName)
+	mc, err := getMachineConfig(mcName, context)
 	if err != nil {
 		ginkgo.Fail(fmt.Sprintf("Unable to unmarshal mc %s from node %s", mcName, nodeName))
 	}
@@ -699,7 +698,7 @@ func testHugepages(env *config.TestEnvironment) {
 			}
 
 			// Get and parse node's machineconfig, in case it's not already parsed.
-			mc := getNodeMachineConfig(node.Name, machineconfigs)
+			mc := getNodeMachineConfig(node.Name, machineconfigs, env.GetLocalShellContext())
 
 			ginkgo.By("Should parse machineconfig's kernelArguments and systemd's hugepages units.")
 			mcSystemdHugepages, err := getMcSystemdUnitsHugepagesConfig(&mc)

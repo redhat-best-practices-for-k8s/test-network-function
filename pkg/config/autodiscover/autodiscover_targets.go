@@ -86,9 +86,9 @@ func FindTestTarget(labels []configsections.Label, target *configsections.TestTa
 			target.Operators = append(target.Operators, buildOperatorFromCSVResource(&csv))
 		}
 	}
-	dps := FindTestPodSetsByLabel(labels, target, string(configsections.Deployment))
+	dps := FindTestPodSetsByLabel(labels, string(configsections.Deployment))
 	target.DeploymentsUnderTest = appendPodsets(dps, ns)
-	stateFulSet := FindTestPodSetsByLabel(labels, target, string(configsections.StateFulSet))
+	stateFulSet := FindTestPodSetsByLabel(labels, string(configsections.StateFulSet))
 	target.StateFulSetUnderTest = appendPodsets(stateFulSet, ns)
 	target.Nodes = GetNodesList()
 	target.Csi = getCsi()
@@ -163,15 +163,16 @@ func GetNodesList() (nodes map[string]configsections.Node) {
 			}
 		}
 	}
+
 	return nodes
 }
 
 // FindTestPodSetsByLabel uses the containers' namespace to get its parent deployment/statefulset. Filters out non CNF test podsets,deployment/statefulset,
 // currently partner and fs_diff ones.
-func FindTestPodSetsByLabel(targetLabels []configsections.Label, target *configsections.TestTarget, resourceTypeDeployment string) (podsets []configsections.PodSet) {
-	Type := configsections.Deployment
+func FindTestPodSetsByLabel(targetLabels []configsections.Label, resourceTypeDeployment string) (podsets []configsections.PodSet) {
+	configType := configsections.Deployment
 	if resourceTypeDeployment == string(configsections.StateFulSet) {
-		Type = configsections.StateFulSet
+		configType = configsections.StateFulSet
 	}
 	for _, label := range targetLabels {
 		podsetResourceList, err := GetTargetPodSetsByLabel(label, resourceTypeDeployment)
@@ -184,7 +185,7 @@ func FindTestPodSetsByLabel(targetLabels []configsections.Label, target *configs
 					Namespace: podsetResource.GetNamespace(),
 					Replicas:  podsetResource.GetReplicas(),
 					Hpa:       podsetResource.GetHpa(),
-					Type:      Type,
+					Type:      configType,
 				}
 
 				podsets = append(podsets, podset)

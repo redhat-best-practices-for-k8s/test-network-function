@@ -106,3 +106,114 @@ func TestFindTestCrdNames(t *testing.T) {
 	utils.ExecuteCommandAndValidate = origFunc
 	jsonUnmarshal = json.Unmarshal
 }
+
+func TestGetConfiguredOperatorTests(t *testing.T) {
+	// Note: Without testconfigure.yml being set, this only
+	// covers a subset of the code in the function.
+	opTests := getConfiguredOperatorTests()
+	assert.Nil(t, opTests)
+}
+
+func TestAppendPodsets(t *testing.T) {
+	testCases := []struct {
+		podsets         []configsections.PodSet
+		namespaces      map[string]bool
+		expectedPodSets []configsections.PodSet
+	}{
+		{
+			podsets: []configsections.PodSet{
+				{
+					Name:      "testpod1",
+					Namespace: "namespace1",
+				},
+			},
+			namespaces: map[string]bool{
+				"namespace1": true,
+			},
+			expectedPodSets: []configsections.PodSet{
+				{
+					Name:      "testpod1",
+					Namespace: "namespace1",
+				},
+			},
+		},
+		{ // 'namespace1' does not exist, no podset available.
+			podsets: []configsections.PodSet{
+				{
+					Name:      "testpod1",
+					Namespace: "namespace1",
+				},
+			},
+			namespaces: map[string]bool{
+				"namespace2": true,
+			},
+			expectedPodSets: nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		assert.Equal(t, tc.expectedPodSets, appendPodsets(tc.podsets, tc.namespaces))
+	}
+}
+
+//nolint:funlen
+func TestFindTestPodSetsByLabel(t *testing.T) {
+	testCases := []struct {
+		targetLabels           []configsections.Label
+		resourceTypeDeployment string
+		filename               string
+		expectedPodSets        []configsections.PodSet
+	}{
+		{ // Test Case 1 - nothing found
+			targetLabels: []configsections.Label{
+				{
+					Name:  "label1",
+					Value: "value1",
+				},
+			},
+			resourceTypeDeployment: string(configsections.Deployment),
+			filename:               "testdata/empty.json",
+			expectedPodSets:        nil,
+		},
+		{ // Test Case 2 - Found one deployment matching labels
+			targetLabels: []configsections.Label{
+				{
+					Name:  "app",
+					Value: "mydeploy",
+				},
+			},
+			resourceTypeDeployment: string(configsections.Deployment),
+			filename:               "testdata/test_deploy_matching_label.json",
+			expectedPodSets: []configsections.PodSet{
+				{
+					Name:      "mydeploy",
+					Namespace: "default",
+					Type:      configsections.Deployment,
+				},
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		// spoof the output from execCommandOutput
+		origFunc := execCommandOutput
+		execCommandOutput = func(command string) string {
+			output, err := os.ReadFile(tc.filename)
+			assert.Nil(t, err)
+			return string(output)
+		}
+
+		podsets := FindTestPodSetsByLabel(tc.targetLabels, tc.resourceTypeDeployment)
+
+		if len(tc.expectedPodSets) > 0 {
+			// Note: We are assuming that [0] is populated with the data we need.
+			assert.Equal(t, tc.expectedPodSets[0].Name, podsets[0].Name)
+			assert.Equal(t, tc.expectedPodSets[0].Namespace, podsets[0].Namespace)
+			assert.Equal(t, tc.expectedPodSets[0].Type, podsets[0].Type)
+		} else {
+			assert.Nil(t, podsets)
+		}
+
+		execCommandOutput = origFunc
+	}
+}
