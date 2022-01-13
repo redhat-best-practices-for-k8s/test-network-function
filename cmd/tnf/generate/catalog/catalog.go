@@ -192,7 +192,6 @@ func Unique(slice []string) []string {
 	uniqSlice := make([]string, 0, len(uniqMap))
 	for v := range uniqMap {
 		uniqSlice = append(uniqSlice, v)
-		fmt.Println(v)
 	}
 	return uniqSlice
 }
