@@ -225,7 +225,7 @@ func runHpaScalingTest(podset *configsections.PodSet, context *interactive.Conte
 
 func testScaling(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestDeploymentScalingIdentifier)
-	ginkgo.It(testID, func() {
+	ginkgo.It(testID, ginkgo.Label(testID), func() {
 		ginkgo.By("Testing deployment scaling")
 		defer restoreDeployments(env)
 		defer env.SetNeedsRefresh()
@@ -240,7 +240,7 @@ func testScaling(env *config.TestEnvironment) {
 }
 func testStateFulSetScaling(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestStateFulSetScalingIdentifier)
-	ginkgo.It(testID, func() {
+	ginkgo.It(testID, ginkgo.Label(testID), func() {
 		ginkgo.By("Testing StatefulSet scaling")
 		defer restoreStateFulSet(env)
 		defer env.SetNeedsRefresh()
@@ -280,7 +280,7 @@ func runScalingfunc(podset *configsections.PodSet, env *config.TestEnvironment) 
 
 func testNodeSelector(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestPodNodeSelectorAndAffinityBestPractices)
-	ginkgo.It(testID, func() {
+	ginkgo.It(testID, ginkgo.Label(testID), func() {
 		ginkgo.By("Testing pod nodeSelector")
 		context := env.GetLocalShellContext()
 		for _, podUnderTest := range env.PodsUnderTest {
@@ -388,7 +388,7 @@ func testTerminationGracePeriodOnPods(pods []*configsections.Pod, context *inter
 
 func testGracePeriod(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestNonDefaultGracePeriodIdentifier)
-	ginkgo.It(testID, func() {
+	ginkgo.It(testID, ginkgo.Label(testID), func() {
 		ginkgo.By("Test terminationGracePeriod")
 		context := env.GetLocalShellContext()
 
@@ -417,7 +417,7 @@ func testGracePeriod(env *config.TestEnvironment) {
 
 func testShutdown(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestShudtownIdentifier)
-	ginkgo.It(testID, func() {
+	ginkgo.It(testID, ginkgo.Label(testID), func() {
 		failedPods := []*configsections.Pod{}
 		ginkgo.By("Testing PUTs are configured with pre-stop lifecycle")
 		for _, podUnderTest := range env.PodsUnderTest {
@@ -503,7 +503,7 @@ func testPodsRecreation(env *config.TestEnvironment) {
 	var notReadyStatefulsets []string
 
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestPodRecreationIdentifier)
-	ginkgo.It(testID, func() {
+	ginkgo.It(testID, ginkgo.Label(testID), func() {
 		ginkgo.By("Testing node draining effect of deployment")
 		ginkgo.By(fmt.Sprintf("test deployment in namespace %s", env.NameSpacesUnderTest))
 		for _, ns := range env.NameSpacesUnderTest {
@@ -598,7 +598,7 @@ func uncordonNode(node string, context *interactive.Context) {
 func testPodAntiAffinity(env *config.TestEnvironment) {
 	ginkgo.When("CNF is designed in high availability mode ", func() {
 		testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestPodHighAvailabilityBestPractices)
-		ginkgo.It(testID, func() {
+		ginkgo.It(testID, ginkgo.Label(testID), func() {
 			ginkgo.By("Should set pod replica number greater than 1 and corresponding pod anti-affinity rules in deployment")
 			if len(env.DeploymentsUnderTest) == 0 {
 				ginkgo.Skip("No test deployments found.")
@@ -637,7 +637,7 @@ func podAntiAffinity(deployment, podNamespace string, replica int, context *inte
 
 func testOwner(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestPodDeploymentBestPracticesIdentifier)
-	ginkgo.It(testID, func() {
+	ginkgo.It(testID, ginkgo.Label(testID), func() {
 		ginkgo.By("Testing owners of CNF pod, should be replicas Set")
 		context := env.GetLocalShellContext()
 		failedPods := []*configsections.Pod{}
@@ -666,7 +666,7 @@ func testOwner(env *config.TestEnvironment) {
 
 func testImagePolicy(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestImagePullPolicyIdentifier)
-	ginkgo.It(testID, func() {
+	ginkgo.It(testID, ginkgo.Label(testID), func() {
 		context := env.GetLocalShellContext()
 		failedPods := []*configsections.Pod{}
 		for _, podUnderTest := range env.PodsUnderTest {

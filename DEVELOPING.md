@@ -627,7 +627,7 @@ Each added message will be written to claim file even if test failed or error oc
 
 Example usage:
 ```go
-ginkgo.It("Should do what I tell it to do", func(){
+ginkgo.It("Should do what I tell it to do", ginkgo.Label("test-label"), func(){
   // do some more work
   // add info
   _, err := ginkgo.GinkgoWriter.Write([]byte("important info part 1"))
@@ -651,4 +651,17 @@ ginkgo.It("Should do what I tell it to do", func(){
     log.Errorf("Ginkgo writer could not write because: %s", err)
   }
 })
+```
+
+## Specifying the test ID as test label
+
+Ginkgo supports specifying a [spec label](https://onsi.github.io/ginkgo/#spec-labels), which can be used to filter tests at runtime.
+All new tests should use it as part of its `ginkgo.It()` call.
+
+Example:
+```go
+    testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestCrdsStatusSubresourceIdentifier)
+    ginkgo.It(testID, ginkgo.Label(testID), func() {
+        // test here
+    }
 ```
