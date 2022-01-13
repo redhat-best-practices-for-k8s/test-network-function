@@ -47,7 +47,7 @@ func getpackageandorg(csi string) (packag, organization string) {
 	return packag, organization
 }
 
-// GetTargetCsi will return all podsets(deployments/statefulset )that have pods with a given label.
+// GetTargetCsi will return the csidriver list.
 func GetTargetCsi() ([]string, error) {
 	ocCmd := csicommand
 
