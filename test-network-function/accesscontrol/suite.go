@@ -385,7 +385,6 @@ func testAutomountService(env *config.TestEnvironment) {
 	})
 }
 
-//nolint: dupl // we could create a generic function for cluster and normal role bindings, but it would be large and full of ifs
 func testRoleBindings(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestPodRoleBindingsBestPracticesIdentifier)
 	ginkgo.It(testID, func() {
@@ -418,7 +417,6 @@ func testRoleBindings(env *config.TestEnvironment) {
 	})
 }
 
-//nolint: dupl // we could create a generic function for cluster and normal role bindings, but it would be large and full of ifs
 func testClusterRoleBindings(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestPodClusterRoleBindingsBestPracticesIdentifier)
 	ginkgo.It(testID, func() {
