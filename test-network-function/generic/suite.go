@@ -36,5 +36,6 @@ var _ = ginkgo.Describe(testsKey, func() {
 			env.LoadAndRefresh()
 		})
 		ginkgo.ReportAfterEach(results.RecordResult)
+		ginkgo.AfterEach(env.CloseLocalShellContext)
 	}
 })

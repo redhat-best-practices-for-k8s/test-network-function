@@ -48,6 +48,7 @@ var _ = ginkgo.Describe(common.AffiliatedCertTestKey, func() {
 		})
 
 		ginkgo.ReportAfterEach(results.RecordResult)
+		ginkgo.AfterEach(env.CloseLocalShellContext)
 
 		testContainerCertificationStatus()
 		testOperatorCertificationStatus()

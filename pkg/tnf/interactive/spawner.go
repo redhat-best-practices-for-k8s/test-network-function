@@ -67,6 +67,9 @@ type SpawnFunc interface {
 	// Wait consult exec.Cmd.Wait
 	Wait() error
 
+	// Close calls the exec.Cmd.Kill to stop the process (shell).
+	Close() error
+
 	// IsRunning returns true if the shell hasn't exited yet.
 	IsRunning() bool
 
@@ -122,7 +125,7 @@ func (e *ExecSpawnFunc) StderrPipe() (io.Reader, error) {
 	return e.cmd.StderrPipe()
 }
 
-// Wait wraps exec.Cmd.Wait.
+// Close wraps exec.Cmd.Kill.
 func (e *ExecSpawnFunc) Close() error {
 	return e.cmd.Process.Kill()
 }
@@ -358,7 +361,8 @@ func (g *GoExpectSpawner) spawnGeneric(spawnFunc *SpawnFunc, stdinPipe io.WriteC
 			return (*spawnFunc).Wait()
 		},
 		Close: func() error {
-			return nil
+			log.Debug("Killing shell cmd: " + strings.Join((*spawnFunc).Args(), " "))
+			return (*spawnFunc).Close()
 		},
 		Check: func() bool {
 			if !(*spawnFunc).IsRunning() {

@@ -108,6 +108,7 @@ var _ = ginkgo.Describe(common.NetworkingTestKey, func() {
 		})
 
 		ginkgo.ReportAfterEach(results.RecordResult)
+		ginkgo.AfterEach(env.CloseLocalShellContext)
 
 		ginkgo.Context("Both Pods are on the Default network", func() {
 			testDefaultNetworkConnectivity(env, defaultNumPings)
@@ -302,7 +303,7 @@ func testNodePort(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestServicesDoNotUseNodeportsIdentifier)
 	ginkgo.It(testID, func() {
 		badNamespaces := []string{}
-		context := common.GetContext()
+		context := env.GetLocalShellContext()
 		for _, ns := range env.NameSpacesUnderTest {
 			ginkgo.By(fmt.Sprintf("Testing services in namespace %s", ns))
 			tester := nodeport.NewNodePort(common.DefaultTimeout, ns)
