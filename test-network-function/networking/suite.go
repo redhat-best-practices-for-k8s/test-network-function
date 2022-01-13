@@ -17,6 +17,7 @@
 package networking
 
 import (
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -54,6 +55,12 @@ const (
 type key struct {
 	port     int
 	protocol string
+}
+
+type Port []struct {
+	ContainerPort int    `json:"containerPort"`
+	Name          string `json:"name"`
+	Protocol      string `json:"protocol"`
 }
 
 // netTestContext this is a data structure describing a network test context for a given subnet (e.g. network attachment)
@@ -341,49 +348,29 @@ func testNodePort(env *config.TestEnvironment) {
 		}
 	})
 }
-func parseVariables(res string, declaredPorts map[key]string) {
-	var k key
-	if res == "" {
-		return
+
+func parseVariables(res string, declaredPorts map[key]string) error {
+	var p Port
+	err := json.Unmarshal([]byte(res), &p)
+	if err != nil {
+		return err
 	}
-	protocolName, port, name := "", "", ""
-	x := strings.Split(res, "\n")
-	for _, i := range x {
-		if strings.Contains(i, "containerPort") {
-			s := strings.Split(i, ":")
-			s = strings.Split(s[1], ",")
-			port = s[0]
-		}
-		if strings.Contains(i, "name") {
-			s := strings.Split(i, ":")
-			s = strings.Split(s[1], ",")
-			name = s[0]
-		}
-		if strings.Contains(i, "protocol") {
-			s := strings.Split(i, ":")
-			protocolName = s[1]
-		}
-		if port == "" || name == "" || protocolName == "" {
-			continue
-		}
-		p, _ := strconv.Atoi(strings.TrimSpace(port))
-		name = strings.TrimSpace(strings.ReplaceAll(name, "\"", ""))
-		protocolName = strings.TrimSpace(strings.ReplaceAll(protocolName, "\"", ""))
-		k.port, k.protocol = p, strings.ToUpper(protocolName)
-		declaredPorts[k] = name
-		port, name, protocolName = "", "", ""
+	for element := range p {
+		var k key
+		k.port = p[element].ContainerPort
+		k.protocol = p[element].Protocol
+		declaredPorts[k] = p[element].Name
 	}
+	return nil
 }
-func declaredPortList(container int, podName, podNamespace string, declaredPorts map[key]string) {
+func declaredPortList(container int, podName, podNamespace string, declaredPorts map[key]string) error {
 	ocCommandToExecute := fmt.Sprintf(commandportdeclared, podName, podNamespace, container)
 	res, _ := utils.ExecuteCommand(ocCommandToExecute, ocCommandTimeOut, interactive.GetContext(false))
-	if res == "" {
-		return
-	}
-	parseVariables(res, declaredPorts)
+	err := parseVariables(res, declaredPorts)
+	return err
 }
 
-func listeningPortList(commandlisten []string, nodeOc *interactive.Context, listeningPort map[key]string) {
+func listeningPortList(commandlisten []string, nodeOc *interactive.Context, listeningPorts map[key]string) {
 	var k key
 	listeningPortCommand := strings.Join(commandlisten, " ")
 	fmt.Println(listeningPortCommand)
@@ -401,7 +388,7 @@ func listeningPortList(commandlisten []string, nodeOc *interactive.Context, list
 		p, _ := strconv.Atoi(s[1])
 		k.port = p
 		k.protocol = strings.ToUpper(fields[indexprotocolname])
-		listeningPort[k] = ""
+		listeningPorts[k] = ""
 	}
 }
 
@@ -426,7 +413,10 @@ func testListenAndDeclared(env *config.TestEnvironment) {
 	ginkgo.It(testID, func() {
 		for _, podUnderTest := range env.PodsUnderTest {
 			for i := 0; i < podUnderTest.ContainerCount; i++ {
-				declaredPortList(i, podUnderTest.Name, podUnderTest.Namespace, declaredPorts)
+				err := declaredPortList(i, podUnderTest.Name, podUnderTest.Namespace, declaredPorts)
+				if err != nil {
+					return
+				}
 			}
 
 			nodeName := podnodename.NewPodNodeName(common.DefaultTimeout, podUnderTest.Name, podUnderTest.Namespace)
