@@ -275,8 +275,7 @@ func GetSuiteAndTestFromIdentifier(identifier claim.Identifier) []string {
 	if len(result) != SPLITN {
 		return nil
 	}
-	suiteTest := strings.Split(result[1], "/")
-	return suiteTest
+	return strings.Split(result[1], "/")
 }
 
 // Catalog is the JUnit testcase catalog of tests.
