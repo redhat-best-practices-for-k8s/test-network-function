@@ -144,7 +144,10 @@ func createPrintableCatalogFromIdentifiers(keys []claim.Identifier) map[string][
 		testName := suiteTest[1]
 		element.testName = testName
 		element.identifier = i
-		catalog[suiteName] = append(catalog[suiteName], element)
+		catalog[suiteName] = append(catalog[suiteName], catalogElement{
+		    testName: testName,
+		    identifier: i
+		})
 	}
 	return catalog
 }
