@@ -47,7 +47,7 @@ func FindDebugPods(tp *configsections.TestPartner) {
 	label := configsections.Label{Name: debugLabelName, Value: debugLabelValue}
 	pods, err := GetPodsByLabelByNamespace(label, defaultNamespace)
 	if err != nil {
-		log.Panic("can't find debug pods")
+		log.Panic("can't find debug pods. Error: ", err)
 	}
 	if len(pods.Items) == 0 {
 		log.Panic("can't find debug pods, make sure daemonset debug is deployed properly")
