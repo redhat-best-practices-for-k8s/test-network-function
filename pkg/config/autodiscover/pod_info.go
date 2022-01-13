@@ -42,11 +42,12 @@ type PodList struct {
 // PodResource is a single Pod from an `oc get pods -o json` command
 type PodResource struct {
 	Metadata struct {
-		Name              string            `json:"name"`
-		Namespace         string            `json:"namespace"`
-		DeletionTimestamp string            `json:"deletionTimestamp"`
-		Labels            map[string]string `json:"labels"`
-		Annotations       map[string]string `json:"annotations"`
+		Name              string                   `json:"name"`
+		Namespace         string                   `json:"namespace"`
+		DeletionTimestamp string                   `json:"deletionTimestamp"`
+		Labels            map[string]string        `json:"labels"`
+		Annotations       map[string]string        `json:"annotations"`
+		OwnerReferences   []map[string]interface{} `json:"ownerReferences"`
 	} `json:"metadata"`
 	Spec struct {
 		ServiceAccount string `json:"serviceaccountname"`
