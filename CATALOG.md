@@ -9,6 +9,45 @@ So, a Test Case could be composed by one or many Test Case Building Blocks.
 
 Test Cases are the specifications used to perform a meaningful test.  Test cases may run once, or several times against several targets.  CNF Certification includes a number of normative and informative tests to ensure CNFs follow best practices.  Here is the list of available 
 
+### networking
+
+#### icmpv4-connectivity
+
+Property|Description
+---|---
+Test Case Name|icmpv4-connectivity
+Test Case Label|networking-icmpv4-connectivity
+Unique ID|http://test-network-function.com/testcases/networking/icmpv4-connectivity
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/networking/icmpv4-connectivity checks that each CNF Container is able to communicate via ICMPv4 on the Default OpenShift network.  This test case requires the Deployment of the debug daemonset.
+Result Type|normative
+Suggested Remediation|Ensure that the CNF is able to communicate via the Default OpenShift network. In some rare cases, CNFs may require routing table changes in order to communicate over the Default network. To exclude a particular container from ICMPv4 connectivity tests, add the test-network-function.com/skip_connectivity_tests label to it. The label value is not important, only its presence.
+Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2
+#### icmpv4-connectivity-multus
+
+Property|Description
+---|---
+Test Case Name|icmpv4-connectivity-multus
+Test Case Label|networking-icmpv4-connectivity-multus
+Unique ID|http://test-network-function.com/testcases/networking/icmpv4-connectivity-multus
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/networking/icmpv4-connectivity-multus checks that each CNF Container is able to communicate via ICMPv4 on the Multus network(s).  This test case requires the Deployment of the debug daemonset.
+Result Type|normative
+Suggested Remediation|Ensure that the CNF is able to communicate via the Multus network(s). In some rare cases, CNFs may require routing table changes in order to communicate over the Multus network(s). To exclude a particular container from ICMPv4 connectivity tests, add the test-network-function.com/skip_connectivity_tests label to it. The label value is not important, only its presence.
+Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2
+#### service-type
+
+Property|Description
+---|---
+Test Case Name|service-type
+Test Case Label|networking-service-type
+Unique ID|http://test-network-function.com/testcases/networking/service-type
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/networking/service-type tests that each CNF Service does not utilize NodePort(s).
+Result Type|normative
+Suggested Remediation|Ensure Services are not configured to use NodePort(s).
+Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.3.1
+
 ### observability
 
 #### container-logging
@@ -413,45 +452,6 @@ Description|http://test-network-function.com/testcases/lifecycle/statefulset-sca
 Result Type|normative
 Suggested Remediation|Make sure CNF statefulsets/replica sets can scale in/out successfully.
 Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2
-
-### networking
-
-#### icmpv4-connectivity
-
-Property|Description
----|---
-Test Case Name|icmpv4-connectivity
-Test Case Label|networking-icmpv4-connectivity
-Unique ID|http://test-network-function.com/testcases/networking/icmpv4-connectivity
-Version|v1.0.0
-Description|http://test-network-function.com/testcases/networking/icmpv4-connectivity checks that each CNF Container is able to communicate via ICMPv4 on the Default OpenShift network.  This test case requires the Deployment of the debug daemonset. 
-Result Type|normative
-Suggested Remediation|Ensure that the CNF is able to communicate via the Default OpenShift network. In some rare cases, CNFs may require routing table changes in order to communicate over the Default network. For instructions on how to exclude a particular container from ICMPv4 connectivity tests, consult: [README.md](https://github.com/test-network-function/test-network-function#issue-161-some-containers-under-test-do-not-contain-ping-or-ip-binary-utilities).
-Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2
-#### icmpv4-connectivity-multus
-
-Property|Description
----|---
-Test Case Name|icmpv4-connectivity-multus
-Test Case Label|networking-icmpv4-connectivity-multus
-Unique ID|http://test-network-function.com/testcases/networking/icmpv4-connectivity-multus
-Version|v1.0.0
-Description|http://test-network-function.com/testcases/networking/icmpv4-connectivity-multus checks that each CNF Container is able to communicate via ICMPv4 on the Multus network(s).  This test case requires the Deployment of the debug daemonset.
-Result Type|normative
-Suggested Remediation|Ensure that the CNF is able to communicate via the Multus network(s). In some rare cases, CNFs may require routing table changes in order to communicate over the Multus network(s). For instructions on how to exclude a particular container from ICMPv4 connectivity tests, consult: [README.md](https://github.com/test-network-function/test-network-function#issue-161-some-containers-under-test-do-not-contain-ping-or-ip-binary-utilities).
-Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2
-#### service-type
-
-Property|Description
----|---
-Test Case Name|service-type
-Test Case Label|networking-service-type
-Unique ID|http://test-network-function.com/testcases/networking/service-type
-Version|v1.0.0
-Description|http://test-network-function.com/testcases/networking/service-type tests that each CNF Service does not utilize NodePort(s).
-Result Type|normative
-Suggested Remediation|Ensure Services are not configured to use NodePort(s).
-Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.3.1
 
 ## Test Case Building Blocks Catalog
 

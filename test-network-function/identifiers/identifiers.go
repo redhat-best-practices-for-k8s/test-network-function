@@ -346,13 +346,11 @@ they are the same.`),
 		Identifier: TestICMPv4ConnectivityIdentifier,
 		Type:       normativeResult,
 		Remediation: `Ensure that the CNF is able to communicate via the Default OpenShift network. In some rare cases,
-CNFs may require routing table changes in order to communicate over the Default network. For instructions on
-how to exclude a particular container from ICMPv4 connectivity tests, consult:
-[README.md](https://github.com/test-network-function/test-network-function#issue-161-some-containers-under-test-do-not-contain-ping-or-ip-binary-utilities).`,
+CNFs may require routing table changes in order to communicate over the Default network. To exclude a particular container
+from ICMPv4 connectivity tests, add the test-network-function.com/skip_connectivity_tests label to it. The label value is not important, only its presence.`,
 		Description: formDescription(TestICMPv4ConnectivityIdentifier,
 			`checks that each CNF Container is able to communicate via ICMPv4 on the Default OpenShift network.  This
-test case requires the Deployment of the debug daemonset.
-`),
+test case requires the Deployment of the debug daemonset.`),
 		BestPracticeReference: bestPracticeDocV1dot2URL + " Section 6.2",
 	},
 
@@ -360,9 +358,8 @@ test case requires the Deployment of the debug daemonset.
 		Identifier: TestICMPv4ConnectivityIdentifierMultus,
 		Type:       normativeResult,
 		Remediation: `Ensure that the CNF is able to communicate via the Multus network(s). In some rare cases,
-CNFs may require routing table changes in order to communicate over the Multus network(s). For instructions on
-how to exclude a particular container from ICMPv4 connectivity tests, consult:
-[README.md](https://github.com/test-network-function/test-network-function#issue-161-some-containers-under-test-do-not-contain-ping-or-ip-binary-utilities).`,
+CNFs may require routing table changes in order to communicate over the Multus network(s). To exclude a particular container
+from ICMPv4 connectivity tests, add the test-network-function.com/skip_connectivity_tests label to it. The label value is not important, only its presence.`,
 		Description: formDescription(TestICMPv4ConnectivityIdentifierMultus,
 			`checks that each CNF Container is able to communicate via ICMPv4 on the Multus network(s).  This
 test case requires the Deployment of the debug daemonset.`),
