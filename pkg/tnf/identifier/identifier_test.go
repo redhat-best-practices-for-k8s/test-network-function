@@ -86,38 +86,35 @@ func TestIdentifier_UnmarshalJSON(t *testing.T) {
 
 func TestXformToGinkgoItIdentifier(t *testing.T) {
 	type testURLTestName struct {
-		URL      string
-		testName string
+		URL            string
+		testName       string
+		expectedResult string
 	}
-	testsURLOk := []testURLTestName{
+	testsURLs := []testURLTestName{
 		{
-			URL:      identifier.GetIdentifierURLBaseDomain() + "/command",
-			testName: "command",
+			URL:            identifier.GetIdentifierURLBaseDomain() + "/command",
+			testName:       "command",
+			expectedResult: "command",
 		},
 		{
-			URL:      identifier.GetIdentifierURLBaseDomain() + "/whatever",
-			testName: "whatever",
+			URL:            identifier.GetIdentifierURLBaseDomain() + "/whatever",
+			testName:       "whatever",
+			expectedResult: "whatever",
+		},
+		{
+			URL:            "http://test-network-function.org/tests" + "/command",
+			testName:       "command",
+			expectedResult: "",
+		},
+		{
+			URL:            "http://test-network-function.es/functional-tests" + "/whatever",
+			testName:       "whatever",
+			expectedResult: "",
 		},
 	}
 
-	testsURLWrong := []testURLTestName{
-		{
-			URL:      "http://test-network-function.org/tests" + "/command",
-			testName: "command",
-		},
-		{
-			URL:      "http://test-network-function.es/functional-tests" + "/whatever",
-			testName: "whatever",
-		},
-	}
-
-	for _, test := range testsURLOk {
+	for _, test := range testsURLs {
 		id := identifier.Identifier{URL: test.URL, SemanticVersion: ""}
-		assert.Equal(t, identifier.XformToGinkgoItIdentifier(id), test.testName)
-	}
-
-	for _, test := range testsURLWrong {
-		id := identifier.Identifier{URL: test.URL, SemanticVersion: ""}
-		assert.Equal(t, identifier.XformToGinkgoItIdentifier(id), "")
+		assert.Equal(t, identifier.XformToGinkgoItIdentifier(id), test.expectedResult)
 	}
 }
