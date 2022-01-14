@@ -277,7 +277,6 @@ func outputTestCaseBuildingBlocks() {
 		fmt.Fprintf(os.Stdout, "Runtime Binaries Required|%s\n", cmdJoin(identifier.Catalog[k.identifier.Url].BinaryDependencies, ", "))
 		fmt.Println()
 	}
-
 }
 
 // runGenerateMarkdownCmd generates a markdown test catalog.
