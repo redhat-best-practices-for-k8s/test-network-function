@@ -367,6 +367,9 @@ func declaredPortList(container int, podName, podNamespace string, declaredPorts
 	ocCommandToExecute := fmt.Sprintf(commandportdeclared, podName, podNamespace, container)
 	res, _ := utils.ExecuteCommand(ocCommandToExecute, ocCommandTimeOut, interactive.GetContext(false))
 	err := parseVariables(res, declaredPorts)
+	if err != nil {
+		log.Info("The parser is Fail.")
+	}
 	return err
 }
 
@@ -376,6 +379,7 @@ func listeningPortList(commandlisten []string, nodeOc *interactive.Context, list
 	fmt.Println(listeningPortCommand)
 	res, _ := utils.ExecuteCommand(listeningPortCommand, ocCommandTimeOut, nodeOc)
 	if res == "" {
+		log.Info("The command of listening ports is fail.")
 		return
 	}
 	lines := strings.Split(res, "\n")
@@ -396,13 +400,15 @@ func checkIfListenIsDeclared(listeningPorts, declaredPorts map[key]string) bool 
 	if len(listeningPorts) == 0 || len(declaredPorts) == 0 {
 		return false
 	}
+	flag := true
 	for k := range listeningPorts {
 		_, ok := declaredPorts[k]
 		if !ok {
-			return false
+			log.Info(fmt.Sprintf("The port %d on protocol %s is not declared.", k.port, k.protocol))
+			flag = false
 		}
 	}
-	return true
+	return flag
 }
 
 func testListenAndDeclared(env *config.TestEnvironment) {
@@ -439,7 +445,7 @@ func testListenAndDeclared(env *config.TestEnvironment) {
 			// compare between declaredPort,listeningPort and return the common.
 			res := checkIfListenIsDeclared(listeningPorts, declaredPorts)
 			if !res {
-				ginkgo.Fail("TC failed : port is listening but not declared.")
+				log.Info("TC failed : port is listening but not declared.")
 			}
 		}
 	})
