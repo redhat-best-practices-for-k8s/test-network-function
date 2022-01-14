@@ -409,89 +409,19 @@ Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/site
 
 ## Test Case Building Blocks Catalog
 
-A number of Test Case Building Blocks, or `tnf.Test`s, are included out of the box.  This is a summary of the available implementations:### automountservice
+A number of Test Case Building Blocks, or `tnf.Test`s, are included out of the box.  This is a summary of the available implementations:### sysctlConfigFilesList
 
 
 Property|Description
 ---|---
-Test Name|automountservice
-Url|http://test-network-function.com/tests/automountservice
+Test Name|sysctlConfigFilesList
+Url|http://test-network-function.com/tests/sysctlConfigFilesList
 Version|v1.0.0
-Description|check if automount service account token is set to false
+Description|A generic test used to get node's list of sysctl config files
 Result Type|normative
 Intrusive|false
 Modifications Persist After Test|false
-Runtime Binaries Required|`oc`
-
-### clusterVersion
-
-
-Property|Description
----|---
-Test Name|clusterVersion
-Url|http://test-network-function.com/tests/clusterVersion
-Version|v1.0.0
-Description|Extracts OCP versions from the cluster
-Result Type|normative
-Intrusive|false
-Modifications Persist After Test|false
-Runtime Binaries Required|`oc`
-
-### clusterrolebinding
-
-
-Property|Description
----|---
-Test Name|clusterrolebinding
-Url|http://test-network-function.com/tests/clusterrolebinding
-Version|v1.0.0
-Description|A generic test used to test ClusterRoleBindings of CNF pod's ServiceAccount.
-Result Type|normative
-Intrusive|false
-Modifications Persist After Test|false
-Runtime Binaries Required|`oc`
-
-### command
-
-
-Property|Description
----|---
-Test Name|command
-Url|http://test-network-function.com/tests/command
-Version|v1.0.0
-Description|A generic test used with any command and would match any output. The caller is responsible for interpreting the output and extracting data from it.
-Result Type|normative
-Intrusive|false
-Modifications Persist After Test|false
-Runtime Binaries Required|
-
-### container-pod
-
-
-Property|Description
----|---
-Test Name|container-pod
-Url|http://test-network-function.com/tests/container/pod
-Version|v1.0.0
-Description|A container-specific test suite used to verify various aspects of the underlying container.
-Result Type|normative
-Intrusive|false
-Modifications Persist After Test|false
-Runtime Binaries Required|`jq`, `oc`
-
-### crdStatusExistence
-
-
-Property|Description
----|---
-Test Name|crdStatusExistence
-Url|http://test-network-function.com/tests/crdStatusExistence
-Version|v1.0.0
-Description|Checks whether a give CRD has status subresource specification.
-Result Type|normative
-Intrusive|false
-Modifications Persist After Test|false
-Runtime Binaries Required|`oc`, `jq`
+Runtime Binaries Required|`cat`
 
 ### csiDriver
 
@@ -535,104 +465,6 @@ Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`oc`
 
-### deploymentsdrain
-
-
-Property|Description
----|---
-Test Name|deploymentsdrain
-Url|http://test-network-function.com/tests/deploymentsnodes
-Version|v1.0.0
-Description|A generic test used to drain node from its deployment pods
-Result Type|normative
-Intrusive|true
-Modifications Persist After Test|true
-Runtime Binaries Required|`jq`, `echo`
-
-### deploymentsnodes
-
-
-Property|Description
----|---
-Test Name|deploymentsnodes
-Url|http://test-network-function.com/tests/deploymentsnodes
-Version|v1.0.0
-Description|A generic test used to read node names of pods owned by deployments in namespace
-Result Type|normative
-Intrusive|false
-Modifications Persist After Test|false
-Runtime Binaries Required|`oc`, `grep`
-
-### generic-cnf_fs_diff
-
-
-Property|Description
----|---
-Test Name|generic-cnf_fs_diff
-Url|http://test-network-function.com/tests/generic/cnf_fs_diff
-Version|v1.0.0
-Description|A test used to check if there were no installation during container runtime
-Result Type|normative
-Intrusive|false
-Modifications Persist After Test|false
-Runtime Binaries Required|`grep`, `cut`
-
-### generic-version
-
-
-Property|Description
----|---
-Test Name|generic-version
-Url|http://test-network-function.com/tests/generic/version
-Version|v1.0.0
-Description|A generic test used to determine if a target container/machine is based on RHEL.
-Result Type|normative
-Intrusive|false
-Modifications Persist After Test|false
-Runtime Binaries Required|`cat`
-
-### gracePeriod
-
-
-Property|Description
----|---
-Test Name|gracePeriod
-Url|http://test-network-function.com/tests/gracePeriod
-Version|v1.0.0
-Description|A generic test used to extract the CNF pod's terminationGracePeriod.
-Result Type|normative
-Intrusive|false
-Modifications Persist After Test|false
-Runtime Binaries Required|`grep`, `cut`
-
-### grubKernelCmdlineArgs
-
-
-Property|Description
----|---
-Test Name|grubKernelCmdlineArgs
-Url|http://test-network-function.com/tests/grubKernelCmdlineArgs
-Version|v1.0.0
-Description|A generic test used to get node's next boot kernel args
-Result Type|normative
-Intrusive|false
-Modifications Persist After Test|false
-Runtime Binaries Required|`ls`, `sort`, `head`, `cut`, `oc`
-
-### imagepullpolicy
-
-
-Property|Description
----|---
-Test Name|imagepullpolicy
-Url|http://test-network-function.com/tests/imagepullpolicy
-Version|v1.0.0
-Description|A generic test used to get Image Pull Policy type.
-Result Type|normative
-Intrusive|false
-Modifications Persist After Test|false
-Runtime Binaries Required|`oc`
-
 ### ipaddr
 
 
@@ -646,34 +478,6 @@ Result Type|normative
 Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`ip`
-
-### logging
-
-
-Property|Description
----|---
-Test Name|logging
-Url|http://test-network-function.com/tests/logging
-Version|v1.0.0
-Description|A test used to check logs are redirected to stderr/stdout
-Result Type|normative
-Intrusive|false
-Modifications Persist After Test|false
-Runtime Binaries Required|`oc`, `wc`
-
-### mckernelarguments
-
-
-Property|Description
----|---
-Test Name|mckernelarguments
-Url|http://test-network-function.com/tests/mckernelarguments
-Version|v1.0.0
-Description|A generic test used to get an mc's kernel arguments
-Result Type|normative
-Intrusive|false
-Modifications Persist After Test|false
-Runtime Binaries Required|`oc`, `jq`, `echo`
 
 ### node-uncordon
 
@@ -689,19 +493,61 @@ Intrusive|true
 Modifications Persist After Test|true
 Runtime Binaries Required|`oc`
 
-### nodedebug
+### rolebinding
 
 
 Property|Description
 ---|---
-Test Name|nodedebug
-Url|http://test-network-function.com/tests/nodedebug
+Test Name|rolebinding
+Url|http://test-network-function.com/tests/rolebinding
 Version|v1.0.0
-Description|A generic test used to execute a command in a node
+Description|A generic test used to test RoleBindings of CNF pod's ServiceAccount.
 Result Type|normative
 Intrusive|false
 Modifications Persist After Test|false
-Runtime Binaries Required|`oc`, `echo`
+Runtime Binaries Required|`cat`, `oc`
+
+### scaling
+
+
+Property|Description
+---|---
+Test Name|scaling
+Url|http://test-network-function.com/tests/scaling
+Version|v1.0.0
+Description|A test to check the deployments scale in/out. The tests issues the oc scale command on a deployment for a given number of replicas and checks whether the command output is valid.
+Result Type|normative
+Intrusive|true
+Modifications Persist After Test|false
+Runtime Binaries Required|`oc`
+
+### clusterVersion
+
+
+Property|Description
+---|---
+Test Name|clusterVersion
+Url|http://test-network-function.com/tests/clusterVersion
+Version|v1.0.0
+Description|Extracts OCP versions from the cluster
+Result Type|normative
+Intrusive|false
+Modifications Persist After Test|false
+Runtime Binaries Required|`oc`
+
+### grubKernelCmdlineArgs
+
+
+Property|Description
+---|---
+Test Name|grubKernelCmdlineArgs
+Url|http://test-network-function.com/tests/grubKernelCmdlineArgs
+Version|v1.0.0
+Description|A generic test used to get node's next boot kernel args
+Result Type|normative
+Intrusive|false
+Modifications Persist After Test|false
+Runtime Binaries Required|`ls`, `sort`, `head`, `cut`, `oc`
 
 ### nodemcname
 
@@ -717,61 +563,33 @@ Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`oc`, `grep`
 
-### nodenames
+### imagepullpolicy
 
 
 Property|Description
 ---|---
-Test Name|nodenames
-Url|http://test-network-function.com/tests/nodenames
+Test Name|imagepullpolicy
+Url|http://test-network-function.com/tests/imagepullpolicy
 Version|v1.0.0
-Description|A generic test used to get node names
+Description|A generic test used to get Image Pull Policy type.
 Result Type|normative
 Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`oc`
 
-### nodeport
+### mckernelarguments
 
 
 Property|Description
 ---|---
-Test Name|nodeport
-Url|http://test-network-function.com/tests/nodeport
+Test Name|mckernelarguments
+Url|http://test-network-function.com/tests/mckernelarguments
 Version|v1.0.0
-Description|A generic test used to test services of CNF pod's namespace.
+Description|A generic test used to get an mc's kernel arguments
 Result Type|normative
 Intrusive|false
 Modifications Persist After Test|false
-Runtime Binaries Required|`oc`, `grep`
-
-### nodes
-
-
-Property|Description
----|---
-Test Name|nodes
-Url|http://test-network-function.com/tests/nodes
-Version|v1.0.0
-Description|Polls the state of the OpenShift cluster nodes using "oc get nodes -o json".
-Result Type|
-Intrusive|false
-Modifications Persist After Test|false
-Runtime Binaries Required|`oc`
-
-### nodeselector
-
-
-Property|Description
----|---
-Test Name|nodeselector
-Url|http://test-network-function.com/tests/nodeselector
-Version|v1.0.0
-Description|A generic test used to verify a pod's nodeSelector and nodeAffinity configuration
-Result Type|normative
-Intrusive|false
-Modifications Persist After Test|false
-Runtime Binaries Required|`oc`, `grep`
+Runtime Binaries Required|`oc`, `jq`, `echo`
 
 ### nodetainted
 
@@ -786,6 +604,160 @@ Result Type|informative
 Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`oc`, `cat`, `echo`
+
+### podsets
+
+
+Property|Description
+---|---
+Test Name|podsets
+Url|http://test-network-function.com/tests/podsets
+Version|v1.0.0
+Description|A generic test used to read namespace's deployments/statefulsets
+Result Type|normative
+Intrusive|false
+Modifications Persist After Test|false
+Runtime Binaries Required|`oc`
+
+### testPodHighAvailability
+
+
+Property|Description
+---|---
+Test Name|testPodHighAvailability
+Url|http://test-network-function.com/tests/testPodHighAvailability
+Version|v1.0.0
+Description|A generic test used to check pod's replica and podAntiAffinity configuration in high availability mode
+Result Type|normative
+Intrusive|false
+Modifications Persist After Test|false
+Runtime Binaries Required|`oc`
+
+### automountservice
+
+
+Property|Description
+---|---
+Test Name|automountservice
+Url|http://test-network-function.com/tests/automountservice
+Version|v1.0.0
+Description|check if automount service account token is set to false
+Result Type|normative
+Intrusive|false
+Modifications Persist After Test|false
+Runtime Binaries Required|`oc`
+
+### command
+
+
+Property|Description
+---|---
+Test Name|command
+Url|http://test-network-function.com/tests/command
+Version|v1.0.0
+Description|A generic test used with any command and would match any output. The caller is responsible for interpreting the output and extracting data from it.
+Result Type|normative
+Intrusive|false
+Modifications Persist After Test|false
+Runtime Binaries Required|
+
+### nodedebug
+
+
+Property|Description
+---|---
+Test Name|nodedebug
+Url|http://test-network-function.com/tests/nodedebug
+Version|v1.0.0
+Description|A generic test used to execute a command in a node
+Result Type|normative
+Intrusive|false
+Modifications Persist After Test|false
+Runtime Binaries Required|`oc`, `echo`
+
+### ping
+
+
+Property|Description
+---|---
+Test Name|ping
+Url|http://test-network-function.com/tests/ping
+Version|v1.0.0
+Description|A generic test used to test ICMP connectivity from a source machine/container to a target destination.
+Result Type|normative
+Intrusive|false
+Modifications Persist After Test|false
+Runtime Binaries Required|`ping`
+
+### clusterrolebinding
+
+
+Property|Description
+---|---
+Test Name|clusterrolebinding
+Url|http://test-network-function.com/tests/clusterrolebinding
+Version|v1.0.0
+Description|A generic test used to test ClusterRoleBindings of CNF pod's ServiceAccount.
+Result Type|normative
+Intrusive|false
+Modifications Persist After Test|false
+Runtime Binaries Required|`oc`
+
+### container-pod
+
+
+Property|Description
+---|---
+Test Name|container-pod
+Url|http://test-network-function.com/tests/container/pod
+Version|v1.0.0
+Description|A container-specific test suite used to verify various aspects of the underlying container.
+Result Type|normative
+Intrusive|false
+Modifications Persist After Test|false
+Runtime Binaries Required|`jq`, `oc`
+
+### crdStatusExistence
+
+
+Property|Description
+---|---
+Test Name|crdStatusExistence
+Url|http://test-network-function.com/tests/crdStatusExistence
+Version|v1.0.0
+Description|Checks whether a give CRD has status subresource specification.
+Result Type|normative
+Intrusive|false
+Modifications Persist After Test|false
+Runtime Binaries Required|`oc`, `jq`
+
+### logging
+
+
+Property|Description
+---|---
+Test Name|logging
+Url|http://test-network-function.com/tests/logging
+Version|v1.0.0
+Description|A test used to check logs are redirected to stderr/stdout
+Result Type|normative
+Intrusive|false
+Modifications Persist After Test|false
+Runtime Binaries Required|`oc`, `wc`
+
+### nodeport
+
+
+Property|Description
+---|---
+Test Name|nodeport
+Url|http://test-network-function.com/tests/nodeport
+Version|v1.0.0
+Description|A generic test used to test services of CNF pod's namespace.
+Result Type|normative
+Intrusive|false
+Modifications Persist After Test|false
+Runtime Binaries Required|`oc`, `grep`
 
 ### operator
 
@@ -815,87 +787,45 @@ Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`oc`
 
-### owners
+### generic-cnf_fs_diff
 
 
 Property|Description
 ---|---
-Test Name|owners
-Url|http://test-network-function.com/tests/owners
+Test Name|generic-cnf_fs_diff
+Url|http://test-network-function.com/tests/generic/cnf_fs_diff
 Version|v1.0.0
-Description|A generic test used to verify pod is managed by a ReplicaSet/StatefulSet
+Description|A test used to check if there were no installation during container runtime
 Result Type|normative
 Intrusive|false
 Modifications Persist After Test|false
-Runtime Binaries Required|`cat`
+Runtime Binaries Required|`grep`, `cut`
 
-### ping
+### gracePeriod
 
 
 Property|Description
 ---|---
-Test Name|ping
-Url|http://test-network-function.com/tests/ping
+Test Name|gracePeriod
+Url|http://test-network-function.com/tests/gracePeriod
 Version|v1.0.0
-Description|A generic test used to test ICMP connectivity from a source machine/container to a target destination.
+Description|A generic test used to extract the CNF pod's terminationGracePeriod.
 Result Type|normative
 Intrusive|false
 Modifications Persist After Test|false
-Runtime Binaries Required|`ping`
+Runtime Binaries Required|`grep`, `cut`
 
-### podnodename
+### nodes
 
 
 Property|Description
 ---|---
-Test Name|podnodename
-Url|http://test-network-function.com/tests/podnodename
+Test Name|nodes
+Url|http://test-network-function.com/tests/nodes
 Version|v1.0.0
-Description|A generic test used to get a pod's node
-Result Type|normative
+Description|Polls the state of the OpenShift cluster nodes using "oc get nodes -o json".
+Result Type|
 Intrusive|false
-Modifications Persist After Test|false
-Runtime Binaries Required|`oc`
-
-### podsets
-
-
-Property|Description
----|---
-Test Name|podsets
-Url|http://test-network-function.com/tests/podsets
-Version|v1.0.0
-Description|A generic test used to read namespace's deployments/statefulsets
-Result Type|normative
-Intrusive|false
-Modifications Persist After Test|false
-Runtime Binaries Required|`oc`
-
-### rolebinding
-
-
-Property|Description
----|---
-Test Name|rolebinding
-Url|http://test-network-function.com/tests/rolebinding
-Version|v1.0.0
-Description|A generic test used to test RoleBindings of CNF pod's ServiceAccount.
-Result Type|normative
-Intrusive|false
-Modifications Persist After Test|false
-Runtime Binaries Required|`cat`, `oc`
-
-### scaling
-
-
-Property|Description
----|---
-Test Name|scaling
-Url|http://test-network-function.com/tests/scaling
-Version|v1.0.0
-Description|A test to check the deployments scale in/out. The tests issues the oc scale command on a deployment for a given number of replicas and checks whether the command output is valid.
-Result Type|normative
-Intrusive|true
 Modifications Persist After Test|false
 Runtime Binaries Required|`oc`
 
@@ -927,29 +857,99 @@ Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`sysctl`
 
-### sysctlConfigFilesList
+### deploymentsdrain
 
 
 Property|Description
 ---|---
-Test Name|sysctlConfigFilesList
-Url|http://test-network-function.com/tests/sysctlConfigFilesList
+Test Name|deploymentsdrain
+Url|http://test-network-function.com/tests/deploymentsnodes
 Version|v1.0.0
-Description|A generic test used to get node's list of sysctl config files
+Description|A generic test used to drain node from its deployment pods
+Result Type|normative
+Intrusive|true
+Modifications Persist After Test|true
+Runtime Binaries Required|`jq`, `echo`
+
+### deploymentsnodes
+
+
+Property|Description
+---|---
+Test Name|deploymentsnodes
+Url|http://test-network-function.com/tests/deploymentsnodes
+Version|v1.0.0
+Description|A generic test used to read node names of pods owned by deployments in namespace
+Result Type|normative
+Intrusive|false
+Modifications Persist After Test|false
+Runtime Binaries Required|`oc`, `grep`
+
+### generic-version
+
+
+Property|Description
+---|---
+Test Name|generic-version
+Url|http://test-network-function.com/tests/generic/version
+Version|v1.0.0
+Description|A generic test used to determine if a target container/machine is based on RHEL.
 Result Type|normative
 Intrusive|false
 Modifications Persist After Test|false
 Runtime Binaries Required|`cat`
 
-### testPodHighAvailability
+### nodenames
 
 
 Property|Description
 ---|---
-Test Name|testPodHighAvailability
-Url|http://test-network-function.com/tests/testPodHighAvailability
+Test Name|nodenames
+Url|http://test-network-function.com/tests/nodenames
 Version|v1.0.0
-Description|A generic test used to check pod's replica and podAntiAffinity configuration in high availability mode
+Description|A generic test used to get node names
+Result Type|normative
+Intrusive|false
+Modifications Persist After Test|false
+Runtime Binaries Required|`oc`
+
+### nodeselector
+
+
+Property|Description
+---|---
+Test Name|nodeselector
+Url|http://test-network-function.com/tests/nodeselector
+Version|v1.0.0
+Description|A generic test used to verify a pod's nodeSelector and nodeAffinity configuration
+Result Type|normative
+Intrusive|false
+Modifications Persist After Test|false
+Runtime Binaries Required|`oc`, `grep`
+
+### owners
+
+
+Property|Description
+---|---
+Test Name|owners
+Url|http://test-network-function.com/tests/owners
+Version|v1.0.0
+Description|A generic test used to verify pod is managed by a ReplicaSet/StatefulSet
+Result Type|normative
+Intrusive|false
+Modifications Persist After Test|false
+Runtime Binaries Required|`cat`
+
+### podnodename
+
+
+Property|Description
+---|---
+Test Name|podnodename
+Url|http://test-network-function.com/tests/podnodename
+Version|v1.0.0
+Description|A generic test used to get a pod's node
 Result Type|normative
 Intrusive|false
 Modifications Persist After Test|false
