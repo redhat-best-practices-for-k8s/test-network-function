@@ -52,15 +52,16 @@ jobs:
           ref: ${{ env.CURRENT_VERSION_GENERIC_BRANCH }}
           fetch-depth: '0'
 
-      - name: checkout the latest for the script directory in the main branch
-        run: |
-          git checkout origin/main -- script/create-version-files.sh
-          git checkout origin/main -- script/get-git-latest-release.sh
-
       - name: Get the latest TNF version from GIT
         run: |
-          script/create-version-files.sh  > /dev/null 2>&1
-          echo "::set-output name=version_number::$(script/get-git-latest-release.sh)"
+          GIT_RELEASE=$(git tag --points-at HEAD | head -n 1)
+          GIT_PREVIOUS_RELEASE=$(git tag --no-contains HEAD --sort=v:refname | tail -n 1)
+          GIT_LATEST_RELEASE=$GIT_RELEASE
+          if [ -z "$GIT_RELEASE" ]; then
+            GIT_LATEST_RELEASE=$GIT_PREVIOUS_RELEASE
+          fi
+
+          echo "::set-output name=version_number::$GIT_LATEST_RELEASE"
         id: set_tnf_version
 
       - name: Print the latest TNF version from GIT
