@@ -16,48 +16,50 @@
 
 package identifier
 
-import "github.com/test-network-function/test-network-function/pkg/tnf/dependencies"
+import (
+	"github.com/test-network-function/test-network-function/pkg/tnf/dependencies"
+)
 
 const (
-	commandIdentifierURL                  = "http://test-network-function.com/tests/command"
-	nodeselectorIdentifierURL             = "http://test-network-function.com/tests/nodeselector"
-	ipAddrIdentifierURL                   = "http://test-network-function.com/tests/ipaddr"
-	nodesIdentifierURL                    = "http://test-network-function.com/tests/nodes"
-	operatorIdentifierURL                 = "http://test-network-function.com/tests/operator"
-	pingIdentifierURL                     = "http://test-network-function.com/tests/ping"
-	podIdentifierURL                      = "http://test-network-function.com/tests/container/pod"
-	versionIdentifierURL                  = "http://test-network-function.com/tests/generic/version"
-	roleBindingIdentifierURL              = "http://test-network-function.com/tests/rolebinding"
-	clusterRoleBindingIdentifierURL       = "http://test-network-function.com/tests/clusterrolebinding"
-	nodePortIdentifierURL                 = "http://test-network-function.com/tests/nodeport"
-	ImagePullPolicyIdentifierURL          = "http://test-network-function.com/tests/imagepullpolicy"
-	nodeNamesIdentifierURL                = "http://test-network-function.com/tests/nodenames"
-	nodeTaintedIdentifierURL              = "http://test-network-function.com/tests/nodetainted"
-	gracePeriodIdentifierURL              = "http://test-network-function.com/tests/gracePeriod"
-	podsetsIdentifierURL                  = "http://test-network-function.com/tests/podsets"
-	deploymentsnodesIdentifierURL         = "http://test-network-function.com/tests/deploymentsnodes"
-	deploymentsdrainIdentifierURL         = "http://test-network-function.com/tests/deploymentsdrain"
-	ownersIdentifierURL                   = "http://test-network-function.com/tests/owners"
-	cnfFsDiffURL                          = "http://test-network-function.com/tests/generic/cnf_fs_diff"
-	podnodenameIdentifierURL              = "http://test-network-function.com/tests/podnodename"
-	nodemcnameIdentifierURL               = "http://test-network-function.com/tests/nodemcname"
-	mckernelargumentsIdentifierURL        = "http://test-network-function.com/tests/mckernelarguments"
-	currentKernelCmdlineArgsIdentifierURL = "http://test-network-function.com/tests/currentKernelCmdlineArgs"
-	grubKernelCmdlineArgsIdentifierURL    = "http://test-network-function.com/tests/grubKernelCmdlineArgs"
-	sysctlConfigFilesListIdentifierURL    = "http://test-network-function.com/tests/sysctlConfigFilesList"
-	sysctlAllConfigsArgsURL               = "http://test-network-function.com/tests/sysctlAllConfigsArgs"
-	uncordonNodeIdentifierURL             = "http://test-network-function.com/tests/node/uncordon"
-	checkSubscriptionIdentifierURL        = "http://test-network-function.com/tests/operator/check-subscription"
-	nodeDebugIdentifierURL                = "http://test-network-function.com/tests/nodedebug"
-	loggingIdentifierURL                  = "http://test-network-function.com/tests/logging"
-	podantiaffinityIdentifierURL          = "http://test-network-function.com/tests/testPodHighAvailability"
-	shutdownIdentifierURL                 = "http://test-network-function.com/tests/shutdown"
-	scalingIdentifierURL                  = "http://test-network-function.com/tests/scaling"
-	csiDriverIdentifierURL                = "http://test-network-function.com/tests/csiDriver"
-	clusterVersionIdentifierURL           = "http://test-network-function.com/tests/clusterVersion"
-	crdStatusExistenceIdentifierURL       = "http://test-network-function.com/tests/crdStatusExistence"
-	daemonSetIdentifierURL                = "http://test-network-function.com/tests/daemonset"
-	automountserviceIdentifierURL         = "http://test-network-function.com/tests/automountservice"
+	commandIdentifierURL                  = urlTests + "/command"
+	nodeselectorIdentifierURL             = urlTests + "/nodeselector"
+	ipAddrIdentifierURL                   = urlTests + "/ipaddr"
+	nodesIdentifierURL                    = urlTests + "/nodes"
+	operatorIdentifierURL                 = urlTests + "/operator"
+	pingIdentifierURL                     = urlTests + "/ping"
+	podIdentifierURL                      = urlTests + "/container/pod"
+	versionIdentifierURL                  = urlTests + "/generic/version"
+	roleBindingIdentifierURL              = urlTests + "/rolebinding"
+	clusterRoleBindingIdentifierURL       = urlTests + "/clusterrolebinding"
+	nodePortIdentifierURL                 = urlTests + "/nodeport"
+	ImagePullPolicyIdentifierURL          = urlTests + "/imagepullpolicy"
+	nodeNamesIdentifierURL                = urlTests + "/nodenames"
+	nodeTaintedIdentifierURL              = urlTests + "/nodetainted"
+	gracePeriodIdentifierURL              = urlTests + "/gracePeriod"
+	podsetsIdentifierURL                  = urlTests + "/podsets"
+	deploymentsnodesIdentifierURL         = urlTests + "/deploymentsnodes"
+	deploymentsdrainIdentifierURL         = urlTests + "/deploymentsdrain"
+	ownersIdentifierURL                   = urlTests + "/owners"
+	cnfFsDiffURL                          = urlTests + "/generic/cnf_fs_diff"
+	podnodenameIdentifierURL              = urlTests + "/podnodename"
+	nodemcnameIdentifierURL               = urlTests + "/nodemcname"
+	mckernelargumentsIdentifierURL        = urlTests + "/mckernelarguments"
+	currentKernelCmdlineArgsIdentifierURL = urlTests + "/currentKernelCmdlineArgs"
+	grubKernelCmdlineArgsIdentifierURL    = urlTests + "/grubKernelCmdlineArgs"
+	sysctlConfigFilesListIdentifierURL    = urlTests + "/sysctlConfigFilesList"
+	sysctlAllConfigsArgsURL               = urlTests + "/sysctlAllConfigsArgs"
+	uncordonNodeIdentifierURL             = urlTests + "/node/uncordon"
+	checkSubscriptionIdentifierURL        = urlTests + "/operator/check-subscription"
+	nodeDebugIdentifierURL                = urlTests + "/nodedebug"
+	loggingIdentifierURL                  = urlTests + "/logging"
+	podantiaffinityIdentifierURL          = urlTests + "/testPodHighAvailability"
+	shutdownIdentifierURL                 = urlTests + "/shutdown"
+	scalingIdentifierURL                  = urlTests + "/scaling"
+	csiDriverIdentifierURL                = urlTests + "/csiDriver"
+	clusterVersionIdentifierURL           = urlTests + "/clusterVersion"
+	crdStatusExistenceIdentifierURL       = urlTests + "/crdStatusExistence"
+	daemonSetIdentifierURL                = urlTests + "/daemonset"
+	automountserviceIdentifierURL         = urlTests + "/automountservice"
 	versionOne                            = "v1.0.0"
 )
 
@@ -592,6 +594,9 @@ var Catalog = map[string]TestCatalogEntry{
 		},
 	},
 }
+
+// TestIDBaseDomain is the BaseDomain for the IDs of test cases building blocks
+var TestIDBaseDomain = urlTests
 
 // CommandIdentifier is  the Identifier used to represent the generic command test case.
 var CommandIdentifier = Identifier{
