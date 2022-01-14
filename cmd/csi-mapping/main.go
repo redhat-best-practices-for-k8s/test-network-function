@@ -155,7 +155,7 @@ func main() {
 	fmt.Println(aMapping)
 	out, err := json.MarshalIndent(aMapping,""," ")
 	if err == nil {
-		err = ioutil.WriteFile("test.json", out, 0644)
+		err = ioutil.WriteFile("csi-mapping.json", out, 0644)
 		if err != nil {
 			log.Errorf("%s", err)
 		}
