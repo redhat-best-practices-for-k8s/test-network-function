@@ -153,30 +153,6 @@ func createPrintableCatalogFromIdentifiers(keys []claim.Identifier) map[string][
 	return catalog
 }
 
-// createPrintableCatalogFromUrls creates an structured catalogue.
-// Decompose urls like http://test-network-function.com/tests/TestName
-// to get Tesnames and build a "more printable" catalogue in the way of:
-// {
-//     0: {testName, identifier{url, version}},
-//	   1: {testName2, identifier{url, version}}
-// }
-func createPrintableCatalogFromUrls(urls []string) map[int]catalogElement {
-	catalog := make(map[int]catalogElement)
-	for i, url := range urls {
-		testName := identifier.XformToGinkgoItIdentifier(identifier.Identifier{URL: url})
-		if testName == "" {
-			return nil
-		}
-		catalog[i] = catalogElement{
-			testName: testName,
-			identifier: claim.Identifier{
-				Url: url,
-			},
-		}
-	}
-	return catalog
-}
-
 func getSuitesFromIdentifiers(keys []claim.Identifier) []string {
 	var suites []string
 
@@ -256,25 +232,21 @@ func outputTestCaseBuildingBlocks() {
 	// Sorting the map by identifier URL
 	sort.Strings(keys)
 
-	catalog := createPrintableCatalogFromUrls(keys)
-	if catalog == nil {
-		return
-	}
-
-	for _, k := range catalog {
-		fmt.Fprintf(os.Stdout, "### %s\n", k.testName)
-		fmt.Println()
+	// Iterating the map by sorted identifier URL
+	for _, k := range keys {
+		testName := identifier.XformToGinkgoItIdentifier(identifier.Catalog[k].Identifier)
+		fmt.Fprintf(os.Stdout, "### %s", testName)
 		fmt.Println()
 		fmt.Println("Property|Description")
 		fmt.Println("---|---")
-		fmt.Fprintf(os.Stdout, "Test Name|%s\n", k.testName)
-		fmt.Fprintf(os.Stdout, "Unique ID|%s\n", identifier.Catalog[k.identifier.Url].Identifier.URL)
-		fmt.Fprintf(os.Stdout, "Version|%s\n", identifier.Catalog[k.identifier.Url].Identifier.SemanticVersion)
-		fmt.Fprintf(os.Stdout, "Description|%s\n", identifier.Catalog[k.identifier.Url].Description)
-		fmt.Fprintf(os.Stdout, "Result Type|%s\n", identifier.Catalog[k.identifier.Url].Type)
-		fmt.Fprintf(os.Stdout, "Intrusive|%t\n", identifier.Catalog[k.identifier.Url].IntrusionSettings.ModifiesSystem)
-		fmt.Fprintf(os.Stdout, "Modifications Persist After Test|%t\n", identifier.Catalog[k.identifier.Url].IntrusionSettings.ModificationIsPersistent)
-		fmt.Fprintf(os.Stdout, "Runtime Binaries Required|%s\n", cmdJoin(identifier.Catalog[k.identifier.Url].BinaryDependencies, ", "))
+		fmt.Fprintf(os.Stdout, "Test Name|%s\n", testName)
+		fmt.Fprintf(os.Stdout, "Unique ID|%s\n", identifier.Catalog[k].Identifier.URL)
+		fmt.Fprintf(os.Stdout, "Version|%s\n", identifier.Catalog[k].Identifier.SemanticVersion)
+		fmt.Fprintf(os.Stdout, "Description|%s\n", identifier.Catalog[k].Description)
+		fmt.Fprintf(os.Stdout, "Result Type|%s\n", identifier.Catalog[k].Type)
+		fmt.Fprintf(os.Stdout, "Intrusive|%t\n", identifier.Catalog[k].IntrusionSettings.ModifiesSystem)
+		fmt.Fprintf(os.Stdout, "Modifications Persist After Test|%t\n", identifier.Catalog[k].IntrusionSettings.ModificationIsPersistent)
+		fmt.Fprintf(os.Stdout, "Runtime Binaries Required|%s\n", cmdJoin(identifier.Catalog[k].BinaryDependencies, ", "))
 		fmt.Println()
 	}
 }
