@@ -234,7 +234,7 @@ func outputTestCaseBuildingBlocks() {
 
 	// Iterating the map by sorted identifier URL
 	for _, k := range keys {
-		testName := identifier.XformToGinkgoItIdentifier(identifier.Catalog[k].Identifier)
+		testName := identifier.GetShortNameFromIdentifier(identifier.Catalog[k].Identifier)
 		fmt.Fprintf(os.Stdout, "### %s", testName)
 		fmt.Println()
 		fmt.Println("Property|Description")

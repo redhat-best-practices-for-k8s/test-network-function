@@ -84,7 +84,7 @@ func TestIdentifier_UnmarshalJSON(t *testing.T) {
 	}
 }
 
-func TestXformToGinkgoItIdentifier(t *testing.T) {
+func TestGetShortNameFromIdentifier(t *testing.T) {
 	type testURLTestName struct {
 		URL            string
 		testName       string
@@ -115,6 +115,6 @@ func TestXformToGinkgoItIdentifier(t *testing.T) {
 
 	for _, test := range testsURLs {
 		id := identifier.Identifier{URL: test.URL, SemanticVersion: ""}
-		assert.Equal(t, test.expectedResult, identifier.XformToGinkgoItIdentifier(id))
+		assert.Equal(t, test.expectedResult, identifier.GetShortNameFromIdentifier(id))
 	}
 }

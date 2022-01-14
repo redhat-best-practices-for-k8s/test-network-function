@@ -1,4 +1,4 @@
-// Copyright (C) 2020-2022 Red Hat, Inc.
+// Copyright (C) 2020-2021 Red Hat, Inc.
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -89,28 +89,16 @@ func (i *Identifier) UnmarshalJSON(b []byte) error {
 	return i.unmarshalSemanticVersion(objMap)
 }
 
-// XformToGinkgoItIdentifier transform the Identifier into a test Id that can be used to skip
-// specific tests
-func XformToGinkgoItIdentifier(identifier Identifier) string {
-	return XformToGinkgoItIdentifierExtended(identifier, "")
-}
-
-// XformToGinkgoItIdentifierExtended transform the claim.Identifier into a test Id that can be used to skip
-// specific tests
-// returns empty string if identifierURL was not correct about the base domain
-// for the url of tests
-func XformToGinkgoItIdentifierExtended(identifier Identifier, extra string) string {
+// GetShortNameFromIdentifier transform an Identifier into a just test name
+// returns empty string if Identifier.URL was not correct about the base domain
+// for the url
+func GetShortNameFromIdentifier(identifier Identifier) string {
 	if !strings.HasPrefix(identifier.URL, urlTests+"/") {
 		return ""
 	}
 	itID := strings.ReplaceAll(strings.TrimPrefix(identifier.URL, urlTests+"/"), "/", "-")
-	var key string
-	if extra != "" {
-		key = itID + "-" + extra
-	} else {
-		key = itID
-	}
-	return key
+
+	return itID
 }
 
 func GetIdentifierURLBaseDomain() string {
