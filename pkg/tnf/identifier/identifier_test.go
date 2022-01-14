@@ -115,6 +115,6 @@ func TestXformToGinkgoItIdentifier(t *testing.T) {
 
 	for _, test := range testsURLs {
 		id := identifier.Identifier{URL: test.URL, SemanticVersion: ""}
-		assert.Equal(t, identifier.XformToGinkgoItIdentifier(id), test.expectedResult)
+		assert.Equal(t, test.expectedResult, identifier.XformToGinkgoItIdentifier(id))
 	}
 }
