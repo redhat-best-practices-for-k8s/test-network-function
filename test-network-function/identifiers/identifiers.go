@@ -60,6 +60,8 @@ var (
 	// TestIdToClaimId converts the testcase short ID to the claim identifier
 	TestIDToClaimID = map[string]claim.Identifier{}
 
+	// BaseDomain for the test cases
+	TestIDBaseDomain = url
 	// TestHostResourceIdentifier tests container best practices.
 	TestHostResourceIdentifier = claim.Identifier{
 		Url:     formTestURL(common.AccessControlTestKey, "host-resource"),
@@ -262,6 +264,23 @@ func XformToGinkgoItIdentifierExtended(identifier claim.Identifier, extra string
 	}
 	TestIDToClaimID[key] = identifier
 	return key
+}
+
+// it extracts the suite name and test name from a claim.Identifier based
+// on the const url which contains a base domain
+// From a claim.Identifier.url:
+//   http://test-network-function.com/tests-case/SuitName/TestName
+// It extracts SuitNAme and TestName
+
+func GetSuiteAndTestFromIdentifier(identifier claim.Identifier) []string {
+	result := strings.Split(identifier.Url, url+"/")
+	const SPLITN = 2
+	// len 2, the baseDomain can appear only once in the url
+	// so it returns what you have previous and before basedomain
+	if len(result) != SPLITN {
+		return nil
+	}
+	return strings.Split(result[1], "/")
 }
 
 // Catalog is the JUnit testcase catalog of tests.

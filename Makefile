@@ -44,9 +44,9 @@ else
 endif
 
 COMMON_GO_ARGS=-race
-GIT_COMMIT=$(shell script/create-version-files.sh)
-GIT_RELEASE=$(shell script/get-git-release.sh)
-GIT_PREVIOUS_RELEASE=$(shell script/get-git-previous-release.sh)
+GIT_COMMIT=$(shell git rev-list -1 HEAD)
+GIT_RELEASE=$(shell git tag --points-at HEAD | head -n 1)
+GIT_PREVIOUS_RELEASE=$(shell git tag --no-contains HEAD --sort=v:refname | tail -n 1)
 GOLANGCI_VERSION=v1.43.0
 
 # Run the unit tests and build all binaries
