@@ -376,10 +376,8 @@ func declaredPortList(container int, podName, podNamespace string, declaredPorts
 func listeningPortList(commandlisten []string, nodeOc *interactive.Context, listeningPorts map[key]string) error {
 	var k key
 	listeningPortCommand := strings.Join(commandlisten, " ")
-	fmt.Println(listeningPortCommand)
 	res, err := utils.ExecuteCommand(listeningPortCommand, ocCommandTimeOut, nodeOc)
-	if res == "" {
-		log.Error(err)
+	if err != nil {
 		return err
 	}
 	lines := strings.Split(res, "\n")
@@ -424,7 +422,7 @@ func testListenAndDeclared(env *config.TestEnvironment) {
 			for i := 0; i < podUnderTest.ContainerCount; i++ {
 				err := declaredPortList(i, podUnderTest.Name, podUnderTest.Namespace, declaredPorts)
 				if err != nil {
-					log.Error(err)
+					log.Errorf("Failed: There are no declared ports for pod name %s in pod namespace %s", podUnderTest.Name, podUnderTest.Namespace)
 					continue
 				}
 			}
@@ -442,7 +440,7 @@ func testListenAndDeclared(env *config.TestEnvironment) {
 
 			err = listeningPortList(commandlisten, nodeOc.Context, listeningPorts)
 			if err != nil {
-				log.Error(err)
+				log.Errorf("Failed: There are no listening ports for pod name %s in pod namespace %s", podUnderTest.Name, podUnderTest.Namespace)
 				continue
 			}
 			// compare between declaredPort,listeningPort and return the common.
