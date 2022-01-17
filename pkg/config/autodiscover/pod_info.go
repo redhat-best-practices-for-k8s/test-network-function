@@ -52,7 +52,8 @@ type PodResource struct {
 	Spec struct {
 		ServiceAccount string `json:"serviceaccountname"`
 		Containers     []struct {
-			Name string `json:"name"`
+			Name  string `json:"name"`
+			Image string `json:"image"`
 		} `json:"containers"`
 		NodeName string `json:"nodeName"`
 	} `json:"spec"`
