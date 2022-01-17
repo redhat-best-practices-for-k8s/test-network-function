@@ -1,4 +1,4 @@
-package main
+package csimapping
 
 import (
 	"encoding/json"
@@ -23,7 +23,7 @@ type catalog struct {
 	} `json:"data"`
 	NodeName string `json:"nodeName"`
 }
-type Key struct {
+type OperatorKey struct {
 	OperatorName, OcpVersion string
 }
 
@@ -68,7 +68,7 @@ func removeDuplicateValues(stringSlice []string) []string {
 	}
 	return list
 }
-func ListOperator(mapOperators map[Key][]string) []string {
+func ListOperator(mapOperators map[OperatorKey][]string) []string {
 	keys := make(map[string]bool)
 	for key, _ := range mapOperators {
 		keys[key.OperatorName] = true
@@ -119,8 +119,7 @@ func createMapping(driverMap map[string]string, operatorList []string) map[strin
 	return driverOperatorMapping
 }
 
-func main() {
-
+func GetOperatorVersions()map[OperatorKey][]string{
 	var fullCatalog catalog
 	firstPageCatalog := getCatalogPage("https://catalog.redhat.com/api/containers/v1/operators/bundles?", 0, filterCsi)
 	totalPages := firstPageCatalog.Total / firstPageCatalog.PageSize
@@ -130,11 +129,11 @@ func main() {
 		log.Debug(i)
 	}
 
-	mapOperators := make(map[Key][]string)
+	mapOperators := make(map[OperatorKey][]string)
 	for _, entry := range fullCatalog.Data {
 		operatorName := strings.Split(entry.CsvName, ".")[0]
 		version := strings.Split(entry.CsvName, operatorName+".")[1]
-		aKey := Key{OperatorName: operatorName, OcpVersion: entry.OcpVersion}
+		aKey := OperatorKey{OperatorName: operatorName, OcpVersion: entry.OcpVersion}
 		aList := mapOperators[aKey]
 		aList = append(aList, version)
 		mapOperators[aKey] = aList
@@ -142,6 +141,12 @@ func main() {
 	for key, operator := range mapOperators {
 		mapOperators[key] = removeDuplicateValues(operator)
 	}
+	return mapOperators
+}
+
+func main() {
+
+	mapOperators:=GetOperatorVersions()
 
 	log.Infof("%+v\n", mapOperators)
 
