@@ -18,8 +18,12 @@ package platform
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/test-network-function/test-network-function/pkg/config/configsections"
+	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
+	"github.com/test-network-function/test-network-function/pkg/utils"
 )
 
 const (
@@ -53,8 +57,13 @@ var (
 )
 
 func Test_printTainted(t *testing.T) {
-	assert.Equal(t, printTainted(2048), "workaround for bug in platform firmware applied, ")
-	assert.Equal(t, printTainted(32769), "proprietary module was loaded, kernel has been live patched, ")
+	taint1, taint1Slice := printTainted(2048)
+	assert.Equal(t, taint1, "workaround for bug in platform firmware applied, ")
+	assert.Len(t, taint1Slice, 1)
+
+	taint2, taint2Slice := printTainted(32769)
+	assert.Equal(t, taint2, "proprietary module was loaded, kernel has been live patched, ")
+	assert.Len(t, taint2Slice, 2)
 }
 
 //nolint:funlen
@@ -150,5 +159,102 @@ func Test_hugepagesFromKernelArgsFunc(t *testing.T) {
 
 		assert.Equal(t, defSize, tc.expectedHugepagesDefSize)
 		assert.Equal(t, hugepagesPerSize, tc.expectedHugepagesPerSize)
+	}
+}
+
+//nolint:funlen
+func TestGetTaintedModules(t *testing.T) {
+	testCases := []struct {
+		modules                []string // Note: We are only using one item in this list for the test.
+		modinfo                map[string]string
+		expectedTaintedModules []string
+	}{
+		{
+			modules: []string{
+				"test1",
+			},
+			modinfo: map[string]string{
+				"test1": `filename:
+				description:
+				author:
+				license:
+				depends:
+				retpoline:
+				intree:
+				name:
+				vermagic:`,
+			},
+			expectedTaintedModules: []string{}, // test1 is 'intree'
+		},
+		{
+			modules: []string{
+				"test2",
+			},
+			modinfo: map[string]string{
+				"test2": `filename:
+				description:
+				author:
+				license:
+				depends:
+				retpoline:
+				name:
+				vermagic:`,
+			},
+			expectedTaintedModules: []string{"test2"}, // test2 is not 'intree'
+		},
+	}
+
+	// Spoof the output from the RunCommandInNode.
+	// This will allow us to return "InTree" status to the test.
+	origFunc := utils.RunCommandInNode
+	defer func() {
+		utils.RunCommandInNode = origFunc
+	}()
+
+	for _, tc := range testCases {
+		utils.RunCommandInNode = func(nodeName string, nodeOc *interactive.Oc, command string, timeout time.Duration) string {
+			return tc.modinfo[tc.modules[0]]
+		}
+		assert.Equal(t, tc.expectedTaintedModules, getTaintedModules(tc.modules, "testnode", nil))
+	}
+}
+
+func TestTaintsAccepted(t *testing.T) {
+	testCases := []struct {
+		confTaints     []configsections.AcceptedTaintsRequestInfo
+		taintedModules []string
+		expected       bool
+	}{
+		{
+			confTaints: []configsections.AcceptedTaintsRequestInfo{
+				{
+					Module: "taint1",
+				},
+			},
+			taintedModules: []string{
+				"taint1",
+			},
+			expected: true,
+		},
+		{
+			confTaints: []configsections.AcceptedTaintsRequestInfo{}, // no accepted modules
+			taintedModules: []string{
+				"taint1",
+			},
+			expected: false,
+		},
+		{ // We have no tainted modules, so the configuration does not matter.
+			confTaints: []configsections.AcceptedTaintsRequestInfo{
+				{
+					Module: "taint1",
+				},
+			},
+			taintedModules: []string{},
+			expected:       true,
+		},
+	}
+
+	for _, tc := range testCases {
+		assert.Equal(t, tc.expected, taintsAccepted(tc.confTaints, tc.taintedModules))
 	}
 }

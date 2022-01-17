@@ -64,6 +64,8 @@ type TestConfiguration struct {
 	CertifiedOperatorInfo []CertifiedOperatorRequestInfo `yaml:"certifiedoperatorinfo,omitempty" json:"certifiedoperatorinfo,omitempty"`
 	// CRDs section.
 	CrdFilters []CrdFilter `yaml:"targetCrdFilters" json:"targetCrdFilters"`
+	// AcceptedTaints
+	AcceptedTaints []AcceptedTaintsRequestInfo `yaml:"acceptedTaints,omitempty" json:"acceptedTaints,omitempty"`
 }
 
 // TestPartner contains the helper containers that can be used to facilitate tests

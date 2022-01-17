@@ -369,18 +369,23 @@ func testSysctlConfigsHelper(podName, podNamespace string, context *interactive.
 	}
 }
 
-func printTainted(bitmap uint64) string {
+//nolint:gocritic
+func printTainted(bitmap uint64) (string, []string) {
 	values := getTaintedBitValues()
 	var out string
+	individualTaints := []string{}
 	for i := 0; i < 32; i++ {
 		bit := (bitmap >> i) & 1
 		if bit == 1 {
 			out += fmt.Sprintf("%s, ", values[i])
+			// Storing the individual taint messages for extra parsing.
+			individualTaints = append(individualTaints, values[i])
 		}
 	}
-	return out
+	return out, individualTaints
 }
 
+//nolint:funlen
 func testTainted(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestNonTaintedNodeKernelsIdentifier)
 	ginkgo.It(testID, ginkgo.Label(testID), func() {
@@ -392,11 +397,14 @@ func testTainted(env *config.TestEnvironment) {
 			if !node.HasDebugPod() {
 				continue
 			}
+			log.Debug("Node has a debug pod")
 			context := node.DebugContainer.GetOc()
 			tester := nodetainted.NewNodeTainted(common.DefaultTimeout)
 			test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 			gomega.Expect(err).To(gomega.BeNil())
+
 			var message string
+			nodeTaintsAccepted := true
 			test.RunWithCallbacks(func() {
 				message = fmt.Sprintf("Decoded tainted kernel causes (code=0) for node %s : None\n", node.Name)
 			}, func() {
@@ -405,9 +413,40 @@ func testTainted(env *config.TestEnvironment) {
 				if err != nil {
 					message = fmt.Sprintf("Could not decode tainted kernel causes (code=%d) for node %s\n", taintedBitmap, node.Name)
 				} else {
-					message = fmt.Sprintf("Decoded tainted kernel causes (code=%d) for node %s : %s\n", taintedBitmap, node.Name, printTainted(taintedBitmap))
+					taintMsg, individualTaints := printTainted(taintedBitmap)
+
+					// We only will fail the tainted kernel check if the reason for the taint
+					// only pertains to `module was loaded`.
+					log.Debug("Checking for module was loaded taints")
+					moduleCheck := false
+					for _, it := range individualTaints {
+						if strings.Contains(it, `module was loaded`) {
+							moduleCheck = true
+							break
+						}
+					}
+
+					if moduleCheck {
+						// Retrieve the modules from the node.
+						modules := utils.GetModulesFromNode(node.Name, context)
+						log.Debug("Got the modules from node")
+
+						// Loop through the modules looking for `InTree: Y`.
+						// If the module info does not contain this string, the module is "tainted".
+						taintedModules := getTaintedModules(modules, node.Name, context)
+						log.Debug("Collected all of the tainted modules: ", taintedModules)
+
+						// Looks through the accepted taints listed in the tnf-config file.
+						// If all of the tainted modules show up in the configuration file, don't fail the test.
+						nodeTaintsAccepted = taintsAccepted(env.Config.AcceptedTaints, taintedModules)
+					}
+
+					message = fmt.Sprintf("Decoded tainted kernel causes (code=%d) for node %s : %s\n", taintedBitmap, node.Name, taintMsg)
 				}
-				taintedNodes = append(taintedNodes, node.Name)
+				// Only add the tainted node to the slice if the taint is acceptable.
+				if !nodeTaintsAccepted {
+					taintedNodes = append(taintedNodes, node.Name)
+				}
 			}, func(e error) {
 				message = fmt.Sprintf("Failed to retrieve tainted kernel code for node %s\n", node.Name)
 				errNodes = append(errNodes, node.Name)
@@ -418,9 +457,42 @@ func testTainted(env *config.TestEnvironment) {
 				log.Errorf("Ginkgo writer could not write because: %s", err)
 			}
 		}
+
+		// We are expecting tainted nodes to be Nil, but only if:
+		// 1) The reason for the tainted node is contains(`module was loaded`)
+		// 2) The modules loaded are all whitelisted.
 		gomega.Expect(taintedNodes).To(gomega.BeNil())
 		gomega.Expect(errNodes).To(gomega.BeNil())
 	})
+}
+
+func taintsAccepted(confTaints []configsections.AcceptedTaintsRequestInfo, taintedModules []string) bool {
+	for _, taintedModule := range taintedModules {
+		found := false
+		log.Debug("Accepted Taints from Config: ", confTaints)
+		for _, confTaint := range confTaints {
+			log.Debug(fmt.Sprintf("Comparing confTaint: %s to taintedModule: %s", confTaint.Module, taintedModule))
+			if confTaint.Module == taintedModule {
+				found = true
+			}
+		}
+
+		if !found {
+			// Tainted modules were not found to be in the allow-list.
+			return false
+		}
+	}
+	return true
+}
+
+func getTaintedModules(modules []string, nodeName string, ctx *interactive.Oc) []string {
+	taintedModules := []string{}
+	for _, module := range modules {
+		if !utils.ModuleInTree(nodeName, module, ctx) {
+			taintedModules = append(taintedModules, module)
+		}
+	}
+	return taintedModules
 }
 
 func hugepageSizeToInt(s string) int {

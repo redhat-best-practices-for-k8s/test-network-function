@@ -184,10 +184,33 @@ func GetContainerPID(nodeName string, nodeOc *interactive.Oc, containerID, runti
 	return RunCommandInNode(nodeName, nodeOc, command, timeoutPid)
 }
 
+func GetModulesFromNode(nodeName string, nodeOc *interactive.Oc) []string {
+	// Get the 1st column list of the modules running on the node.
+	// Split on the return/newline and get the list of the modules back.
+	//nolint:goconst // used only once
+	command := `chroot /host lsmod | awk '{ print $1 }' | grep -v Module`
+	output := RunCommandInNode(nodeName, nodeOc, command, timeoutPid)
+	return strings.Split(strings.ReplaceAll(output, "\r\n", "\n"), "\n")
+}
+
+func ModuleInTree(nodeName, moduleName string, nodeOc *interactive.Oc) bool {
+	command := `chroot /host modinfo ` + moduleName + ` | awk '{ print $1 }'`
+	cmdOutput := RunCommandInNode(nodeName, nodeOc, command, timeoutPid)
+	outputSlice := strings.Split(strings.ReplaceAll(cmdOutput, "\r\n", "\n"), "\n")
+
+	// The output, if found, should look something like 'intree:   Y'.
+	// As long as we look for 'intree:' being contained in the string we should be good to go.
+	found := false
+	if StringInSlice(outputSlice, `intree:`) {
+		found = true
+	}
+	return found
+}
+
 // RunCommandInNode runs a command on a remote kubernetes node
 // takes the node name, node oc and command
 // returns the command raw output
-func RunCommandInNode(nodeName string, nodeOc *interactive.Oc, command string, timeout time.Duration) string {
+var RunCommandInNode = func(nodeName string, nodeOc *interactive.Oc, command string, timeout time.Duration) string {
 	context := nodeOc
 	tester := nodedebug.NewNodeDebug(timeout, nodeName, command, true, true)
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
@@ -199,4 +222,15 @@ func RunCommandInNode(nodeName string, nodeOc *interactive.Oc, command string, t
 // AddNsenterPrefix adds the nsenter command prefix to run inside a container namespace
 func AddNsenterPrefix(containerPID string) string {
 	return "nsenter -t " + containerPID + " -n "
+}
+
+// StringInSlice checks a slice for a given string.
+func StringInSlice(s []string, str string) bool {
+	for _, v := range s {
+		if strings.TrimSpace(v) == str {
+			return true
+		}
+	}
+
+	return false
 }

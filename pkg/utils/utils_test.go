@@ -109,3 +109,33 @@ func TestAddNsenterPrefix(t *testing.T) {
 		assert.Equal(t, tc.expectedString, AddNsenterPrefix(tc.containerID))
 	}
 }
+
+func TestStringInSlice(t *testing.T) {
+	testCases := []struct {
+		testString     string
+		testSlice      []string
+		expectedExists bool
+	}{
+		{
+			testString: "apples",
+			testSlice: []string{
+				"bananas",
+				"oranges",
+				"apples",
+			},
+			expectedExists: true,
+		},
+		{
+			testString: "tacos",
+			testSlice: []string{
+				"burritos",
+				"enchiladas",
+			},
+			expectedExists: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		assert.Equal(t, tc.expectedExists, StringInSlice(tc.testSlice, tc.testString))
+	}
+}

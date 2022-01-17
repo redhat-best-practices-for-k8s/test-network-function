@@ -56,6 +56,10 @@ var (
 		Name:         "etcd",
 		Organization: "Core OS",
 	}
+
+	acceptedTaintsRequestInfo = AcceptedTaintsRequestInfo{
+		Module: "taint1",
+	}
 )
 
 var (
@@ -120,6 +124,9 @@ func buildRequestConfig() *TestConfiguration {
 		jenkinsOperatorRequestInfo,
 		etcdOperatorRequestInfo,
 	}
+	conf.AcceptedTaints = []AcceptedTaintsRequestInfo{
+		acceptedTaintsRequestInfo,
+	}
 	return conf
 }
 
@@ -132,6 +139,7 @@ func RequestTest(t *testing.T, marshalFun marshalFunc, unmarshalFun unmarshalFun
 	assert.Equal(t, len(cfg.CertifiedOperatorInfo), 2)
 	assert.Equal(t, cfg.CertifiedOperatorInfo[0], jenkinsOperatorRequestInfo)
 	assert.Equal(t, cfg.CertifiedOperatorInfo[1], etcdOperatorRequestInfo)
+	assert.Equal(t, cfg.AcceptedTaints[0], acceptedTaintsRequestInfo)
 }
 
 func TestRequestInfos(t *testing.T) {
