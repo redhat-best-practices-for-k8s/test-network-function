@@ -53,25 +53,34 @@ func TestGetConfigurationFilePathFromEnvironment(t *testing.T) {
 
 func TestIsMaster(t *testing.T) {
 	testCases := []struct {
-		label          string
+		label          []string
 		expectedMaster bool
 	}{
 		{
-			label:          configsections.MasterLabel,
+			label: []string{
+				configsections.MasterLabel,
+			},
 			expectedMaster: true,
 		},
 		{
-			label:          configsections.WorkerLabel,
+			label: []string{
+				configsections.WorkerLabel,
+			},
 			expectedMaster: false,
+		},
+		{ // Check if a master is also labeled as a worker, still considered a master.
+			label: []string{
+				configsections.MasterLabel,
+				configsections.WorkerLabel,
+			},
+			expectedMaster: true,
 		},
 	}
 
 	for _, tc := range testCases {
 		n := NodeConfig{
 			Node: configsections.Node{
-				Labels: []string{
-					tc.label,
-				},
+				Labels: tc.label,
 			},
 		}
 		assert.Equal(t, tc.expectedMaster, n.IsMaster())
@@ -80,15 +89,26 @@ func TestIsMaster(t *testing.T) {
 
 func TestIsWorker(t *testing.T) {
 	testCases := []struct {
-		label          string
+		label          []string
 		expectedWorker bool
 	}{
 		{
-			label:          configsections.MasterLabel,
+			label: []string{
+				configsections.MasterLabel,
+			},
 			expectedWorker: false,
 		},
 		{
-			label:          configsections.WorkerLabel,
+			label: []string{
+				configsections.WorkerLabel,
+			},
+			expectedWorker: true,
+		},
+		{ // Check if a master labeled a worker is still considered a worker.
+			label: []string{
+				configsections.WorkerLabel,
+				configsections.MasterLabel,
+			},
 			expectedWorker: true,
 		},
 	}
@@ -96,9 +116,7 @@ func TestIsWorker(t *testing.T) {
 	for _, tc := range testCases {
 		n := NodeConfig{
 			Node: configsections.Node{
-				Labels: []string{
-					tc.label,
-				},
+				Labels: tc.label,
 			},
 		}
 		assert.Equal(t, tc.expectedWorker, n.IsWorker())
