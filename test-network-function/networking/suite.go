@@ -395,34 +395,32 @@ func listeningPortList(commandlisten []string, nodeOc *interactive.Context, list
 	return nil
 }
 
-func checkIfListenIsDeclared(listeningPorts, declaredPorts map[key]string) (flag bool, res map[key]string) {
-	res = make(map[key]string)
+func checkIfListenIsDeclared(listeningPorts, declaredPorts map[key]string) map[key]string {
+	res := make(map[key]string)
 	if len(listeningPorts) == 0 || len(declaredPorts) == 0 {
-		return false, res
+		return res
 	}
-	flag = true
 	for k := range listeningPorts {
 		_, ok := declaredPorts[k]
 		if !ok {
 			tnf.ClaimFilePrintf(fmt.Sprintf("The port %d on protocol %s in pod %s is not declared.", k.port, k.protocol, listeningPorts[k]))
 			res[k] = listeningPorts[k]
-			flag = false
 		}
 	}
-	return flag, res
+	return res
 }
 
 func testListenAndDeclared(env *config.TestEnvironment) {
 	declaredPorts := make(map[key]string)
 	listeningPorts := make(map[key]string)
-	undeclaredPorts, res := make(map[key]string), false
+	undeclaredPorts := make(map[key]string)
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestServicesDoNotUseNodeportsIdentifier)
 	ginkgo.It(testID, func() {
 		for _, podUnderTest := range env.PodsUnderTest {
 			for i := 0; i < podUnderTest.ContainerCount; i++ {
 				err := declaredPortList(i, podUnderTest.Name, podUnderTest.Namespace, declaredPorts)
 				if err != nil {
-					log.Errorf("Failed: There are no declared ports for pod name %s in pod namespace %s", podUnderTest.Name, podUnderTest.Namespace)
+					log.Errorf("Failed to get declared ports for container #%d pod name %s in pod namespace %s due to %v", i, podUnderTest.Name, podUnderTest.Namespace, err)
 					continue
 				}
 			}
@@ -440,14 +438,11 @@ func testListenAndDeclared(env *config.TestEnvironment) {
 
 			err = listeningPortList(commandlisten, nodeOc.Context, listeningPorts)
 			if err != nil {
-				log.Errorf("Failed: There are no listening ports for pod name %s in pod namespace %s", podUnderTest.Name, podUnderTest.Namespace)
+				log.Errorf("Failed to get listening ports for pod name %s in pod namespace %s due to %v", podUnderTest.Name, podUnderTest.Namespace, err)
 				continue
 			}
-			// compare between declaredPort,listeningPort and return the common.
-			res, undeclaredPorts = checkIfListenIsDeclared(listeningPorts, declaredPorts)
-			if !res {
-				tnf.ClaimFilePrintf("TC failed : port is listening but not declared in pod name %s and pod namespace is %s", podUnderTest.Name, podUnderTest.Namespace)
-			}
+			// compare between declaredPort,listeningPort
+			undeclaredPorts = checkIfListenIsDeclared(listeningPorts, declaredPorts)
 			for k := range undeclaredPorts {
 				tnf.ClaimFilePrintf("The port %d on protocol %s in pod name %s and pod namespace is %s not declared.", k.port, k.protocol, podUnderTest.Name, podUnderTest.Namespace)
 			}
