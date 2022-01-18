@@ -41,7 +41,16 @@ var (
 // IP address.
 type Container struct {
 	ContainerIdentifier
-	Oc *interactive.Oc
+	Oc          *interactive.Oc
+	ImageSource *ContainerImageSource
+}
+
+type ContainerImageSource struct {
+	Registry   string
+	Repository string
+	Name       string
+	Tag        string
+	Digest     string
 }
 
 // Helper used to instantiate an OpenShift Client Session.

@@ -60,6 +60,7 @@ func TestBuildLabelQuery(t *testing.T) {
 	}
 }
 
+//nolint:funlen
 func TestGetContainersByLabel(t *testing.T) {
 	testCases := []struct {
 		expectedOutput []configsections.Container
@@ -82,6 +83,13 @@ func TestGetContainersByLabel(t *testing.T) {
 						NodeName:         "minikube",
 						ContainerUID:     "cf794b9e8c2448815b8b5a47b354c9bf9414a04f6fa567ac3b059851ed6757ab",
 						ContainerRuntime: "docker",
+					},
+					ImageSource: &configsections.ContainerImageSource{
+						Registry:   "k8s.gcr.io",
+						Repository: "coredns",
+						Name:       "coredns",
+						Tag:        "v1.8.4",
+						Digest:     "",
 					},
 				},
 			},
@@ -186,5 +194,37 @@ func TestGetContainerIdentifiersByLabel(t *testing.T) {
 
 		assert.Nil(t, err)
 		assert.Equal(t, tc.expectedOutput, identifiers)
+	}
+}
+
+func TestBuildContainerImageSource(t *testing.T) {
+	testCases := []struct {
+		expectedOutput configsections.ContainerImageSource
+		url            string
+	}{
+		{
+			expectedOutput: configsections.ContainerImageSource{
+				Registry:   "k8s.gcr.io",
+				Repository: "coredns",
+				Name:       "coredns",
+				Tag:        "v1.8.0",
+				Digest:     "",
+			},
+			url: "k8s.gcr.io/coredns/coredns:v1.8.0",
+		},
+		{
+			expectedOutput: configsections.ContainerImageSource{
+				Registry:   "quay.io",
+				Repository: "rh-nfv-int",
+				Name:       "testpmd-operator",
+				Tag:        "",
+				Digest:     "sha256:3e8fc703c71a7ccaca24b7312f8fcb3495370c46e7abc12975757b76430addf5",
+			},
+			url: "quay.io/rh-nfv-int/testpmd-operator@sha256:3e8fc703c71a7ccaca24b7312f8fcb3495370c46e7abc12975757b76430addf5",
+		},
+	}
+
+	for _, tc := range testCases {
+		assert.Equal(t, tc.expectedOutput, *(buildContainerImageSource(tc.url)))
 	}
 }
