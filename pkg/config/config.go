@@ -236,7 +236,7 @@ func (env *TestEnvironment) doAutodiscover() {
 		env.ContainersToExcludeFromConnectivityTests[cid] = ""
 	}
 
-	env.ContainersUnderTest = env.createContainers(env.Config.ContainerList)
+	env.ContainersUnderTest = env.createContainerMapWithOcSession(env.Config.ContainerList)
 	env.PodsUnderTest = env.Config.PodsUnderTest
 
 	// Discover nodes early on since they might be used to run commands by discovery
@@ -345,23 +345,21 @@ func (env *TestEnvironment) discoverNodes() {
 	for _, debugPod := range env.Config.Partner.ContainersDebugList {
 		env.ContainersToExcludeFromConnectivityTests[debugPod.ContainerIdentifier] = ""
 	}
-	env.DebugContainers = env.createContainers(env.Config.Partner.ContainersDebugList)
+	env.DebugContainers = env.createContainerMapWithOcSession(env.Config.Partner.ContainersDebugList)
 
 	env.AttachDebugPodsToNodes()
 }
 
-// createContainers contains the general steps involved in creating "oc" sessions and other configuration. A map of the
-// aggregate information is returned. No IP is populated yet in this step
-func (env *TestEnvironment) createContainers(containerDefinitions []configsections.Container) map[configsections.ContainerIdentifier]*configsections.Container {
-	createdContainers := make(map[configsections.ContainerIdentifier]*configsections.Container)
-	for _, c := range containerDefinitions {
-		oc := configsections.GetOcSession(c.PodName, c.ContainerName, c.Namespace, DefaultTimeout, interactive.Verbose(expectersVerboseModeEnabled), interactive.SendTimeout(DefaultTimeout))
-		createdContainers[c.ContainerIdentifier] = &configsections.Container{
-			ContainerIdentifier: c.ContainerIdentifier,
-			Oc:                  oc,
-		}
+// createContainerMapWithOcSession contains the general steps involved in creating "oc" sessions and other configuration. A map of the
+// aggregate information is returned.
+func (env *TestEnvironment) createContainerMapWithOcSession(containers []configsections.Container) map[configsections.ContainerIdentifier]*configsections.Container {
+	containerMap := make(map[configsections.ContainerIdentifier]*configsections.Container)
+	for i := range containers {
+		c := &containers[i]
+		c.Oc = configsections.GetOcSession(c.PodName, c.ContainerName, c.Namespace, DefaultTimeout, interactive.Verbose(expectersVerboseModeEnabled), interactive.SendTimeout(DefaultTimeout))
+		containerMap[c.ContainerIdentifier] = c
 	}
-	return createdContainers
+	return containerMap
 }
 
 // recordContainersDefaultIP default IP populated in container map

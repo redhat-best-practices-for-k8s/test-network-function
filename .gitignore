@@ -27,3 +27,5 @@ temp/
 /all-releases.txt
 /latest-release-tag.txt
 /release-tag.txt
+test-network-function/claimjson.js
+test-network-function/results.html
