@@ -454,11 +454,9 @@ func testListenAndDeclared(env *config.TestEnvironment) {
 				failedPods = append(failedPods, podUnderTest.Name)
 			}
 		}
-		if n := len(failedPods); n > 0 {
-			ginkgo.Fail("Failed to get declared ports for pod %s", n)
-		}
-		if n := len(skippedPods); n > 0 {
-			ginkgo.Fail("Skipped pod to get declared ports for pod %s", n)
+
+		if nf, ns := len(failedPods), len(skippedPods); nf > 0 || ns > 0 {
+			ginkgo.Fail("Found %d pods with listening ports not declared and Skipped %d pods due to unexpected error", nf, ns)
 		}
 	})
 }
