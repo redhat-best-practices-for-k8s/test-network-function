@@ -9,16 +9,16 @@ import (
 
 // PodSetResource defines deployment/statefulset resources
 var (
-	csiCommand          = "oc get csidriver -o go-template='{{ range .items}}{{.metadata.name}} {{end}}'"
+	csiCommand = "oc get csidriver -o go-template='{{ range .items}}{{.metadata.name}} {{end}}'"
 	//go:embed csi-mapping.json
-   csiMappingString []byte
+	csiMappingString []byte
 )
 
-func GetPackageandOrg(csi string) (string, error){
-	csiNameToOperatorName:=make(map[string]string)
-	err:=jsonUnmarshal(csiMappingString,&csiNameToOperatorName)
-	if err!=nil{
-		return "",err
+func GetPackageandOrg(csi string) (string, error) {
+	csiNameToOperatorName := make(map[string]string)
+	err := jsonUnmarshal(csiMappingString, &csiNameToOperatorName)
+	if err != nil {
+		return "", err
 	}
 	return csiNameToOperatorName[csi], nil
 }
@@ -32,13 +32,14 @@ func GetTargetCsi() ([]string, error) {
 	csiList := strings.Split(out, " ")
 	return csiList, nil
 }
+
 /*
 func TestOperatorVersion() {
 	csilist, err := GetTargetCsi()
 	if err != nil {
 		log.Error("Unable to get csi list  Error: ", err)
 		return
-	}	
+	}
 	mapOperatorVersions:=csimapping.GetOperatorVersions()
 	ocpVersion:=GetOcpVersion()
 	operatorVersionMap:=GetOperatorVersionMap()

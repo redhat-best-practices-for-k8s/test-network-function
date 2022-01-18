@@ -18,39 +18,41 @@ package certification
 
 import (
 	"fmt"
+	"strings"
 	"time"
-"strings"
+
 	"github.com/onsi/ginkgo"
 	log "github.com/sirupsen/logrus"
 	"github.com/test-network-function/test-network-function/internal/api"
 	configpkg "github.com/test-network-function/test-network-function/pkg/config"
 	"github.com/test-network-function/test-network-function/pkg/config/configsections"
+	"github.com/test-network-function/test-network-function/pkg/csimapping"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
+	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
 	"github.com/test-network-function/test-network-function/pkg/tnf/testcases"
+	"github.com/test-network-function/test-network-function/pkg/utils"
 	"github.com/test-network-function/test-network-function/test-network-function/common"
 	"github.com/test-network-function/test-network-function/test-network-function/identifiers"
 	"github.com/test-network-function/test-network-function/test-network-function/results"
-	"github.com/test-network-function/test-network-function/pkg/csimapping"
-	"github.com/test-network-function/test-network-function/pkg/utils"
-	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
 )
 
 const (
 	// timeout for eventually call
-	apiRequestTimeout = 30 * time.Second
+	apiRequestTimeout           = 30 * time.Second
 	expectersVerboseModeEnabled = false
 )
+
 var (
 	subscriptionCommand = "oc get subscriptions.operators.coreos.com -A -ogo-template='{{range .items}}{{.spec.source}}_{{.status.currentCSV}},{{end}}'"
 	ocpVersionCommand   = "oc version|grep \"Server Version\"| sed -E 's/(Server Version\\: )([0-9]+\\.[0-9]+)(\\.[0-9]+*)/\\2/'"
 
-execCommandOutput = func(command string) string {
-	return utils.ExecuteCommandAndValidate(command, apiRequestTimeout, interactive.GetContext(expectersVerboseModeEnabled), func() {
-		log.Error("can't run command: ", command)
-	})
-}
+	execCommandOutput = func(command string) string {
+		return utils.ExecuteCommandAndValidate(command, apiRequestTimeout, interactive.GetContext(expectersVerboseModeEnabled), func() {
+			log.Error("can't run command: ", command)
+		})
+	}
 
-certAPIClient api.CertAPIClient
+	certAPIClient api.CertAPIClient
 )
 
 var _ = ginkgo.Describe(common.AffiliatedCertTestKey, func() {
@@ -200,59 +202,59 @@ func testCSICertified(env *configpkg.TestEnvironment) {
 
 		ginkgo.By(fmt.Sprintf("Verify operator as certified. Number of CSI drivers to check: %d", len(env.Csi)))
 
-		mapOperatorVersions:=csimapping.GetOperatorVersions()
-		ocpVersion:=GetOcpVersion()
-		operatorVersionMap,orgMap:=GetOperatorVersionMap()
-		testFailed:=false
+		mapOperatorVersions := csimapping.GetOperatorVersions()
+		ocpVersion := GetOcpVersion()
+		operatorVersionMap, orgMap := GetOperatorVersionMap()
+		testFailed := false
 		for _, csi := range csioperatorsToQuery {
-				pack:=csi.Packag
-				org:=orgMap[pack]
-				if pack!="" {
-					aKey := csimapping.OperatorKey{OperatorName: pack, OcpVersion: ocpVersion}
-					for _,version:=range mapOperatorVersions[aKey]{
-						if operatorVersionMap[pack]==version{
-							tnf.ClaimFilePrintf("Operator: %s ( %s ) currently running version: %s this version is certified to run with Current OCP version %s",org, pack,version, ocpVersion)
-						}else{
-							testFailed=true
-							tnf.ClaimFilePrintf("Operator: %s ( %s ) currently running version: %s this version is NOT certified to run with OCP version %s",org, pack,version, ocpVersion)
-						}
+			pack := csi.Packag
+			org := orgMap[pack]
+			if pack != "" {
+				aKey := csimapping.OperatorKey{OperatorName: pack, OcpVersion: ocpVersion}
+				for _, version := range mapOperatorVersions[aKey] {
+					if operatorVersionMap[pack] == version {
+						tnf.ClaimFilePrintf("Operator: %s ( %s ) currently running version: %s this version is certified to run with Current OCP version %s", org, pack, version, ocpVersion)
+					} else {
+						testFailed = true
+						tnf.ClaimFilePrintf("Operator: %s ( %s ) currently running version: %s this version is NOT certified to run with OCP version %s", org, pack, version, ocpVersion)
 					}
-				}else{
-					tnf.ClaimFilePrintf("Driver %s is not a certified CSI driver (needs to be part of the operator-certified organization in the catalog) or csimapping.json needs to be updated",csi.Name)
 				}
-			
+			} else {
+				tnf.ClaimFilePrintf("Driver %s is not a certified CSI driver (needs to be part of the operator-certified organization in the catalog) or csimapping.json needs to be updated", csi.Name)
+			}
 		}
-		if testFailed==true{
+		if testFailed {
 			ginkgo.Fail("At least one CSI operator was not certified to run on this version of openshift. Check Claim.json file for details.")
 		}
 	})
 }
 
-func GetOcpVersion() (string) {
+func GetOcpVersion() string {
 	ocCmd := ocpVersionCommand
 
 	return execCommandOutput(ocCmd)
 }
-func GetOperatorVersionMap() (map[string]string, map[string]string) {
+func GetOperatorVersionMap() (versionMap, orgMap map[string]string) {
 	ocCmd := subscriptionCommand
 
 	out := execCommandOutput(ocCmd)
 
 	operatorVersionList := strings.Split(out, ",")
-	versionMap := make(map[string]string)
-	orgMap := make(map[string]string)
+	versionMap = make(map[string]string)
+	orgMap = make(map[string]string)
 
-	for _,entry:= range operatorVersionList{
-		if entry!=""{
-			organizationVersion:=strings.SplitN(entry, "_",2)
-			org:=organizationVersion[0]
-			nameVersion:=strings.SplitN(organizationVersion[1], ".",2)
-			name:=nameVersion[0]
-			version:=nameVersion[1]
-			versionMap[name]=version
-			orgMap[name]=org
+	for _, entry := range operatorVersionList {
+		if entry == "" {
+		} else {
+			organizationVersion := strings.SplitN(entry, "_", 2) //nolint:gomnd // ok
+			org := organizationVersion[0]
+			nameVersion := strings.SplitN(organizationVersion[1], ".", 2) //nolint:gomnd // ok
+			name := nameVersion[0]
+			version := nameVersion[1]
+			versionMap[name] = version
+			orgMap[name] = org
 		}
 	}
 
-	return versionMap,orgMap
+	return versionMap, orgMap
 }

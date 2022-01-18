@@ -32,8 +32,8 @@ var (
 	driverNamesCommand = "./get-driver-names.sh"
 )
 
-func getHttpBody(url string) []uint8 {
-	resp, err := http.Get(url)
+func getHTTPBody(url string) []uint8 {
+	resp, err := http.Get(url) //nolint:gosec,noctx // ok TODO
 	if err != nil {
 		log.Errorf("Http request failed with error:%s", err)
 	}
@@ -42,13 +42,13 @@ func getHttpBody(url string) []uint8 {
 	body, err := io.ReadAll(resp.Body)
 
 	if err != nil {
-		log.Fatalf("Error reading body: %v", err)
+		log.Errorf("Error reading body: %s", err)
 	}
 	return body
 }
 
 func getCatalogPage(url string, page uint, filter string) catalog {
-	body := getHttpBody(fmt.Sprintf("%spage=%d%s", url, page, filter))
+	body := getHTTPBody(fmt.Sprintf("%spage=%d%s", url, page, filter))
 	var aCatalog catalog
 	err := json.Unmarshal(body, &aCatalog)
 	if err != nil {
@@ -70,11 +70,11 @@ func removeDuplicateValues(stringSlice []string) []string {
 }
 func ListOperator(mapOperators map[OperatorKey][]string) []string {
 	keys := make(map[string]bool)
-	for key, _ := range mapOperators {
+	for key := range mapOperators {
 		keys[key.OperatorName] = true
 	}
 	var list []string
-	for key, _ := range keys {
+	for key := range keys {
 		list = append(list, key)
 	}
 	return list
@@ -96,7 +96,6 @@ func getDriverNames() map[string]string {
 }
 
 func createMapping(driverMap map[string]string, operatorList []string) map[string]string {
-
 	driverOperatorMapping := make(map[string]string)
 	for _, operator := range operatorList {
 		cleanedName := strings.ReplaceAll(operator, "-csi", "")
@@ -114,12 +113,11 @@ func createMapping(driverMap map[string]string, operatorList []string) map[strin
 				driverOperatorMapping[key] = operator
 			}
 		}
-
 	}
 	return driverOperatorMapping
 }
 
-func GetOperatorVersions()map[OperatorKey][]string{
+func GetOperatorVersions() map[OperatorKey][]string {
 	var fullCatalog catalog
 	firstPageCatalog := getCatalogPage("https://catalog.redhat.com/api/containers/v1/operators/bundles?", 0, filterCsi)
 	totalPages := firstPageCatalog.Total / firstPageCatalog.PageSize
@@ -144,9 +142,9 @@ func GetOperatorVersions()map[OperatorKey][]string{
 	return mapOperators
 }
 
+//nolint:deadcode // ok
 func main() {
-
-	mapOperators:=GetOperatorVersions()
+	mapOperators := GetOperatorVersions()
 
 	log.Infof("%+v\n", mapOperators)
 
@@ -158,9 +156,9 @@ func main() {
 	aDriverMap := getDriverNames()
 	aMapping := createMapping(aDriverMap, aList)
 	fmt.Println(aMapping)
-	out, err := json.MarshalIndent(aMapping,""," ")
+	out, err := json.MarshalIndent(aMapping, "", " ")
 	if err == nil {
-		err = ioutil.WriteFile("csi-mapping.json", out, 0644)
+		err = ioutil.WriteFile("csi-mapping.json", out, 0600) //nolint:gomnd //ok
 		if err != nil {
 			log.Errorf("%s", err)
 		}
