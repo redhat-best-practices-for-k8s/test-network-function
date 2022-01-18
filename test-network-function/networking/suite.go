@@ -414,8 +414,8 @@ func testListenAndDeclared(env *config.TestEnvironment) {
 	declaredPorts := make(map[key]string)
 	listeningPorts := make(map[key]string)
 	undeclaredPorts := make(map[key]string)
-	skippedPods := make(map[string]string)
-	failedPods := make(map[string]string)
+	var skippedPods []string
+	var failedPods []string
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestServicesDoNotUseNodeportsIdentifier)
 	ginkgo.It(testID, func() {
 	OUTER:
@@ -423,8 +423,8 @@ func testListenAndDeclared(env *config.TestEnvironment) {
 			for i := 0; i < podUnderTest.ContainerCount; i++ {
 				err := declaredPortList(i, podUnderTest.Name, podUnderTest.Namespace, declaredPorts)
 				if err != nil {
-					log.Errorf("Failed to get declared ports for container #%d pod name %s in pod namespace %s due to %v", i, podUnderTest.Name, podUnderTest.Namespace, err)
-					skippedPods[podUnderTest.Name] = podUnderTest.Namespace
+					tnf.ClaimFilePrintf("Failed to get declared port for container %d due to %v, skipping pod %s", i, err, podUnderTest.Name)
+					skippedPods = append(skippedPods, podUnderTest.Name)
 					continue OUTER
 				}
 			}
@@ -442,7 +442,7 @@ func testListenAndDeclared(env *config.TestEnvironment) {
 
 			err = listeningPortList(commandlisten, nodeOc.Context, listeningPorts)
 			if err != nil {
-				log.Errorf("Failed to get listening ports for pod name %s in pod namespace %s due to %v", podUnderTest.Name, podUnderTest.Namespace, err)
+				tnf.ClaimFilePrintf("Failed to get listening port for pod name %s in pod namespace %s due to %v, skipping this pod", podUnderTest.Name, podUnderTest.Namespace, err)
 				continue
 			}
 			// compare between declaredPort,listeningPort
@@ -451,14 +451,14 @@ func testListenAndDeclared(env *config.TestEnvironment) {
 				tnf.ClaimFilePrintf("The port %d on protocol %s in pod name %s and pod namespace is %s not declared.", k.port, k.protocol, podUnderTest.Name, podUnderTest.Namespace)
 			}
 			if len(undeclaredPorts) != 0 {
-				failedPods[podUnderTest.Name] = podUnderTest.Namespace
+				failedPods = append(failedPods, podUnderTest.Name)
 			}
 		}
-		for k := range failedPods {
-			ginkgo.Fail(fmt.Sprintf("Failed to get declared ports for pod name %s in pod namespace %s", k, failedPods[k]))
+		if n := len(failedPods); n > 0 {
+			ginkgo.Fail("Failed to get declared ports for pod %s", n)
 		}
-		for k := range skippedPods {
-			ginkgo.Fail(fmt.Sprintf("Skipped pod to get declared ports for pod name %s in pod namespace %s", k, skippedPods[k]))
+		if n := len(skippedPods); n > 0 {
+			ginkgo.Fail("Skipped pod to get declared ports for pod %s", n)
 		}
 	})
 }
