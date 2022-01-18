@@ -230,7 +230,7 @@ func testDefaultNetworkConnectivity(env *config.TestEnvironment, count int) {
 }
 func testMultusNetworkConnectivity(env *config.TestEnvironment, count int) {
 	ginkgo.When("Testing Multus network connectivity", func() {
-		testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestICMPv4ConnectivityIdentifierMultus)
+		testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestICMPv4ConnectivityMultusIdentifier)
 		ginkgo.It(testID, ginkgo.Label(testID), func() {
 			netsUnderTest := make(map[string]netTestContext)
 			for _, pod := range env.PodsUnderTest {
