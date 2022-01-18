@@ -177,6 +177,7 @@ func GetContainerPID(nodeName string, nodeOc *interactive.Oc, containerID, runti
 	case "docker": //nolint:goconst // used only once
 		command = "chroot /host docker inspect -f '{{.State.Pid}}' " + containerID + " 2>/dev/null"
 	case "cri-o": //nolint:goconst // used only once
+	case "containerd": //nolint:goconst // used only once
 		command = "chroot /host crictl inspect --output go-template --template '{{.info.pid}}' " + containerID + " 2>/dev/null"
 	default:
 		ginkgo.Skip(fmt.Sprintf("Container runtime %s not supported yet for this test, skipping", runtime))

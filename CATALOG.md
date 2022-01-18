@@ -311,6 +311,30 @@ Description|http://test-network-function.com/testcases/networking/icmpv4-connect
 Result Type|normative
 Suggested Remediation|Ensure that the CNF is able to communicate via the Multus network(s). In some rare cases, CNFs may require routing table changes in order to communicate over the Multus network(s). To exclude a particular pod from ICMPv4 connectivity tests, add the test-network-function.com/skip_connectivity_tests label to it. The label value is not important, only its presence.
 Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2
+#### icmpv6-connectivity
+
+Property|Description
+---|---
+Test Case Name|icmpv6-connectivity
+Test Case Label|networking-icmpv6-connectivity
+Unique ID|http://test-network-function.com/testcases/networking/icmpv6-connectivity
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/networking/icmpv6-connectivity checks that each CNF Container is able to communicate via ICMPv6 on the Default OpenShift network.  This test case requires the Deployment of the debug daemonset.
+Result Type|normative
+Suggested Remediation|Ensure that the CNF is able to communicate via the Default OpenShift network. In some rare cases, CNFs may require routing table changes in order to communicate over the Default network. To exclude a particular pod from ICMPv6 connectivity tests, add the test-network-function.com/skip_connectivity_tests label to it. The label value is not important, only its presence.
+Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2
+#### icmpv6-connectivity-multus
+
+Property|Description
+---|---
+Test Case Name|icmpv6-connectivity-multus
+Test Case Label|networking-icmpv6-connectivity-multus
+Unique ID|http://test-network-function.com/testcases/networking/icmpv6-connectivity-multus
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/networking/icmpv6-connectivity-multus checks that each CNF Container is able to communicate via ICMPv6 on the Multus network(s).  This test case requires the Deployment of the debug daemonset.
+Result Type|normative
+Suggested Remediation|Ensure that the CNF is able to communicate via the Multus network(s). In some rare cases, CNFs may require routing table changes in order to communicate over the Multus network(s). To exclude a particular pod from ICMPv6 connectivity tests, add the test-network-function.com/skip_connectivity_tests label to it.The label value is not important, only its presence. 
+Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2
 #### service-type
 
 Property|Description
