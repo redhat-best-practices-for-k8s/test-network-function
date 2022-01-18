@@ -414,14 +414,18 @@ func testListenAndDeclared(env *config.TestEnvironment) {
 	declaredPorts := make(map[key]string)
 	listeningPorts := make(map[key]string)
 	undeclaredPorts := make(map[key]string)
+	skippedPods := make(map[string]string)
+	failedPods := make(map[string]string)
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestServicesDoNotUseNodeportsIdentifier)
 	ginkgo.It(testID, func() {
+	OUTER:
 		for _, podUnderTest := range env.PodsUnderTest {
 			for i := 0; i < podUnderTest.ContainerCount; i++ {
 				err := declaredPortList(i, podUnderTest.Name, podUnderTest.Namespace, declaredPorts)
 				if err != nil {
 					log.Errorf("Failed to get declared ports for container #%d pod name %s in pod namespace %s due to %v", i, podUnderTest.Name, podUnderTest.Namespace, err)
-					continue
+					skippedPods[podUnderTest.Name] = podUnderTest.Namespace
+					continue OUTER
 				}
 			}
 
@@ -446,6 +450,15 @@ func testListenAndDeclared(env *config.TestEnvironment) {
 			for k := range undeclaredPorts {
 				tnf.ClaimFilePrintf("The port %d on protocol %s in pod name %s and pod namespace is %s not declared.", k.port, k.protocol, podUnderTest.Name, podUnderTest.Namespace)
 			}
+			if len(undeclaredPorts) != 0 {
+				failedPods[podUnderTest.Name] = podUnderTest.Namespace
+			}
+		}
+		for k := range failedPods {
+			ginkgo.Fail(fmt.Sprintf("Failed to get declared ports for pod name %s in pod namespace %s", k, failedPods[k]))
+		}
+		for k := range skippedPods {
+			ginkgo.Fail(fmt.Sprintf("Skipped pod to get declared ports for pod name %s in pod namespace %s", k, skippedPods[k]))
 		}
 	})
 }
