@@ -97,15 +97,11 @@ func testContainerCertificationStatus() {
 			containersToQuery[c] = true
 		}
 		if env.Config.CheckDiscoveredContainerCertificationStatus {
-			const redhatContainerCatalogRegistry = "https://catalog.redhat.com/software/containers/"
 			for _, cut := range env.ContainersUnderTest {
-				// pass if the registry matches the official redhat catalog url prefix
-				if cut.ImageSource.Registry != redhatContainerCatalogRegistry {
-					containersToQuery[configsections.CertifiedContainerRequestInfo{Repository: cut.ImageSource.Repository, Name: cut.ImageSource.Name}] = true
-				}
+				containersToQuery[configsections.CertifiedContainerRequestInfo{Repository: cut.ImageSource.Repository, Name: cut.ImageSource.Name}] = true
 			}
 		}
-		if len(containersToQuery) == 0 && !env.Config.CheckDiscoveredContainerCertificationStatus {
+		if len(containersToQuery) == 0 {
 			ginkgo.Skip("No containers to check configured in tnf_config.yml")
 		}
 		ginkgo.By(fmt.Sprintf("Getting certification status. Number of containers to check: %d", len(containersToQuery)))
@@ -128,7 +124,7 @@ func testContainerCertificationStatus() {
 					log.Info(fmt.Sprintf("Container %s (repository %s) is certified.", c.Name, c.Repository))
 				}
 			}
-			if allContainersToQueryEmpty && !env.Config.CheckDiscoveredContainerCertificationStatus {
+			if allContainersToQueryEmpty {
 				ginkgo.Skip("No containers to check because either container name or repository is empty for all containers in tnf_config.yml")
 			}
 
