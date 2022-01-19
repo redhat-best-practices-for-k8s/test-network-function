@@ -29,7 +29,7 @@ certifiedcontainerinfo:
 certifiedoperatorinfo:
   - name: etcd-operator
     organization: redhat-marketplace
-acceptedTaints:
+acceptedKernelTaints:
   - module: "taint1"
   - module: "taint2"
 targetCrdFilters:

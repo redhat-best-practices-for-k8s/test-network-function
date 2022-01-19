@@ -221,12 +221,12 @@ func TestGetTaintedModules(t *testing.T) {
 
 func TestTaintsAccepted(t *testing.T) {
 	testCases := []struct {
-		confTaints     []configsections.AcceptedTaintsRequestInfo
+		confTaints     []configsections.AcceptedKernelTaintsRequestInfo
 		taintedModules []string
 		expected       bool
 	}{
 		{
-			confTaints: []configsections.AcceptedTaintsRequestInfo{
+			confTaints: []configsections.AcceptedKernelTaintsRequestInfo{
 				{
 					Module: "taint1",
 				},
@@ -237,14 +237,14 @@ func TestTaintsAccepted(t *testing.T) {
 			expected: true,
 		},
 		{
-			confTaints: []configsections.AcceptedTaintsRequestInfo{}, // no accepted modules
+			confTaints: []configsections.AcceptedKernelTaintsRequestInfo{}, // no accepted modules
 			taintedModules: []string{
 				"taint1",
 			},
 			expected: false,
 		},
 		{ // We have no tainted modules, so the configuration does not matter.
-			confTaints: []configsections.AcceptedTaintsRequestInfo{
+			confTaints: []configsections.AcceptedKernelTaintsRequestInfo{
 				{
 					Module: "taint1",
 				},

@@ -438,7 +438,7 @@ func testTainted(env *config.TestEnvironment) {
 
 						// Looks through the accepted taints listed in the tnf-config file.
 						// If all of the tainted modules show up in the configuration file, don't fail the test.
-						nodeTaintsAccepted = taintsAccepted(env.Config.AcceptedTaints, taintedModules)
+						nodeTaintsAccepted = taintsAccepted(env.Config.AcceptedKernelTaints, taintedModules)
 					}
 
 					message = fmt.Sprintf("Decoded tainted kernel causes (code=%d) for node %s : %s\n", taintedBitmap, node.Name, taintMsg)
@@ -466,7 +466,7 @@ func testTainted(env *config.TestEnvironment) {
 	})
 }
 
-func taintsAccepted(confTaints []configsections.AcceptedTaintsRequestInfo, taintedModules []string) bool {
+func taintsAccepted(confTaints []configsections.AcceptedKernelTaintsRequestInfo, taintedModules []string) bool {
 	for _, taintedModule := range taintedModules {
 		found := false
 		log.Debug("Accepted Taints from Config: ", confTaints)

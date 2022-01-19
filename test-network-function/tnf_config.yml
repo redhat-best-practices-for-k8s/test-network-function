@@ -14,6 +14,6 @@ checkDiscoveredContainerCertificationStatus: false
 certifiedoperatorinfo:
   - name: etcd
     organization: community-operators # working example
-acceptedTaints:
+acceptedKernelTaints:
   - module: vboxsf
   - module: vboxguest
