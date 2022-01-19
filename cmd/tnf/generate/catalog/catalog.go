@@ -83,6 +83,7 @@ var (
 
 type catalogElement struct {
 	testName   string
+	testLabel  string
 	identifier claim.Identifier // {url and version}
 }
 
@@ -145,8 +146,10 @@ func createPrintableCatalogFromIdentifiers(keys []claim.Identifier) map[string][
 		}
 		suiteName := suiteTest[0]
 		testName := suiteTest[1]
+		testLabel := suiteName + "-" + testName
 		catalog[suiteName] = append(catalog[suiteName], catalogElement{
 			testName:   testName,
+			testLabel:  testLabel,
 			identifier: i,
 		})
 	}
@@ -209,6 +212,7 @@ func outputTestCases() {
 			fmt.Println("Property|Description")
 			fmt.Println("---|---")
 			fmt.Fprintf(os.Stdout, "Test Case Name|%s\n", k.testName)
+			fmt.Fprintf(os.Stdout, "Test Case Label|%s\n", k.testLabel)
 			fmt.Fprintf(os.Stdout, "Unique ID|%s\n", k.identifier.Url)
 			fmt.Fprintf(os.Stdout, "Version|%s\n", k.identifier.Version)
 			fmt.Fprintf(os.Stdout, "Description|%s\n", strings.ReplaceAll(identifiers.Catalog[k.identifier].Description, "\n", " "))
