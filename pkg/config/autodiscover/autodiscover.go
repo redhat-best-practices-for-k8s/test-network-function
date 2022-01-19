@@ -123,6 +123,7 @@ func buildContainers(pr *PodResource) []configsections.Container {
 		container.PodName = pr.Metadata.Name
 		container.ContainerName = containerResource.Name
 		container.NodeName = pr.Spec.NodeName
+		container.ImageSource = buildContainerImageSource(containerResource.Image)
 		// This is to have access to the pod namespace
 		for _, cs := range pr.Status.ContainerStatuses {
 			if cs.Name == container.ContainerName {
@@ -139,6 +140,33 @@ func buildContainers(pr *PodResource) []configsections.Container {
 		containers = append(containers, container)
 	}
 	return containers
+}
+
+//nolint:gomnd
+func buildContainerImageSource(url string) *configsections.ContainerImageSource {
+	source := configsections.ContainerImageSource{}
+	urlSegments := strings.Split(url, "/")
+	n := len(urlSegments)
+	if n > 2 {
+		source.Registry = strings.Join(urlSegments[:n-2], "/")
+	}
+	if n > 1 {
+		source.Repository = urlSegments[n-2]
+	}
+	colonIndex := strings.Index(urlSegments[n-1], ":")
+	atIndex := strings.Index(urlSegments[n-1], "@")
+	if atIndex == -1 {
+		if colonIndex == -1 {
+			source.Name = urlSegments[n-1]
+		} else {
+			source.Name = urlSegments[n-1][:colonIndex]
+			source.Tag = urlSegments[n-1][colonIndex+1:]
+		}
+	} else {
+		source.Name = urlSegments[n-1][:atIndex]
+		source.Digest = urlSegments[n-1][atIndex+1:]
+	}
+	return &source
 }
 
 // EnableExpectersVerboseMode enables the verbose mode for expecters (Sent/Match output)
