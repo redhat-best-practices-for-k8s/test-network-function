@@ -203,12 +203,9 @@ func outputTestCases() {
 
 	// Iterating the map by test and suite names
 	for _, suite := range suites {
-		fmt.Println()
-		fmt.Fprintf(os.Stdout, "### %s\n", suite)
-		fmt.Println()
+		fmt.Fprintf(os.Stdout, "\n### %s\n\n", suite)
 		for _, k := range catalog[suite] {
-			fmt.Fprintf(os.Stdout, "#### %s\n", k.testName)
-			fmt.Println()
+			fmt.Fprintf(os.Stdout, "#### %s\n\n", k.testName)
 			fmt.Println("Property|Description")
 			fmt.Println("---|---")
 			fmt.Fprintf(os.Stdout, "Test Case Name|%s\n", k.testName)
