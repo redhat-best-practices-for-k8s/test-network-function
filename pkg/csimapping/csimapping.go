@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
+	"os"
 	"os/exec"
 	"regexp"
 	"strings"
@@ -158,7 +158,7 @@ func main() {
 	fmt.Println(aMapping)
 	out, err := json.MarshalIndent(aMapping, "", " ")
 	if err == nil {
-		err = ioutil.WriteFile("csi-mapping.json", out, 0600) //nolint:gomnd //ok
+		err = os.WriteFile("csi-mapping.json", out, 0600) //nolint:gomnd //ok
 		if err != nil {
 			log.Errorf("%s", err)
 		}
