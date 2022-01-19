@@ -7,6 +7,8 @@ vendor
 test-network-function_junit.xml
 cover.out
 test-network-function/cnf-certification-tests_junit.xml
+test-network-function/claimjson.js
+test-network-function/results.html
 cnf-certification-tests_junit.xml
 cnftests-junit.xml
 setup_junit.xml
