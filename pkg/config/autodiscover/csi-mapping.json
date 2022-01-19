@@ -1,0 +1,15 @@
+{
+ "csi-isilon.dellemc.com": "dell-csi-operator",
+ "csi-powermax.dellemc.com": "dell-csi-operator",
+ "csi-powerstore.dellemc.com": "dell-csi-operator",
+ "csi-unity.dellemc.com": "dell-csi-operator",
+ "csi-vxflexos.dellemc.com": "dell-csi-operator",
+ "csi.hpe.com": "hpe-csi-operator",
+ "csi.nutanix.com": "nutanixcsioperator",
+ "infinibox-csi-driver": "infinibox-operator",
+ "io.hedvig.csi": "hedvig-operator",
+ "ionir": "ionir-operator",
+ "linstor.csi.linbit.com": "linstor-operator",
+ "pmem-csi.intel.com": "pmem-csi-operator",
+ "spectrumscale.csi.ibm.com": "ibm-spectrum-scale-csi-operator"
+}
