@@ -44,7 +44,7 @@ const (
 
 var (
 	subscriptionCommand = "oc get subscriptions.operators.coreos.com -A -ogo-template='{{range .items}}{{.spec.source}}_{{.status.currentCSV}},{{end}}'"
-	ocpVersionCommand   = "oc version|grep \"Server Version\"| sed -E 's/(Server Version\\: )([0-9]+\\.[0-9]+)(\\.[0-9]+*)/\\2/'"
+	ocpVersionCommand   = "oc version -o json | jq '.openshiftVersion'"
 
 	execCommandOutput = func(command string) string {
 		return utils.ExecuteCommandAndValidate(command, apiRequestTimeout, interactive.GetContext(expectersVerboseModeEnabled), func() {
@@ -231,8 +231,10 @@ func testCSICertified(env *configpkg.TestEnvironment) {
 
 func GetOcpVersion() string {
 	ocCmd := ocpVersionCommand
-
-	return execCommandOutput(ocCmd)
+	ocVersion := execCommandOutput(ocCmd)
+	nums := strings.Split(ocVersion, ".")
+	ocVersion = strings.Split(nums[0], "\"")[1] + "." + nums[1]
+	return ocVersion
 }
 func GetOperatorVersionMap() (versionMap, orgMap map[string]string) {
 	ocCmd := subscriptionCommand

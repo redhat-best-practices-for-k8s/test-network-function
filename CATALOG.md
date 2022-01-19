@@ -2,131 +2,12 @@
 The catalog for test-network-function contains a variety of `Test Cases`, as well as `Test Case Building Blocks`.
  * Test Cases:  Traditional JUnit testcases, which are specified internally using `Ginkgo.It`.  Test cases often utilize several Test Case Building Blocks.
  * Test Case Building Blocks:  Self-contained building blocks, which perform a small task in the context of `oc`, `ssh`, `shell`, or some other `Expecter`.
-So, a Test Case could be composed by one or many Test Case Building Blocks. 
 
+So, a Test Case could be composed by one or many Test Case Building Blocks. 
 
 ## Test Case Catalog
 
 Test Cases are the specifications used to perform a meaningful test.  Test cases may run once, or several times against several targets.  CNF Certification includes a number of normative and informative tests to ensure CNFs follow best practices.  Here is the list of available 
-
-### observability
-
-#### container-logging
-
-Property|Description
----|---
-Test Case Name|container-logging
-Unique ID|http://test-network-function.com/testcases/observability/container-logging
-Version|v1.0.0
-Description|http://test-network-function.com/testcases/observability/container-logging check that all containers under test use standard input output and standard error when logging
-Result Type|informative
-Suggested Remediation|make sure containers are not redirecting stdout/stderr
-Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 11.1
-#### crd-status
-
-Property|Description
----|---
-Test Case Name|crd-status
-Unique ID|http://test-network-function.com/testcases/observability/crd-status
-Version|v1.0.0
-Description|http://test-network-function.com/testcases/observability/crd-status checks that all CRDs have a status subresource specification.
-Result Type|informative
-Suggested Remediation|make sure that all the CRDs have a meaningful status specification.
-Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2
-
-### operator
-
-#### install-source
-
-Property|Description
----|---
-Test Case Name|install-source
-Unique ID|http://test-network-function.com/testcases/operator/install-source
-Version|v1.0.0
-Description|http://test-network-function.com/testcases/operator/install-source tests whether a CNF Operator is installed via OLM.
-Result Type|normative
-Suggested Remediation|Ensure that your Operator is installed via OLM.
-Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2.12 and Section 6.3.3
-#### install-status
-
-Property|Description
----|---
-Test Case Name|install-status
-Unique ID|http://test-network-function.com/testcases/operator/install-status
-Version|v1.0.0
-Description|http://test-network-function.com/testcases/operator/install-status Ensures that CNF Operators abide by best practices.  The following is tested: 1. The Operator CSV reports "Installed" status. 2. The operator is not installed with privileged rights. Test passes if clusterPermissions is not present in the CSV manifest or is present  with no resourceNames under its rules.
-Result Type|normative
-Suggested Remediation|Ensure that your Operator abides by the Operator Best Practices mentioned in the description.
-Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2.12 and Section 6.3.3
-
-### platform-alteration
-
-#### base-image
-
-Property|Description
----|---
-Test Case Name|base-image
-Unique ID|http://test-network-function.com/testcases/platform-alteration/base-image
-Version|v1.0.0
-Description|http://test-network-function.com/testcases/platform-alteration/base-image ensures that the Container Base Image is not altered post-startup.  This test is a heuristic, and ensures that there are no changes to the following directories: 1) /var/lib/rpm 2) /var/lib/dpkg 3) /bin 4) /sbin 5) /lib 6) /lib64 7) /usr/bin 8) /usr/sbin 9) /usr/lib 10) /usr/lib64
-Result Type|normative
-Suggested Remediation|Ensure that Container applications do not modify the Container Base Image.  In particular, ensure that the following directories are not modified: 1) /var/lib/rpm 2) /var/lib/dpkg 3) /bin 4) /sbin 5) /lib 6) /lib64 7) /usr/bin 8) /usr/sbin 9) /usr/lib 10) /usr/lib64 Ensure that all required binaries are built directly into the container image, and are not installed post startup.
-Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2.2
-#### boot-params
-
-Property|Description
----|---
-Test Case Name|boot-params
-Unique ID|http://test-network-function.com/testcases/platform-alteration/boot-params
-Version|v1.0.0
-Description|http://test-network-function.com/testcases/platform-alteration/boot-params tests that boot parameters are set through the MachineConfigOperator, and not set manually on the Node.
-Result Type|normative
-Suggested Remediation|Ensure that boot parameters are set directly through the MachineConfigOperator, or indirectly through the PerformanceAddonOperator.  Boot parameters should not be changed directly through the Node, as OpenShift should manage the changes for you.
-Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2.13 and 6.2.14
-#### hugepages-config
-
-Property|Description
----|---
-Test Case Name|hugepages-config
-Unique ID|http://test-network-function.com/testcases/platform-alteration/hugepages-config
-Version|v1.0.0
-Description|http://test-network-function.com/testcases/platform-alteration/hugepages-config checks to see that HugePage settings have been configured through MachineConfig, and not manually on the underlying Node.  This test case applies only to Nodes that are configured with the "worker" MachineConfigSet.  First, the "worker" MachineConfig is polled, and the Hugepage settings are extracted.  Next, the underlying Nodes are polled for configured HugePages through inspection of /proc/meminfo.  The results are compared, and the test passes only if they are the same.
-Result Type|normative
-Suggested Remediation|HugePage settings should be configured either directly through the MachineConfigOperator or indirectly using the PerformanceAddonOperator.  This ensures that OpenShift is aware of the special MachineConfig requirements, and can provision your CNF on a Node that is part of the corresponding MachineConfigSet.  Avoid making changes directly to an underlying Node, and let OpenShift handle the heavy lifting of configuring advanced settings.
-Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2
-#### isredhat-release
-
-Property|Description
----|---
-Test Case Name|isredhat-release
-Unique ID|http://test-network-function.com/testcases/platform-alteration/isredhat-release
-Version|v1.0.0
-Description|http://test-network-function.com/testcases/platform-alteration/isredhat-release verifies if the container base image is redhat.
-Result Type|normative
-Suggested Remediation|build a new docker image that's based on UBI (redhat universal base image).
-Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2
-#### sysctl-config
-
-Property|Description
----|---
-Test Case Name|sysctl-config
-Unique ID|http://test-network-function.com/testcases/platform-alteration/sysctl-config
-Version|v1.0.0
-Description|http://test-network-function.com/testcases/platform-alteration/sysctl-config tests that no one has changed the node's sysctl configs after the node 			was created, the tests works by checking if the sysctl configs are consistent with the 			MachineConfig CR which defines how the node should be configured
-Result Type|normative
-Suggested Remediation|You should recreate the node or change the sysctls, recreating is recommended because there might be other unknown changes
-Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2
-#### tainted-node-kernel
-
-Property|Description
----|---
-Test Case Name|tainted-node-kernel
-Unique ID|http://test-network-function.com/testcases/platform-alteration/tainted-node-kernel
-Version|v1.0.0
-Description|http://test-network-function.com/testcases/platform-alteration/tainted-node-kernel ensures that the Node(s) hosting CNFs do not utilize tainted kernels. This test case is especially important to support Highly Available CNFs, since when a CNF is re-instantiated on a backup Node, that Node's kernel may not have the same hacks.'
-Result Type|normative
-Suggested Remediation|Test failure indicates that the underlying Node's' kernel is tainted.  Ensure that you have not altered underlying Node(s) kernels in order to run the CNF.
-Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2.14
 
 ### access-control
 
@@ -210,6 +91,17 @@ Description|http://test-network-function.com/testcases/affiliated-certification/
 Result Type|normative
 Suggested Remediation|Ensure that your container has passed the Red Hat Container Certification Program (CCP).
 Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.3.7
+#### csi-operator
+
+Property|Description
+---|---
+Test Case Name|csi-operator
+Unique ID|http://test-network-function.com/testcases/affiliated-certification/csi-operator
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/affiliated-certification/csi-operator tests whether CNF CSI Operators listed in the configuration file have passed the Red Hat Operator Certification Program (OCP).
+Result Type|normative
+Suggested Remediation|Ensure that your CSI Operator has passed Red Hat's Operator Certification Program (OCP).
+Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2.12 and Section 6.3.3
 #### operator-is-certified
 
 Property|Description
@@ -406,6 +298,125 @@ Description|http://test-network-function.com/testcases/networking/service-type t
 Result Type|normative
 Suggested Remediation|Ensure Services are not configured to use NodePort(s).
 Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.3.1
+
+### observability
+
+#### container-logging
+
+Property|Description
+---|---
+Test Case Name|container-logging
+Unique ID|http://test-network-function.com/testcases/observability/container-logging
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/observability/container-logging check that all containers under test use standard input output and standard error when logging
+Result Type|informative
+Suggested Remediation|make sure containers are not redirecting stdout/stderr
+Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 11.1
+#### crd-status
+
+Property|Description
+---|---
+Test Case Name|crd-status
+Unique ID|http://test-network-function.com/testcases/observability/crd-status
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/observability/crd-status checks that all CRDs have a status subresource specification.
+Result Type|informative
+Suggested Remediation|make sure that all the CRDs have a meaningful status specification.
+Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2
+
+### operator
+
+#### install-source
+
+Property|Description
+---|---
+Test Case Name|install-source
+Unique ID|http://test-network-function.com/testcases/operator/install-source
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/operator/install-source tests whether a CNF Operator is installed via OLM.
+Result Type|normative
+Suggested Remediation|Ensure that your Operator is installed via OLM.
+Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2.12 and Section 6.3.3
+#### install-status
+
+Property|Description
+---|---
+Test Case Name|install-status
+Unique ID|http://test-network-function.com/testcases/operator/install-status
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/operator/install-status Ensures that CNF Operators abide by best practices.  The following is tested: 1. The Operator CSV reports "Installed" status. 2. The operator is not installed with privileged rights. Test passes if clusterPermissions is not present in the CSV manifest or is present  with no resourceNames under its rules.
+Result Type|normative
+Suggested Remediation|Ensure that your Operator abides by the Operator Best Practices mentioned in the description.
+Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2.12 and Section 6.3.3
+
+### platform-alteration
+
+#### base-image
+
+Property|Description
+---|---
+Test Case Name|base-image
+Unique ID|http://test-network-function.com/testcases/platform-alteration/base-image
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/platform-alteration/base-image ensures that the Container Base Image is not altered post-startup.  This test is a heuristic, and ensures that there are no changes to the following directories: 1) /var/lib/rpm 2) /var/lib/dpkg 3) /bin 4) /sbin 5) /lib 6) /lib64 7) /usr/bin 8) /usr/sbin 9) /usr/lib 10) /usr/lib64
+Result Type|normative
+Suggested Remediation|Ensure that Container applications do not modify the Container Base Image.  In particular, ensure that the following directories are not modified: 1) /var/lib/rpm 2) /var/lib/dpkg 3) /bin 4) /sbin 5) /lib 6) /lib64 7) /usr/bin 8) /usr/sbin 9) /usr/lib 10) /usr/lib64 Ensure that all required binaries are built directly into the container image, and are not installed post startup.
+Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2.2
+#### boot-params
+
+Property|Description
+---|---
+Test Case Name|boot-params
+Unique ID|http://test-network-function.com/testcases/platform-alteration/boot-params
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/platform-alteration/boot-params tests that boot parameters are set through the MachineConfigOperator, and not set manually on the Node.
+Result Type|normative
+Suggested Remediation|Ensure that boot parameters are set directly through the MachineConfigOperator, or indirectly through the PerformanceAddonOperator.  Boot parameters should not be changed directly through the Node, as OpenShift should manage the changes for you.
+Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2.13 and 6.2.14
+#### hugepages-config
+
+Property|Description
+---|---
+Test Case Name|hugepages-config
+Unique ID|http://test-network-function.com/testcases/platform-alteration/hugepages-config
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/platform-alteration/hugepages-config checks to see that HugePage settings have been configured through MachineConfig, and not manually on the underlying Node.  This test case applies only to Nodes that are configured with the "worker" MachineConfigSet.  First, the "worker" MachineConfig is polled, and the Hugepage settings are extracted.  Next, the underlying Nodes are polled for configured HugePages through inspection of /proc/meminfo.  The results are compared, and the test passes only if they are the same.
+Result Type|normative
+Suggested Remediation|HugePage settings should be configured either directly through the MachineConfigOperator or indirectly using the PerformanceAddonOperator.  This ensures that OpenShift is aware of the special MachineConfig requirements, and can provision your CNF on a Node that is part of the corresponding MachineConfigSet.  Avoid making changes directly to an underlying Node, and let OpenShift handle the heavy lifting of configuring advanced settings.
+Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2
+#### isredhat-release
+
+Property|Description
+---|---
+Test Case Name|isredhat-release
+Unique ID|http://test-network-function.com/testcases/platform-alteration/isredhat-release
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/platform-alteration/isredhat-release verifies if the container base image is redhat.
+Result Type|normative
+Suggested Remediation|build a new docker image that's based on UBI (redhat universal base image).
+Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2
+#### sysctl-config
+
+Property|Description
+---|---
+Test Case Name|sysctl-config
+Unique ID|http://test-network-function.com/testcases/platform-alteration/sysctl-config
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/platform-alteration/sysctl-config tests that no one has changed the node's sysctl configs after the node 			was created, the tests works by checking if the sysctl configs are consistent with the 			MachineConfig CR which defines how the node should be configured
+Result Type|normative
+Suggested Remediation|You should recreate the node or change the sysctls, recreating is recommended because there might be other unknown changes
+Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2
+#### tainted-node-kernel
+
+Property|Description
+---|---
+Test Case Name|tainted-node-kernel
+Unique ID|http://test-network-function.com/testcases/platform-alteration/tainted-node-kernel
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/platform-alteration/tainted-node-kernel ensures that the Node(s) hosting CNFs do not utilize tainted kernels. This test case is especially important to support Highly Available CNFs, since when a CNF is re-instantiated on a backup Node, that Node's kernel may not have the same hacks.'
+Result Type|normative
+Suggested Remediation|Test failure indicates that the underlying Node's' kernel is tainted.  Ensure that you have not altered underlying Node(s) kernels in order to run the CNF.
+Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2.14
 
 ## Test Case Building Blocks Catalog
 
