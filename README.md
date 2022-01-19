@@ -89,7 +89,7 @@ The `certifiedcontainerinfo` and `certifiedoperatorinfo` sections contain inform
 to be checked for certification status on Red Hat catalogs.
 
 ### checkDiscoveredContainerCertificationStatus
-This boolean flag can be turned on when you intent to have the test suite check the certification status of the container images used by the autodiscoverd test target pods
+This boolean flag can be turned on when you intent to have the test suite check the certification status of the container images used by the autodiscoverd test target pods in addition to the configured image list.
 
 ## Runtime environement variables
 ### Disable intrusive tests
