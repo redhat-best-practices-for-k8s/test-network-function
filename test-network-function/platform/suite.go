@@ -417,7 +417,7 @@ func testTainted(env *config.TestEnvironment) {
 
 					// We only will fail the tainted kernel check if the reason for the taint
 					// only pertains to `module was loaded`.
-					log.Debug("Checking for module was loaded taints")
+					log.Debug("Checking for 'module was loaded' taints")
 					moduleCheck := false
 					for _, it := range individualTaints {
 						if strings.Contains(it, `module was loaded`) {
