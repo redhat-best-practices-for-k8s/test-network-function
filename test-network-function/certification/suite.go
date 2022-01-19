@@ -233,7 +233,7 @@ func GetOcpVersion() string {
 	ocCmd := ocpVersionCommand
 	ocVersion := execCommandOutput(ocCmd)
 	nums := strings.Split(ocVersion, ".")
-	ocVersion = strings.Split(nums[0], "\"")[1] + "." + nums[1]
+	ocVersion = strings.ReplaceAll(nums[0], "\"", "") + "." + nums[1]
 	return ocVersion
 }
 func GetOperatorVersionMap() (versionMap, orgMap map[string]string) {
