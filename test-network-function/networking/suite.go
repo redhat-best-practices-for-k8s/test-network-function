@@ -367,9 +367,6 @@ func declaredPortList(container int, podName, podNamespace string, declaredPorts
 	ocCommandToExecute := fmt.Sprintf(commandportdeclared, podName, podNamespace, container)
 	res, _ := utils.ExecuteCommand(ocCommandToExecute, ocCommandTimeOut, interactive.GetContext(false))
 	err := parseVariables(res, declaredPorts)
-	if err != nil {
-		log.Error(err)
-	}
 	return err
 }
 
@@ -414,8 +411,8 @@ func testListenAndDeclared(env *config.TestEnvironment) {
 	declaredPorts := make(map[key]string)
 	listeningPorts := make(map[key]string)
 	undeclaredPorts := make(map[key]string)
-	var skippedPods []string
-	var failedPods []string
+	var skippedPods []configsections.Pod
+	var failedPods []configsections.Pod
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestServicesDoNotUseNodeportsIdentifier)
 	ginkgo.It(testID, func() {
 	OUTER:
@@ -424,7 +421,7 @@ func testListenAndDeclared(env *config.TestEnvironment) {
 				err := declaredPortList(i, podUnderTest.Name, podUnderTest.Namespace, declaredPorts)
 				if err != nil {
 					tnf.ClaimFilePrintf("Failed to get declared port for container %d due to %v, skipping pod %s", i, err, podUnderTest.Name)
-					skippedPods = append(skippedPods, podUnderTest.Name)
+					skippedPods = append(skippedPods, *podUnderTest)
 					continue OUTER
 				}
 			}
@@ -451,7 +448,7 @@ func testListenAndDeclared(env *config.TestEnvironment) {
 				tnf.ClaimFilePrintf("The port %d on protocol %s in pod name %s and pod namespace is %s not declared.", k.port, k.protocol, podUnderTest.Name, podUnderTest.Namespace)
 			}
 			if len(undeclaredPorts) != 0 {
-				failedPods = append(failedPods, podUnderTest.Name)
+				failedPods = append(failedPods, *podUnderTest)
 			}
 		}
 
