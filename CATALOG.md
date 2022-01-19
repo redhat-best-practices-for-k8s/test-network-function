@@ -16,6 +16,7 @@ Test Cases are the specifications used to perform a meaningful test.  Test cases
 Property|Description
 ---|---
 Test Case Name|container-logging
+Test Case Label|observability-container-logging
 Unique ID|http://test-network-function.com/testcases/observability/container-logging
 Version|v1.0.0
 Description|http://test-network-function.com/testcases/observability/container-logging check that all containers under test use standard input output and standard error when logging
@@ -27,6 +28,7 @@ Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/site
 Property|Description
 ---|---
 Test Case Name|crd-status
+Test Case Label|observability-crd-status
 Unique ID|http://test-network-function.com/testcases/observability/crd-status
 Version|v1.0.0
 Description|http://test-network-function.com/testcases/observability/crd-status checks that all CRDs have a status subresource specification.
@@ -41,6 +43,7 @@ Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/site
 Property|Description
 ---|---
 Test Case Name|install-source
+Test Case Label|operator-install-source
 Unique ID|http://test-network-function.com/testcases/operator/install-source
 Version|v1.0.0
 Description|http://test-network-function.com/testcases/operator/install-source tests whether a CNF Operator is installed via OLM.
@@ -52,6 +55,7 @@ Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/site
 Property|Description
 ---|---
 Test Case Name|install-status
+Test Case Label|operator-install-status
 Unique ID|http://test-network-function.com/testcases/operator/install-status
 Version|v1.0.0
 Description|http://test-network-function.com/testcases/operator/install-status Ensures that CNF Operators abide by best practices.  The following is tested: 1. The Operator CSV reports "Installed" status. 2. The operator is not installed with privileged rights. Test passes if clusterPermissions is not present in the CSV manifest or is present  with no resourceNames under its rules.
@@ -66,6 +70,7 @@ Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/site
 Property|Description
 ---|---
 Test Case Name|base-image
+Test Case Label|platform-alteration-base-image
 Unique ID|http://test-network-function.com/testcases/platform-alteration/base-image
 Version|v1.0.0
 Description|http://test-network-function.com/testcases/platform-alteration/base-image ensures that the Container Base Image is not altered post-startup.  This test is a heuristic, and ensures that there are no changes to the following directories: 1) /var/lib/rpm 2) /var/lib/dpkg 3) /bin 4) /sbin 5) /lib 6) /lib64 7) /usr/bin 8) /usr/sbin 9) /usr/lib 10) /usr/lib64
@@ -77,6 +82,7 @@ Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/site
 Property|Description
 ---|---
 Test Case Name|boot-params
+Test Case Label|platform-alteration-boot-params
 Unique ID|http://test-network-function.com/testcases/platform-alteration/boot-params
 Version|v1.0.0
 Description|http://test-network-function.com/testcases/platform-alteration/boot-params tests that boot parameters are set through the MachineConfigOperator, and not set manually on the Node.
@@ -88,6 +94,7 @@ Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/site
 Property|Description
 ---|---
 Test Case Name|hugepages-config
+Test Case Label|platform-alteration-hugepages-config
 Unique ID|http://test-network-function.com/testcases/platform-alteration/hugepages-config
 Version|v1.0.0
 Description|http://test-network-function.com/testcases/platform-alteration/hugepages-config checks to see that HugePage settings have been configured through MachineConfig, and not manually on the underlying Node.  This test case applies only to Nodes that are configured with the "worker" MachineConfigSet.  First, the "worker" MachineConfig is polled, and the Hugepage settings are extracted.  Next, the underlying Nodes are polled for configured HugePages through inspection of /proc/meminfo.  The results are compared, and the test passes only if they are the same.
@@ -99,6 +106,7 @@ Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/site
 Property|Description
 ---|---
 Test Case Name|isredhat-release
+Test Case Label|platform-alteration-isredhat-release
 Unique ID|http://test-network-function.com/testcases/platform-alteration/isredhat-release
 Version|v1.0.0
 Description|http://test-network-function.com/testcases/platform-alteration/isredhat-release verifies if the container base image is redhat.
@@ -110,6 +118,7 @@ Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/site
 Property|Description
 ---|---
 Test Case Name|sysctl-config
+Test Case Label|platform-alteration-sysctl-config
 Unique ID|http://test-network-function.com/testcases/platform-alteration/sysctl-config
 Version|v1.0.0
 Description|http://test-network-function.com/testcases/platform-alteration/sysctl-config tests that no one has changed the node's sysctl configs after the node 			was created, the tests works by checking if the sysctl configs are consistent with the 			MachineConfig CR which defines how the node should be configured
@@ -121,6 +130,7 @@ Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/site
 Property|Description
 ---|---
 Test Case Name|tainted-node-kernel
+Test Case Label|platform-alteration-tainted-node-kernel
 Unique ID|http://test-network-function.com/testcases/platform-alteration/tainted-node-kernel
 Version|v1.0.0
 Description|http://test-network-function.com/testcases/platform-alteration/tainted-node-kernel ensures that the Node(s) hosting CNFs do not utilize tainted kernels. This test case is especially important to support Highly Available CNFs, since when a CNF is re-instantiated on a backup Node, that Node's kernel may not have the same hacks.'
@@ -135,6 +145,7 @@ Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/site
 Property|Description
 ---|---
 Test Case Name|cluster-role-bindings
+Test Case Label|access-control-cluster-role-bindings
 Unique ID|http://test-network-function.com/testcases/access-control/cluster-role-bindings
 Version|v1.0.0
 Description|http://test-network-function.com/testcases/access-control/cluster-role-bindings tests that a Pod does not specify ClusterRoleBindings.
@@ -146,6 +157,7 @@ Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/site
 Property|Description
 ---|---
 Test Case Name|host-resource
+Test Case Label|access-control-host-resource
 Unique ID|http://test-network-function.com/testcases/access-control/host-resource
 Version|v1.0.0
 Description|http://test-network-function.com/testcases/access-control/host-resource tests several aspects of CNF best practices, including: 1. The Pod does not have access to Host Node Networking. 2. The Pod does not have access to Host Node Ports. 3. The Pod cannot access Host Node IPC space. 4. The Pod cannot access Host Node PID space. 5. The Pod is not granted NET_ADMIN SCC. 6. The Pod is not granted SYS_ADMIN SCC. 7. The Pod does not run as root. 8. The Pod does not allow privileged escalation. 9. The Pod is not granted NET_RAW SCC. 10. The Pod is not granted IPC_LOCK SCC. 
@@ -157,6 +169,7 @@ Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/site
 Property|Description
 ---|---
 Test Case Name|namespace
+Test Case Label|access-control-namespace
 Unique ID|http://test-network-function.com/testcases/access-control/namespace
 Version|v1.0.0
 Description|http://test-network-function.com/testcases/access-control/namespace tests that all CNF's resources (PUTs and CRs) belong to valid namespaces. A valid namespace meets the following conditions: (1) It was declared in the yaml config file under the targetNameSpaces tag. (2) It doesn't have any of the following prefixes: default, openshift-, istio- and aspenmesh-
@@ -168,6 +181,7 @@ Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/site
 Property|Description
 ---|---
 Test Case Name|pod-automount-service-account-token
+Test Case Label|access-control-pod-automount-service-account-token
 Unique ID|http://test-network-function.com/testcases/access-control/pod-automount-service-account-token
 Version|v1.0.0
 Description|http://test-network-function.com/testcases/access-control/pod-automount-service-account-token check that all pods under test have automountServiceAccountToken set to false
@@ -179,6 +193,7 @@ Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/site
 Property|Description
 ---|---
 Test Case Name|pod-role-bindings
+Test Case Label|access-control-pod-role-bindings
 Unique ID|http://test-network-function.com/testcases/access-control/pod-role-bindings
 Version|v1.0.0
 Description|http://test-network-function.com/testcases/access-control/pod-role-bindings ensures that a CNF does not utilize RoleBinding(s) in a non-CNF Namespace.
@@ -190,6 +205,7 @@ Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/site
 Property|Description
 ---|---
 Test Case Name|pod-service-account
+Test Case Label|access-control-pod-service-account
 Unique ID|http://test-network-function.com/testcases/access-control/pod-service-account
 Version|v1.0.0
 Description|http://test-network-function.com/testcases/access-control/pod-service-account tests that each CNF Pod utilizes a valid Service Account.
@@ -204,6 +220,7 @@ Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/site
 Property|Description
 ---|---
 Test Case Name|container-is-certified
+Test Case Label|affiliated-certification-container-is-certified
 Unique ID|http://test-network-function.com/testcases/affiliated-certification/container-is-certified
 Version|v1.0.0
 Description|http://test-network-function.com/testcases/affiliated-certification/container-is-certified tests whether container images listed in the configuration file have passed the Red Hat Container Certification Program (CCP).
@@ -215,6 +232,7 @@ Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/site
 Property|Description
 ---|---
 Test Case Name|operator-is-certified
+Test Case Label|affiliated-certification-operator-is-certified
 Unique ID|http://test-network-function.com/testcases/affiliated-certification/operator-is-certified
 Version|v1.0.0
 Description|http://test-network-function.com/testcases/affiliated-certification/operator-is-certified tests whether CNF Operators listed in the configuration file have passed the Red Hat Operator Certification Program (OCP).
@@ -229,6 +247,7 @@ Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/site
 Property|Description
 ---|---
 Test Case Name|cluster-csi-info
+Test Case Label|diagnostic-cluster-csi-info
 Unique ID|http://test-network-function.com/testcases/diagnostic/cluster-csi-info
 Version|v1.0.0
 Description|http://test-network-function.com/testcases/diagnostic/cluster-csi-info extracts CSI driver information in the cluster.
@@ -240,6 +259,7 @@ Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/site
 Property|Description
 ---|---
 Test Case Name|clusterversion
+Test Case Label|diagnostic-clusterversion
 Unique ID|http://test-network-function.com/testcases/diagnostic/clusterversion
 Version|v1.0.0
 Description|http://test-network-function.com/testcases/diagnostic/clusterversion Extracts OCP versions from the cluster.
@@ -251,6 +271,7 @@ Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/site
 Property|Description
 ---|---
 Test Case Name|extract-node-information
+Test Case Label|diagnostic-extract-node-information
 Unique ID|http://test-network-function.com/testcases/diagnostic/extract-node-information
 Version|v1.0.0
 Description|http://test-network-function.com/testcases/diagnostic/extract-node-information extracts informational information about the cluster.
@@ -262,6 +283,7 @@ Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/site
 Property|Description
 ---|---
 Test Case Name|list-cni-plugins
+Test Case Label|diagnostic-list-cni-plugins
 Unique ID|http://test-network-function.com/testcases/diagnostic/list-cni-plugins
 Version|v1.0.0
 Description|http://test-network-function.com/testcases/diagnostic/list-cni-plugins lists CNI plugins
@@ -273,6 +295,7 @@ Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/site
 Property|Description
 ---|---
 Test Case Name|nodes-hw-info
+Test Case Label|diagnostic-nodes-hw-info
 Unique ID|http://test-network-function.com/testcases/diagnostic/nodes-hw-info
 Version|v1.0.0
 Description|http://test-network-function.com/testcases/diagnostic/nodes-hw-info list nodes HW info
@@ -287,6 +310,7 @@ Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/site
 Property|Description
 ---|---
 Test Case Name|container-shutdown
+Test Case Label|lifecycle-container-shutdown
 Unique ID|http://test-network-function.com/testcases/lifecycle/container-shutdown
 Version|v1.0.0
 Description|http://test-network-function.com/testcases/lifecycle/container-shutdown Ensure that the containers lifecycle pre-stop management feature is configured.
@@ -298,6 +322,7 @@ Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/site
 Property|Description
 ---|---
 Test Case Name|deployment-scaling
+Test Case Label|lifecycle-deployment-scaling
 Unique ID|http://test-network-function.com/testcases/lifecycle/deployment-scaling
 Version|v1.0.0
 Description|http://test-network-function.com/testcases/lifecycle/deployment-scaling tests that CNF deployments support scale in/out operations.  			First, The test starts getting the current replicaCount (N) of the deployment/s with the Pod Under Test. Then, it executes the  			scale-in oc command for (N-1) replicas. Lastly, it executes the scale-out oc command, restoring the original replicaCount of the deployment/s. 		    In case of deployments that are managed by HPA the test is changing the min and max value to deployment Replica - 1 during scale-in and the  			original replicaCount again for both min/max during the scale-out stage. lastly its restoring the original min/max replica of the deployment/s
@@ -309,6 +334,7 @@ Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/site
 Property|Description
 ---|---
 Test Case Name|image-pull-policy
+Test Case Label|lifecycle-image-pull-policy
 Unique ID|http://test-network-function.com/testcases/lifecycle/image-pull-policy
 Version|v1.0.0
 Description|http://test-network-function.com/testcases/lifecycle/image-pull-policy Ensure that the containers under test are using IfNotPresent as Image Pull Policy..
@@ -320,6 +346,7 @@ Best Practice Reference|https://docs.google.com/document/d/1wRHMk1ZYUSVmgp_4kxvq
 Property|Description
 ---|---
 Test Case Name|pod-high-availability
+Test Case Label|lifecycle-pod-high-availability
 Unique ID|http://test-network-function.com/testcases/lifecycle/pod-high-availability
 Version|v1.0.0
 Description|http://test-network-function.com/testcases/lifecycle/pod-high-availability ensures that CNF Pods specify podAntiAffinity rules and replica value is set to more than 1.
@@ -331,6 +358,7 @@ Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/site
 Property|Description
 ---|---
 Test Case Name|pod-owner-type
+Test Case Label|lifecycle-pod-owner-type
 Unique ID|http://test-network-function.com/testcases/lifecycle/pod-owner-type
 Version|v1.0.0
 Description|http://test-network-function.com/testcases/lifecycle/pod-owner-type tests that CNF Pod(s) are deployed as part of a ReplicaSet(s)/StatefulSet(s).
@@ -342,6 +370,7 @@ Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/site
 Property|Description
 ---|---
 Test Case Name|pod-recreation
+Test Case Label|lifecycle-pod-recreation
 Unique ID|http://test-network-function.com/testcases/lifecycle/pod-recreation
 Version|v1.0.0
 Description|http://test-network-function.com/testcases/lifecycle/pod-recreation tests that a CNF is configured to support High Availability.   			First, this test cordons and drains a Node that hosts the CNF Pod.   			Next, the test ensures that OpenShift can re-instantiate the Pod on another Node,  			and that the actual replica count matches the desired replica count.
@@ -353,6 +382,7 @@ Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/site
 Property|Description
 ---|---
 Test Case Name|pod-scheduling
+Test Case Label|lifecycle-pod-scheduling
 Unique ID|http://test-network-function.com/testcases/lifecycle/pod-scheduling
 Version|v1.0.0
 Description|http://test-network-function.com/testcases/lifecycle/pod-scheduling ensures that CNF Pods do not specify nodeSelector or nodeAffinity.  In most cases, Pods should allow for instantiation on any underlying Node.
@@ -364,6 +394,7 @@ Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/site
 Property|Description
 ---|---
 Test Case Name|pod-termination-grace-period
+Test Case Label|lifecycle-pod-termination-grace-period
 Unique ID|http://test-network-function.com/testcases/lifecycle/pod-termination-grace-period
 Version|v1.0.0
 Description|http://test-network-function.com/testcases/lifecycle/pod-termination-grace-period tests whether the terminationGracePeriod is CNF-specific, or if the default (30s) is utilized.  This test is informative, and will not affect CNF Certification.  In many cases, the default terminationGracePeriod is perfectly acceptable for a CNF.
@@ -375,6 +406,7 @@ Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/site
 Property|Description
 ---|---
 Test Case Name|statefulset-scaling
+Test Case Label|lifecycle-statefulset-scaling
 Unique ID|http://test-network-function.com/testcases/lifecycle/statefulset-scaling
 Version|v1.0.0
 Description|http://test-network-function.com/testcases/lifecycle/statefulset-scaling tests that CNF statefulsets support scale in/out operations.  			First, The test starts getting the current replicaCount (N) of the statefulset/s with the Pod Under Test. Then, it executes the  			scale-in oc command for (N-1) replicas. Lastly, it executes the scale-out oc command, restoring the original replicaCount of the statefulset/s. 			In case of statefulsets that are managed by HPA the test is changing the min and max value to statefulset Replica - 1 during scale-in and the  			original replicaCount again for both min/max during the scale-out stage. lastly its restoring the original min/max replica of the statefulset/s
@@ -389,6 +421,7 @@ Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/site
 Property|Description
 ---|---
 Test Case Name|icmpv4-connectivity
+Test Case Label|networking-icmpv4-connectivity
 Unique ID|http://test-network-function.com/testcases/networking/icmpv4-connectivity
 Version|v1.0.0
 Description|http://test-network-function.com/testcases/networking/icmpv4-connectivity checks that each CNF Container is able to communicate via ICMPv4 on the Default OpenShift network.  This test case requires the Deployment of the debug daemonset. 
@@ -400,6 +433,7 @@ Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/site
 Property|Description
 ---|---
 Test Case Name|service-type
+Test Case Label|networking-service-type
 Unique ID|http://test-network-function.com/testcases/networking/service-type
 Version|v1.0.0
 Description|http://test-network-function.com/testcases/networking/service-type tests that each CNF Service does not utilize NodePort(s).
