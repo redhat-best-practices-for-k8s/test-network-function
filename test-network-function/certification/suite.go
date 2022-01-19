@@ -99,6 +99,7 @@ func testContainerCertificationStatus() {
 		if env.Config.CheckDiscoveredContainerCertificationStatus {
 			const redhatContainerCatalogRegistry = "https://catalog.redhat.com/software/containers/"
 			for _, cut := range env.ContainersUnderTest {
+				// pass if the registry matches the official redhat catalog url prefix
 				if cut.ImageSource.Registry != redhatContainerCatalogRegistry {
 					containersToQuery[configsections.CertifiedContainerRequestInfo{Repository: cut.ImageSource.Repository, Name: cut.ImageSource.Name}] = true
 				}
