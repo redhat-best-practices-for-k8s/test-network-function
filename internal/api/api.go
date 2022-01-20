@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-
-	log "github.com/sirupsen/logrus"
 )
 
 // Endpoints document can be found here
@@ -19,15 +17,9 @@ const apiOperatorCatalogExternalBaseEndPoint = "https://catalog.redhat.com/api/c
 const apiCatalogByRepositoriesBaseEndPoint = "https://catalog.redhat.com/api/containers/v1/repositories/registry/registry.access.redhat.com/repository"
 
 var (
-	dataKey           = "data"
-	errorContainer404 = fmt.Errorf("error code 404: A container/operator with the specified identifier was not found")
-	idKey             = "_id"
+	dataKey = "data"
+	idKey   = "_id"
 )
-
-// GetContainer404Error return error object with 404 error string
-func GetContainer404Error() error {
-	return errorContainer404
-}
 
 // HTTPClient Client interface
 type HTTPClient interface {
@@ -46,20 +38,28 @@ func NewHTTPClient() CertAPIClient {
 
 // IsContainerCertified get container image info by repo/name and checks if container details is present
 // If present then returns `true` as certified operators.
-func (api CertAPIClient) IsContainerCertified(repository, imageName string) bool {
-	if imageID, err := api.GetImageIDByRepository(repository, imageName); err != nil || imageID == "" {
-		return false
+func (api CertAPIClient) IsContainerCertified(repository, imageName string) (bool, error) {
+	imageID, err := api.GetImageIDByRepository(repository, imageName)
+	if err == nil {
+		if imageID == "" {
+			return false, nil
+		}
+		return true, nil
 	}
-	return true
+	return false, err
 }
 
 // IsOperatorCertified get operator bundle by package name and check if package details is present
 // If present then returns `true` as certified operators.
-func (api CertAPIClient) IsOperatorCertified(org, packageName string) bool {
-	if imageID, err := api.GetOperatorBundleIDByPackageName(org, packageName); err != nil || imageID == "" {
-		return false
+func (api CertAPIClient) IsOperatorCertified(org, packageName string) (bool, error) {
+	imageID, err := api.GetOperatorBundleIDByPackageName(org, packageName)
+	if err == nil {
+		if imageID == "" {
+			return false, nil
+		}
+		return true, nil
 	}
-	return true
+	return false, err
 }
 
 // GetImageByID get container image data for the given container Id.  Returns (response, error).
@@ -107,14 +107,8 @@ func (api CertAPIClient) getRequest(url string) ([]byte, error) {
 		return nil, err
 	}
 	defer resp.Body.Close()
-	if resp.StatusCode == http.StatusNotFound {
-		err = GetContainer404Error()
-		return nil, err
-	}
-
 	response, err := io.ReadAll(resp.Body)
 	if err != nil {
-		err = GetContainer404Error()
 		return nil, err
 	}
 	return response, nil
@@ -125,9 +119,7 @@ func (api CertAPIClient) getIDFromResponse(response []byte) (string, error) {
 	var data interface{}
 	var id string
 	if err := json.Unmarshal(response, &data); err != nil {
-		log.Errorf("Error calling API Request %v", err.Error())
-		err = GetContainer404Error()
-		return id, err
+		return id, fmt.Errorf("error unmarshalling payload in API Response %v", err.Error())
 	}
 	m := data.(map[string]interface{})
 	for k, v := range m {

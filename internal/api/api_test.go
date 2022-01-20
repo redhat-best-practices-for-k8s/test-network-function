@@ -41,11 +41,12 @@ const (
 	}]
 }`
 	jsonResponseNotFound = `{
-				  "detail": "The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.",
-				  "status": 404,
-				  "title": "Not Found",
-				  "type": "about:blank"
-					}`
+		"data": [],
+		"page": 0,
+		"page_size": 1,
+		"total": 0
+	  }
+	  `
 )
 
 var (
@@ -76,22 +77,22 @@ var (
 	}{
 		{repository: repository, name: imageName, expectedError: nil, id: "", expectedResult: true,
 			responseData: jsonResponseFound, responseStatus: http.StatusAccepted},
-		{repository: unKnownRepository, name: unKnownImageName, expectedError: api.GetContainer404Error(), id: "", expectedResult: false,
-			responseData: jsonResponseNotFound, responseStatus: http.StatusNotFound},
+		{repository: unKnownRepository, name: unKnownImageName, expectedError: nil, id: "", expectedResult: false,
+			responseData: jsonResponseNotFound, responseStatus: http.StatusAccepted},
 	}
 
 	operatorTestCases = []struct {
-		packageName         string
-		org                 string
-		id                  string
-		expectedErrorString string
-		expectedResult      bool
-		responseData        string
-		responseStatus      int
+		packageName    string
+		org            string
+		id             string
+		expectedError  error
+		expectedResult bool
+		responseData   string
+		responseStatus int
 	}{
-		{packageName: packageName, org: redHatOrg, expectedErrorString: "", id: "", expectedResult: true,
+		{packageName: packageName, org: redHatOrg, expectedError: nil, id: "", expectedResult: true,
 			responseData: jsonResponseFound, responseStatus: http.StatusAccepted},
-		{packageName: unknownPackageName, org: marketPlaceOrg, expectedErrorString: api.GetContainer404Error().Error(), id: "", expectedResult: false,
+		{packageName: unknownPackageName, org: marketPlaceOrg, expectedError: nil, id: "", expectedResult: false,
 			responseData: jsonResponseNotFound, responseStatus: http.StatusNotFound},
 	}
 )
@@ -114,16 +115,18 @@ func getDoFunc(data string, status int) func(req *http.Request) (*http.Response,
 func TestApiClient_IsContainerCertified(t *testing.T) {
 	for _, c := range containerTestCases {
 		GetDoFunc = getDoFunc(c.responseData, c.responseStatus) //nolint:bodyclose
-		result := client.IsContainerCertified(c.repository, c.name)
+		result, err := client.IsContainerCertified(c.repository, c.name)
 		assert.Equal(t, c.expectedResult, result)
+		assert.Equal(t, c.expectedError, err)
 	}
 }
 
 func TestApiClient_IsOperatorCertified(t *testing.T) {
 	for _, c := range operatorTestCases {
 		GetDoFunc = getDoFunc(c.responseData, c.responseStatus) //nolint:bodyclose
-		result := client.IsOperatorCertified(c.org, c.packageName)
+		result, err := client.IsOperatorCertified(c.org, c.packageName)
 		assert.Equal(t, c.expectedResult, result)
+		assert.Equal(t, c.expectedError, err)
 	}
 }
 

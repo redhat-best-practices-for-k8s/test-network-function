@@ -30,7 +30,7 @@ jobs:
       - name: Set up Go 1.17
         uses: actions/setup-go@v2
         with:
-          go-version: 1.17.5
+          go-version: 1.17.6
 
       - name: Check out code into the Go module directory
         uses: actions/checkout@v2
@@ -78,7 +78,7 @@ jobs:
       - name: Set up Go 1.17
         uses: actions/setup-go@v2
         with:
-          go-version: 1.17.5
+          go-version: 1.17.6
 
       - name: Check out code into the Go module directory
         uses: actions/checkout@v2
@@ -95,7 +95,7 @@ jobs:
 
       - name: Quality Gate - Test coverage shall be above threshold
         env:
-          TESTCOVERAGE_THRESHOLD: 60
+          TESTCOVERAGE_THRESHOLD: 70
         run: |
           echo "Quality Gate: checking test coverage is above threshold ..."
           echo "Threshold             : $TESTCOVERAGE_THRESHOLD %"
@@ -120,7 +120,7 @@ jobs:
       - name: Set up Go 1.17
         uses: actions/setup-go@v2
         with:
-          go-version: 1.17.5
+          go-version: 1.17.6
 
       - name: Check out code into the Go module directory
         uses: actions/checkout@v2

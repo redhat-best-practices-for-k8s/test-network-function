@@ -56,29 +56,30 @@ var _ = ginkgo.Describe(common.AffiliatedCertTestKey, func() {
 })
 
 // getContainerCertificationRequestFunction returns function that will try to get the certification status (CCP) for a container.
-func getContainerCertificationRequestFunction(repository, containerName string) func() bool {
-	return func() bool {
+func getContainerCertificationRequestFunction(repository, containerName string) func() (bool, error) {
+	return func() (bool, error) {
 		return certAPIClient.IsContainerCertified(repository, containerName)
 	}
 }
 
 // getOperatorCertificationRequestFunction returns function that will try to get the certification status (OCP) for an operator.
-func getOperatorCertificationRequestFunction(organization, operatorName string) func() bool {
-	return func() bool {
+func getOperatorCertificationRequestFunction(organization, operatorName string) func() (bool, error) {
+	return func() (bool, error) {
 		return certAPIClient.IsOperatorCertified(organization, operatorName)
 	}
 }
 
 // waitForCertificationRequestToSuccess calls to certificationRequestFunc until it returns true.
-func waitForCertificationRequestToSuccess(certificationRequestFunc func() bool, timeout time.Duration) bool {
+func waitForCertificationRequestToSuccess(certificationRequestFunc func() (bool, error), timeout time.Duration) bool {
 	const pollingPeriod = 1 * time.Second
 	var elapsed time.Duration
+	var err error
 	isCertified := false
 
 	for elapsed < timeout {
-		isCertified = certificationRequestFunc()
+		isCertified, err = certificationRequestFunc()
 
-		if isCertified {
+		if err == nil {
 			break
 		}
 		time.Sleep(pollingPeriod)
