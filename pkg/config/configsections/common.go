@@ -65,7 +65,7 @@ type TestConfiguration struct {
 	// CRDs section.
 	CrdFilters []CrdFilter `yaml:"targetCrdFilters" json:"targetCrdFilters"`
 	// AcceptedKernelTaints
-	AcceptedKernelTaints []AcceptedKernelTaintsInfo `yaml:"AcceptedKernelTaints,omitempty" json:"AcceptedKernelTaints,omitempty"`
+	AcceptedKernelTaints []AcceptedKernelTaintsInfo `yaml:"acceptedKernelTaints,omitempty" json:"acceptedKernelTaints,omitempty"`
 }
 
 // TestPartner contains the helper containers that can be used to facilitate tests
