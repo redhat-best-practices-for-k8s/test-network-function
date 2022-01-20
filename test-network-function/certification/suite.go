@@ -87,25 +87,29 @@ func waitForCertificationRequestToSuccess(certificationRequestFunc func() bool, 
 	return isCertified
 }
 
-//nolint:dupl
 func testContainerCertificationStatus() {
 	// Query API for certification status of listed containers
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestContainerIsCertifiedIdentifier)
-	ginkgo.It(testID, func() {
+	ginkgo.It(testID, ginkgo.Label(testID), func() {
 		env := configpkg.GetTestEnvironment()
-		containersToQuery := env.Config.CertifiedContainerInfo
-
+		containersToQuery := make(map[configsections.CertifiedContainerRequestInfo]bool)
+		for _, c := range env.Config.CertifiedContainerInfo {
+			containersToQuery[c] = true
+		}
+		if env.Config.CheckDiscoveredContainerCertificationStatus {
+			for _, cut := range env.ContainersUnderTest {
+				containersToQuery[configsections.CertifiedContainerRequestInfo{Repository: cut.ImageSource.Repository, Name: cut.ImageSource.Name}] = true
+			}
+		}
 		if len(containersToQuery) == 0 {
 			ginkgo.Skip("No containers to check configured in tnf_config.yml")
 		}
-
 		ginkgo.By(fmt.Sprintf("Getting certification status. Number of containers to check: %d", len(containersToQuery)))
-
 		if len(containersToQuery) > 0 {
 			certAPIClient = api.NewHTTPClient()
 			failedContainers := []configsections.CertifiedContainerRequestInfo{}
 			allContainersToQueryEmpty := true
-			for _, c := range containersToQuery {
+			for c := range containersToQuery {
 				if c.Name == "" || c.Repository == "" {
 					tnf.ClaimFilePrintf("Container name = \"%s\" or repository = \"%s\" is missing, skipping this container to query", c.Name, c.Repository)
 					continue
@@ -114,10 +118,10 @@ func testContainerCertificationStatus() {
 				ginkgo.By(fmt.Sprintf("Container %s/%s should eventually be verified as certified", c.Repository, c.Name))
 				isCertified := waitForCertificationRequestToSuccess(getContainerCertificationRequestFunction(c.Repository, c.Name), apiRequestTimeout)
 				if !isCertified {
-					tnf.ClaimFilePrintf("Container %s (repository %s) failed to be certified.", c.Name, c.Repository)
+					tnf.ClaimFilePrintf("Container %s (repository %s) is not found in the certified container catalog.", c.Name, c.Repository)
 					failedContainers = append(failedContainers, c)
 				} else {
-					log.Info(fmt.Sprintf("Container %s (repository %s) certified OK.", c.Name, c.Repository))
+					log.Info(fmt.Sprintf("Container %s (repository %s) is certified.", c.Name, c.Repository))
 				}
 			}
 			if allContainersToQueryEmpty {
@@ -125,17 +129,16 @@ func testContainerCertificationStatus() {
 			}
 
 			if n := len(failedContainers); n > 0 {
-				log.Warnf("Containers that failed to be certified: %+v", failedContainers)
-				ginkgo.Fail(fmt.Sprintf("%d containers failed to be certified.", n))
+				log.Warnf("Containers that are not certified: %+v", failedContainers)
+				ginkgo.Fail(fmt.Sprintf("%d container images are not certified.", n))
 			}
 		}
 	})
 }
 
-//nolint:dupl
 func testOperatorCertificationStatus() {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestOperatorIsCertifiedIdentifier)
-	ginkgo.It(testID, func() {
+	ginkgo.It(testID, ginkgo.Label(testID), func() {
 		operatorsToQuery := configpkg.GetTestEnvironment().Config.CertifiedOperatorInfo
 
 		if len(operatorsToQuery) == 0 {

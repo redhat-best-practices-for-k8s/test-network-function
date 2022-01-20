@@ -43,4 +43,7 @@ type Pod struct {
 
 	// Representation of the container in this pod used to run networing tests
 	ContainerList []Container `yaml:"containerfornettests,omitempty" json:"containerfornettests,omitempty"`
+
+	// IsManaged indicates whether this pod belongs to any other resource (deployment/statefulset).
+	IsManaged bool
 }

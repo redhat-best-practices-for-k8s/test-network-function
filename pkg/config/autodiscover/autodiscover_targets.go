@@ -199,6 +199,11 @@ func buildPodUnderTest(pr *PodResource) (podUnderTest *configsections.Pod) {
 	} else {
 		podUnderTest.Tests = tests
 	}
+
+	if pr.Metadata.OwnerReferences != nil {
+		podUnderTest.IsManaged = true
+	}
+
 	// Get a list of all the containers present in the pod
 	allContainersInPod := buildContainers(pr)
 	if len(allContainersInPod) > 0 {
