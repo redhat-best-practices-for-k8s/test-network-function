@@ -435,6 +435,8 @@ func testTainted(env *config.TestEnvironment) {
 						// If the module info does not contain this string, the module is "tainted".
 						taintedModules := getTaintedModules(modules, node.Name, context)
 						log.Debug("Collected all of the tainted modules: ", taintedModules)
+						tnf.ClaimFilePrintf("Kernel Modules loaded that cause taints: ", taintedModules)
+						tnf.ClaimFilePrintf("Modules allowed via configuration: ", env.Config.AcceptedKernelTaints)
 
 						// Looks through the accepted taints listed in the tnf-config file.
 						// If all of the tainted modules show up in the configuration file, don't fail the test.
