@@ -10,6 +10,7 @@ targetCrdFilters:
 certifiedcontainerinfo:
   - name: nginx-116  # working example
     repository: rhel8
+checkDiscoveredContainerCertificationStatus: false
 certifiedoperatorinfo:
   - name: etcd
     organization: community-operators # working example
