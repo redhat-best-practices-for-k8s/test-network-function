@@ -2,23 +2,21 @@ package diagnostic
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"path"
 	"strings"
 	"time"
 
+	log "github.com/sirupsen/logrus"
 	"github.com/test-network-function/test-network-function/pkg/config"
 	"github.com/test-network-function/test-network-function/test-network-function/common"
-	"github.com/test-network-function/test-network-function/test-network-function/identifiers"
 
-	"github.com/onsi/ginkgo"
-	"github.com/onsi/gomega"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/clusterversion"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/generic"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodedebug"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
-	"github.com/test-network-function/test-network-function/pkg/tnf/testcases"
-	"github.com/test-network-function/test-network-function/test-network-function/results"
 )
 
 const (
@@ -67,60 +65,6 @@ var (
 	env *config.TestEnvironment = config.GetTestEnvironment()
 )
 
-var _ = ginkgo.Describe(common.DiagnosticTestKey, func() {
-	conf, _ := ginkgo.GinkgoConfiguration()
-	if testcases.IsInFocus(conf.FocusStrings, common.DiagnosticTestKey) {
-		ginkgo.BeforeEach(func() {
-			env.LoadAndRefresh()
-			gomega.Expect(len(env.PodsUnderTest)).ToNot(gomega.Equal(0))
-			gomega.Expect(len(env.ContainersUnderTest)).ToNot(gomega.Equal(0))
-		})
-		ginkgo.ReportAfterEach(results.RecordResult)
-		ginkgo.AfterEach(env.CloseLocalShellContext)
-		testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestClusterVersionIdentifier)
-		ginkgo.It(testID, ginkgo.Label(testID), func() {
-			testOcpVersion()
-		})
-
-		testID = identifiers.XformToGinkgoItIdentifier(identifiers.TestExtractNodeInformationIdentifier)
-		ginkgo.It(testID, ginkgo.Label(testID), func() {
-			context := env.GetLocalShellContext()
-			tester, handlers, jsonParseResult, err := generic.NewGenericFromJSONFile(relativeNodesTestPath, relativeSchemaPath)
-			gomega.Expect(err).To(gomega.BeNil())
-			gomega.Expect(jsonParseResult).ToNot(gomega.BeNil())
-			gomega.Expect(jsonParseResult.Valid()).To(gomega.BeTrue())
-			gomega.Expect(handlers).ToNot(gomega.BeNil())
-			gomega.Expect(tester).ToNot(gomega.BeNil())
-
-			test, err := tnf.NewTest(context.GetExpecter(), *tester, handlers, context.GetErrorChannel())
-			gomega.Expect(err).To(gomega.BeNil())
-			gomega.Expect(test).ToNot(gomega.BeNil())
-
-			test.RunAndValidate()
-
-			genericTest := (*tester).(*generic.Generic)
-			gomega.Expect(genericTest).ToNot(gomega.BeNil())
-			matches := genericTest.Matches
-			gomega.Expect(len(matches)).To(gomega.Equal(1))
-			match := genericTest.GetMatches()[0]
-			err = json.Unmarshal([]byte(match.Match), &nodeSummary)
-			gomega.Expect(err).To(gomega.BeNil())
-		})
-		testID = identifiers.XformToGinkgoItIdentifier(identifiers.TestListCniPluginsIdentifier)
-		ginkgo.It(testID, ginkgo.Label(testID), func() {
-			testCniPlugins()
-		})
-		testID = identifiers.XformToGinkgoItIdentifier(identifiers.TestNodesHwInfoIdentifier)
-		ginkgo.It(testID, ginkgo.Label(testID), func() {
-			testNodesHwInfo()
-		})
-		testID = identifiers.XformToGinkgoItIdentifier(identifiers.TestClusterCsiInfoIdentifier)
-		ginkgo.It(testID, ginkgo.Label(testID), func() {
-			listClusterCSIInfo()
-		})
-	}
-})
-
 // CniPlugin holds info about a CNI plugin
 // The JSON fields come from the jq output
 type CniPlugin struct {
@@ -142,6 +86,76 @@ type NodeHwInfo struct {
 type NodesHwInfo struct {
 	Master NodeHwInfo
 	Worker NodeHwInfo
+}
+
+func GetDiagnosticsData() []error {
+	env.LoadAndRefresh()
+
+	errs := []error{}
+	if len(env.PodsUnderTest) == 0 {
+		errs = append(errs, errors.New("nod pods under test found"))
+	}
+	if len(env.ContainersUnderTest) == 0 {
+		errs = append(errs, errors.New("no containers under test found"))
+	}
+
+	if err := getOcpVersions(); err != nil {
+		errs = append(errs, fmt.Errorf("failed to get ocp version. Error: %v", err))
+	}
+
+	if err := getNodes(); err != nil {
+		errs = append(errs, fmt.Errorf("failed to get nodes info. Error: %v", err))
+	}
+
+	if err := getCniPlugins(); err != nil {
+		errs = append(errs, fmt.Errorf("failed to get CNI plugins info. Error: %v", err))
+	}
+
+	if err := getClusterCSIInfo(); err != nil {
+		errs = append(errs, fmt.Errorf("failed to get cluster CSI info. Error: %v", err))
+	}
+
+	if hwErrs := getNodesHwInfo(); len(hwErrs) > 0 {
+		errs = append(errs, hwErrs...)
+	}
+
+	common.RemoveLabelFromNodes()
+	return errs
+}
+
+func getNodes() error {
+	log.Infof("Getting Nodes information.")
+
+	context := env.GetLocalShellContext()
+	defer env.CloseLocalShellContext()
+
+	tester, handlers, jsonParseResult, err := generic.NewGenericFromJSONFile(relativeNodesTestPath, relativeSchemaPath)
+	if validParseResult := jsonParseResult.Valid(); err != nil || !validParseResult {
+		return fmt.Errorf("failed to create handler to get nodes information (validParseResult: %v, error: %v)", validParseResult, err)
+	}
+
+	test, err := tnf.NewTest(context.GetExpecter(), *tester, handlers, context.GetErrorChannel())
+	if err != nil {
+		return fmt.Errorf("failed to create tester to get nodes information (error: %v)", err)
+	}
+
+	test.RunWithCallbacks(func() {
+		genericTest := (*tester).(*generic.Generic)
+		matches := genericTest.Matches
+		if n := len(matches); n != 1 {
+			err = fmt.Errorf("failed to parse console output for %s (len=%d)", strings.Join(genericTest.Args(), " "), n)
+			return
+		}
+
+		match := matches[0].Match
+		err = json.Unmarshal([]byte(match), &nodeSummary)
+	}, func() {
+		err = errors.New("failed to execute tester to get nodes information")
+	}, func(handlerError error) {
+		err = fmt.Errorf("failed to execute tester to get nodes information (error: %v)", handlerError)
+	})
+
+	return err
 }
 
 // GetNodeSummary returns the result of running `oc get nodes -o json`.
@@ -187,148 +201,263 @@ func getWorkerNodeName(env *config.TestEnvironment) string {
 	return ""
 }
 
-func listNodeCniPlugins(nodeName string) []CniPlugin {
+func listNodeCniPlugins(nodeName string) ([]CniPlugin, error) {
 	// This command will return a JSON array, with the name, cniVersion and plugins fields from the cat output
 	const command = "cat /host/etc/cni/net.d/[0-999]* | jq -s '[ .[] | {name:.name, version:.cniVersion, plugins: .plugins}]'"
-	result := []CniPlugin{}
+
 	nodes := config.GetTestEnvironment().NodesUnderTest
 	context := nodes[nodeName].DebugContainer.GetOc()
 	tester := nodedebug.NewNodeDebug(defaultTestTimeout, nodeName, command, true, true)
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
-	gomega.Expect(err).To(gomega.BeNil())
-	test.RunAndValidate()
-	err = json.Unmarshal([]byte(tester.Raw), &result)
-	gomega.Expect(err).To(gomega.BeNil())
-	return result
+	if err != nil {
+		return nil, fmt.Errorf("failed to create cni plugins handler (error: %v)", err)
+	}
+
+	result := []CniPlugin{}
+	test.RunWithCallbacks(func() {
+		err = json.Unmarshal([]byte(tester.Raw), &result)
+	}, func() {
+		err = errors.New("failed to execute tester to get CNI plugins")
+	}, func(handlerError error) {
+		err = fmt.Errorf("failed to execute tester to get CNI plugins (error: %v)", handlerError)
+	})
+
+	return result, err
 }
 
-func testOcpVersion() {
+func getOcpVersions() error {
+	log.Infof("Getting Openshift versions.")
+
 	context := env.GetLocalShellContext()
+	defer env.CloseLocalShellContext()
+
 	tester := clusterversion.NewClusterVersion(defaultTestTimeout)
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
-	gomega.Expect(err).To(gomega.BeNil())
-	test.RunAndValidate()
-	versionsOcp = tester.GetVersions()
+	if err != nil {
+		return fmt.Errorf("failed to create ocp versions handler test. Error: %v", err)
+	}
+
+	test.RunWithCallbacks(func() {
+		versionsOcp = tester.GetVersions()
+	}, func() {
+		err = errors.New("ocp versions handler failed")
+	}, func(handlerError error) {
+		err = fmt.Errorf("<ocp versions handler failed with error: %v", handlerError)
+	})
+
+	return err
 }
 
-func testCniPlugins() {
-	// get name of a master node
+func getCniPlugins() error {
+	log.Infof("Getting CNI plugins.")
 	env = config.GetTestEnvironment()
+
+	// CNI plugins info will be retrieved from a master node.
 	nodeName := getMasterNodeName(env)
-	gomega.Expect(nodeName).ToNot(gomega.BeEmpty())
-	// get CNI plugins from node
-	cniPlugins = listNodeCniPlugins(nodeName)
-	gomega.Expect(cniPlugins).ToNot(gomega.BeNil())
+	if nodeName == "" {
+		return errors.New("master node's name is empty")
+	}
+
+	var err error
+	cniPlugins, err = listNodeCniPlugins(nodeName)
+	if len(cniPlugins) == 0 {
+		return errors.New("CNI plugins list is empty")
+	}
+
+	return err
 }
 
-func testNodesHwInfo() {
+func getNodeHwInfo(hwInfo *NodeHwInfo, nodeName, nodeType string) []error {
+	hwInfo.NodeName = nodeName
+
+	errs := []error{}
+	var err error
+	hwInfo.Lscpu, err = getNodeLscpu(nodeName)
+	if err != nil {
+		errs = append(errs, fmt.Errorf("failed to get %s node lscpu info - %v", nodeType, err))
+	}
+
+	hwInfo.IPconfig, err = getNodeIPconfig(nodeName)
+	if err != nil {
+		errs = append(errs, fmt.Errorf("failed to get %s node IP config - %v", nodeType, err))
+	}
+
+	hwInfo.Lsblk, err = getNodeLsblk(nodeName)
+	if err != nil {
+		errs = append(errs, fmt.Errorf("failed to get %s node lsblk info - %v", nodeType, err))
+	}
+
+	hwInfo.Lspci, err = getNodeLspci(nodeName)
+	if err != nil {
+		errs = append(errs, fmt.Errorf("failed to get %s node lspci info - %v", nodeType, err))
+	}
+
+	return errs
+}
+
+func getNodesHwInfo() []error {
+	log.Infof("Getting Master & Worker nodes' hardware information.")
+
 	env = config.GetTestEnvironment()
+	errs := []error{}
+
 	masterNodeName := getMasterNodeName(env)
-	gomega.Expect(masterNodeName).ToNot(gomega.BeEmpty())
+	if masterNodeName == "" {
+		errs = append(errs, fmt.Errorf("failed to get master node hw info: name is empty"))
+	}
+
 	workerNodeName := getWorkerNodeName(env)
-	gomega.Expect(workerNodeName).ToNot(gomega.BeEmpty())
-	nodesHwInfo.Master.NodeName = masterNodeName
-	nodesHwInfo.Master.Lscpu = getNodeLscpu(masterNodeName)
-	nodesHwInfo.Master.IPconfig = getNodeIPconfig(masterNodeName)
-	nodesHwInfo.Master.Lsblk = getNodeLsblk(masterNodeName)
-	nodesHwInfo.Master.Lspci = getNodeLspci(masterNodeName)
-	nodesHwInfo.Worker.NodeName = workerNodeName
-	nodesHwInfo.Worker.Lscpu = getNodeLscpu(workerNodeName)
-	nodesHwInfo.Worker.IPconfig = getNodeIPconfig(workerNodeName)
-	nodesHwInfo.Worker.Lsblk = getNodeLsblk(workerNodeName)
-	nodesHwInfo.Worker.Lspci = getNodeLspci(workerNodeName)
+	if workerNodeName == "" {
+		errs = append(errs, fmt.Errorf("failed to get worker node hw info: name is empty"))
+	}
+
+	errs = append(errs, getNodeHwInfo(&nodesHwInfo.Master, masterNodeName, "master")...)
+	errs = append(errs, getNodeHwInfo(&nodesHwInfo.Worker, workerNodeName, "worker")...)
+
+	return errs
 }
 
-func getNodeLscpu(nodeName string) map[string]string {
+func getNodeLscpu(nodeName string) (map[string]string, error) {
 	const command = "lscpu"
 	const numSplitSubstrings = 2
-	result := map[string]string{}
+
 	env = config.GetTestEnvironment()
 	nodes := env.NodesUnderTest
 	context := nodes[nodeName].DebugContainer.GetOc()
 	tester := nodedebug.NewNodeDebug(defaultTestTimeout, nodeName, command, true, true)
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
-	gomega.Expect(err).To(gomega.BeNil())
-	test.RunAndValidate()
-	for _, line := range tester.Processed {
-		fields := strings.SplitN(line, ":", numSplitSubstrings)
-		result[fields[0]] = strings.TrimSpace(fields[1])
+	if err != nil {
+		return nil, fmt.Errorf("failed to create ocp versions handler test. Error: %v", err)
 	}
-	return result
+
+	result := map[string]string{}
+	test.RunWithCallbacks(func() {
+		for _, line := range tester.Processed {
+			fields := strings.SplitN(line, ":", numSplitSubstrings)
+			result[fields[0]] = strings.TrimSpace(fields[1])
+		}
+	}, func() {
+		err = errors.New("node lscpu test failed")
+	}, func(handlerError error) {
+		err = fmt.Errorf("node lscpu test failed with error: %v", handlerError)
+	})
+
+	return result, err
 }
 
-func getNodeIPconfig(nodeName string) map[string][]string {
+func getNodeIPconfig(nodeName string) (map[string][]string, error) {
 	const command = "ip a"
 	const numSplitSubstrings = 3
-	result := map[string][]string{}
+
 	env = config.GetTestEnvironment()
 	nodes := env.NodesUnderTest
 	context := nodes[nodeName].DebugContainer.GetOc()
 	tester := nodedebug.NewNodeDebug(defaultTestTimeout, nodeName, command, true, true)
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
-	gomega.Expect(err).To(gomega.BeNil())
-	test.RunAndValidate()
-	deviceName := ""
-	for _, line := range tester.Processed {
-		if line == "" {
-			continue
-		}
-		if line[0] != ' ' {
-			fields := strings.SplitN(line, ":", numSplitSubstrings)
-			deviceName = fields[1]
-			line = fields[2]
-		}
-		result[deviceName] = append(result[deviceName], strings.TrimSpace(line))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create ocp versions handler test. Error: %v", err)
 	}
-	return result
+
+	result := map[string][]string{}
+	test.RunWithCallbacks(func() {
+		deviceName := ""
+		for _, line := range tester.Processed {
+			if line == "" {
+				continue
+			}
+			if line[0] != ' ' {
+				fields := strings.SplitN(line, ":", numSplitSubstrings)
+				deviceName = fields[1]
+				line = fields[2]
+			}
+			result[deviceName] = append(result[deviceName], strings.TrimSpace(line))
+		}
+	}, func() {
+		err = errors.New("node lscpu test failed")
+	}, func(handlerError error) {
+		err = fmt.Errorf("node lscpu test failed with error: %v", handlerError)
+	})
+
+	return result, err
 }
 
-func getNodeLsblk(nodeName string) interface{} {
+func getNodeLsblk(nodeName string) (interface{}, error) {
 	const command = "lsblk -J"
+
 	env = config.GetTestEnvironment()
 	nodes := env.NodesUnderTest
 	context := nodes[nodeName].DebugContainer.GetOc()
 	tester := nodedebug.NewNodeDebug(defaultTestTimeout, nodeName, command, false, false)
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
-	gomega.Expect(err).To(gomega.BeNil())
-	test.RunAndValidate()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create ocp versions handler test. Error: %v", err)
+	}
+
 	result := map[string]interface{}{}
-	err = json.Unmarshal([]byte(tester.Raw), &result)
-	gomega.Expect(err).To(gomega.BeNil())
-	return result
+	test.RunWithCallbacks(func() {
+		err = json.Unmarshal([]byte(tester.Raw), &result)
+	}, func() {
+		err = errors.New("node lscpu test failed")
+	}, func(handlerError error) {
+		err = fmt.Errorf("node lscpu test failed with error: %v", handlerError)
+	})
+
+	return result, err
 }
 
-func getNodeLspci(nodeName string) []string {
+func getNodeLspci(nodeName string) ([]string, error) {
 	const command = "lspci"
+
 	env = config.GetTestEnvironment()
 	nodes := env.NodesUnderTest
 	context := nodes[nodeName].DebugContainer.GetOc()
 	tester := nodedebug.NewNodeDebug(defaultTestTimeout, nodeName, command, true, true)
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
-	gomega.Expect(err).To(gomega.BeNil())
-	test.RunAndValidate()
-	return tester.Processed
+	if err != nil {
+		return nil, fmt.Errorf("failed to create ocp versions handler test. Error: %v", err)
+	}
+
+	result := []string{}
+	test.RunWithCallbacks(func() {
+		result = tester.Processed
+	}, func() {
+		err = errors.New("node lscpu test failed")
+	}, func(handlerError error) {
+		err = fmt.Errorf("node lscpu test failed with error: %v", handlerError)
+	})
+	return result, err
 }
 
 // check CSI driver info in cluster
-func listClusterCSIInfo() {
+func getClusterCSIInfo() error {
+	log.Infof("Getting cluster CSI information.")
+
 	context := env.GetLocalShellContext()
-	tester, handlers, result, err := generic.NewGenericFromJSONFile(relativeCsiDriverTestPath, common.RelativeSchemaPath)
-	gomega.Expect(err).To(gomega.BeNil())
-	gomega.Expect(result).ToNot(gomega.BeNil())
-	gomega.Expect(result.Valid()).To(gomega.BeTrue())
-	gomega.Expect(handlers).ToNot(gomega.BeNil())
-	gomega.Expect(len(handlers)).To(gomega.Equal(1))
-	gomega.Expect(tester).ToNot(gomega.BeNil())
+	tester, handlers, jsonParseResult, err := generic.NewGenericFromJSONFile(relativeCsiDriverTestPath, common.RelativeSchemaPath)
+	if validParseResult := jsonParseResult.Valid(); err != nil || !validParseResult {
+		return fmt.Errorf("failed to create handler to get cluster CSI info (validParseResult: %v, error: %v)", validParseResult, err)
+	}
+
 	test, err := tnf.NewTest(context.GetExpecter(), *tester, handlers, context.GetErrorChannel())
-	gomega.Expect(err).To(gomega.BeNil())
-	gomega.Expect(test).ToNot(gomega.BeNil())
-	test.RunAndValidate()
-	genericTest := (*tester).(*generic.Generic)
-	gomega.Expect(genericTest).ToNot(gomega.BeNil())
-	matches := genericTest.Matches
-	gomega.Expect(len(matches)).To(gomega.Equal(1))
-	match := genericTest.GetMatches()[0]
-	err = json.Unmarshal([]byte(match.Match), &csiDriver)
-	gomega.Expect(err).To(gomega.BeNil())
+	if err != nil {
+		return fmt.Errorf("failed to create tester to get cluster CSI info (error: %v)", err)
+	}
+
+	test.RunWithCallbacks(func() {
+		genericTest := (*tester).(*generic.Generic)
+		matches := genericTest.Matches
+		if n := len(matches); n != 1 {
+			err = fmt.Errorf("failed to parse console output for %s (len=%d)", strings.Join(genericTest.Args(), " "), n)
+			return
+		}
+
+		match := matches[0].Match
+		err = json.Unmarshal([]byte(match), &csiDriver)
+	}, func() {
+		err = errors.New("failed to execute tester to get cluster CSI information")
+	}, func(handlerError error) {
+		err = fmt.Errorf("failed to execute tester to get cluster CSI information (error: %v)", handlerError)
+	})
+
+	return err
 }

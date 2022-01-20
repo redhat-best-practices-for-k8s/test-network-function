@@ -148,6 +148,12 @@ func TestTest(t *testing.T) {
 	claimData.Configurations = make(map[string]interface{})
 	claimData.Nodes = make(map[string]interface{})
 
+	// collect diagnostic data
+	errs := diagnostic.GetDiagnosticsData()
+	if len(errs) > 0 {
+		log.Errorf("Errors found while getting diagnostic information from cluster: %v", errs)
+	}
+
 	// run the test suite
 	ginkgo.RunSpecs(t, CnfCertificationTestSuiteName)
 	endTime := time.Now()

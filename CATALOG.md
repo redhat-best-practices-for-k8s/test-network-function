@@ -111,69 +111,6 @@ Result Type|normative
 Suggested Remediation|Ensure that your Operator has passed Red Hat's Operator Certification Program (OCP).
 Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2.12 and Section 6.3.3
 
-### diagnostic
-
-#### cluster-csi-info
-
-Property|Description
----|---
-Test Case Name|cluster-csi-info
-Test Case Label|diagnostic-cluster-csi-info
-Unique ID|http://test-network-function.com/testcases/diagnostic/cluster-csi-info
-Version|v1.0.0
-Description|http://test-network-function.com/testcases/diagnostic/cluster-csi-info extracts CSI driver information in the cluster.
-Result Type|informative
-Suggested Remediation|
-Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.3.6
-#### clusterversion
-
-Property|Description
----|---
-Test Case Name|clusterversion
-Test Case Label|diagnostic-clusterversion
-Unique ID|http://test-network-function.com/testcases/diagnostic/clusterversion
-Version|v1.0.0
-Description|http://test-network-function.com/testcases/diagnostic/clusterversion Extracts OCP versions from the cluster.
-Result Type|informative
-Suggested Remediation|
-Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.3.6
-#### extract-node-information
-
-Property|Description
----|---
-Test Case Name|extract-node-information
-Test Case Label|diagnostic-extract-node-information
-Unique ID|http://test-network-function.com/testcases/diagnostic/extract-node-information
-Version|v1.0.0
-Description|http://test-network-function.com/testcases/diagnostic/extract-node-information extracts informational information about the cluster.
-Result Type|informative
-Suggested Remediation|
-Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.3.6
-#### list-cni-plugins
-
-Property|Description
----|---
-Test Case Name|list-cni-plugins
-Test Case Label|diagnostic-list-cni-plugins
-Unique ID|http://test-network-function.com/testcases/diagnostic/list-cni-plugins
-Version|v1.0.0
-Description|http://test-network-function.com/testcases/diagnostic/list-cni-plugins lists CNI plugins
-Result Type|normative
-Suggested Remediation|
-Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2.4 and 6.3.7
-#### nodes-hw-info
-
-Property|Description
----|---
-Test Case Name|nodes-hw-info
-Test Case Label|diagnostic-nodes-hw-info
-Unique ID|http://test-network-function.com/testcases/diagnostic/nodes-hw-info
-Version|v1.0.0
-Description|http://test-network-function.com/testcases/diagnostic/nodes-hw-info list nodes HW info
-Result Type|normative
-Suggested Remediation|
-Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2
-
 ### lifecycle
 
 #### container-shutdown

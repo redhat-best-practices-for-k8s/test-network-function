@@ -25,15 +25,7 @@ import (
 
 var env *configpkg.TestEnvironment
 
-var _ = ginkgo.BeforeSuite(func() {
-	for name := range autodiscover.GetNodesList() {
-		autodiscover.DeleteDebugLabel(name)
-	}
-})
-
-var _ = ginkgo.AfterSuite(func() {
-	// clean up added label to nodes
-	log.Info("clean up added labels to nodes")
+func RemoveLabelFromNodes() {
 	env = configpkg.GetTestEnvironment()
 	env.LoadAndRefresh()
 	for name, node := range env.NodesUnderTest {
@@ -43,4 +35,16 @@ var _ = ginkgo.AfterSuite(func() {
 		node.DebugContainer.CloseOc()
 		autodiscover.DeleteDebugLabel(name)
 	}
+}
+
+var _ = ginkgo.BeforeSuite(func() {
+	for name := range autodiscover.GetNodesList() {
+		autodiscover.DeleteDebugLabel(name)
+	}
+})
+
+var _ = ginkgo.AfterSuite(func() {
+	// clean up added label to nodes
+	log.Info("clean up added labels to nodes")
+	RemoveLabelFromNodes()
 })
