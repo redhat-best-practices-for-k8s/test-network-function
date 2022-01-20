@@ -232,8 +232,8 @@ func testCSICertified(env *configpkg.TestEnvironment) {
 func GetOcpVersion() string {
 	ocCmd := ocpVersionCommand
 	ocVersion := execCommandOutput(ocCmd)
-	nums := strings.Split(ocVersion, ".")
-	ocVersion = strings.ReplaceAll(nums[0], "\"", "") + "." + nums[1]
+	nums := strings.Split(strings.ReplaceAll(ocVersion, "\"", ""), ".")
+	ocVersion = nums[0] + "." + nums[1]
 	return ocVersion
 }
 func GetOperatorVersionMap() (versionMap, orgMap map[string]string) {
