@@ -17,7 +17,11 @@
 package networking
 
 import (
+	"encoding/json"
 	"fmt"
+	"strconv"
+	"strings"
+	"time"
 
 	"github.com/test-network-function/test-network-function/pkg/config"
 	"github.com/test-network-function/test-network-function/pkg/tnf/testcases"
@@ -32,6 +36,7 @@ import (
 	"github.com/test-network-function/test-network-function/pkg/tnf"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodeport"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/ping"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/podnodename"
 	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
 	"github.com/test-network-function/test-network-function/pkg/utils"
@@ -39,8 +44,24 @@ import (
 )
 
 const (
-	defaultNumPings = 5
+	commandportdeclared = "oc get pod %s -n %s -o json  | jq -r '.spec.containers[%d].ports'"
+	commandportlisten   = "ss -tulwnH"
+	defaultNumPings     = 5
+	ocCommandTimeOut    = time.Second * 10
+	indexprotocolname   = 0
+	indexport           = 4
 )
+
+type key struct {
+	port     int
+	protocol string
+}
+
+type Port []struct {
+	ContainerPort int    `json:"containerPort"`
+	Name          string `json:"name"`
+	Protocol      string `json:"protocol"`
+}
 
 // netTestContext this is a data structure describing a network test context for a given subnet (e.g. network attachment)
 // The test context defines a tester or test initiator, that is initiating the pings. It is selected randomly (first container in the list)
@@ -119,6 +140,9 @@ var _ = ginkgo.Describe(common.NetworkingTestKey, func() {
 		})
 		ginkgo.Context("Should not have type of nodePort", func() {
 			testNodePort(env)
+		})
+		ginkgo.Context("Should not have type of listen port and declared port", func() {
+			testListenAndDeclared(env)
 		})
 	}
 })
@@ -321,6 +345,115 @@ func testNodePort(env *config.TestEnvironment) {
 		if n := len(badNamespaces); n > 0 {
 			log.Warnf("Failed namespaces: %+v", badNamespaces)
 			ginkgo.Fail(fmt.Sprintf("%d namespaces have nodePort/s.", n))
+		}
+	})
+}
+
+func parseVariables(res string, declaredPorts map[key]string) error {
+	var p Port
+	err := json.Unmarshal([]byte(res), &p)
+	if err != nil {
+		return err
+	}
+	for element := range p {
+		var k key
+		k.port = p[element].ContainerPort
+		k.protocol = p[element].Protocol
+		declaredPorts[k] = p[element].Name
+	}
+	return nil
+}
+func declaredPortList(container int, podName, podNamespace string, declaredPorts map[key]string) error {
+	ocCommandToExecute := fmt.Sprintf(commandportdeclared, podName, podNamespace, container)
+	res, _ := utils.ExecuteCommand(ocCommandToExecute, ocCommandTimeOut, interactive.GetContext(false))
+	err := parseVariables(res, declaredPorts)
+	return err
+}
+
+func listeningPortList(commandlisten []string, nodeOc *interactive.Context, listeningPorts map[key]string) error {
+	var k key
+	listeningPortCommand := strings.Join(commandlisten, " ")
+	res, err := utils.ExecuteCommand(listeningPortCommand, ocCommandTimeOut, nodeOc)
+	if err != nil {
+		return err
+	}
+	lines := strings.Split(res, "\n")
+	for _, line := range lines {
+		fields := strings.Fields(line)
+		if indexprotocolname > len(fields) || indexport > len(fields) {
+			return err
+		}
+		s := strings.Split(fields[indexport], ":")
+		p, _ := strconv.Atoi(s[1])
+		k.port = p
+		k.protocol = strings.ToUpper(fields[indexprotocolname])
+		listeningPorts[k] = ""
+	}
+	return nil
+}
+
+func checkIfListenIsDeclared(listeningPorts, declaredPorts map[key]string) map[key]string {
+	res := make(map[key]string)
+	if len(listeningPorts) == 0 || len(declaredPorts) == 0 {
+		return res
+	}
+	for k := range listeningPorts {
+		_, ok := declaredPorts[k]
+		if !ok {
+			tnf.ClaimFilePrintf(fmt.Sprintf("The port %d on protocol %s in pod %s is not declared.", k.port, k.protocol, listeningPorts[k]))
+			res[k] = listeningPorts[k]
+		}
+	}
+	return res
+}
+
+func testListenAndDeclared(env *config.TestEnvironment) {
+	declaredPorts := make(map[key]string)
+	listeningPorts := make(map[key]string)
+	undeclaredPorts := make(map[key]string)
+	var skippedPods []configsections.Pod
+	var failedPods []configsections.Pod
+	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestServicesDoNotUseNodeportsIdentifier)
+	ginkgo.It(testID, func() {
+	OUTER:
+		for _, podUnderTest := range env.PodsUnderTest {
+			for i := 0; i < podUnderTest.ContainerCount; i++ {
+				err := declaredPortList(i, podUnderTest.Name, podUnderTest.Namespace, declaredPorts)
+				if err != nil {
+					tnf.ClaimFilePrintf("Failed to get declared port for container %d due to %v, skipping pod %s", i, err, podUnderTest.Name)
+					skippedPods = append(skippedPods, *podUnderTest)
+					continue OUTER
+				}
+			}
+
+			nodeName := podnodename.NewPodNodeName(common.DefaultTimeout, podUnderTest.Name, podUnderTest.Namespace)
+			context := env.GetLocalShellContext()
+			test, err := tnf.NewTest(context.GetExpecter(), nodeName, []reel.Handler{nodeName}, context.GetErrorChannel())
+			gomega.Expect(err).To(gomega.BeNil())
+			test.RunAndValidate()
+			nodeOc := env.NodesUnderTest[nodeName.GetNodeName()].DebugContainer.GetOc()
+			x := podUnderTest.ContainerList[0]
+			containerPID := utils.GetContainerPID(nodeName.GetNodeName(), nodeOc, x.ContainerUID, x.ContainerRuntime)
+
+			commandlisten := []string{utils.AddNsenterPrefix(containerPID), commandportlisten}
+
+			err = listeningPortList(commandlisten, nodeOc.Context, listeningPorts)
+			if err != nil {
+				tnf.ClaimFilePrintf("Failed to get listening port for pod name %s in pod namespace %s due to %v, skipping this pod", podUnderTest.Name, podUnderTest.Namespace, err)
+				continue
+			}
+			// compare between declaredPort,listeningPort
+			undeclaredPorts = checkIfListenIsDeclared(listeningPorts, declaredPorts)
+			for k := range undeclaredPorts {
+				tnf.ClaimFilePrintf("The port %d on protocol %s in pod name %s and pod namespace is %s not declared.", k.port, k.protocol, podUnderTest.Name, podUnderTest.Namespace)
+			}
+			if len(undeclaredPorts) != 0 {
+				failedPods = append(failedPods, *podUnderTest)
+			}
+		}
+
+		if nf, ns := len(failedPods), len(skippedPods); nf > 0 || ns > 0 {
+			ginkgo.Fail("Found %d pods with listening ports not declared and Skipped %d pods due to unexpected error", nf, ns)
 		}
 	})
 }
