@@ -163,10 +163,10 @@ func getSuitesFromIdentifiers(keys []claim.Identifier) []string {
 		suites = append(suites, identifiers.GetSuiteAndTestFromIdentifier(i)[0])
 	}
 
-	return Unique(suites)
+	return uniqueAndSort(suites)
 }
 
-func Unique(slice []string) []string {
+func uniqueAndSort(slice []string) []string {
 	// create a map with all the values as key
 	uniqMap := make(map[string]struct{})
 	for _, v := range slice {
@@ -178,6 +178,7 @@ func Unique(slice []string) []string {
 	for v := range uniqMap {
 		uniqSlice = append(uniqSlice, v)
 	}
+	sort.Strings(uniqSlice)
 	return uniqSlice
 }
 
