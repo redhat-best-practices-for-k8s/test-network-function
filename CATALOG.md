@@ -306,9 +306,21 @@ Test Case Name|icmpv4-connectivity
 Test Case Label|networking-icmpv4-connectivity
 Unique ID|http://test-network-function.com/testcases/networking/icmpv4-connectivity
 Version|v1.0.0
-Description|http://test-network-function.com/testcases/networking/icmpv4-connectivity checks that each CNF Container is able to communicate via ICMPv4 on the Default OpenShift network.  This test case requires the Deployment of the debug daemonset. 
+Description|http://test-network-function.com/testcases/networking/icmpv4-connectivity checks that each CNF Container is able to communicate via ICMPv4 on the Default OpenShift network.  This test case requires the Deployment of the debug daemonset.
 Result Type|normative
-Suggested Remediation|Ensure that the CNF is able to communicate via the Default OpenShift network.  In some rare cases, CNFs may require routing table changes in order to communicate over the Default network.  In other cases, if the Container base image does not provide the "ip" or "ping" binaries, this test may not be applicable.  For instructions on how to exclude a particular container from ICMPv4 connectivity tests, consult: [README.md](https://github.com/test-network-function/test-network-function#issue-161-some-containers-under-test-do-not-contain-ping-or-ip-binary-utilities).
+Suggested Remediation|Ensure that the CNF is able to communicate via the Default OpenShift network. In some rare cases, CNFs may require routing table changes in order to communicate over the Default network. To exclude a particular pod from ICMPv4 connectivity tests, add the test-network-function.com/skip_connectivity_tests label to it. The label value is not important, only its presence.
+Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2
+#### icmpv4-connectivity-multus
+
+Property|Description
+---|---
+Test Case Name|icmpv4-connectivity-multus
+Test Case Label|networking-icmpv4-connectivity-multus
+Unique ID|http://test-network-function.com/testcases/networking/icmpv4-connectivity-multus
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/networking/icmpv4-connectivity-multus checks that each CNF Container is able to communicate via ICMPv4 on the Multus network(s).  This test case requires the Deployment of the debug daemonset.
+Result Type|normative
+Suggested Remediation|Ensure that the CNF is able to communicate via the Multus network(s). In some rare cases, CNFs may require routing table changes in order to communicate over the Multus network(s). To exclude a particular pod from ICMPv4 connectivity tests, add the test-network-function.com/skip_connectivity_tests label to it. The label value is not important, only its presence.
 Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2
 #### service-type
 
@@ -330,6 +342,8 @@ Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/site
 Property|Description
 ---|---
 Test Case Name|container-logging
+
+Test Case Label|observability-container-logging
 Unique ID|http://test-network-function.com/testcases/observability/container-logging
 Version|v1.0.0
 Description|http://test-network-function.com/testcases/observability/container-logging check that all containers under test use standard input output and standard error when logging
@@ -341,6 +355,8 @@ Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/site
 Property|Description
 ---|---
 Test Case Name|crd-status
+
+Test Case Label|observability-crd-status
 Unique ID|http://test-network-function.com/testcases/observability/crd-status
 Version|v1.0.0
 Description|http://test-network-function.com/testcases/observability/crd-status checks that all CRDs have a status subresource specification.
@@ -355,6 +371,8 @@ Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/site
 Property|Description
 ---|---
 Test Case Name|install-source
+
+Test Case Label|operator-install-source
 Unique ID|http://test-network-function.com/testcases/operator/install-source
 Version|v1.0.0
 Description|http://test-network-function.com/testcases/operator/install-source tests whether a CNF Operator is installed via OLM.
@@ -366,6 +384,8 @@ Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/site
 Property|Description
 ---|---
 Test Case Name|install-status
+
+Test Case Label|operator-install-status
 Unique ID|http://test-network-function.com/testcases/operator/install-status
 Version|v1.0.0
 Description|http://test-network-function.com/testcases/operator/install-status Ensures that CNF Operators abide by best practices.  The following is tested: 1. The Operator CSV reports "Installed" status. 2. The operator is not installed with privileged rights. Test passes if clusterPermissions is not present in the CSV manifest or is present  with no resourceNames under its rules.
@@ -380,6 +400,7 @@ Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/site
 Property|Description
 ---|---
 Test Case Name|base-image
+Test Case Label|platform-alteration-base-image
 Unique ID|http://test-network-function.com/testcases/platform-alteration/base-image
 Version|v1.0.0
 Description|http://test-network-function.com/testcases/platform-alteration/base-image ensures that the Container Base Image is not altered post-startup.  This test is a heuristic, and ensures that there are no changes to the following directories: 1) /var/lib/rpm 2) /var/lib/dpkg 3) /bin 4) /sbin 5) /lib 6) /lib64 7) /usr/bin 8) /usr/sbin 9) /usr/lib 10) /usr/lib64
@@ -391,6 +412,7 @@ Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/site
 Property|Description
 ---|---
 Test Case Name|boot-params
+Test Case Label|platform-alteration-boot-params
 Unique ID|http://test-network-function.com/testcases/platform-alteration/boot-params
 Version|v1.0.0
 Description|http://test-network-function.com/testcases/platform-alteration/boot-params tests that boot parameters are set through the MachineConfigOperator, and not set manually on the Node.
@@ -402,6 +424,7 @@ Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/site
 Property|Description
 ---|---
 Test Case Name|hugepages-config
+Test Case Label|platform-alteration-hugepages-config
 Unique ID|http://test-network-function.com/testcases/platform-alteration/hugepages-config
 Version|v1.0.0
 Description|http://test-network-function.com/testcases/platform-alteration/hugepages-config checks to see that HugePage settings have been configured through MachineConfig, and not manually on the underlying Node.  This test case applies only to Nodes that are configured with the "worker" MachineConfigSet.  First, the "worker" MachineConfig is polled, and the Hugepage settings are extracted.  Next, the underlying Nodes are polled for configured HugePages through inspection of /proc/meminfo.  The results are compared, and the test passes only if they are the same.
@@ -413,6 +436,7 @@ Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/site
 Property|Description
 ---|---
 Test Case Name|isredhat-release
+Test Case Label|platform-alteration-isredhat-release
 Unique ID|http://test-network-function.com/testcases/platform-alteration/isredhat-release
 Version|v1.0.0
 Description|http://test-network-function.com/testcases/platform-alteration/isredhat-release verifies if the container base image is redhat.
@@ -424,6 +448,7 @@ Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/site
 Property|Description
 ---|---
 Test Case Name|sysctl-config
+Test Case Label|platform-alteration-sysctl-config
 Unique ID|http://test-network-function.com/testcases/platform-alteration/sysctl-config
 Version|v1.0.0
 Description|http://test-network-function.com/testcases/platform-alteration/sysctl-config tests that no one has changed the node's sysctl configs after the node 			was created, the tests works by checking if the sysctl configs are consistent with the 			MachineConfig CR which defines how the node should be configured
@@ -435,6 +460,7 @@ Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/site
 Property|Description
 ---|---
 Test Case Name|tainted-node-kernel
+Test Case Label|platform-alteration-tainted-node-kernel
 Unique ID|http://test-network-function.com/testcases/platform-alteration/tainted-node-kernel
 Version|v1.0.0
 Description|http://test-network-function.com/testcases/platform-alteration/tainted-node-kernel ensures that the Node(s) hosting CNFs do not utilize tainted kernels. This test case is especially important to support Highly Available CNFs, since when a CNF is re-instantiated on a backup Node, that Node's kernel may not have the same hacks.'
