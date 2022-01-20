@@ -36,8 +36,8 @@ type CertifiedOperatorRequestInfo struct {
 	Organization string `yaml:"organization" json:"organization"`
 }
 
-// AcceptedKernelTaintsRequestInfo contains all certified operator request info
-type AcceptedKernelTaintsRequestInfo struct {
+// AcceptedKernelTaintsInfo contains all certified operator request info
+type AcceptedKernelTaintsInfo struct {
 
 	// Accepted modules that cause taints that we want to supply to the test suite
 	Module string `yaml:"module" json:"module"`

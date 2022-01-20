@@ -466,7 +466,7 @@ func testTainted(env *config.TestEnvironment) {
 	})
 }
 
-func taintsAccepted(confTaints []configsections.AcceptedKernelTaintsRequestInfo, taintedModules []string) bool {
+func taintsAccepted(confTaints []configsections.AcceptedKernelTaintsInfo, taintedModules []string) bool {
 	for _, taintedModule := range taintedModules {
 		found := false
 		log.Debug("Accepted Taints from Config: ", confTaints)
