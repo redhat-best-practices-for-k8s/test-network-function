@@ -56,12 +56,12 @@ var (
 	testKernelArgsHpDefSizePlusPairs3 = []string{"systemd.cpu_affinity=0,1,40,41,20,21,60,61", "default_hugepagesz=1G", "hugepagesz=1G", "hugepages=16", "hugepagesz=2M", "hugepages=256", "nmi_watchdog=0"}
 )
 
-func Test_printTainted(t *testing.T) {
-	taint1, taint1Slice := printTainted(2048)
+func Test_decodeKernelTaints(t *testing.T) {
+	taint1, taint1Slice := decodeKernelTaints(2048)
 	assert.Equal(t, taint1, "workaround for bug in platform firmware applied, ")
 	assert.Len(t, taint1Slice, 1)
 
-	taint2, taint2Slice := printTainted(32769)
+	taint2, taint2Slice := decodeKernelTaints(32769)
 	assert.Equal(t, taint2, "proprietary module was loaded, kernel has been live patched, ")
 	assert.Len(t, taint2Slice, 2)
 }
@@ -163,7 +163,7 @@ func Test_hugepagesFromKernelArgsFunc(t *testing.T) {
 }
 
 //nolint:funlen
-func TestGetTaintedModules(t *testing.T) {
+func TestGetOutOfTreeModules(t *testing.T) {
 	testCases := []struct {
 		modules                []string // Note: We are only using one item in this list for the test.
 		modinfo                map[string]string
@@ -215,7 +215,7 @@ func TestGetTaintedModules(t *testing.T) {
 		utils.RunCommandInNode = func(nodeName string, nodeOc *interactive.Oc, command string, timeout time.Duration) string {
 			return tc.modinfo[tc.modules[0]]
 		}
-		assert.Equal(t, tc.expectedTaintedModules, getTaintedModules(tc.modules, "testnode", nil))
+		assert.Equal(t, tc.expectedTaintedModules, getOutOfTreeModules(tc.modules, "testnode", nil))
 	}
 }
 

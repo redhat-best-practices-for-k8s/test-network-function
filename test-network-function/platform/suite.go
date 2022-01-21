@@ -370,7 +370,7 @@ func testSysctlConfigsHelper(podName, podNamespace string, context *interactive.
 }
 
 //nolint:gocritic
-func printTainted(bitmap uint64) (string, []string) {
+func decodeKernelTaints(bitmap uint64) (string, []string) {
 	values := getTaintedBitValues()
 	var out string
 	individualTaints := []string{}
@@ -404,47 +404,47 @@ func testTainted(env *config.TestEnvironment) {
 			gomega.Expect(err).To(gomega.BeNil())
 
 			var message string
-			nodeTaintsAccepted := true
 			test.RunWithCallbacks(func() {
 				message = fmt.Sprintf("Decoded tainted kernel causes (code=0) for node %s : None\n", node.Name)
 			}, func() {
 				var taintedBitmap uint64
+				nodeTaintsAccepted := true
 				taintedBitmap, err = strconv.ParseUint(tester.Match, 10, 32) //nolint:gomnd // base 10 and uint32
 				if err != nil {
 					message = fmt.Sprintf("Could not decode tainted kernel causes (code=%d) for node %s\n", taintedBitmap, node.Name)
-				} else {
-					taintMsg, individualTaints := printTainted(taintedBitmap)
-
-					// We only will fail the tainted kernel check if the reason for the taint
-					// only pertains to `module was loaded`.
-					log.Debug("Checking for 'module was loaded' taints")
-					moduleCheck := false
-					for _, it := range individualTaints {
-						if strings.Contains(it, `module was loaded`) {
-							moduleCheck = true
-							break
-						}
-					}
-
-					if moduleCheck {
-						// Retrieve the modules from the node.
-						modules := utils.GetModulesFromNode(node.Name, context)
-						log.Debug("Got the modules from node")
-
-						// Loop through the modules looking for `InTree: Y`.
-						// If the module info does not contain this string, the module is "tainted".
-						taintedModules := getTaintedModules(modules, node.Name, context)
-						log.Debug("Collected all of the tainted modules: ", taintedModules)
-						tnf.ClaimFilePrintf("Kernel Modules loaded that cause taints: ", taintedModules)
-						tnf.ClaimFilePrintf("Modules allowed via configuration: ", env.Config.AcceptedKernelTaints)
-
-						// Looks through the accepted taints listed in the tnf-config file.
-						// If all of the tainted modules show up in the configuration file, don't fail the test.
-						nodeTaintsAccepted = taintsAccepted(env.Config.AcceptedKernelTaints, taintedModules)
-					}
-
-					message = fmt.Sprintf("Decoded tainted kernel causes (code=%d) for node %s : %s\n", taintedBitmap, node.Name, taintMsg)
+					return
 				}
+				taintMsg, individualTaints := decodeKernelTaints(taintedBitmap)
+
+				// We only will fail the tainted kernel check if the reason for the taint
+				// only pertains to `module was loaded`.
+				log.Debug("Checking for 'module was loaded' taints")
+				moduleCheck := false
+				for _, it := range individualTaints {
+					if strings.Contains(it, `module was loaded`) {
+						moduleCheck = true
+						break
+					}
+				}
+
+				if moduleCheck {
+					// Retrieve the modules from the node.
+					modules := utils.GetModulesFromNode(node.Name, context)
+					log.Debug("Got the modules from node")
+
+					// Loop through the modules looking for `InTree: Y`.
+					// If the module info does not contain this string, the module is "tainted".
+					taintedModules := getOutOfTreeModules(modules, node.Name, context)
+					log.Debug("Collected all of the tainted modules: ", taintedModules)
+					tnf.ClaimFilePrintf("Kernel Modules loaded that cause taints: ", taintedModules)
+					tnf.ClaimFilePrintf("Modules allowed via configuration: ", env.Config.AcceptedKernelTaints)
+
+					// Looks through the accepted taints listed in the tnf-config file.
+					// If all of the tainted modules show up in the configuration file, don't fail the test.
+					nodeTaintsAccepted = taintsAccepted(env.Config.AcceptedKernelTaints, taintedModules)
+				}
+
+				message = fmt.Sprintf("Decoded tainted kernel causes (code=%d) for node %s : %s\n", taintedBitmap, node.Name, taintMsg)
 				// Only add the tainted node to the slice if the taint is acceptable.
 				if !nodeTaintsAccepted {
 					taintedNodes = append(taintedNodes, node.Name)
@@ -476,6 +476,7 @@ func taintsAccepted(confTaints []configsections.AcceptedKernelTaintsInfo, tainte
 			log.Debug(fmt.Sprintf("Comparing confTaint: %s to taintedModule: %s", confTaint.Module, taintedModule))
 			if confTaint.Module == taintedModule {
 				found = true
+				break
 			}
 		}
 
@@ -487,7 +488,7 @@ func taintsAccepted(confTaints []configsections.AcceptedKernelTaintsInfo, tainte
 	return true
 }
 
-func getTaintedModules(modules []string, nodeName string, ctx *interactive.Oc) []string {
+func getOutOfTreeModules(modules []string, nodeName string, ctx *interactive.Oc) []string {
 	taintedModules := []string{}
 	for _, module := range modules {
 		if !utils.ModuleInTree(nodeName, module, ctx) {
