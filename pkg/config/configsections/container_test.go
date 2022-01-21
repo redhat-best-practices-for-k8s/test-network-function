@@ -1,4 +1,4 @@
-// Copyright (C) 2021 Red Hat, Inc.
+// Copyright (C) 2020-2022 Red Hat, Inc.
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -16,8 +16,20 @@
 
 package configsections
 
-type Hpa struct {
-	MinReplicas int
-	MaxReplicas int
-	HpaName     string
+import (
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+)
+
+func TestString(t *testing.T) {
+	cID := ContainerIdentifier{
+		NodeName:         "node1",
+		Namespace:        "namespace1",
+		PodName:          "pod1",
+		ContainerName:    "container1",
+		ContainerUID:     "uid1",
+		ContainerRuntime: "runtime1",
+	}
+	assert.Equal(t, "node:node1 ns:namespace1 podName:pod1 containerName:container1 containerUID:uid1 containerRuntime:runtime1", cID.String())
 }
