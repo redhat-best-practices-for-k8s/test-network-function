@@ -56,7 +56,7 @@ var (
 	testKernelArgsHpDefSizePlusPairs3 = []string{"systemd.cpu_affinity=0,1,40,41,20,21,60,61", "default_hugepagesz=1G", "hugepagesz=1G", "hugepages=16", "hugepagesz=2M", "hugepages=256", "nmi_watchdog=0"}
 )
 
-func Test_decodeKernelTaints(t *testing.T) {
+func TestDecodeKernelTaints(t *testing.T) {
 	taint1, taint1Slice := decodeKernelTaints(2048)
 	assert.Equal(t, taint1, "workaround for bug in platform firmware applied, ")
 	assert.Len(t, taint1Slice, 1)
@@ -162,7 +162,6 @@ func Test_hugepagesFromKernelArgsFunc(t *testing.T) {
 	}
 }
 
-//nolint:funlen
 func TestGetOutOfTreeModules(t *testing.T) {
 	testCases := []struct {
 		modules                []string // Note: We are only using one item in this list for the test.
@@ -174,15 +173,7 @@ func TestGetOutOfTreeModules(t *testing.T) {
 				"test1",
 			},
 			modinfo: map[string]string{
-				"test1": `filename:
-				description:
-				author:
-				license:
-				depends:
-				retpoline:
-				intree:
-				name:
-				vermagic:`,
+				"test1": `Y`,
 			},
 			expectedTaintedModules: []string{}, // test1 is 'intree'
 		},
@@ -191,14 +182,7 @@ func TestGetOutOfTreeModules(t *testing.T) {
 				"test2",
 			},
 			modinfo: map[string]string{
-				"test2": `filename:
-				description:
-				author:
-				license:
-				depends:
-				retpoline:
-				name:
-				vermagic:`,
+				"test2": ``,
 			},
 			expectedTaintedModules: []string{"test2"}, // test2 is not 'intree'
 		},

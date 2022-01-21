@@ -1,4 +1,4 @@
-// Copyright (C) 2021-2022 Red Hat, Inc.
+// Copyright (C) 2020-2022 Red Hat, Inc.
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -190,6 +190,7 @@ func GetModulesFromNode(nodeName string, nodeOc *interactive.Oc) []string {
 	//nolint:goconst // used only once
 	command := `chroot /host lsmod | awk '{ print $1 }' | grep -v Module`
 	output := RunCommandInNode(nodeName, nodeOc, command, timeoutPid)
+	output = strings.ReplaceAll(output, "\t", "")
 	return strings.Split(strings.ReplaceAll(output, "\r\n", "\n"), "\n")
 }
 
@@ -197,7 +198,6 @@ func ModuleInTree(nodeName, moduleName string, nodeOc *interactive.Oc) bool {
 	command := `chroot /host modinfo ` + moduleName + ` | awk '{ print $1 }'`
 	cmdOutput := RunCommandInNode(nodeName, nodeOc, command, timeoutPid)
 	outputSlice := strings.Split(strings.ReplaceAll(cmdOutput, "\r\n", "\n"), "\n")
-
 	// The output, if found, should look something like 'intree:   Y'.
 	// As long as we look for 'intree:' being contained in the string we should be good to go.
 	found := false
@@ -231,6 +231,5 @@ func StringInSlice(s []string, str string) bool {
 			return true
 		}
 	}
-
 	return false
 }

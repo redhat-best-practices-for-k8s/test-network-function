@@ -149,11 +149,11 @@ var _ = ginkgo.Describe(common.PlatformAlterationTestKey, func() {
 		// use this boolean to turn off tests that require OS packages
 		if !common.IsNonOcpCluster() {
 			testContainersFsDiff(env)
-			testTainted(env)
 			testHugepages(env)
 			testBootParams(env)
 			testSysctlConfigs(env)
 		}
+		testTainted(env) // minikube tainted kernels are allowed via config
 		testIsRedHatRelease(env)
 	}
 })

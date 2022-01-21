@@ -1,4 +1,4 @@
-// Copyright (C) 2021-2022 Red Hat, Inc.
+// Copyright (C) 2020-2022 Red Hat, Inc.
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -20,8 +20,10 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
 )
 
 const (
@@ -110,32 +112,77 @@ func TestAddNsenterPrefix(t *testing.T) {
 	}
 }
 
-func TestStringInSlice(t *testing.T) {
+func TestModuleInTree(t *testing.T) {
 	testCases := []struct {
-		testString     string
-		testSlice      []string
-		expectedExists bool
+		fakeOutput string
+		isInTree   bool
 	}{
 		{
-			testString: "apples",
-			testSlice: []string{
-				"bananas",
-				"oranges",
-				"apples",
-			},
-			expectedExists: true,
+			fakeOutput: `filename:
+			alias:
+			version:
+			license:
+			srcversion:
+			depends:
+			retpoline:
+			intree:
+			name:
+			vermagic:`,
+			isInTree: true,
 		},
 		{
-			testString: "tacos",
-			testSlice: []string{
-				"burritos",
-				"enchiladas",
-			},
-			expectedExists: false,
+			fakeOutput: `filename:
+			alias:
+			version:
+			license:
+			srcversion:
+			depends:
+			retpoline:
+			name:
+			vermagic:`,
+			isInTree: false,
 		},
 	}
 
+	origFunc := RunCommandInNode
+	defer func() {
+		RunCommandInNode = origFunc
+	}()
 	for _, tc := range testCases {
-		assert.Equal(t, tc.expectedExists, StringInSlice(tc.testSlice, tc.testString))
+		RunCommandInNode = func(nodeName string, nodeOc *interactive.Oc, command string, timeout time.Duration) string {
+			return tc.fakeOutput
+		}
+		assert.Equal(t, tc.isInTree, ModuleInTree("testNode", "testModule", nil))
+	}
+}
+
+func TestGetModulesFromNode(t *testing.T) {
+	testCases := []struct {
+		fakeOutput     string
+		expectedOutput []string
+	}{
+		{
+			fakeOutput: `xt_nat
+			ip_vs_sh
+			vboxsf
+			vboxguest`,
+			expectedOutput: []string{
+				"xt_nat",
+				"ip_vs_sh",
+				"vboxsf",
+				"vboxguest",
+			},
+		},
+	}
+
+	origFunc := RunCommandInNode
+	defer func() {
+		RunCommandInNode = origFunc
+	}()
+	for _, tc := range testCases {
+		RunCommandInNode = func(nodeName string, nodeOc *interactive.Oc, command string, timeout time.Duration) string {
+			return strings.TrimSpace(tc.fakeOutput)
+		}
+		assert.Equal(t, tc.expectedOutput, GetModulesFromNode("testNode", nil))
 	}
 }
