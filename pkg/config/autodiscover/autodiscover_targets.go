@@ -101,10 +101,10 @@ func getCsi() (csiset []configsections.Csi) {
 	}
 	for _, csi := range csilist {
 		if csi != "" {
-			pack, _ := GetPackageandOrg(csi)
+			csisplit := strings.Split(csi, "_")
 			csiconf := configsections.Csi{
-				Name:   csi,
-				Packag: pack,
+				Org:    csisplit[0],
+				Packag: strings.Split(csisplit[1], ".")[0],
 			}
 			csiset = append(csiset, csiconf)
 		}

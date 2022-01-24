@@ -9,7 +9,7 @@ import (
 
 // PodSetResource defines deployment/statefulset resources
 var (
-	csiCommand = "oc get csidriver -o go-template='{{ range .items}}{{.metadata.name}} {{end}}'"
+	csiCommand = "oc get subscriptions.operators.coreos.com -A -ogo-template='{{range .items}}{{.spec.source}}_{{.status.currentCSV}},{{end}}'"
 	//go:embed csi-mapping.json
 	csiMappingString []byte
 )
@@ -29,6 +29,6 @@ func GetTargetCsi() ([]string, error) {
 
 	out := execCommandOutput(ocCmd)
 
-	csiList := strings.Split(out, " ")
+	csiList := strings.Split(out, ",")
 	return csiList, nil
 }

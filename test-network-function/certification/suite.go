@@ -26,7 +26,6 @@ import (
 	"github.com/test-network-function/test-network-function/internal/api"
 	configpkg "github.com/test-network-function/test-network-function/pkg/config"
 	"github.com/test-network-function/test-network-function/pkg/config/configsections"
-	"github.com/test-network-function/test-network-function/pkg/csimapping"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
 	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
 	"github.com/test-network-function/test-network-function/pkg/tnf/testcases"
@@ -202,25 +201,22 @@ func testCSICertified(env *configpkg.TestEnvironment) {
 
 		ginkgo.By(fmt.Sprintf("Verify operator as certified. Number of CSI drivers to check: %d", len(env.Csi)))
 
-		mapOperatorVersions := csimapping.GetOperatorVersions()
-		ocpVersion := GetOcpVersion()
-		operatorVersionMap, orgMap := GetOperatorVersionMap()
+		//mapOperatorVersions := csimapping.GetOperatorVersions()
+		//ocpVersion := GetOcpVersion()
+		//operatorVersionMap, orgMap := GetOperatorVersionMap()
 		testFailed := false
 		for _, csi := range csioperatorsToQuery {
 			pack := csi.Packag
-			org := orgMap[pack]
+			org := csi.Org
 			if pack != "" {
-				aKey := csimapping.OperatorKey{OperatorName: pack, OcpVersion: ocpVersion}
-				for _, version := range mapOperatorVersions[aKey] {
-					if operatorVersionMap[pack] == version {
-						tnf.ClaimFilePrintf("Operator: %s ( %s ) currently running version: %s this version is certified to run with Current OCP version %s", org, pack, version, ocpVersion)
-					} else {
-						testFailed = true
-						tnf.ClaimFilePrintf("Operator: %s ( %s ) currently running version: %s this version is NOT certified to run with OCP version %s", org, pack, version, ocpVersion)
-					}
+				isCertified := waitForCertificationRequestToSuccess(getOperatorCertificationRequestFunction(org, pack), apiRequestTimeout)
+				if !isCertified {
+					tnf.ClaimFilePrintf("Operator %s (organization %s) failed to be certified.", pack, org)
+				} else {
+					log.Info(fmt.Sprintf("Operator %s (organization %s) certified OK.", pack, org))
 				}
 			} else {
-				tnf.ClaimFilePrintf("Driver %s is not a certified CSI driver (needs to be part of the operator-certified organization in the catalog) or csimapping.json needs to be updated", csi.Name)
+				tnf.ClaimFilePrintf("Driver %s is not a certified CSI driver (needs to be part of the operator-certified organization in the catalog) or csimapping.json needs to be updated", csi.Packag)
 			}
 		}
 		if testFailed {

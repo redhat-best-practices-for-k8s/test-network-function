@@ -1,8 +1,8 @@
 package configsections
 
-// Pod defines cloud network function in the cluster
+// csi defines the list of the operators on the cluster
 type Csi struct {
 	// Name is the name of a single Pod to test
-	Name   string `yaml:"name" json:"name"`
+	Org    string `yaml:"org" json:"org"`
 	Packag string `yaml:"package" json:"package"`
 }
