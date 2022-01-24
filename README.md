@@ -175,7 +175,7 @@ If `-k` is not specified, autodiscovery is performed.
 The autodiscovery first looks for paths in the `$KUBECONFIG` environment variable on the host system, and if the variable is not set or is empty, the default configuration stored in `$HOME/.kube/config` is checked.
 
 ```shell script
-./run-tnf-container.sh -k ~/.kube/config -t ~/tnf/config -o ~/tnf/output -f diagnostic access-control -s access-control-host-resource-PRIVILEGED_POD
+./run-tnf-container.sh -k ~/.kube/config -t ~/tnf/config -o ~/tnf/output -f networking access-control -s access-control-host-resource-PRIVILEGED_POD
 ```
 
 See [General tests](#general-tests) for a list of available keywords.
@@ -210,7 +210,7 @@ docker build -t test-network-function:v1.0.5 \
 To make `run-tnf-container.sh` use the newly built image, specify the custom TNF image using the `-i` parameter.
 
 ```shell script
-./run-tnf-container.sh -i test-network-function:v1.0.5 -t ~/tnf/config -o ~/tnf/output -f diagnostic access-control
+./run-tnf-container.sh -i test-network-function:v1.0.5 -t ~/tnf/config -o ~/tnf/output -f networking access-control
 ```
  Note: see [General tests](#general-tests) for a list of available keywords.
 
@@ -276,11 +276,11 @@ script.
 Run any combination of the suites keywords listed at in the [General tests](#general-tests) section, e.g.
 
 ```shell script
-./run-cnf-suites.sh -f diagnostic
-./run-cnf-suites.sh -f diagnostic lifecycle
-./run-cnf-suites.sh -f diagnostic networking operator
-./run-cnf-suites.sh -f diagnostic platform-alteration
-./run-cnf-suites.sh -f diagnostic lifecycle affiliated-certification operator
+./run-cnf-suites.sh -f lifecycle
+./run-cnf-suites.sh -f networking lifecycle
+./run-cnf-suites.sh -f operator networking
+./run-cnf-suites.sh -f networking platform-alteration
+./run-cnf-suites.sh -f networking lifecycle affiliated-certification operator
 ```
 
 By default the claim file will be output into the same location as the test executable. The `-o` argument for
@@ -337,7 +337,6 @@ Suite|Test Spec Description|Minimum OpenShift Version
 ---|---|---
 `access-control`|The access-control test suite is used to test  service account, namespace and cluster/pod role binding for the pods under test. It also tests the pods/containers configuration.|4.6.0
 `affiliated-certification`|The affiliated-certification test suite verifies that the containers and operators listed in the configuration file or used by the CNF are certified by Redhat|4.6.0
-`diagnostic`|The diagnostic test suite is used to gather node information from an OpenShift cluster.  The diagnostic test suite should be run whenever generating a claim.json file.|4.6.0
 `lifecycle`| The lifecycle test suite verifies the pods deployment, creation, shutdown and  survivability. |4.6.0
 `networking`|The networking test suite contains tests that check connectivity and networking config related best practices.|4.6.0
 `operator`|The operator test suite is designed to test basic Kubernetes Operator functionality.|4.6.0
@@ -541,5 +540,5 @@ output.
 For example:
 
 ```shell script
-TNF_DEFAULT_BUFFER_SIZE=32768 ./run-cnf-suites.sh -f diagnostic
+TNF_DEFAULT_BUFFER_SIZE=32768 ./run-cnf-suites.sh -f networking
 ```
