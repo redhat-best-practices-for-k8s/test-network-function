@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+
+	"github.com/test-network-function/test-network-function/pkg/config/configsections"
 )
 
 // Endpoints document can be found here
@@ -36,15 +38,33 @@ func NewHTTPClient() CertAPIClient {
 	return CertAPIClient{Client: &http.Client{}}
 }
 
+type catalogQueryResponse struct {
+	Page     uint          `json:"page"`
+	PageSize uint          `json:"page_size"`
+	Total    uint          `json:"total"`
+	Data     []interface{} `json:"data"`
+}
+
 // IsContainerCertified get container image info by repo/name and checks if container details is present
 // If present then returns `true` as certified operators.
-func (api CertAPIClient) IsContainerCertified(repository, imageName string) (bool, error) {
-	imageID, err := api.GetImageIDByRepository(repository, imageName)
-	if err == nil {
-		if imageID == "" {
-			return false, nil
+func (api CertAPIClient) IsContainerCertified(id configsections.ContainerImageIdentifier) (bool, error) {
+	var url string
+	const defaultTag = "latest"
+	if id.Digest == "" {
+		if id.Tag == "" {
+			id.Tag = defaultTag
 		}
-		return true, nil
+		url = fmt.Sprintf("%s/%s/%s/images?page_size=1&filter=repositories.repository==%s/%s;repositories.tags.name==%s", apiCatalogByRepositoriesBaseEndPoint, id.Repository, id.Name, id.Repository, id.Name, id.Tag)
+	} else {
+		url = fmt.Sprintf("%s/%s/%s/images?page_size=1&filter=image_id==%s", apiCatalogByRepositoriesBaseEndPoint, id.Repository, id.Name, id.Digest)
+	}
+	responseData, err := api.getRequest(url)
+	if err == nil {
+		var response catalogQueryResponse
+		err = json.Unmarshal(responseData, &response)
+		if err == nil {
+			return len(response.Data) > 0, nil
+		}
 	}
 	return false, err
 }
@@ -73,8 +93,8 @@ func (api CertAPIClient) GetImageByID(id string) (string, error) {
 	return response, err
 }
 
-// GetImageIDByRepository get container image data for the given container Id. Returns (ImageID, error).
-func (api CertAPIClient) GetImageIDByRepository(repository, imageName string) (string, error) {
+// GetImageByRepositoryAndVersion get container image data for the given container Id. Returns (ImageID, error).
+func (api CertAPIClient) GetImageByRepositoryAndVersion(repository, imageName string) (string, error) {
 	var imageID string
 	url := fmt.Sprintf("%s/%s/%s/images?page_size=1", apiCatalogByRepositoriesBaseEndPoint, repository, imageName)
 	responseData, err := api.getRequest(url)

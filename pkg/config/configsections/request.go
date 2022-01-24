@@ -16,16 +16,6 @@
 
 package configsections
 
-// CertifiedContainerRequestInfo contains all certified images request info
-type CertifiedContainerRequestInfo struct {
-	// Name is the name of the `operator bundle package name` or `image-version` that you want to check if exists in the RedHat catalog
-	Name string `yaml:"name" json:"name"`
-
-	// Repository is the name of the repository `rhel8` of the container
-	// This is valid for container only and required field
-	Repository string `yaml:"repository" json:"repository"`
-}
-
 // CertifiedOperatorRequestInfo contains all certified operator request info
 type CertifiedOperatorRequestInfo struct {
 

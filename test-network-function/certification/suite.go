@@ -56,9 +56,9 @@ var _ = ginkgo.Describe(common.AffiliatedCertTestKey, func() {
 })
 
 // getContainerCertificationRequestFunction returns function that will try to get the certification status (CCP) for a container.
-func getContainerCertificationRequestFunction(repository, containerName string) func() (bool, error) {
+func getContainerCertificationRequestFunction(id configsections.ContainerImageIdentifier) func() (bool, error) {
 	return func() (bool, error) {
-		return certAPIClient.IsContainerCertified(repository, containerName)
+		return certAPIClient.IsContainerCertified(id)
 	}
 }
 
@@ -93,13 +93,13 @@ func testContainerCertificationStatus() {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestContainerIsCertifiedIdentifier)
 	ginkgo.It(testID, ginkgo.Label(testID), func() {
 		env := configpkg.GetTestEnvironment()
-		containersToQuery := make(map[configsections.CertifiedContainerRequestInfo]bool)
+		containersToQuery := make(map[configsections.ContainerImageIdentifier]bool)
 		for _, c := range env.Config.CertifiedContainerInfo {
 			containersToQuery[c] = true
 		}
 		if env.Config.CheckDiscoveredContainerCertificationStatus {
 			for _, cut := range env.ContainersUnderTest {
-				containersToQuery[configsections.CertifiedContainerRequestInfo{Repository: cut.ImageSource.Repository, Name: cut.ImageSource.Name}] = true
+				containersToQuery[cut.ImageSource.ContainerImageIdentifier] = true
 			}
 		}
 		if len(containersToQuery) == 0 {
@@ -108,7 +108,7 @@ func testContainerCertificationStatus() {
 		ginkgo.By(fmt.Sprintf("Getting certification status. Number of containers to check: %d", len(containersToQuery)))
 		if len(containersToQuery) > 0 {
 			certAPIClient = api.NewHTTPClient()
-			failedContainers := []configsections.CertifiedContainerRequestInfo{}
+			failedContainers := []configsections.ContainerImageIdentifier{}
 			allContainersToQueryEmpty := true
 			for c := range containersToQuery {
 				if c.Name == "" || c.Repository == "" {
@@ -117,7 +117,7 @@ func testContainerCertificationStatus() {
 				}
 				allContainersToQueryEmpty = false
 				ginkgo.By(fmt.Sprintf("Container %s/%s should eventually be verified as certified", c.Repository, c.Name))
-				isCertified := waitForCertificationRequestToSuccess(getContainerCertificationRequestFunction(c.Repository, c.Name), apiRequestTimeout)
+				isCertified := waitForCertificationRequestToSuccess(getContainerCertificationRequestFunction(c), apiRequestTimeout)
 				if !isCertified {
 					tnf.ClaimFilePrintf("Container %s (repository %s) is not found in the certified container catalog.", c.Name, c.Repository)
 					failedContainers = append(failedContainers, c)
