@@ -67,7 +67,7 @@ var _ = ginkgo.Describe(common.AffiliatedCertTestKey, func() {
 
 		testContainerCertificationStatus()
 		testOperatorCertificationStatus()
-		testCSICertified(env)
+		testAllOperatorCertified(env)
 	}
 })
 
@@ -191,24 +191,21 @@ func testOperatorCertificationStatus() {
 	})
 }
 
-func testCSICertified(env *configpkg.TestEnvironment) {
+func testAllOperatorCertified(env *configpkg.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestCSIOperatorIsCertifiedIdentifier)
 	ginkgo.It(testID, ginkgo.Label(testID), func() {
-		csioperatorsToQuery := env.OperatorsUnderTest
+		operatorsToQuery := env.OperatorsUnderTest
 
-		if len(csioperatorsToQuery) == 0 {
-			ginkgo.Skip("No CSI operators to check configured ")
+		if len(operatorsToQuery) == 0 {
+			ginkgo.Skip("No operators to check configured ")
 		}
 
-		ginkgo.By(fmt.Sprintf("Verify operator as certified. Number of CSI drivers to check: %d", len(csioperatorsToQuery)))
+		ginkgo.By(fmt.Sprintf("Verify operator as certified. Number of operators drivers to check: %d", len(operatorsToQuery)))
 
-		//mapOperatorVersions := csimapping.GetOperatorVersions()
-		//ocpVersion := GetOcpVersion()
-		//operatorVersionMap, orgMap := GetOperatorVersionMap()
 		testFailed := false
-		for _, csi := range csioperatorsToQuery {
-			pack := csi.Name
-			org := csi.Org
+		for _, op := range operatorsToQuery {
+			pack := op.Name
+			org := op.Org
 			if org != "certified-operators" {
 				isCertified := waitForCertificationRequestToSuccess(getOperatorCertificationRequestFunction(org, pack), apiRequestTimeout)
 				if !isCertified {
@@ -217,11 +214,11 @@ func testCSICertified(env *configpkg.TestEnvironment) {
 					log.Info(fmt.Sprintf("Operator %s (organization %s) certified OK.", pack, org))
 				}
 			} else {
-				tnf.ClaimFilePrintf("Driver %s is not a certified CSI driver (needs to be part of the operator-certified organization in the catalog) or csimapping.json needs to be updated", csi.Packag)
+				tnf.ClaimFilePrintf("Operator %s is not a certified (needs to be part of the operator-certified organization in the catalog)", op.Packag)
 			}
 		}
 		if testFailed {
-			ginkgo.Fail("At least one CSI operator was not certified to run on this version of openshift. Check Claim.json file for details.")
+			ginkgo.Fail("At least one  operator was not certified to run on this version of openshift. Check Claim.json file for details.")
 		}
 	})
 }
@@ -232,28 +229,4 @@ func GetOcpVersion() string {
 	nums := strings.Split(strings.ReplaceAll(ocVersion, "\"", ""), ".")
 	ocVersion = nums[0] + "." + nums[1]
 	return ocVersion
-}
-func GetOperatorVersionMap() (versionMap, orgMap map[string]string) {
-	ocCmd := subscriptionCommand
-
-	out := execCommandOutput(ocCmd)
-
-	operatorVersionList := strings.Split(out, ",")
-	versionMap = make(map[string]string)
-	orgMap = make(map[string]string)
-
-	for _, entry := range operatorVersionList {
-		if entry == "" {
-		} else {
-			organizationVersion := strings.SplitN(entry, "_", 2) //nolint:gomnd // ok
-			org := organizationVersion[0]
-			nameVersion := strings.SplitN(organizationVersion[1], ".", 2) //nolint:gomnd // ok
-			name := nameVersion[0]
-			version := nameVersion[1]
-			versionMap[name] = version
-			orgMap[name] = org
-		}
-	}
-
-	return versionMap, orgMap
 }
