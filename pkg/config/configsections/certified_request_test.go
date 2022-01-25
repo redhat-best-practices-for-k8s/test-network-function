@@ -37,12 +37,12 @@ type unmarshalFunc func([]byte, interface{}) error
 // test data
 var (
 	// bananas go in the fruit bowl.
-	fruitbowlRequestInfo = CertifiedContainerRequestInfo{
+	fruitbowlRequestInfo = ContainerImageIdentifier{
 		Name:       "banana",
 		Repository: "fruitbowl",
 	}
 	// apples go in the fridge.
-	fridgeRequestInfo = CertifiedContainerRequestInfo{
+	fridgeRequestInfo = ContainerImageIdentifier{
 		Name:       "apple",
 		Repository: "fridge",
 	}
@@ -116,7 +116,7 @@ func cleanupTempfiles() {
 
 func buildRequestConfig() *TestConfiguration {
 	conf := &TestConfiguration{}
-	conf.CertifiedContainerInfo = []CertifiedContainerRequestInfo{
+	conf.CertifiedContainerInfo = []ContainerImageIdentifier{
 		fruitbowlRequestInfo,
 		fridgeRequestInfo,
 	}
