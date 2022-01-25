@@ -314,7 +314,8 @@ cannot be followed.`,
 		Type:        normativeResult,
 		Remediation: `Ensure that your container has passed the Red Hat Container Certification Program (CCP).`,
 		Description: formDescription(TestContainerIsCertifiedIdentifier,
-			`tests whether container images listed in the configuration file or used by test target Pods have passed the Red Hat Container Certification Program (CCP).`),
+			`tests whether container images listed in the configuration file or used by test target Pods have passed the Red Hat Container 
+			Certification Program (CCP) with a [health index](https://redhat-connect.gitbook.io/catalog-help/container-images/container-health) C or above.`),
 		BestPracticeReference: bestPracticeDocV1dot2URL + " Section 6.3.7",
 	},
 

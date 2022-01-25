@@ -512,11 +512,14 @@ var (
 		url string
 	}{
 		{id: configsections.ContainerImageIdentifier{Repository: "rhel8", Name: "nginx-120", Tag: "1-7"},
-			url: "https://catalog.redhat.com/api/containers/v1/repositories/registry/registry.access.redhat.com/repository/rhel8/nginx-120/images?filter=repositories.repository==rhel8/nginx-120;repositories.tags.name==1-7"},
+			url: "https://catalog.redhat.com/api/containers/v1/repositories/registry/registry.access.redhat.com/repository/rhel8/nginx-120/" +
+				"images?filter=freshness_grades.grade=in=(A,B,C);repositories.repository==rhel8/nginx-120;repositories.tags.name==1-7"},
 		{id: configsections.ContainerImageIdentifier{Repository: "rhel8", Name: "nginx-120", Digest: "sha256:aa34453a6417f8f76423ffd2cf874e9c4a1a5451ac872b78dc636ab54a0ebbc3"},
-			url: "https://catalog.redhat.com/api/containers/v1/repositories/registry/registry.access.redhat.com/repository/rhel8/nginx-120/images?filter=image_id==sha256:aa34453a6417f8f76423ffd2cf874e9c4a1a5451ac872b78dc636ab54a0ebbc3"},
+			url: "https://catalog.redhat.com/api/containers/v1/repositories/registry/registry.access.redhat.com/repository/rhel8/nginx-120/" +
+				"images?filter=freshness_grades.grade=in=(A,B,C);image_id==sha256:aa34453a6417f8f76423ffd2cf874e9c4a1a5451ac872b78dc636ab54a0ebbc3"},
 		{id: configsections.ContainerImageIdentifier{Repository: "rhel8", Name: "nginx-120"},
-			url: "https://catalog.redhat.com/api/containers/v1/repositories/registry/registry.access.redhat.com/repository/rhel8/nginx-120/images?filter=repositories.repository==rhel8/nginx-120;repositories.tags.name==latest"},
+			url: "https://catalog.redhat.com/api/containers/v1/repositories/registry/registry.access.redhat.com/repository/rhel8/nginx-120/" +
+				"images?filter=freshness_grades.grade=in=(A,B,C);repositories.repository==rhel8/nginx-120;repositories.tags.name==latest"},
 	}
 )
 
