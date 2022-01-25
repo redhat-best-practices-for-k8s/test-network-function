@@ -356,6 +356,7 @@ func (env *TestEnvironment) createContainerMapWithOcSession(containers []configs
 	containerMap := make(map[configsections.ContainerIdentifier]*configsections.Container)
 	for i := range containers {
 		c := &containers[i]
+		log.Debugf("Creating shell session for pod %s - container %s (ns %s)", c.PodName, c.ContainerName, c.Namespace)
 		c.Oc = configsections.GetOcSession(c.PodName, c.ContainerName, c.Namespace, DefaultTimeout, interactive.Verbose(expectersVerboseModeEnabled), interactive.SendTimeout(DefaultTimeout))
 		containerMap[c.ContainerIdentifier] = c
 	}

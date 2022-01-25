@@ -67,7 +67,10 @@ trap html_output EXIT
 
 
 # If no focus is set then display usage and quit with a non-zero exit code.
-[ -z "$FOCUS" ] && echo "no focus found" && usage_error
+if [ -z "$FOCUS" ]; then
+   echo "no focus found - only diagnostic mode"
+   GINKGO_ARGS="${GINKGO_ARGS} -diagnostic"
+fi
 
 FOCUS=${FOCUS%?}  # strip the trailing "|" from the concatenation
 SKIP=${SKIP%?} # strip the trailing "|" from the concatenation

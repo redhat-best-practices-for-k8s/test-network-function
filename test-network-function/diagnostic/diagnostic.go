@@ -88,9 +88,7 @@ type NodesHwInfo struct {
 	Worker NodeHwInfo
 }
 
-func GetDiagnosticsData() []error {
-	env.LoadAndRefresh()
-
+func GetDiagnosticData() []error {
 	errs := []error{}
 	if len(env.PodsUnderTest) == 0 {
 		errs = append(errs, errors.New("nod pods under test found"))
@@ -119,7 +117,6 @@ func GetDiagnosticsData() []error {
 		errs = append(errs, hwErrs...)
 	}
 
-	common.RemoveLabelFromNodes()
 	return errs
 }
 

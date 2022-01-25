@@ -157,7 +157,7 @@ jobs:
       # Perform smoke tests.
 
       - name: 'Test: Run test suites'
-        run: ./run-cnf-suites.sh --focus access-control diagnostic lifecycle platform observability networking affiliated-certification operator
+        run: ./run-cnf-suites.sh --focus access-control lifecycle platform observability networking affiliated-certification operator
 
       - name: Upload smoke test results as an artifact
         uses: actions/upload-artifact@v2
