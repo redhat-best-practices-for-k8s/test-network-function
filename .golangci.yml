@@ -88,6 +88,7 @@ linters:
     - typecheck
     - unconvert
     - unparam
+    - unused
     - varcheck
     - whitespace
   # don't enable:
@@ -104,7 +105,6 @@ linters:
   # - scopelint
   # - structcheck
   # - testpackage
-  # - unused
   # - wsl
 issues:
   # Excluding configuration per-path, per-linter, per-text and per-source
