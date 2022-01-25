@@ -255,7 +255,9 @@ func buildOperatorFromCSVResource(csv *CSVResource) (op configsections.Operator)
 		log.Warnf("unable to get a subscription name annotation from CSV %s (error: %s).", csv.Metadata.Name, err)
 	} else {
 		op.SubscriptionName = subscriptionName[0]
+
 	}
+	op.Packag, op.Org, op.Version = csv.PackOrgVersion(op.Name)
 	return op
 }
 

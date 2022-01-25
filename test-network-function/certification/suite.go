@@ -80,8 +80,9 @@ func getContainerCertificationRequestFunction(repository, containerName string) 
 
 // getOperatorCertificationRequestFunction returns function that will try to get the certification status (OCP) for an operator.
 func getOperatorCertificationRequestFunction(organization, operatorName string) func() bool {
+	ocpversion := GetOcpVersion()
 	return func() bool {
-		return certAPIClient.IsOperatorCertified(organization, operatorName)
+		return certAPIClient.IsOperatorCertified(organization, operatorName, ocpversion)
 	}
 }
 
@@ -193,7 +194,7 @@ func testOperatorCertificationStatus() {
 func testCSICertified(env *configpkg.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestCSIOperatorIsCertifiedIdentifier)
 	ginkgo.It(testID, ginkgo.Label(testID), func() {
-		csioperatorsToQuery := env.Csi
+		csioperatorsToQuery := env.OperatorsUnderTest
 
 		if len(csioperatorsToQuery) == 0 {
 			ginkgo.Skip("No CSI operators to check configured ")
@@ -206,9 +207,9 @@ func testCSICertified(env *configpkg.TestEnvironment) {
 		//operatorVersionMap, orgMap := GetOperatorVersionMap()
 		testFailed := false
 		for _, csi := range csioperatorsToQuery {
-			pack := csi.Packag
+			pack := csi.Name
 			org := csi.Org
-			if pack != "" {
+			if org != "certified-operators" {
 				isCertified := waitForCertificationRequestToSuccess(getOperatorCertificationRequestFunction(org, pack), apiRequestTimeout)
 				if !isCertified {
 					tnf.ClaimFilePrintf("Operator %s (organization %s) failed to be certified.", pack, org)
