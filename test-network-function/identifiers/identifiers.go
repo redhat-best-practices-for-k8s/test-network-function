@@ -1,5 +1,4 @@
 // Copyright (C) 2021 Red Hat, Inc.
-// Copyright (C) 2021 Red Hat, Inc.
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -269,7 +268,7 @@ func XformToGinkgoItIdentifierExtended(identifier claim.Identifier, extra string
 // it extracts the suite name and test name from a claim.Identifier based
 // on the const url which contains a base domain
 // From a claim.Identifier.url:
-//   http://test-network-function.com/tests-case/SuitName/TestName
+//   http://test-network-function.com/testcases/SuiteName/TestName
 // It extracts SuitNAme and TestName
 
 func GetSuiteAndTestFromIdentifier(identifier claim.Identifier) []string {
