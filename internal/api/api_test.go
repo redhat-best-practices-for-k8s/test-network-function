@@ -506,6 +506,18 @@ var (
 		{packageName: unknownPackageName, org: marketPlaceOrg, expectedError: nil, id: "", expectedResult: false,
 			responseData: jsonResponseNotFound, responseStatus: http.StatusNotFound},
 	}
+
+	containerQueryURLTestCases = []struct {
+		id  configsections.ContainerImageIdentifier
+		url string
+	}{
+		{id: configsections.ContainerImageIdentifier{Repository: "rhel8", Name: "nginx-120", Tag: "1-7"},
+			url: "https://catalog.redhat.com/api/containers/v1/repositories/registry/registry.access.redhat.com/repository/rhel8/nginx-120/images?filter=repositories.repository==rhel8/nginx-120;repositories.tags.name==1-7"},
+		{id: configsections.ContainerImageIdentifier{Repository: "rhel8", Name: "nginx-120", Digest: "sha256:aa34453a6417f8f76423ffd2cf874e9c4a1a5451ac872b78dc636ab54a0ebbc3"},
+			url: "https://catalog.redhat.com/api/containers/v1/repositories/registry/registry.access.redhat.com/repository/rhel8/nginx-120/images?filter=image_id==sha256:aa34453a6417f8f76423ffd2cf874e9c4a1a5451ac872b78dc636ab54a0ebbc3"},
+		{id: configsections.ContainerImageIdentifier{Repository: "rhel8", Name: "nginx-120"},
+			url: "https://catalog.redhat.com/api/containers/v1/repositories/registry/registry.access.redhat.com/repository/rhel8/nginx-120/images?filter=repositories.repository==rhel8/nginx-120;repositories.tags.name==latest"},
+	}
 )
 
 // Do is the mock client's `Do` func
@@ -538,6 +550,13 @@ func TestApiClient_IsOperatorCertified(t *testing.T) {
 		result, err := client.IsOperatorCertified(c.org, c.packageName)
 		assert.Equal(t, c.expectedResult, result)
 		assert.Equal(t, c.expectedError, err)
+	}
+}
+
+func TestCreateContainerCatalogQueryURL(t *testing.T) {
+	for _, c := range containerQueryURLTestCases {
+		url := api.CreateContainerCatalogQueryURL(c.id)
+		assert.Equal(t, url, c.url)
 	}
 }
 

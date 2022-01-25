@@ -48,17 +48,7 @@ type catalogQueryResponse struct {
 // IsContainerCertified get container image info by repo/name and checks if container details is present
 // If present then returns `true` as certified operators.
 func (api CertAPIClient) IsContainerCertified(id configsections.ContainerImageIdentifier) (bool, error) {
-	var url string
-	const defaultTag = "latest"
-	if id.Digest == "" {
-		if id.Tag == "" {
-			id.Tag = defaultTag
-		}
-		url = fmt.Sprintf("%s/%s/%s/images?page_size=1&filter=repositories.repository==%s/%s;repositories.tags.name==%s", apiCatalogByRepositoriesBaseEndPoint, id.Repository, id.Name, id.Repository, id.Name, id.Tag)
-	} else {
-		url = fmt.Sprintf("%s/%s/%s/images?page_size=1&filter=image_id==%s", apiCatalogByRepositoriesBaseEndPoint, id.Repository, id.Name, id.Digest)
-	}
-	responseData, err := api.getRequest(url)
+	responseData, err := api.getRequest(CreateContainerCatalogQueryURL(id))
 	if err == nil {
 		var response catalogQueryResponse
 		err = json.Unmarshal(responseData, &response)
@@ -67,6 +57,20 @@ func (api CertAPIClient) IsContainerCertified(id configsections.ContainerImageId
 		}
 	}
 	return false, err
+}
+
+func CreateContainerCatalogQueryURL(id configsections.ContainerImageIdentifier) string {
+	var url string
+	const defaultTag = "latest"
+	if id.Digest == "" {
+		if id.Tag == "" {
+			id.Tag = defaultTag
+		}
+		url = fmt.Sprintf("%s/%s/%s/images?filter=repositories.repository==%s/%s;repositories.tags.name==%s", apiCatalogByRepositoriesBaseEndPoint, id.Repository, id.Name, id.Repository, id.Name, id.Tag)
+	} else {
+		url = fmt.Sprintf("%s/%s/%s/images?filter=image_id==%s", apiCatalogByRepositoriesBaseEndPoint, id.Repository, id.Name, id.Digest)
+	}
+	return url
 }
 
 // IsOperatorCertified get operator bundle by package name and check if package details is present
@@ -91,17 +95,6 @@ func (api CertAPIClient) GetImageByID(id string) (string, error) {
 		response = string(responseData)
 	}
 	return response, err
-}
-
-// GetImageByRepositoryAndVersion get container image data for the given container Id. Returns (ImageID, error).
-func (api CertAPIClient) GetImageByRepositoryAndVersion(repository, imageName string) (string, error) {
-	var imageID string
-	url := fmt.Sprintf("%s/%s/%s/images?page_size=1", apiCatalogByRepositoriesBaseEndPoint, repository, imageName)
-	responseData, err := api.getRequest(url)
-	if err == nil {
-		imageID, err = api.getIDFromResponse(responseData)
-	}
-	return imageID, err
 }
 
 // GetOperatorBundleIDByPackageName get published operator bundle Id by organization and package name.
