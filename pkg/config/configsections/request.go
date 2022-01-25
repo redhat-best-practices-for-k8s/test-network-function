@@ -35,3 +35,10 @@ type CertifiedOperatorRequestInfo struct {
 	// Organization as understood by the operator publisher , e.g. `redhat-marketplace`
 	Organization string `yaml:"organization" json:"organization"`
 }
+
+// AcceptedKernelTaintsInfo contains all certified operator request info
+type AcceptedKernelTaintsInfo struct {
+
+	// Accepted modules that cause taints that we want to supply to the test suite
+	Module string `yaml:"module" json:"module"`
+}
