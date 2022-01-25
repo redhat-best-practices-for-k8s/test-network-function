@@ -200,7 +200,7 @@ func testCSICertified(env *configpkg.TestEnvironment) {
 			ginkgo.Skip("No CSI operators to check configured ")
 		}
 
-		ginkgo.By(fmt.Sprintf("Verify operator as certified. Number of CSI drivers to check: %d", len(env.Csi)))
+		ginkgo.By(fmt.Sprintf("Verify operator as certified. Number of CSI drivers to check: %d", len(csioperatorsToQuery)))
 
 		//mapOperatorVersions := csimapping.GetOperatorVersions()
 		//ocpVersion := GetOcpVersion()

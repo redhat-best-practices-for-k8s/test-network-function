@@ -94,7 +94,6 @@ type TestTarget struct {
 	// Operator is the list of operator objects that needs to be tested.
 	Operators []Operator `yaml:"operators,omitempty"  json:"operators,omitempty"`
 	//
-	Csi []Csi `yaml:"csi" json:"csi"`
 	// Node list
 	Nodes map[string]Node `yaml:"Nodes"  json:"Nodes"`
 }
