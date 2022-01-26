@@ -75,9 +75,13 @@ func CreateContainerCatalogQueryURL(id configsections.ContainerImageIdentifier) 
 
 // IsOperatorCertified get operator bundle by package name and check if package details is present
 // If present then returns `true` as certified operators.
-func (api CertAPIClient) IsOperatorCertified(org, packageName, version string) bool {
-	if imageID, err := api.GetOperatorBundleIDByPackageName(org, packageName, version); err != nil || imageID == "" {
-		return false
+func (api CertAPIClient) IsOperatorCertified(org, packageName, version string) (bool, error) {
+	imageID, err := api.GetOperatorBundleIDByPackageName(org, packageName, version)
+	if err == nil {
+		if imageID == "" {
+			return false, nil
+		}
+		return true, nil
 	}
 	return false, err
 }

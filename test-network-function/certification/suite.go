@@ -79,9 +79,9 @@ func getContainerCertificationRequestFunction(id configsections.ContainerImageId
 }
 
 // getOperatorCertificationRequestFunction returns function that will try to get the certification status (OCP) for an operator.
-func getOperatorCertificationRequestFunction(organization, operatorName string) func() bool {
+func getOperatorCertificationRequestFunction(organization, operatorName string) func() (bool, error) {
 	ocpversion := GetOcpVersion()
-	return func() bool {
+	return func() (bool, error) {
 		return certAPIClient.IsOperatorCertified(organization, operatorName, ocpversion)
 	}
 }

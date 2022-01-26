@@ -65,14 +65,12 @@ func (csv *CSVResource) GetAnnotationValue(annotationKey string, v interface{}) 
 func (csv *CSVResource) PackOrgVersion(subscription string) (org, packag, version string) {
 	ocCmd := fmt.Sprintf("oc get subscriptions.operators.coreos.com -A -o go-template='{{range .items}}{{if eq .status.currentCSV %q}}{{.spec.source}}{{end}}{{end}}'", subscription)
 	out := execCommandOutput(ocCmd)
-	//organizationVersion := strings.SplitN(out, ",", 2) //nolint:gomnd // ok
 	org = out
 	nameVersion := strings.SplitN(subscription, ".", 2) //nolint:gomnd // ok
 	packag = nameVersion[0]
 	version = nameVersion[1]
 
 	return packag, org, version
-
 }
 
 func (csv *CSVResource) annotationUnmarshalError(annotationKey string, err error) error {
