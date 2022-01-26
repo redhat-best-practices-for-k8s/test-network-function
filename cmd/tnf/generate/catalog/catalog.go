@@ -201,6 +201,9 @@ func outputTestCases() {
 	// we need the list of suite's names
 	suites := getSuitesFromIdentifiers(keys)
 
+	// Sort the list of suite names
+	sort.Strings(suites)
+
 	// Iterating the map by test and suite names
 	for _, suite := range suites {
 		fmt.Fprintf(os.Stdout, "\n### %s\n\n", suite)

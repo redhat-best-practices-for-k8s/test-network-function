@@ -63,11 +63,15 @@ type TestConfiguration struct {
 	// TestPartner contains the helper containers that can be used to facilitate tests
 	Partner TestPartner `yaml:"testPartner" json:"testPartner"`
 	// CertifiedContainerInfo is the list of container images to be checked for certification status.
-	CertifiedContainerInfo []CertifiedContainerRequestInfo `yaml:"certifiedcontainerinfo,omitempty" json:"certifiedcontainerinfo,omitempty"`
+	CertifiedContainerInfo []ContainerImageIdentifier `yaml:"certifiedcontainerinfo,omitempty" json:"certifiedcontainerinfo,omitempty"`
+	// CheckDiscoveredContainerCertificationStatus controls whether the container certification test will validate images used by autodiscovered containers, in addition to the configured image list
+	CheckDiscoveredContainerCertificationStatus bool `yaml:"checkDiscoveredContainerCertificationStatus" json:"checkDiscoveredContainerCertificationStatus"`
 	// CertifiedOperatorInfo is list of operator bundle names that are queried for certification status.
 	CertifiedOperatorInfo []CertifiedOperatorRequestInfo `yaml:"certifiedoperatorinfo,omitempty" json:"certifiedoperatorinfo,omitempty"`
 	// CRDs section.
 	CrdFilters []CrdFilter `yaml:"targetCrdFilters" json:"targetCrdFilters"`
+	// AcceptedKernelTaints
+	AcceptedKernelTaints []AcceptedKernelTaintsInfo `yaml:"acceptedKernelTaints,omitempty" json:"acceptedKernelTaints,omitempty"`
 }
 
 // TestPartner contains the helper containers that can be used to facilitate tests
