@@ -269,7 +269,7 @@ func XformToGinkgoItIdentifierExtended(identifier claim.Identifier, extra string
 // on the const url which contains a base domain
 // From a claim.Identifier.url:
 //   http://test-network-function.com/testcases/SuiteName/TestName
-// It extracts SuitNAme and TestName
+// It extracts SuiteName and TestName
 
 func GetSuiteAndTestFromIdentifier(identifier claim.Identifier) []string {
 	result := strings.Split(identifier.Url, url+"/")
