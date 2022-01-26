@@ -39,11 +39,11 @@ const (
 	// timeout for eventually call
 	apiRequestTimeout           = 30 * time.Second
 	expectersVerboseModeEnabled = false
+	CertifiedOperator           = "certified-operators"
 )
 
 var (
-	subscriptionCommand = "oc get subscriptions.operators.coreos.com -A -ogo-template='{{range .items}}{{.spec.source}}_{{.status.currentCSV}},{{end}}'"
-	ocpVersionCommand   = "oc version -o json | jq '.openshiftVersion'"
+	ocpVersionCommand = "oc version -o json | jq '.openshiftVersion'"
 
 	execCommandOutput = func(command string) string {
 		return utils.ExecuteCommandAndValidate(command, apiRequestTimeout, interactive.GetContext(expectersVerboseModeEnabled), func() {
@@ -210,7 +210,7 @@ func testAllOperatorCertified(env *configpkg.TestEnvironment) {
 		for _, op := range operatorsToQuery {
 			pack := op.Name
 			org := op.Org
-			if org != "certified-operators" {
+			if org != CertifiedOperator {
 				isCertified := waitForCertificationRequestToSuccess(getOperatorCertificationRequestFunction(org, pack), apiRequestTimeout)
 				if !isCertified {
 					tnf.ClaimFilePrintf("Operator %s (organization %s) failed to be certified.", pack, org)
