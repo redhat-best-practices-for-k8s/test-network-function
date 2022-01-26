@@ -696,8 +696,8 @@ func testNodeHugepagesWithMcSystemd(nodeName string, nodeNumaHugePages, mcSystem
 				}
 			}
 			if !configMatching {
-				return false, fmt.Errorf(fmt.Sprintf("MC numa=%d, hugepages (count:%d, size:%d) not matching node ones: %s",
-					mcNumaIdx, mcHugepagesCfg.hugepagesCount, mcHugepagesCfg.hugepagesSize, nodeNumaHugePages))
+				return false, fmt.Errorf("MC numa=%d, hugepages (count:%d, size:%d) not matching node ones: %s",
+					mcNumaIdx, mcHugepagesCfg.hugepagesCount, mcHugepagesCfg.hugepagesSize, nodeNumaHugePages)
 			}
 		}
 	}
