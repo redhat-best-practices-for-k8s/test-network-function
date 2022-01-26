@@ -210,12 +210,12 @@ func testAllOperatorCertified(env *configpkg.TestEnvironment) {
 		for _, op := range operatorsToQuery {
 			pack := op.Name
 			org := op.Org
-			if org != CertifiedOperator {
+			if org == CertifiedOperator {
 				isCertified := waitForCertificationRequestToSuccess(getOperatorCertificationRequestFunction(org, pack), apiRequestTimeout)
 				if !isCertified {
 					testFailed = true
-					log.Info(fmt.Sprintf("Operator %s (organization %s) not certified becouse of the wrong version of the operator or the ocp version is not same.", pack, org))
-					tnf.ClaimFilePrintf("Operator %s (organization %s) failed to be certified becouse of the wrong version of the operator or the ocp version is not same..", pack, org)
+					log.Info(fmt.Sprintf("Operator %s (organization %s) not certified because of the wrong version of the operator or the ocp version is not same.", pack, org))
+					tnf.ClaimFilePrintf("Operator %s (organization %s) failed to be certified because of the wrong version of the operator or the ocp version is not same..", pack, org)
 				} else {
 					log.Info(fmt.Sprintf("Operator %s (organization %s) certified OK.", pack, org))
 				}
