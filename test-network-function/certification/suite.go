@@ -178,7 +178,8 @@ func testAllOperatorCertified(env *configpkg.TestEnvironment) {
 					log.Info(fmt.Sprintf("Operator %s (organization %s) certified OK.", pack, org))
 				}
 			} else {
-				tnf.ClaimFilePrintf("Operator %s is not a certified (needs to be part of the operator-certified organization in the catalog)", op.Packag)
+				testFailed = true
+				tnf.ClaimFilePrintf("Operator %s is not certified (needs to be part of the operator-certified organization in the catalog)", op.Packag)
 			}
 		}
 		if testFailed {
