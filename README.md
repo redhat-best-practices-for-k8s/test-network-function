@@ -544,10 +544,8 @@ For example:
 TNF_DEFAULT_BUFFER_SIZE=32768 ./run-cnf-suites.sh -f diagnostic
 ```
 
-# csi mapping package
-this package is creating a mapping between the csi that are certified and his csi operator name, evey value in this 
-json file are certified, it made a http quaery from the catalog of redhat and mapping it into a json file, to run this
-package need to execute this command from the test network function folder
+# Testing certified operator
+to test if operator certified need to label it with this command
 ```shell script
-go build -o csi -v  pkg/csimapping/csimapping.go 
+oc label csv <name> -n <namespace> "test-network-function.com/operator=target" 
 ```

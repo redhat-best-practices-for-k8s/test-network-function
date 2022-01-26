@@ -98,17 +98,6 @@ Description|http://test-network-function.com/testcases/affiliated-certification/
 Result Type|normative
 Suggested Remediation|Ensure that your container has passed the Red Hat Container Certification Program (CCP).
 Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.3.7
-#### csi-operator
-
-Property|Description
----|---
-Test Case Name|csi-operator
-Unique ID|http://test-network-function.com/testcases/affiliated-certification/csi-operator
-Version|v1.0.0
-Description|http://test-network-function.com/testcases/affiliated-certification/csi-operator tests whether CNF CSI Operators listed in the configuration file have passed the Red Hat Operator Certification Program (OCP).
-Result Type|normative
-Suggested Remediation|Ensure that your CSI Operator has passed Red Hat's Operator Certification Program (OCP).
-Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2.12 and Section 6.3.3
 #### operator-is-certified
 
 Property|Description
@@ -342,7 +331,6 @@ Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/site
 Property|Description
 ---|---
 Test Case Name|container-logging
-
 Test Case Label|observability-container-logging
 Unique ID|http://test-network-function.com/testcases/observability/container-logging
 Version|v1.0.0
@@ -355,7 +343,6 @@ Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/site
 Property|Description
 ---|---
 Test Case Name|crd-status
-
 Test Case Label|observability-crd-status
 Unique ID|http://test-network-function.com/testcases/observability/crd-status
 Version|v1.0.0
@@ -371,7 +358,6 @@ Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/site
 Property|Description
 ---|---
 Test Case Name|install-source
-
 Test Case Label|operator-install-source
 Unique ID|http://test-network-function.com/testcases/operator/install-source
 Version|v1.0.0
@@ -384,7 +370,6 @@ Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/site
 Property|Description
 ---|---
 Test Case Name|install-status
-
 Test Case Label|operator-install-status
 Unique ID|http://test-network-function.com/testcases/operator/install-status
 Version|v1.0.0
