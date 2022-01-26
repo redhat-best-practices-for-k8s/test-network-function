@@ -52,7 +52,6 @@ var (
 	}
 
 	certAPIClient api.CertAPIClient
-	ocpversion    = GetOcpVersion()
 )
 
 var _ = ginkgo.Describe(common.AffiliatedCertTestKey, func() {
@@ -79,7 +78,7 @@ func getContainerCertificationRequestFunction(id configsections.ContainerImageId
 }
 
 // getOperatorCertificationRequestFunction returns function that will try to get the certification status (OCP) for an operator.
-func getOperatorCertificationRequestFunction(organization, operatorName string) func() (bool, error) {
+func getOperatorCertificationRequestFunction(organization, operatorName, ocpversion string) func() (bool, error) {
 	return func() (bool, error) {
 		return certAPIClient.IsOperatorCertified(organization, operatorName, ocpversion)
 	}
@@ -166,14 +165,15 @@ func testAllOperatorCertified(env *configpkg.TestEnvironment) {
 
 		testFailed := false
 		for _, op := range operatorsToQuery {
+			ocpversion := GetOcpVersion()
 			pack := op.Name
 			org := op.Org
 			if org == CertifiedOperator {
-				isCertified := waitForCertificationRequestToSuccess(getOperatorCertificationRequestFunction(org, pack), apiRequestTimeout)
+				isCertified := waitForCertificationRequestToSuccess(getOperatorCertificationRequestFunction(org, pack, ocpversion), apiRequestTimeout)
 				if !isCertified {
 					testFailed = true
-					log.Info(fmt.Sprintf("Operator %s (organization %s) not certified because of the wrong version of the operator or the ocp version %s is not same .", pack, org, ocpversion))
-					tnf.ClaimFilePrintf("Operator %s (organization %s) failed to be certified because of the wrong version of the operator or the ocp version %s is not same..", pack, org, ocpversion)
+					log.Info(fmt.Sprintf("Operator %s (organization %s) not certified for Openshift %s .", pack, org, ocpversion))
+					tnf.ClaimFilePrintf("Operator %s (organization %s) failed to be certified for Openshift %s", pack, org, ocpversion)
 				} else {
 					log.Info(fmt.Sprintf("Operator %s (organization %s) certified OK.", pack, org))
 				}
