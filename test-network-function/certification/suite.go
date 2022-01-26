@@ -66,7 +66,6 @@ var _ = ginkgo.Describe(common.AffiliatedCertTestKey, func() {
 		ginkgo.AfterEach(env.CloseLocalShellContext)
 
 		testContainerCertificationStatus()
-		testOperatorCertificationStatus()
 		testAllOperatorCertified(env)
 	}
 })
@@ -149,47 +148,6 @@ func testContainerCertificationStatus() {
 			if n := len(failedContainers); n > 0 {
 				log.Warnf("Containers that are not certified: %+v", failedContainers)
 				ginkgo.Fail(fmt.Sprintf("%d container images are not certified.", n))
-			}
-		}
-	})
-}
-
-func testOperatorCertificationStatus() {
-	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestOperatorIsCertifiedIdentifier)
-	ginkgo.It(testID, ginkgo.Label(testID), func() {
-		operatorsToQuery := configpkg.GetTestEnvironment().Config.CertifiedOperatorInfo
-
-		if len(operatorsToQuery) == 0 {
-			ginkgo.Skip("No operators to check configured in tnf_config.yml")
-		}
-
-		ginkgo.By(fmt.Sprintf("Verify operator as certified. Number of operators to check: %d", len(operatorsToQuery)))
-		if len(operatorsToQuery) > 0 {
-			certAPIClient = api.NewHTTPClient()
-			failedOperators := []configsections.CertifiedOperatorRequestInfo{}
-			allOperatorsToQueryEmpty := true
-			for _, operator := range operatorsToQuery {
-				if operator.Name == "" || operator.Organization == "" {
-					tnf.ClaimFilePrintf("Operator name = \"%s\" or organization = \"%s\" is missing, skipping this operator to query", operator.Name, operator.Organization)
-					continue
-				}
-				allOperatorsToQueryEmpty = false
-				ginkgo.By(fmt.Sprintf("Should eventually be verified as certified (operator %s/%s)", operator.Organization, operator.Name))
-				isCertified := waitForCertificationRequestToSuccess(getOperatorCertificationRequestFunction(operator.Organization, operator.Name), apiRequestTimeout)
-				if !isCertified {
-					tnf.ClaimFilePrintf("Operator %s (organization %s) failed to be certified.", operator.Name, operator.Organization)
-					failedOperators = append(failedOperators, operator)
-				} else {
-					log.Info(fmt.Sprintf("Operator %s (organization %s) certified OK.", operator.Name, operator.Organization))
-				}
-			}
-			if allOperatorsToQueryEmpty {
-				ginkgo.Skip("No operators to check because either operator name or organization is empty for all operators in tnf_config.yml")
-			}
-
-			if n := len(failedOperators); n > 0 {
-				log.Warnf("Operators that failed to be certified: %+v", failedOperators)
-				ginkgo.Skip(fmt.Sprintf("%d operators failed to be certified.", n))
 			}
 		}
 	})
