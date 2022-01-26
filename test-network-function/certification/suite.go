@@ -189,7 +189,7 @@ func testOperatorCertificationStatus() {
 
 			if n := len(failedOperators); n > 0 {
 				log.Warnf("Operators that failed to be certified: %+v", failedOperators)
-				ginkgo.Fail(fmt.Sprintf("%d operators failed to be certified.", n))
+				ginkgo.Skip(fmt.Sprintf("%d operators failed to be certified.", n))
 			}
 		}
 	})
@@ -213,7 +213,9 @@ func testAllOperatorCertified(env *configpkg.TestEnvironment) {
 			if org != CertifiedOperator {
 				isCertified := waitForCertificationRequestToSuccess(getOperatorCertificationRequestFunction(org, pack), apiRequestTimeout)
 				if !isCertified {
-					tnf.ClaimFilePrintf("Operator %s (organization %s) failed to be certified.", pack, org)
+					testFailed = true
+					log.Info(fmt.Sprintf("Operator %s (organization %s) not certified becouse of the wrong version of the operator or the ocp version is not same.", pack, org))
+					tnf.ClaimFilePrintf("Operator %s (organization %s) failed to be certified becouse of the wrong version of the operator or the ocp version is not same..", pack, org)
 				} else {
 					log.Info(fmt.Sprintf("Operator %s (organization %s) certified OK.", pack, org))
 				}
@@ -222,7 +224,7 @@ func testAllOperatorCertified(env *configpkg.TestEnvironment) {
 			}
 		}
 		if testFailed {
-			ginkgo.Fail("At least one  operator was not certified to run on this version of openshift. Check Claim.json file for details.")
+			ginkgo.Skip("At least one  operator was not certified to run on this version of openshift. Check Claim.json file for details.")
 		}
 	})
 }
