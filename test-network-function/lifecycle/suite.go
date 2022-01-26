@@ -285,18 +285,16 @@ func testNodeSelector(env *config.TestEnvironment) {
 		context := env.GetLocalShellContext()
 		badPods := []configsections.Pod{}
 		for _, podUnderTest := range env.PodsUnderTest {
-			podName := podUnderTest.Name
-			podNamespace := podUnderTest.Namespace
-			ginkgo.By(fmt.Sprintf("Testing pod nodeSelector %s/%s", podNamespace, podName))
-			tester := nodeselector.NewNodeSelector(common.DefaultTimeout, podName, podNamespace)
+			ginkgo.By(fmt.Sprintf("Testing pod nodeSelector %s/%s", podUnderTest.Namespace, podUnderTest.Name))
+			tester := nodeselector.NewNodeSelector(common.DefaultTimeout, podUnderTest.Name, podUnderTest.Namespace)
 			test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 			gomega.Expect(err).To(gomega.BeNil())
 
 			test.RunWithCallbacks(nil, func() {
-				tnf.ClaimFilePrintf("FAILURE: Pod %s/%s has nodeSelector/nodeAffinity rule", podNamespace, podName)
+				tnf.ClaimFilePrintf("FAILURE: Pod %s/%s has nodeSelector/nodeAffinity rule", podUnderTest.Namespace, podUnderTest.Name)
 				badPods = append(badPods, *podUnderTest)
 			}, func(err error) {
-				tnf.ClaimFilePrintf("ERROR: Pod %s/%s, error: %v", podNamespace, podName, err)
+				tnf.ClaimFilePrintf("ERROR: Pod %s/%s, error: %v", podUnderTest.Namespace, podUnderTest.Name, err)
 				badPods = append(badPods, *podUnderTest)
 			})
 		}
@@ -432,10 +430,8 @@ func testShutdown(env *config.TestEnvironment) {
 		failedPods := []*configsections.Pod{}
 		ginkgo.By("Testing PUTs are configured with pre-stop lifecycle")
 		for _, podUnderTest := range env.PodsUnderTest {
-			podName := podUnderTest.Name
-			podNamespace := podUnderTest.Namespace
-			ginkgo.By(fmt.Sprintf("should have pre-stop configured %s/%s", podNamespace, podName))
-			passed := shutdownTest(podNamespace, podName, env.GetLocalShellContext())
+			ginkgo.By(fmt.Sprintf("should have pre-stop configured %s/%s", podUnderTest.Namespace, podUnderTest.Name))
+			passed := shutdownTest(podUnderTest.Namespace, podUnderTest.Name, env.GetLocalShellContext())
 			if !passed {
 				failedPods = append(failedPods, podUnderTest)
 			}
@@ -668,18 +664,16 @@ func testOwner(env *config.TestEnvironment) {
 		context := env.GetLocalShellContext()
 		failedPods := []*configsections.Pod{}
 		for _, podUnderTest := range env.PodsUnderTest {
-			podName := podUnderTest.Name
-			podNamespace := podUnderTest.Namespace
-			ginkgo.By(fmt.Sprintf("Should be ReplicaSet %s %s", podNamespace, podName))
-			tester := owners.NewOwners(common.DefaultTimeout, podNamespace, podName)
+			ginkgo.By(fmt.Sprintf("Should be ReplicaSet %s %s", podUnderTest.Namespace, podUnderTest.Name))
+			tester := owners.NewOwners(common.DefaultTimeout, podUnderTest.Namespace, podUnderTest.Name)
 			test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 			gomega.Expect(err).To(gomega.BeNil())
 
 			test.RunWithCallbacks(nil, func() {
-				tnf.ClaimFilePrintf("FAILURE: Pod %s/%s is not owned by a replica set", podNamespace, podName)
+				tnf.ClaimFilePrintf("FAILURE: Pod %s/%s is not owned by a replica set", podUnderTest.Namespace, podUnderTest.Name)
 				failedPods = append(failedPods, podUnderTest)
 			}, func(err error) {
-				tnf.ClaimFilePrintf("ERROR: Pod %s/%s, error: %v", podNamespace, podName, err)
+				tnf.ClaimFilePrintf("ERROR: Pod %s/%s, error: %v", podUnderTest.Namespace, podUnderTest.Name, err)
 				failedPods = append(failedPods, podUnderTest)
 			})
 		}
@@ -697,10 +691,9 @@ func testImagePolicy(env *config.TestEnvironment) {
 		failedPods := []*configsections.Pod{}
 		for _, podUnderTest := range env.PodsUnderTest {
 			values := make(map[string]interface{})
-			ContainerCount := podUnderTest.ContainerCount
 			values["POD_NAMESPACE"] = podUnderTest.Namespace
 			values["POD_NAME"] = podUnderTest.Name
-			for i := 0; i < ContainerCount; i++ {
+			for i := 0; i < podUnderTest.ContainerCount; i++ {
 				values["CONTAINER_NUM"] = i
 				tester, handlers := utils.NewGenericTesterAndValidate(relativeimagepullpolicyTestPath, common.RelativeSchemaPath, values)
 				test, err := tnf.NewTest(context.GetExpecter(), *tester, handlers, context.GetErrorChannel())
