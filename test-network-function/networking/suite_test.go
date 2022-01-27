@@ -90,7 +90,7 @@ func TestListeningPortList(t *testing.T) {
 	}{
 		{
 			commandlisten:          []string{"ss -tulwnH"},
-			nodeOc:                 "",
+			nodeOc:                 nil,
 			listeningPorts:         map[key]string{},
 			expectedlisteningPorts: map[key]string{},
 		},
