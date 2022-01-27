@@ -162,7 +162,7 @@ func testAllOperatorCertified(env *configpkg.TestEnvironment) {
 			ginkgo.Skip("No operators to check configured ")
 		}
 
-		ginkgo.By(fmt.Sprintf("Verify operator as certified. Number of operators drivers to check: %d", len(operatorsToQuery)))
+		ginkgo.By(fmt.Sprintf("Verify operator as certified. Number of operators to check: %d", len(operatorsToQuery)))
 
 		testFailed := false
 		for _, op := range operatorsToQuery {
