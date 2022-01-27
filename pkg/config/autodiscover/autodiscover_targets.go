@@ -31,10 +31,11 @@ import (
 )
 
 const (
-	operatorLabelName           = "operator"
-	skipConnectivityTestsLabel  = "skip_connectivity_tests"
-	ocGetClusterCrdNamesCommand = "kubectl get crd -o json | jq '[.items[].metadata.name]'"
-	DefaultTimeout              = 10 * time.Second
+	operatorLabelName                = "operator"
+	skipConnectivityTestsLabel       = "skip_connectivity_tests"
+	skipMultusConnectivityTestsLabel = "skip_multus_connectivity_tests"
+	ocGetClusterCrdNamesCommand      = "kubectl get crd -o json | jq '[.items[].metadata.name]'"
+	DefaultTimeout                   = 10 * time.Second
 )
 
 var (
@@ -68,14 +69,24 @@ func FindTestTarget(labels []configsections.Label, target *configsections.TestTa
 	}
 	// Containers to exclude from connectivity tests are optional
 	identifiers, err := getContainerIdentifiersByLabel(configsections.Label{Prefix: tnfLabelPrefix, Name: skipConnectivityTestsLabel, Value: anyLabelValue})
+	if err != nil {
+		log.Warnf("an error (%s) occurred when getting the containers to exclude from Default connectivity tests. Attempting to continue", err)
+	}
 	for _, id := range identifiers {
 		if ns[id.Namespace] {
 			target.ExcludeContainersFromConnectivityTests = append(target.ExcludeContainersFromConnectivityTests, id)
 		}
 	}
+	identifiers, err = getContainerIdentifiersByLabel(configsections.Label{Prefix: tnfLabelPrefix, Name: skipMultusConnectivityTestsLabel, Value: anyLabelValue})
 	if err != nil {
-		log.Warnf("an error (%s) occurred when getting the containers to exclude from connectivity tests. Attempting to continue", err)
+		log.Warnf("an error (%s) occurred when getting the containers to exclude from Multus connectivity tests. Attempting to continue", err)
 	}
+	for _, id := range identifiers {
+		if ns[id.Namespace] {
+			target.ExcludeContainersFromMultusConnectivityTests = append(target.ExcludeContainersFromMultusConnectivityTests, id)
+		}
+	}
+
 	csvs, err := GetCSVsByLabel(operatorLabelName, anyLabelValue)
 	if err != nil {
 		log.Warnf("an error (%s) occurred when looking for operators by label", err)

@@ -73,6 +73,7 @@ For Network Interfaces:
 * If the above is not present, the k8s.v1.cni.cncf.io/networks-status annotation is checked and the "interface" from the first entry found with "default"=true is used. This annotation is automatically managed in OpenShift but may not be present in K8s.
 
 The label test-network-function.com/skip_connectivity_tests excludes pods from connectivity tests. The label value is not important, only its presence.
+The label test-network-function.com/skip_multus_connectivity_tests excludes pods from Multus connectivity tests only. The label value is not important, only its presence. Note: if both labels are present the test-network-function.com/skip_connectivity_tests takes precedence.
 
 #### operators
 
