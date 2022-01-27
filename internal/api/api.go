@@ -44,7 +44,12 @@ type catalogQueryResponse struct {
 	Total    uint `json:"total"`
 }
 
-type containerCatalogEntry struct {
+type ContainerImageFreshnessGrade struct {
+	// CreationDate time.Time `json:"creation_date"`
+	Grade string `json:"grade"`
+	// StartDate    time.Time `json:"start_date"`
+}
+type ContainerCatalogEntry struct {
 	ID string `json:"_id"`
 	/*Links struct {
 		RpmManifest struct {
@@ -65,119 +70,124 @@ type containerCatalogEntry struct {
 	ContentSets     []string  `json:"content_sets"`
 	CpeIds          []string  `json:"cpe_ids"`
 	CreationDate    time.Time `json:"creation_date"`
-	DockerImageID   string    `json:"docker_image_id"`
-	FreshnessGrades []struct {
-		CreationDate time.Time `json:"creation_date"`
-		Grade        string    `json:"grade"`
-		StartDate    time.Time `json:"start_date"`
-	} `json:"freshness_grades"`
-	ImageID        string    `json:"image_id"`
-	LastUpdateDate time.Time `json:"last_update_date"`
-	ObjectType     string    `json:"object_type"`
-	ParsedData     struct {
-		Architecture  string    `json:"architecture"`
-		Command       string    `json:"command"`
-		Comment       string    `json:"comment"`
-		Created       time.Time `json:"created"`
-		DockerVersion string    `json:"docker_version"`
-		EnvVariables  []string  `json:"env_variables"`
-		Labels        []struct {
-			Name  string `json:"name"`
-			Value string `json:"value"`
-		} `json:"labels"`
-		Layers                 []string `json:"layers"`
-		Os                     string   `json:"os"`
-		Size                   int      `json:"size"`
-		UncompressedLayerSizes []struct {
-			LayerID   string `json:"layer_id"`
-			SizeBytes int    `json:"size_bytes"`
-		} `json:"uncompressed_layer_sizes"`
-		UncompressedSizeBytes int    `json:"uncompressed_size_bytes"`
-		User                  string `json:"user"`
-	} `json:"parsed_data"`
-	Repositories []struct {
-		Links struct {
-			ImageAdvisory struct {
-				Href string `json:"href"`
-			} `json:"image_advisory"`
-			Repository struct {
-				Href string `json:"href"`
-			} `json:"repository"`
-		} `json:"_links"`
-		Comparison struct {
-			AdvisoryRpmMapping []struct {
-				AdvisoryIds []string `json:"advisory_ids"`
-				Nvra        string   `json:"nvra"`
-			} `json:"advisory_rpm_mapping"`
-			Reason     string `json:"reason"`
-			ReasonText string `json:"reason_text"`
-			Rpms       struct {
-				Downgrade []interface{} `json:"downgrade"`
-				New       []string      `json:"new"`
-				Remove    []string      `json:"remove"`
-				Upgrade   []string      `json:"upgrade"`
-			} `json:"rpms"`
-			WithNvr string `json:"with_nvr"`
-		} `json:"comparison"`
-		ContentAdvisoryIds    []string  `json:"content_advisory_ids"`
-		ImageAdvisoryID       string    `json:"image_advisory_id"`
-		ManifestListDigest    string    `json:"manifest_list_digest"`
-		ManifestSchema2Digest string    `json:"manifest_schema2_digest"`
-		Published             bool      `json:"published"`
-		PublishedDate         time.Time `json:"published_date"`
-		PushDate              time.Time `json:"push_date"`
-		Registry              string    `json:"registry"`
-		Repository            string    `json:"repository"`
-		Signatures            []struct {
-			KeyLongID string   `json:"key_long_id"`
-			Tags      []string `json:"tags"`
-		} `json:"signatures"`
-		Tags []struct {
+	DockerImageID   string    `json:"docker_image_id"`*/
+	FreshnessGrades []ContainerImageFreshnessGrade `json:"freshness_grades"`
+	/*
+		ImageID        string    `json:"image_id"`
+		LastUpdateDate time.Time `json:"last_update_date"`
+		ObjectType     string    `json:"object_type"`
+		ParsedData     struct {
+			Architecture  string    `json:"architecture"`
+			Command       string    `json:"command"`
+			Comment       string    `json:"comment"`
+			Created       time.Time `json:"created"`
+			DockerVersion string    `json:"docker_version"`
+			EnvVariables  []string  `json:"env_variables"`
+			Labels        []struct {
+				Name  string `json:"name"`
+				Value string `json:"value"`
+			} `json:"labels"`
+			Layers                 []string `json:"layers"`
+			Os                     string   `json:"os"`
+			Size                   int      `json:"size"`
+			UncompressedLayerSizes []struct {
+				LayerID   string `json:"layer_id"`
+				SizeBytes int    `json:"size_bytes"`
+			} `json:"uncompressed_layer_sizes"`
+			UncompressedSizeBytes int    `json:"uncompressed_size_bytes"`
+			User                  string `json:"user"`
+		} `json:"parsed_data"`
+		Repositories []struct {
 			Links struct {
-				TagHistory struct {
+				ImageAdvisory struct {
 					Href string `json:"href"`
-				} `json:"tag_history"`
+				} `json:"image_advisory"`
+				Repository struct {
+					Href string `json:"href"`
+				} `json:"repository"`
 			} `json:"_links"`
-			AddedDate time.Time `json:"added_date"`
-			Name      string    `json:"name"`
-		} `json:"tags"`
-	} `json:"repositories"`
-	SumLayerSizeBytes      int    `json:"sum_layer_size_bytes"`
-	TopLayerID             string `json:"top_layer_id"`
-	UncompressedTopLayerID string `json:"uncompressed_top_layer_id"`*/
+			Comparison struct {
+				AdvisoryRpmMapping []struct {
+					AdvisoryIds []string `json:"advisory_ids"`
+					Nvra        string   `json:"nvra"`
+				} `json:"advisory_rpm_mapping"`
+				Reason     string `json:"reason"`
+				ReasonText string `json:"reason_text"`
+				Rpms       struct {
+					Downgrade []interface{} `json:"downgrade"`
+					New       []string      `json:"new"`
+					Remove    []string      `json:"remove"`
+					Upgrade   []string      `json:"upgrade"`
+				} `json:"rpms"`
+				WithNvr string `json:"with_nvr"`
+			} `json:"comparison"`
+			ContentAdvisoryIds    []string  `json:"content_advisory_ids"`
+			ImageAdvisoryID       string    `json:"image_advisory_id"`
+			ManifestListDigest    string    `json:"manifest_list_digest"`
+			ManifestSchema2Digest string    `json:"manifest_schema2_digest"`
+			Published             bool      `json:"published"`
+			PublishedDate         time.Time `json:"published_date"`
+			PushDate              time.Time `json:"push_date"`
+			Registry              string    `json:"registry"`
+			Repository            string    `json:"repository"`
+			Signatures            []struct {
+				KeyLongID string   `json:"key_long_id"`
+				Tags      []string `json:"tags"`
+			} `json:"signatures"`
+			Tags []struct {
+				Links struct {
+					TagHistory struct {
+						Href string `json:"href"`
+					} `json:"tag_history"`
+				} `json:"_links"`
+				AddedDate time.Time `json:"added_date"`
+				Name      string    `json:"name"`
+			} `json:"tags"`
+		} `json:"repositories"`
+		SumLayerSizeBytes      int    `json:"sum_layer_size_bytes"`
+		TopLayerID             string `json:"top_layer_id"`
+		UncompressedTopLayerID string `json:"uncompressed_top_layer_id"`*/
+}
+
+func (e ContainerCatalogEntry) GetBestFreshnessGrade() string {
+	grade := "F"
+	for _, g := range e.FreshnessGrades {
+		if g.Grade < grade {
+			grade = g.Grade
+		}
+	}
+	return grade
 }
 
 type containerCatalogQueryResponse struct {
 	catalogQueryResponse
-	Data []containerCatalogEntry `json:"data"`
+	Data []ContainerCatalogEntry `json:"data"`
 }
 
-// IsContainerCertified get container image info by repo/name and checks if container details is present
-// If present then returns `true` as certified operators.
-func (api CertAPIClient) IsContainerCertified(id configsections.ContainerImageIdentifier) (bool, error) {
+// GetContainerCatalogEntry gets the container image entry with highest freshness grade
+func (api CertAPIClient) GetContainerCatalogEntry(id configsections.ContainerImageIdentifier) (*ContainerCatalogEntry, error) {
 	responseData, err := api.getRequest(CreateContainerCatalogQueryURL(id))
 	if err == nil {
 		var response containerCatalogQueryResponse
 		err = json.Unmarshal(responseData, &response)
-		if err == nil {
-			return len(response.Data) > 0, nil
+		if err == nil && len(response.Data) > 0 {
+			return &response.Data[0], nil
 		}
 	}
-	return false, err
+	return nil, err
 }
 
 func CreateContainerCatalogQueryURL(id configsections.ContainerImageIdentifier) string {
 	var url string
 	const defaultTag = "latest"
-	const passingFreshnessGrades = "A,B,C"
 	if id.Digest == "" {
 		if id.Tag == "" {
 			id.Tag = defaultTag
 		}
-		url = fmt.Sprintf("%s/%s/%s/images?filter=freshness_grades.grade=in=(%s);repositories.repository==%s/%s;repositories.tags.name==%s",
-			apiCatalogByRepositoriesBaseEndPoint, id.Repository, id.Name, passingFreshnessGrades, id.Repository, id.Name, id.Tag)
+		url = fmt.Sprintf("%s/%s/%s/images?sort_by=freshness_grades.grade&filter=repositories.repository==%s/%s;repositories.tags.name==%s",
+			apiCatalogByRepositoriesBaseEndPoint, id.Repository, id.Name, id.Repository, id.Name, id.Tag)
 	} else {
-		url = fmt.Sprintf("%s/%s/%s/images?filter=freshness_grades.grade=in=(%s);image_id==%s", apiCatalogByRepositoriesBaseEndPoint, id.Repository, id.Name, passingFreshnessGrades, id.Digest)
+		url = fmt.Sprintf("%s/%s/%s/images?sort_by=freshness_grades.grade&filter=image_id==%s", apiCatalogByRepositoriesBaseEndPoint, id.Repository, id.Name, id.Digest)
 	}
 	return url
 }
