@@ -180,14 +180,15 @@ func (api CertAPIClient) GetContainerCatalogEntry(id configsections.ContainerIma
 func CreateContainerCatalogQueryURL(id configsections.ContainerImageIdentifier) string {
 	var url string
 	const defaultTag = "latest"
+	const arch = "amd64"
 	if id.Digest == "" {
 		if id.Tag == "" {
 			id.Tag = defaultTag
 		}
-		url = fmt.Sprintf("%s/%s/%s/images?sort_by=freshness_grades.grade&filter=repositories.repository==%s/%s;repositories.tags.name==%s",
-			apiCatalogByRepositoriesBaseEndPoint, id.Repository, id.Name, id.Repository, id.Name, id.Tag)
+		url = fmt.Sprintf("%s/%s/%s/images?filter=architecture==%s;repositories.repository==%s/%s;repositories.tags.name==%s",
+			apiCatalogByRepositoriesBaseEndPoint, id.Repository, id.Name, arch, id.Repository, id.Name, id.Tag)
 	} else {
-		url = fmt.Sprintf("%s/%s/%s/images?sort_by=freshness_grades.grade&filter=image_id==%s", apiCatalogByRepositoriesBaseEndPoint, id.Repository, id.Name, id.Digest)
+		url = fmt.Sprintf("%s/%s/%s/images?filter=architecture==%s;image_id==%s", apiCatalogByRepositoriesBaseEndPoint, id.Repository, id.Name, arch, id.Digest)
 	}
 	return url
 }
