@@ -37,7 +37,7 @@ import (
 
 const (
 	// timeout for eventually call
-	apiRequestTimeout           = 30 * time.Second
+	apiRequestTimeout           = 40 * time.Second
 	expectersVerboseModeEnabled = false
 	CertifiedOperator           = "certified-operators"
 )
@@ -191,7 +191,11 @@ func testAllOperatorCertified(env *configpkg.TestEnvironment) {
 func GetOcpVersion() string {
 	ocCmd := ocpVersionCommand
 	ocVersion := execCommandOutput(ocCmd)
-	nums := strings.Split(strings.ReplaceAll(ocVersion, "\"", ""), ".")
-	ocVersion = nums[0] + "." + nums[1]
+	if ocVersion != "null" {
+		nums := strings.Split(strings.ReplaceAll(ocVersion, "\"", ""), ".")
+		ocVersion = nums[0] + "." + nums[1]
+	} else {
+		ocVersion = ""
+	}
 	return ocVersion
 }

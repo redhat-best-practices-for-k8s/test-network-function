@@ -101,7 +101,13 @@ func (api CertAPIClient) GetImageByID(id string) (string, error) {
 // Returns (ImageID, error).
 func (api CertAPIClient) GetOperatorBundleIDByPackageName(org, name, vsersion string) (string, error) {
 	var imageID string
-	url := fmt.Sprintf("%s/bundles?page_size=1&filter=organization==%s;csv_name==%s;ocp_version==%s", apiOperatorCatalogExternalBaseEndPoint, org, name, vsersion)
+	url := ""
+	if vsersion != "" {
+		url = fmt.Sprintf("%s/bundles?page_size=1&filter=organization==%s;csv_name==%s;ocp_version==%s", apiOperatorCatalogExternalBaseEndPoint, org, name, vsersion)
+	} else {
+		url = fmt.Sprintf("%s/bundles?page_size=1&filter=organization==%s;csv_name==%s", apiOperatorCatalogExternalBaseEndPoint, org, name)
+
+	}
 	responseData, err := api.getRequest(url)
 	if err == nil {
 		imageID, err = api.getIDFromResponse(responseData)
