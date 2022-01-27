@@ -106,7 +106,6 @@ func (api CertAPIClient) GetOperatorBundleIDByPackageName(org, name, vsersion st
 		url = fmt.Sprintf("%s/bundles?page_size=1&filter=organization==%s;csv_name==%s;ocp_version==%s", apiOperatorCatalogExternalBaseEndPoint, org, name, vsersion)
 	} else {
 		url = fmt.Sprintf("%s/bundles?page_size=1&filter=organization==%s;csv_name==%s", apiOperatorCatalogExternalBaseEndPoint, org, name)
-
 	}
 	responseData, err := api.getRequest(url)
 	if err == nil {
