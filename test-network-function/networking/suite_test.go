@@ -17,6 +17,7 @@
 package networking
 
 import (
+	"reflect"
 	"testing"
 )
 
@@ -51,6 +52,34 @@ func TestIsIPv4AndIsIPv6(t *testing.T) {
 			// testing IsIPv6
 			if got := IsIPv6(tt.args.address); got == tt.want {
 				t.Errorf("IsIPv6() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestFilterIPListPerVersion(t *testing.T) {
+	type args struct {
+		ipList    []string
+		ipVersion string
+	}
+	tests := []struct {
+		name string
+		args args
+		want []string
+	}{
+		{name: "passingIPv4",
+			args: args{ipList: []string{"2.2.2.2", "3.3.3.3", "fd00:10:244:1::3", "fd00:10:244:1::4"}, ipVersion: IPv4},
+			want: []string{"2.2.2.2", "3.3.3.3"},
+		},
+		{name: "passingIPv6",
+			args: args{ipList: []string{"2.2.2.2", "3.3.3.3", "fd00:10:244:1::3", "fd00:10:244:1::4"}, ipVersion: IPv6},
+			want: []string{"fd00:10:244:1::3", "fd00:10:244:1::4"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := FilterIPListPerVersion(tt.args.ipList, tt.args.ipVersion); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("FilterIPListPerVersion() = %v, want %v", got, tt.want)
 			}
 		})
 	}
