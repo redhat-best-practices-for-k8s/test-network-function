@@ -161,15 +161,15 @@ There are several required arguments:
 
 * `-t` gives the local directory that contains tnf config files set up for the test.
 * `-o` gives the local directory that the test results will be available in once the container exits. This directory must exist in order for the claim file to be written.
-* `-f` gives the list of suites to be run, space separated.
 
 Optional arguments are:
-
+* `-f` gives the list of suites to be run, space separated.
+* `-s` gives the name of tests that should be skipped
 * `-i` gives a name to a custom TNF container image. Supports local images, as well as images from external registries.
 * `-k` gives a path to one or more kubeconfig files to be used by the container to authenticate with the cluster. Paths must be separated by a colon.
 * `-n` gives the network mode of the container. Defaults set to `host`, which requires selinux to be disabled. Alternatively, `bridge` mode can be used with selinux if TNF_CONTAINER_CLIENT is set to `docker` or running the test as root. See the [docker run --network parameter reference](https://docs.docker.com/engine/reference/run/#network-settings) for more information on how to configure network settings.
-* `-s` gives the name of tests that should be skipped
 
+If `-f` is not specified, the tnf will run in 'diagnostic' mode. In this mode, no test case will run: it will only get information from the cluster (PUTs, CRDs, nodes info, etc...) to save it in the claim file. This can be used to make sure the configuration was properly set and the autodiscovery found the right pods/crds...
 
 If `-k` is not specified, autodiscovery is performed.
 The autodiscovery first looks for paths in the `$KUBECONFIG` environment variable on the host system, and if the variable is not set or is empty, the default configuration stored in `$HOME/.kube/config` is checked.
@@ -282,6 +282,8 @@ Run any combination of the suites keywords listed at in the [General tests](#gen
 ./run-cnf-suites.sh -f networking platform-alteration
 ./run-cnf-suites.sh -f networking lifecycle affiliated-certification operator
 ```
+
+As with "run-tnf-container.sh", if `-f` is not specified here, the tnf will run in 'diagnostic' mode. See [Run the tests](#run-the-tests) section for more info.
 
 By default the claim file will be output into the same location as the test executable. The `-o` argument for
 `run-cnf-suites.sh` can be used to provide a new location that the output files will be saved to. For more detailed
