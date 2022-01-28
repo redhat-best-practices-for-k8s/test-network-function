@@ -125,6 +125,7 @@ var _ = ginkgo.Describe(common.DiagnosticTestKey, func() {
 // The JSON fields come from the jq output
 type CniPlugin struct {
 	Name    string      `json:"name"`
+	Type    string      `json:"type"`
 	Version string      `json:"version"`
 	Plugins interface{} `json:"plugins"`
 }
@@ -189,7 +190,7 @@ func getWorkerNodeName(env *config.TestEnvironment) string {
 
 func listNodeCniPlugins(nodeName string) []CniPlugin {
 	// This command will return a JSON array, with the name, cniVersion and plugins fields from the cat output
-	const command = "cat /host/etc/cni/net.d/[0-999]* | jq -s '[ .[] | {name:.name, version:.cniVersion, plugins: .plugins}]'"
+	const command = "cat /host/etc/cni/net.d/[0-999]* | jq -s '[ .[] | {name:.name, type:.type, version:.cniVersion, plugins: .plugins}]'"
 	result := []CniPlugin{}
 	nodes := config.GetTestEnvironment().NodesUnderTest
 	context := nodes[nodeName].DebugContainer.GetOc()
