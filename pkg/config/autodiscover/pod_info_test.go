@@ -17,11 +17,12 @@
 package autodiscover
 
 import (
-	"log"
 	"os"
 	"path"
+	"reflect"
 	"testing"
 
+	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -58,4 +59,55 @@ func TestPodGetAnnotationValue(t *testing.T) {
 	err = pod.GetAnnotationValue("test-network-function.com/defaultnetworkinterface", &val)
 	assert.Equal(t, "eth0", val)
 	assert.Nil(t, err)
+}
+
+func TestPodResource_getDefaultPodIPAddresses(t *testing.T) {
+	type test struct {
+		name     string
+		testFile string
+		want     []string
+	}
+
+	// Passing tests
+	var testsExpectFail = []test{
+		{name: "ipv4ipv6",
+			testFile: "testorchestrator.json",
+			want:     []string{"2.2.2.3", "fd00:10:244:1::3"},
+		},
+	}
+
+	// Failing tests
+	var testsExpectPass = []test{
+		{name: "ipv4ipv6",
+			testFile: "ipv4ipv6pod.json",
+			want:     []string{"2.2.2.2", "fd00:10:244:1::3"},
+		},
+		{name: "ipv4",
+			testFile: "ipv4pod.json",
+			want:     []string{"2.2.2.2"},
+		},
+		{name: "ipv6",
+			testFile: "ipv6pod.json",
+			want:     []string{"fd00:10:244:1::3"},
+		},
+	}
+
+	// Expect fail
+	for _, tt := range testsExpectFail {
+		t.Run(tt.name, func(t *testing.T) {
+			pr := loadPodResource(path.Join(filePath, tt.testFile))
+			if got := pr.getDefaultPodIPAddresses(); reflect.DeepEqual(got, tt.want) {
+				t.Errorf("PodResource.getDefaultPodIPAddresses() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+	// Expect pass
+	for _, tt := range testsExpectPass {
+		t.Run(tt.name, func(t *testing.T) {
+			pr := loadPodResource(path.Join(filePath, tt.testFile))
+			if got := pr.getDefaultPodIPAddresses(); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("PodResource.getDefaultPodIPAddresses() = %v, want %v", got, tt.want)
+			}
+		})
+	}
 }
