@@ -254,7 +254,7 @@ func XformToGinkgoItIdentifier(identifier claim.Identifier) string {
 // XformToGinkgoItIdentifierExtended transform the claim.Identifier into a test Id that can be used to skip
 // specific tests
 func XformToGinkgoItIdentifierExtended(identifier claim.Identifier, extra string) string {
-	itID := strings.ReplaceAll(strings.TrimPrefix(identifier.Url, url+"/"), "/", "-")
+	itID := strings.ReplaceAll(strings.Join(GetSuiteAndTestFromIdentifier(identifier), "/"), "/", "-")
 	var key string
 	if extra != "" {
 		key = itID + "-" + extra
@@ -279,7 +279,8 @@ func GetSuiteAndTestFromIdentifier(identifier claim.Identifier) []string {
 	if len(result) != SPLITN {
 		return nil
 	}
-	return strings.Split(result[1], "/")
+	// Return only the first two items in the slice.
+	return strings.Split(result[1], "/")[0:2]
 }
 
 // Catalog is the JUnit testcase catalog of tests.

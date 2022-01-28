@@ -30,9 +30,15 @@ func TestGetSuiteAndTestFromIdentifier(t *testing.T) {
 	}{
 		{
 			testIdentifier: claim.Identifier{
+				Url: "http://test-network-function.com/testcases/SuiteName/TestName",
+			},
+			expectedResult: []string{"SuiteName", "TestName"},
+		},
+		{ // extra 'MyTest' added. The function should only return the Suite and Test names
+			testIdentifier: claim.Identifier{
 				Url: "http://test-network-function.com/testcases/SuiteName/TestName/MyTest",
 			},
-			expectedResult: []string{"SuiteName", "TestName", "MyTest"},
+			expectedResult: []string{"SuiteName", "TestName"},
 		},
 		{ // invalid formatting
 			testIdentifier: claim.Identifier{
@@ -55,16 +61,22 @@ func TestXformToGinkgoItIdentifier(t *testing.T) {
 	}{
 		{
 			testIdentifier: claim.Identifier{
+				Url: "http://test-network-function.com/testcases/SuiteName/TestName",
+			},
+			expectedResult: "SuiteName-TestName",
+		},
+		{ // extra 'MyTest' added
+			testIdentifier: claim.Identifier{
 				Url: "http://test-network-function.com/testcases/SuiteName/TestName/MyTest",
 			},
-			expectedResult: "SuiteName-TestName-MyTest",
+			expectedResult: "SuiteName-TestName",
 		},
 		{ // invalid formatting
 			testIdentifier: claim.Identifier{
 				Url:     "testURL",
 				Version: "testVersion",
 			},
-			expectedResult: "testURL",
+			expectedResult: "",
 		},
 	}
 
@@ -80,16 +92,22 @@ func TestXformToGinkgoItIdentifierExtended(t *testing.T) {
 	}{
 		{
 			testIdentifier: claim.Identifier{
+				Url: "http://test-network-function.com/testcases/SuiteName/TestName",
+			},
+			expectedResult: "SuiteName-TestName-extra",
+		},
+		{ // extra 'MyTest' added and subsequently removed
+			testIdentifier: claim.Identifier{
 				Url: "http://test-network-function.com/testcases/SuiteName/TestName/MyTest",
 			},
-			expectedResult: "SuiteName-TestName-MyTest-extra",
+			expectedResult: "SuiteName-TestName-extra",
 		},
 		{ // invalid formatting
 			testIdentifier: claim.Identifier{
 				Url:     "testURL",
 				Version: "testVersion",
 			},
-			expectedResult: "testURL-extra",
+			expectedResult: "-extra",
 		},
 	}
 
