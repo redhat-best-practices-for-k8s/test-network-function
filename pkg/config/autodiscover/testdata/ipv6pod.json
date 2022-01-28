@@ -1,0 +1,30 @@
+
+{
+    "metadata": {
+        "annotations": {
+            "k8s.v1.cni.cncf.io/networks-status": "[{\n    \"name\": \"\",\n    \"interface\": \"LowerPriorityInterface\",\n    \"ips\": [\n        \"1.1.1.1\"\n    ],\n    \"default\": true,\n    \"dns\": {}\n}]",
+            "test-network-function.com/defaultnetworkinterface": "\"eth0\""
+        },
+        "labels": {
+            "app": "partner",
+            "test-network-function.com/generic": "orchestrator",
+            "test-network-function.com/container": "target"
+        },
+        "name": "I'mAPodName",
+        "namespace": "tnf"
+    },
+    "spec": {
+        "containers": [
+            {
+                "name": "I'mAContainer"
+            }
+        ]
+    },
+    "status": {
+        "podIPs": [
+            {
+                "ip": "fd00:10:244:1::3"
+            }
+        ]
+    }
+}
