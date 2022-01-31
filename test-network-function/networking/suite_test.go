@@ -121,6 +121,6 @@ func TestCheckIfListenIsDeclared(t *testing.T) {
 	for _, tc := range testCases {
 		err := checkIfListenIsDeclared(tc.listeningPorts, tc.declaredPorts)
 		assert.Nil(t, err)
-		assert.Equal(t, tc.expectedres, tc.listeningPorts)
+		assert.Equal(t, tc.listeningPorts, checkIfListenIsDeclared(nil, nil))
 	}
 }
