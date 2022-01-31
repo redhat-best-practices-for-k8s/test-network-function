@@ -45,7 +45,7 @@ func TestParseVariables(t *testing.T) {
 	for _, tc := range testCases {
 		err := parseVariables(tc.inputRes, tc.declaredPorts)
 		assert.Nil(t, err)
-		assert.Equal(t, tc.declaredPorts, tc.expectedDeclaredPorts)
+		assert.Equal(t, tc.expectedDeclaredPorts, tc.declaredPorts)
 	}
 }
 
@@ -73,7 +73,7 @@ func TestDeclaredPortList(t *testing.T) {
 	for _, tc := range testCases {
 		err := declaredPortList(tc.container, tc.podName, tc.podNamespace, tc.declaredPorts)
 		assert.Nil(t, err)
-		assert.Equal(t, tc.declaredPorts, tc.expectedDeclaredPorts)
+		assert.Equal(t, tc.expectedDeclaredPorts, tc.declaredPorts)
 	}
 }
 
@@ -98,7 +98,7 @@ func TestListeningPortList(t *testing.T) {
 	for _, tc := range testCases {
 		err := listeningPortList(tc.commandlisten, tc.nodeOc, tc.listeningPorts)
 		assert.Nil(t, err)
-		assert.Equal(t, tc.listeningPorts, tc.expectedlisteningPorts)
+		assert.Equal(t, tc.expectedlisteningPorts, tc.listeningPorts)
 	}
 }
 
@@ -121,6 +121,6 @@ func TestCheckIfListenIsDeclared(t *testing.T) {
 	for _, tc := range testCases {
 		err := checkIfListenIsDeclared(tc.listeningPorts, tc.declaredPorts)
 		assert.Nil(t, err)
-		assert.Equal(t, tc.listeningPorts, tc.expectedres)
+		assert.Equal(t, tc.expectedres, tc.listeningPorts)
 	}
 }
