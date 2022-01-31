@@ -197,6 +197,9 @@ func getCrsNamespaces(crdName, crdKind string, context *interactive.Context) (ma
 }
 
 func parseCrOutput(rawOutput string) (map[string]string, error) {
+	const crNameFieldIdx = 0
+	const namespaceFieldIdx = 1
+	const expectedNumFields = 2
 	crNamespaces := map[string]string{}
 	if rawOutput == "" {
 		// Filter out empty (0 CRs) output.
@@ -206,13 +209,10 @@ func parseCrOutput(rawOutput string) (map[string]string, error) {
 	lines := strings.Split(rawOutput, "\n")
 	for _, line := range lines {
 		lineFields := strings.Split(line, ",")
-		//nolint:gomnd
-		if len(lineFields) != 2 {
+		if len(lineFields) != expectedNumFields {
 			return crNamespaces, fmt.Errorf("failed to parse output line %s", line)
 		}
-		// 0 = CR Name
-		// 1 = CR Namespace
-		crNamespaces[lineFields[0]] = lineFields[1]
+		crNamespaces[lineFields[crNameFieldIdx]] = lineFields[namespaceFieldIdx]
 	}
 
 	return crNamespaces, nil
