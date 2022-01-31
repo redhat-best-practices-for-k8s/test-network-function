@@ -35,10 +35,10 @@ func TestParseVariables(t *testing.T) {
 		exceptedRes           string
 	}{
 		{
-			inputRes:              `jsonBlobHere`,
+			inputRes:              `[\n  {\n    \"containerPort\": 8080,\n    \"name\": \"http-probe\",\n    \"protocol\": \"TCP\"\n  }\n]`,
 			declaredPorts:         map[key]string{},
 			expectedDeclaredPorts: map[key]string{},
-			exceptedRes:           `jsonBlobHere`,
+			exceptedRes:           `[\n  {\n    \"containerPort\": 8080,\n    \"name\": \"http-probe\",\n    \"protocol\": \"TCP\"\n  }\n]`,
 		},
 	}
 
@@ -62,9 +62,9 @@ func TestDeclaredPortList(t *testing.T) {
 		expectedDeclaredPorts map[key]string
 	}{
 		{
-			container:             12,
-			podName:               "xxx",
-			podNamespace:          "yy",
+			container:             0,
+			podName:               "test-54bc4c6d7-2gwlz",
+			podNamespace:          "tnf",
 			declaredPorts:         map[key]string{},
 			expectedDeclaredPorts: map[key]string{},
 		},
@@ -89,7 +89,7 @@ func TestListeningPortList(t *testing.T) {
 		expectedlisteningPorts map[key]string
 	}{
 		{
-			commandlisten:          []string{"ss -tulwnH"},
+			commandlisten:          []string{"nsenter -t 4380 -n", "ss -tulwnH"},
 			nodeOc:                 nil,
 			listeningPorts:         map[key]string{},
 			expectedlisteningPorts: map[key]string{},
