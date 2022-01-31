@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"strings"
 
-	ginkgoTypes "github.com/onsi/ginkgo/types"
+	ginkgoTypes "github.com/onsi/ginkgo/v2/types"
 	"github.com/test-network-function/test-network-function-claim/pkg/claim"
 	"github.com/test-network-function/test-network-function/test-network-function/identifiers"
 )
