@@ -543,3 +543,9 @@ For example:
 ```shell script
 TNF_DEFAULT_BUFFER_SIZE=32768 ./run-cnf-suites.sh -f diagnostic
 ```
+
+# Testing certified operator
+to test if operator certified need to label it with this command
+```shell script
+oc label csv <name> -n <namespace> "test-network-function.com/operator=target" 
+```
