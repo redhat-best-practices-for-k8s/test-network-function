@@ -1,5 +1,4 @@
 // Copyright (C) 2021 Red Hat, Inc.
-// Copyright (C) 2021 Red Hat, Inc.
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -255,7 +254,7 @@ func XformToGinkgoItIdentifier(identifier claim.Identifier) string {
 // XformToGinkgoItIdentifierExtended transform the claim.Identifier into a test Id that can be used to skip
 // specific tests
 func XformToGinkgoItIdentifierExtended(identifier claim.Identifier, extra string) string {
-	itID := strings.ReplaceAll(strings.TrimPrefix(identifier.Url, url+"/"), "/", "-")
+	itID := strings.ReplaceAll(strings.Join(GetSuiteAndTestFromIdentifier(identifier), "/"), "/", "-")
 	var key string
 	if extra != "" {
 		key = itID + "-" + extra
@@ -269,8 +268,8 @@ func XformToGinkgoItIdentifierExtended(identifier claim.Identifier, extra string
 // it extracts the suite name and test name from a claim.Identifier based
 // on the const url which contains a base domain
 // From a claim.Identifier.url:
-//   http://test-network-function.com/tests-case/SuitName/TestName
-// It extracts SuitNAme and TestName
+//   http://test-network-function.com/testcases/SuiteName/TestName
+// It extracts SuiteName and TestName
 
 func GetSuiteAndTestFromIdentifier(identifier claim.Identifier) []string {
 	result := strings.Split(identifier.Url, url+"/")
@@ -280,7 +279,8 @@ func GetSuiteAndTestFromIdentifier(identifier claim.Identifier) []string {
 	if len(result) != SPLITN {
 		return nil
 	}
-	return strings.Split(result[1], "/")
+	// Return only the first two items in the slice.
+	return strings.Split(result[1], "/")[0:2]
 }
 
 // Catalog is the JUnit testcase catalog of tests.
