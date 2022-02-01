@@ -34,7 +34,7 @@ import (
 	"github.com/test-network-function/test-network-function/test-network-function/common"
 	"github.com/test-network-function/test-network-function/test-network-function/identifiers"
 
-	"github.com/onsi/ginkgo"
+	"github.com/onsi/ginkgo/v2"
 	"github.com/onsi/gomega"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/base/redhat"
@@ -696,8 +696,8 @@ func testNodeHugepagesWithMcSystemd(nodeName string, nodeNumaHugePages, mcSystem
 				}
 			}
 			if !configMatching {
-				return false, fmt.Errorf(fmt.Sprintf("MC numa=%d, hugepages (count:%d, size:%d) not matching node ones: %s",
-					mcNumaIdx, mcHugepagesCfg.hugepagesCount, mcHugepagesCfg.hugepagesSize, nodeNumaHugePages))
+				return false, fmt.Errorf("MC numa=%d, hugepages (count:%d, size:%d) not matching node ones: %s",
+					mcNumaIdx, mcHugepagesCfg.hugepagesCount, mcHugepagesCfg.hugepagesSize, nodeNumaHugePages)
 			}
 		}
 	}

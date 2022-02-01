@@ -21,7 +21,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/onsi/ginkgo"
+	"github.com/onsi/ginkgo/v2"
 	log "github.com/sirupsen/logrus"
 	"github.com/test-network-function/test-network-function/internal/api"
 	configpkg "github.com/test-network-function/test-network-function/pkg/config"
@@ -72,9 +72,9 @@ var _ = ginkgo.Describe(common.AffiliatedCertTestKey, func() {
 })
 
 // getContainerCertificationRequestFunction returns function that will try to get the certification status (CCP) for a container.
-func getContainerCertificationRequestFunction(id configsections.ContainerImageIdentifier) func() (bool, error) {
-	return func() (bool, error) {
-		return certAPIClient.IsContainerCertified(id)
+func getContainerCertificationRequestFunction(id configsections.ContainerImageIdentifier) func() (interface{}, error) {
+	return func() (interface{}, error) {
+		return certAPIClient.GetContainerCatalogEntry(id)
 	}
 }
 
@@ -86,14 +86,14 @@ func getOperatorCertificationRequestFunction(organization, operatorName, ocpvers
 }
 
 // waitForCertificationRequestToSuccess calls to certificationRequestFunc until it returns true.
-func waitForCertificationRequestToSuccess(certificationRequestFunc func() (bool, error), timeout time.Duration) bool {
+func waitForCertificationRequestToSuccess(certificationRequestFunc func() (interface{}, error), timeout time.Duration) interface{} {
 	const pollingPeriod = 1 * time.Second
 	var elapsed time.Duration
 	var err error
-	isCertified := false
+	var result interface{}
 
 	for elapsed < timeout {
-		isCertified, err = certificationRequestFunc()
+		result, err = certificationRequestFunc()
 
 		if err == nil {
 			break
@@ -101,7 +101,7 @@ func waitForCertificationRequestToSuccess(certificationRequestFunc func() (bool,
 		time.Sleep(pollingPeriod)
 		elapsed += pollingPeriod
 	}
-	return isCertified
+	return result
 }
 
 func testContainerCertificationStatus() {
@@ -133,11 +133,15 @@ func testContainerCertificationStatus() {
 				}
 				allContainersToQueryEmpty = false
 				ginkgo.By(fmt.Sprintf("Container %s/%s should eventually be verified as certified", c.Repository, c.Name))
-				isCertified := waitForCertificationRequestToSuccess(getContainerCertificationRequestFunction(c), apiRequestTimeout)
-				if !isCertified {
+				entry := waitForCertificationRequestToSuccess(getContainerCertificationRequestFunction(c), apiRequestTimeout).(*api.ContainerCatalogEntry)
+				if entry == nil {
 					tnf.ClaimFilePrintf("Container %s (repository %s) is not found in the certified container catalog.", c.Name, c.Repository)
 					failedContainers = append(failedContainers, c)
 				} else {
+					if entry.GetBestFreshnessGrade() > "C" {
+						tnf.ClaimFilePrintf("Container %s (repository %s) is found in the certified container catalog but with low health index '%s'.", c.Name, c.Repository, entry.GetBestFreshnessGrade())
+						failedContainers = append(failedContainers, c)
+					}
 					log.Info(fmt.Sprintf("Container %s (repository %s) is certified.", c.Name, c.Repository))
 				}
 			}
@@ -163,7 +167,6 @@ func testAllOperatorCertified(env *configpkg.TestEnvironment) {
 		}
 
 		ginkgo.By(fmt.Sprintf("Verify operator as certified. Number of operators to check: %d", len(operatorsToQuery)))
-
 		testFailed := false
 		for _, op := range operatorsToQuery {
 			ocpversion := GetOcpVersion()

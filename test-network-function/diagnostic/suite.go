@@ -10,7 +10,7 @@ import (
 	"github.com/test-network-function/test-network-function/test-network-function/common"
 	"github.com/test-network-function/test-network-function/test-network-function/identifiers"
 
-	"github.com/onsi/ginkgo"
+	"github.com/onsi/ginkgo/v2"
 	"github.com/onsi/gomega"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/clusterversion"
@@ -125,6 +125,7 @@ var _ = ginkgo.Describe(common.DiagnosticTestKey, func() {
 // The JSON fields come from the jq output
 type CniPlugin struct {
 	Name    string      `json:"name"`
+	Type    string      `json:"type"`
 	Version string      `json:"version"`
 	Plugins interface{} `json:"plugins"`
 }
@@ -189,7 +190,7 @@ func getWorkerNodeName(env *config.TestEnvironment) string {
 
 func listNodeCniPlugins(nodeName string) []CniPlugin {
 	// This command will return a JSON array, with the name, cniVersion and plugins fields from the cat output
-	const command = "cat /host/etc/cni/net.d/[0-999]* | jq -s '[ .[] | {name:.name, version:.cniVersion, plugins: .plugins}]'"
+	const command = "cat /host/etc/cni/net.d/[0-999]* | jq -s '[ .[] | {name:.name, type:.type, version:.cniVersion, plugins: .plugins}]'"
 	result := []CniPlugin{}
 	nodes := config.GetTestEnvironment().NodesUnderTest
 	context := nodes[nodeName].DebugContainer.GetOc()
