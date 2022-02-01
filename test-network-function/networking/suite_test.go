@@ -21,7 +21,8 @@ import (
 	"testing"
 )
 
-func TestIsIPv4AndIsIPv6(t *testing.T) {
+//nolint:dupl // not duplicate
+func TestIsIPv6(t *testing.T) {
 	type args struct {
 		address string
 	}
@@ -33,12 +34,61 @@ func TestIsIPv4AndIsIPv6(t *testing.T) {
 	// Passing tests
 	var tests = []test{
 		{
-			name: "ipv4",
+			name: "ipv4ok",
+			args: args{address: "2.2.2.2"},
+			want: false,
+		}, {
+			name: "ipv6ok",
+			args: args{address: "fd00:10:244:1::3"},
+			want: true,
+		}, {
+			name: "ipv4bad",
+			args: args{address: "2.2.2"},
+			want: false,
+		}, {
+			name: "ipv6bad",
+			args: args{address: "fd00:10:244:hrt::3"},
+			want: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// testing IsIPv6
+			if got := IsIPv6(tt.args.address); got != tt.want {
+				t.Errorf("IsIPv6() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+//nolint:dupl // not duplicate
+func TestIsIPv4(t *testing.T) {
+	type args struct {
+		address string
+	}
+	type test struct {
+		name string
+		args args
+		want bool
+	}
+	// Passing tests
+	var tests = []test{
+		{
+			name: "ipv4ok",
 			args: args{address: "2.2.2.2"},
 			want: true,
 		}, {
-			name: "ipv6",
+			name: "ipv6ok",
 			args: args{address: "fd00:10:244:1::3"},
+			want: false,
+		}, {
+			name: "ipv4bad",
+			args: args{address: "2.2.2"},
+			want: false,
+		}, {
+			name: "ipv6bad",
+			args: args{address: "fd00:10:244:hrt::3"},
 			want: false,
 		},
 	}
@@ -49,18 +99,13 @@ func TestIsIPv4AndIsIPv6(t *testing.T) {
 			if got := IsIPv4(tt.args.address); got != tt.want {
 				t.Errorf("IsIPv4() = %v, want %v", got, tt.want)
 			}
-			// testing IsIPv6
-			if got := IsIPv6(tt.args.address); got == tt.want {
-				t.Errorf("IsIPv6() = %v, want %v", got, tt.want)
-			}
 		})
 	}
 }
-
 func TestFilterIPListPerVersion(t *testing.T) {
 	type args struct {
 		ipList    []string
-		ipVersion string
+		ipVersion ipVersion
 	}
 	tests := []struct {
 		name string
