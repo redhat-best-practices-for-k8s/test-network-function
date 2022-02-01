@@ -33,7 +33,7 @@ import (
 	"github.com/test-network-function/test-network-function/test-network-function/common"
 	"github.com/test-network-function/test-network-function/test-network-function/identifiers"
 
-	"github.com/onsi/ginkgo"
+	"github.com/onsi/ginkgo/v2"
 	"github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
@@ -283,6 +283,7 @@ func testNodeSelector(env *config.TestEnvironment) {
 	ginkgo.It(testID, ginkgo.Label(testID), func() {
 		ginkgo.By("Testing pod nodeSelector")
 		context := env.GetLocalShellContext()
+		badPods := []configsections.Pod{}
 		for _, podUnderTest := range env.PodsUnderTest {
 			podName := podUnderTest.Name
 			podNamespace := podUnderTest.Namespace
@@ -290,9 +291,19 @@ func testNodeSelector(env *config.TestEnvironment) {
 			tester := nodeselector.NewNodeSelector(common.DefaultTimeout, podName, podNamespace)
 			test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 			gomega.Expect(err).To(gomega.BeNil())
-			test.RunAndValidateWithFailureCallback(func() {
-				tnf.ClaimFilePrintf("The pod specifies nodeSelector/nodeAffinity field, you might want to change it, %s %s", podNamespace, podName)
+
+			test.RunWithCallbacks(nil, func() {
+				tnf.ClaimFilePrintf("FAILURE: Pod %s/%s has nodeSelector/nodeAffinity rule", podNamespace, podName)
+				badPods = append(badPods, *podUnderTest)
+			}, func(err error) {
+				tnf.ClaimFilePrintf("ERROR: Pod %s/%s, error: %v", podNamespace, podName, err)
+				badPods = append(badPods, *podUnderTest)
 			})
+		}
+
+		if n := len(badPods); n > 0 {
+			log.Debugf("Pods with nodeSelector/nodeAffinity: %+v", badPods)
+			ginkgo.Fail(fmt.Sprintf("%d pods found with nodeSelector/nodeAffinity rules", n))
 		}
 	})
 }
@@ -604,17 +615,25 @@ func testPodAntiAffinity(env *config.TestEnvironment) {
 				ginkgo.Skip("No test deployments found.")
 			}
 
+			badDeployments := []configsections.PodSet{}
 			for _, deployment := range env.DeploymentsUnderTest {
 				ginkgo.By(fmt.Sprintf("Testing Pod AntiAffinity on Deployment=%s, Replicas=%d (ns=%s)",
 					deployment.Name, deployment.Replicas, deployment.Namespace))
-				podAntiAffinity(deployment.Name, deployment.Namespace, deployment.Replicas, env.GetLocalShellContext())
+				if !podAntiAffinity(deployment.Name, deployment.Namespace, deployment.Replicas, env.GetLocalShellContext()) {
+					badDeployments = append(badDeployments, deployment)
+				}
+			}
+
+			if n := len(badDeployments); n > 0 {
+				log.Debugf("Deployments without a valid podAntiAffinity rule: %+v", badDeployments)
+				ginkgo.Fail(fmt.Sprintf("%d deployments failed the test for replicaCount > 1 and podAntiAffinity rule.", n))
 			}
 		})
 	})
 }
 
 // check pod antiaffinity definition for a deployment
-func podAntiAffinity(deployment, podNamespace string, replica int, context *interactive.Context) {
+func podAntiAffinity(deployment, podNamespace string, replica int, context *interactive.Context) bool {
 	values := make(map[string]interface{})
 	values["DEPLOYMENT_NAME"] = deployment
 	values["DEPLOYMENT_NAMESPACE"] = podNamespace
@@ -623,16 +642,23 @@ func podAntiAffinity(deployment, podNamespace string, replica int, context *inte
 	gomega.Expect(err).To(gomega.BeNil())
 	gomega.Expect(test).ToNot(gomega.BeNil())
 
-	test.RunAndValidateWithFailureCallback(func() {
+	result := true
+	test.RunWithCallbacks(nil, func() {
+		result = false
 		if replica > 1 {
-			tnf.ClaimFilePrintf("The deployment replica count is %d, but a podAntiAffinity rule is not defined, "+
+			tnf.ClaimFilePrintf("FAILURE: The deployment replica count is %d, but a podAntiAffinity rule is not defined, "+
 				"you might want to change it in deployment %s in namespace %s", replica, deployment, podNamespace)
 		} else {
-			tnf.ClaimFilePrintf("The deployment replica count is %d. Pod replica should be > 1 with an "+
+			tnf.ClaimFilePrintf("FAILURE: The deployment replica count is %d. Pod replica should be > 1 with an "+
 				"podAntiAffinity rule defined . You might want to change it in deployment %s in namespace %s",
 				replica, deployment, podNamespace)
 		}
+	}, func(err error) {
+		result = false
+		tnf.ClaimFilePrintf("ERROR: Failed to get replica count and podAntiAffinity for deployment %s (ns %s). Error: %v", err)
 	})
+
+	return result
 }
 
 func testOwner(env *config.TestEnvironment) {
