@@ -19,6 +19,7 @@ package networking
 import (
 	"encoding/json"
 	"fmt"
+	"net"
 	"strconv"
 	"strings"
 	"time"
@@ -50,8 +51,13 @@ const (
 	indexprotocolname   = 0
 	indexport           = 4
 	defaultNumPings     = 5
-	IPv6                = "IPv6"
-	IPv4                = "IPv4"
+)
+
+type ipVersion string
+
+const (
+	IPv4 ipVersion = "IPv4"
+	IPv6 ipVersion = "IPv6"
 )
 
 type key struct {
@@ -158,8 +164,8 @@ func processContainerIpsPerNet(containerID *configsections.ContainerIdentifier,
 	ipAddresses []string,
 	netsUnderTest map[string]netTestContext,
 	containerNodeOc *interactive.Oc,
-	ipVersion string) {
-	ipAddressesFiltered := FilterIPListPerVersion(ipAddresses, ipVersion)
+	aIPVersion ipVersion) {
+	ipAddressesFiltered := FilterIPListPerVersion(ipAddresses, aIPVersion)
 	if len(ipAddressesFiltered) == 0 {
 		// if no multus addresses found, skip this container
 		tnf.ClaimFilePrintf("Skipping container %s, Network %s because no multus IPs are present", containerID.PodName, netKey)
@@ -195,21 +201,36 @@ func processContainerIpsPerNet(containerID *configsections.ContainerIdentifier,
 }
 
 func IsIPv4(address string) bool {
-	return strings.Count(address, ":") < 2 //nolint:gomnd // less readable
+	ip := net.ParseIP(address)
+	if ip == nil {
+		return false
+	}
+	if ip.To4() == nil {
+		return false
+	}
+	return true
 }
 
 func IsIPv6(address string) bool {
-	return strings.Count(address, ":") >= 2 //nolint:gomnd // less readable
+	ip := net.ParseIP(address)
+	if ip == nil {
+		return false
+	}
+	if ip.To4() != nil {
+		return false
+	}
+	return true
 }
 
-func FilterIPListPerVersion(ipList []string, ipVersion string) []string {
+func FilterIPListPerVersion(ipList []string, aIPVersion ipVersion) []string {
 	var filteredIPList []string
 	for _, aIP := range ipList {
-		if ipVersion == IPv4 && IsIPv4(aIP) {
+		if aIPVersion == IPv4 && IsIPv4(aIP) {
 			filteredIPList = append(filteredIPList, aIP)
-		}
-		if ipVersion == IPv6 && IsIPv6(aIP) {
+		} else if aIPVersion == IPv6 && IsIPv6(aIP) {
 			filteredIPList = append(filteredIPList, aIP)
+		} else {
+			log.Errorf("The IP address: %s, is not a valid IPv4 or IPv6. It will not be added to the %s test", aIP, aIPVersion)
 		}
 	}
 	return filteredIPList
@@ -217,11 +238,11 @@ func FilterIPListPerVersion(ipList []string, ipVersion string) []string {
 
 // runNetworkingTests takes a map netTestContext, e.g. one context per network attachment
 // and runs pings test with it. Returns a network name to a slice of bad target IPs map.
-func runNetworkingTests(netsUnderTest map[string]netTestContext, count int, ipVersion string) map[string][]string {
+func runNetworkingTests(netsUnderTest map[string]netTestContext, count int, aIPVersion ipVersion) map[string][]string {
 	tnf.ClaimFilePrintf("%s", printNetTestContextMap(netsUnderTest))
 	log.Debugf("%s", printNetTestContextMap(netsUnderTest))
 	if len(netsUnderTest) == 0 {
-		ginkgo.Skip(fmt.Sprintf("There are no %s networks to test, skipping test", ipVersion))
+		ginkgo.Skip(fmt.Sprintf("There are no %s networks to test, skipping test", aIPVersion))
 	}
 	// maps a net name to a list of failed destination IPs
 	badNets := map[string][]string{}
@@ -231,15 +252,15 @@ func runNetworkingTests(netsUnderTest map[string]netTestContext, count int, ipVe
 	atLeastOneNetworkTested := false
 	for netName, netUnderTest := range netsUnderTest {
 		if len(netUnderTest.destTargets) == 0 {
-			log.Warnf("There are no containers to ping for %s network %s. A minimum of 2 containers is needed to run a ping test (a source and a destination) Skipping test", ipVersion, netName)
-			tnf.ClaimFilePrintf("There are no containers to ping for %s network %s. Skip testing this network", ipVersion, netName)
+			log.Warnf("There are no containers to ping for %s network %s. A minimum of 2 containers is needed to run a ping test (a source and a destination) Skipping test", aIPVersion, netName)
+			tnf.ClaimFilePrintf("There are no containers to ping for %s network %s. Skip testing this network", aIPVersion, netName)
 			continue
 		}
 		atLeastOneNetworkTested = true
-		ginkgo.By(fmt.Sprintf("%s Ping tests on network %s. Number of target IPs: %d", ipVersion, netName, len(netUnderTest.destTargets)))
+		ginkgo.By(fmt.Sprintf("%s Ping tests on network %s. Number of target IPs: %d", aIPVersion, netName, len(netUnderTest.destTargets)))
 		for _, aDestIP := range netUnderTest.destTargets {
 			ginkgo.By(fmt.Sprintf("a %s Ping is issued from %s(%s) %s to %s(%s) %s",
-				ipVersion,
+				aIPVersion,
 				netUnderTest.testerSource.containerIdentifier.PodName,
 				netUnderTest.testerSource.containerIdentifier.ContainerName,
 				netUnderTest.testerSource.ip, aDestIP.containerIdentifier.PodName,
@@ -256,14 +277,14 @@ func runNetworkingTests(netsUnderTest map[string]netTestContext, count int, ipVe
 		}
 	}
 	if !atLeastOneNetworkTested {
-		ginkgo.Skip(fmt.Sprintf("There are no network to test for any %s networks, skipping test", ipVersion))
+		ginkgo.Skip(fmt.Sprintf("There are no network to test for any %s networks, skipping test", aIPVersion))
 	}
 	return badNets
 }
-func testDefaultNetworkConnectivity(env *config.TestEnvironment, count int, ipVersion string) {
+func testDefaultNetworkConnectivity(env *config.TestEnvironment, count int, aIPVersion ipVersion) {
 	ginkgo.When("Testing Default network connectivity", func() {
 		identifier := identifiers.TestICMPv4ConnectivityIdentifier
-		if ipVersion == IPv6 {
+		if aIPVersion == IPv6 {
 			identifier = identifiers.TestICMPv6ConnectivityIdentifier
 		}
 		testID := identifiers.XformToGinkgoItIdentifier(identifier)
@@ -282,20 +303,20 @@ func testDefaultNetworkConnectivity(env *config.TestEnvironment, count int, ipVe
 				gomega.Expect(env.NodesUnderTest[aContainerInPod.NodeName]).To(gomega.Not(gomega.BeNil()))
 				gomega.Expect(env.NodesUnderTest[aContainerInPod.NodeName].DebugContainer.GetOc()).To(gomega.Not(gomega.BeNil()))
 				nodeOc := env.NodesUnderTest[aContainerInPod.NodeName].DebugContainer.GetOc()
-				processContainerIpsPerNet(&aContainerInPod.ContainerIdentifier, netKey, defaultIPAddress, netsUnderTest, nodeOc, ipVersion)
+				processContainerIpsPerNet(&aContainerInPod.ContainerIdentifier, netKey, defaultIPAddress, netsUnderTest, nodeOc, aIPVersion)
 			}
-			badNets := runNetworkingTests(netsUnderTest, count, ipVersion)
+			badNets := runNetworkingTests(netsUnderTest, count, aIPVersion)
 
 			if n := len(badNets); n > 0 {
 				log.Warnf("Failed nets: %+v", badNets)
-				ginkgo.Fail(fmt.Sprintf("%d nets failed the default network %s ping test.", n, ipVersion))
+				ginkgo.Fail(fmt.Sprintf("%d nets failed the default network %s ping test.", n, aIPVersion))
 			}
 		})
 	})
 }
-func testMultusNetworkConnectivity(env *config.TestEnvironment, count int, ipVersion string) {
+func testMultusNetworkConnectivity(env *config.TestEnvironment, count int, aIPVersion ipVersion) {
 	identifier := identifiers.TestICMPv4ConnectivityMultusIdentifier
-	if ipVersion == IPv6 {
+	if aIPVersion == IPv6 {
 		identifier = identifiers.TestICMPv6ConnectivityMultusIdentifier
 	}
 	ginkgo.When("Testing Multus network connectivity", func() {
@@ -317,14 +338,14 @@ func testMultusNetworkConnectivity(env *config.TestEnvironment, count int, ipVer
 					gomega.Expect(env.NodesUnderTest[aContainerInPod.NodeName]).To(gomega.Not(gomega.BeNil()))
 					gomega.Expect(env.NodesUnderTest[aContainerInPod.NodeName].DebugContainer.GetOc()).To(gomega.Not(gomega.BeNil()))
 					nodeOc := env.NodesUnderTest[aContainerInPod.NodeName].DebugContainer.GetOc()
-					processContainerIpsPerNet(&aContainerInPod.ContainerIdentifier, netKey, multusIPAddress, netsUnderTest, nodeOc, ipVersion)
+					processContainerIpsPerNet(&aContainerInPod.ContainerIdentifier, netKey, multusIPAddress, netsUnderTest, nodeOc, aIPVersion)
 				}
 			}
-			badNets := runNetworkingTests(netsUnderTest, count, ipVersion)
+			badNets := runNetworkingTests(netsUnderTest, count, aIPVersion)
 
 			if n := len(badNets); n > 0 {
 				log.Warnf("Failed nets: %+v", badNets)
-				ginkgo.Fail(fmt.Sprintf("%d nets failed the multus %s ping test.", n, ipVersion))
+				ginkgo.Fail(fmt.Sprintf("%d nets failed the multus %s ping test.", n, aIPVersion))
 			}
 		})
 	})
