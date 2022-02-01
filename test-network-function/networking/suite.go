@@ -329,7 +329,7 @@ func testMultusNetworkConnectivity(env *config.TestEnvironment, count int, aIPVe
 				if _, ok := env.ContainersToExcludeFromConnectivityTests[aContainerInPod.ContainerIdentifier]; ok {
 					tnf.ClaimFilePrintf("Skipping pod %s because it is excluded from all connectivity tests", pod.Name)
 					continue
-				} 
+				}
 				if _, ok := env.ContainersToExcludeFromMultusConnectivityTests[aContainerInPod.ContainerIdentifier]; ok {
 					tnf.ClaimFilePrintf("Skipping pod %s because it is excluded from multus connectivity tests only", pod.Name)
 					continue
