@@ -65,13 +65,6 @@ function html_output() {
 }
 trap html_output EXIT
 
-
-# If no focus is set then display usage and quit with a non-zero exit code.
-if [ -z "$FOCUS" ]; then
-   echo "no focus found - only diagnostic mode"
-   GINKGO_ARGS="${GINKGO_ARGS} -diagnostic"
-fi
-
 FOCUS=${FOCUS%?}  # strip the trailing "|" from the concatenation
 SKIP=${SKIP%?} # strip the trailing "|" from the concatenation
 LABEL=${LABEL%?} # strip the trailing "|" from the concatenation
@@ -101,13 +94,19 @@ echo "Running with skip  '$SKIP'"
 echo "Running with label filter '$LABEL'"
 echo "Report will be output to '$OUTPUT_LOC'"
 echo "ginkgo arguments '${GINKGO_ARGS}'"
+FOCUS_STRING=""
 SKIP_STRING=""
 LABEL_STRING=""
-if [ -n "$SKIP" ]; then
-	SKIP_STRING=-ginkgo.skip="$SKIP"
-fi
-if [ -n "$LABEL" ]; then
-    LABEL_STRING=-ginkgo.label-filter="$LABEL"
+if [ -n "$FOCUS" ]; then
+    FOCUS_STRING=-ginkgo.focus="$FOCUS"
+    if [ -n "$SKIP" ]; then
+        SKIP_STRING=-ginkgo.skip="$SKIP"
+    fi
+    if [ -n "$LABEL" ]; then
+        LABEL_STRING=-ginkgo.label-filter="$LABEL"
+    fi
+else
+    echo "No test suite (-f) was set, so only diagnostic functions will run. Skip patterns (-s) and labels (-l) will be ignored".
 fi
 
-cd ./test-network-function && ./test-network-function.test -ginkgo.focus="$FOCUS" $SKIP_STRING $LABEL_STRING ${GINKGO_ARGS}
+cd ./test-network-function && ./test-network-function.test $FOCUS_STRING $SKIP_STRING $LABEL_STRING ${GINKGO_ARGS}

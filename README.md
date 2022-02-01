@@ -164,7 +164,7 @@ There are several required arguments:
 
 Optional arguments are:
 * `-f` gives the list of suites to be run, space separated.
-* `-s` gives the name of tests that should be skipped
+* `-s` gives the name of tests that should be skipped. This flag is discarded if no `-f` was set.
 * `-i` gives a name to a custom TNF container image. Supports local images, as well as images from external registries.
 * `-k` gives a path to one or more kubeconfig files to be used by the container to authenticate with the cluster. Paths must be separated by a colon.
 * `-n` gives the network mode of the container. Defaults set to `host`, which requires selinux to be disabled. Alternatively, `bridge` mode can be used with selinux if TNF_CONTAINER_CLIENT is set to `docker` or running the test as root. See the [docker run --network parameter reference](https://docs.docker.com/engine/reference/run/#network-settings) for more information on how to configure network settings.
