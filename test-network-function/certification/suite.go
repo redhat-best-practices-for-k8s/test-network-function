@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/onsi/ginkgo"
+	"github.com/onsi/ginkgo/v2"
 	log "github.com/sirupsen/logrus"
 	"github.com/test-network-function/test-network-function/internal/api"
 	configpkg "github.com/test-network-function/test-network-function/pkg/config"

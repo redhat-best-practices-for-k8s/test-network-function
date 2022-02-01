@@ -17,7 +17,7 @@
 package common
 
 import (
-	"github.com/onsi/ginkgo"
+	"github.com/onsi/ginkgo/v2"
 	log "github.com/sirupsen/logrus"
 	configpkg "github.com/test-network-function/test-network-function/pkg/config"
 	"github.com/test-network-function/test-network-function/pkg/config/autodiscover"
