@@ -94,7 +94,7 @@ Test Case Name|container-is-certified
 Test Case Label|affiliated-certification-container-is-certified
 Unique ID|http://test-network-function.com/testcases/affiliated-certification/container-is-certified
 Version|v1.0.0
-Description|http://test-network-function.com/testcases/affiliated-certification/container-is-certified tests whether container images listed in the configuration file or used by test target Pods have passed the Red Hat Container Certification Program (CCP).
+Description|http://test-network-function.com/testcases/affiliated-certification/container-is-certified tests whether container images listed in the configuration file or used by test target Pods have passed the Red Hat Container  			Certification Program (CCP) with a [health index](https://redhat-connect.gitbook.io/catalog-help/container-images/container-health) C or above.
 Result Type|normative
 Suggested Remediation|Ensure that your container has passed the Red Hat Container Certification Program (CCP).
 Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.3.7

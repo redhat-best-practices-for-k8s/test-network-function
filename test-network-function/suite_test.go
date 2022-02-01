@@ -26,7 +26,7 @@ import (
 
 	"github.com/test-network-function/test-network-function/test-network-function/results"
 
-	"github.com/onsi/ginkgo"
+	"github.com/onsi/ginkgo/v2"
 	"github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
 	"github.com/test-network-function/test-network-function-claim/pkg/claim"
