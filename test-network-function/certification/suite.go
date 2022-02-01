@@ -79,8 +79,8 @@ func getContainerCertificationRequestFunction(id configsections.ContainerImageId
 }
 
 // getOperatorCertificationRequestFunction returns function that will try to get the certification status (OCP) for an operator.
-func getOperatorCertificationRequestFunction(organization, operatorName, ocpversion string) func() (bool, error) {
-	return func() (bool, error) {
+func getOperatorCertificationRequestFunction(organization, operatorName, ocpversion string) func() (interface{}, error) {
+	return func() (interface{}, error) {
 		return certAPIClient.IsOperatorCertified(organization, operatorName, ocpversion)
 	}
 }
@@ -173,7 +173,7 @@ func testAllOperatorCertified(env *configpkg.TestEnvironment) {
 			pack := op.Name
 			org := op.Org
 			if org == CertifiedOperator {
-				isCertified := waitForCertificationRequestToSuccess(getOperatorCertificationRequestFunction(org, pack, ocpversion), apiRequestTimeout)
+				isCertified := waitForCertificationRequestToSuccess(getOperatorCertificationRequestFunction(org, pack, ocpversion), apiRequestTimeout).(bool)
 				if !isCertified {
 					testFailed = true
 					log.Info(fmt.Sprintf("Operator %s (organization %s) not certified for Openshift %s .", pack, org, ocpversion))
