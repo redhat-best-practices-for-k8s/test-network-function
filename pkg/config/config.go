@@ -296,7 +296,7 @@ func (env *TestEnvironment) labelNodes() {
 
 // create Nodes data from podset
 func (env *TestEnvironment) createNodes(nodes map[string]configsections.Node) map[string]*NodeConfig {
-	log.Debug("autodiscovery: create nodes  start")
+	log.Debug("autodiscovery: create nodes start")
 	defer log.Debug("autodiscovery: create nodes done")
 	nodesConfig := make(map[string]*NodeConfig)
 	for _, n := range nodes {

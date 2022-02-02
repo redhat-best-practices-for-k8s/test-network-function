@@ -22,6 +22,7 @@ const (
 	unKnownRepository  = "wrong_repo"
 	unKnownImageName   = "wrong_id"
 	unknownPackageName = "unknownPackage"
+	version            = "4.8"
 	jsonResponseFound  = `{
 		"data": [
 		  {
@@ -482,13 +483,15 @@ var (
 		name           string
 		id             string
 		expectedError  error
-		expectedResult bool
+		expectedResult *api.ContainerCatalogEntry
 		responseData   string
 		responseStatus int
 	}{
-		{repository: repository, name: imageName, expectedError: nil, id: "", expectedResult: true,
+		{repository: repository, name: imageName, expectedError: nil, id: "",
+			expectedResult: &api.ContainerCatalogEntry{ID: "61ba0db5d095e30ed5db6330",
+				FreshnessGrades: []api.ContainerImageFreshnessGrade{{Grade: "A"}}},
 			responseData: jsonResponseFound, responseStatus: http.StatusAccepted},
-		{repository: unKnownRepository, name: unKnownImageName, expectedError: nil, id: "", expectedResult: false,
+		{repository: unKnownRepository, name: unKnownImageName, expectedError: nil, id: "", expectedResult: nil,
 			responseData: jsonResponseNotFound, responseStatus: http.StatusAccepted},
 	}
 
@@ -500,11 +503,12 @@ var (
 		expectedResult bool
 		responseData   string
 		responseStatus int
+		version        string
 	}{
 		{packageName: packageName, org: redHatOrg, expectedError: nil, id: "", expectedResult: true,
-			responseData: jsonResponseFound, responseStatus: http.StatusAccepted},
+			responseData: jsonResponseFound, responseStatus: http.StatusAccepted, version: version},
 		{packageName: unknownPackageName, org: marketPlaceOrg, expectedError: nil, id: "", expectedResult: false,
-			responseData: jsonResponseNotFound, responseStatus: http.StatusNotFound},
+			responseData: jsonResponseNotFound, responseStatus: http.StatusNotFound, version: version},
 	}
 
 	containerQueryURLTestCases = []struct {
@@ -512,11 +516,14 @@ var (
 		url string
 	}{
 		{id: configsections.ContainerImageIdentifier{Repository: "rhel8", Name: "nginx-120", Tag: "1-7"},
-			url: "https://catalog.redhat.com/api/containers/v1/repositories/registry/registry.access.redhat.com/repository/rhel8/nginx-120/images?filter=repositories.repository==rhel8/nginx-120;repositories.tags.name==1-7"},
+			url: "https://catalog.redhat.com/api/containers/v1/repositories/registry/registry.access.redhat.com/repository/rhel8/nginx-120/" +
+				"images?filter=architecture==amd64;repositories.repository==rhel8/nginx-120;repositories.tags.name==1-7"},
 		{id: configsections.ContainerImageIdentifier{Repository: "rhel8", Name: "nginx-120", Digest: "sha256:aa34453a6417f8f76423ffd2cf874e9c4a1a5451ac872b78dc636ab54a0ebbc3"},
-			url: "https://catalog.redhat.com/api/containers/v1/repositories/registry/registry.access.redhat.com/repository/rhel8/nginx-120/images?filter=image_id==sha256:aa34453a6417f8f76423ffd2cf874e9c4a1a5451ac872b78dc636ab54a0ebbc3"},
+			url: "https://catalog.redhat.com/api/containers/v1/repositories/registry/registry.access.redhat.com/repository/rhel8/nginx-120/" +
+				"images?filter=architecture==amd64;image_id==sha256:aa34453a6417f8f76423ffd2cf874e9c4a1a5451ac872b78dc636ab54a0ebbc3"},
 		{id: configsections.ContainerImageIdentifier{Repository: "rhel8", Name: "nginx-120"},
-			url: "https://catalog.redhat.com/api/containers/v1/repositories/registry/registry.access.redhat.com/repository/rhel8/nginx-120/images?filter=repositories.repository==rhel8/nginx-120;repositories.tags.name==latest"},
+			url: "https://catalog.redhat.com/api/containers/v1/repositories/registry/registry.access.redhat.com/repository/rhel8/nginx-120/" +
+				"images?filter=architecture==amd64;repositories.repository==rhel8/nginx-120;repositories.tags.name==latest"},
 	}
 )
 
@@ -535,10 +542,10 @@ func getDoFunc(data string, status int) func(req *http.Request) (*http.Response,
 		}, nil
 	}
 }
-func TestApiClient_IsContainerCertified(t *testing.T) {
+func TestApiClient_GetContainerCatalogEntry(t *testing.T) {
 	for _, c := range containerTestCases {
 		GetDoFunc = getDoFunc(c.responseData, c.responseStatus) //nolint:bodyclose
-		result, err := client.IsContainerCertified(configsections.ContainerImageIdentifier{Repository: c.repository, Name: c.name})
+		result, err := client.GetContainerCatalogEntry(configsections.ContainerImageIdentifier{Repository: c.repository, Name: c.name})
 		assert.Equal(t, c.expectedResult, result)
 		assert.Equal(t, c.expectedError, err)
 	}
@@ -547,7 +554,7 @@ func TestApiClient_IsContainerCertified(t *testing.T) {
 func TestApiClient_IsOperatorCertified(t *testing.T) {
 	for _, c := range operatorTestCases {
 		GetDoFunc = getDoFunc(c.responseData, c.responseStatus) //nolint:bodyclose
-		result, err := client.IsOperatorCertified(c.org, c.packageName)
+		result, err := client.IsOperatorCertified(c.org, c.packageName, c.version)
 		assert.Equal(t, c.expectedResult, result)
 		assert.Equal(t, c.expectedError, err)
 	}

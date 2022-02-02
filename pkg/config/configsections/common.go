@@ -38,6 +38,12 @@ type Operator struct {
 
 	// Subscription name is required field, Name of used subscription.
 	SubscriptionName string `yaml:"subscriptionName" json:"subscriptionName"`
+
+	Packag string `yaml:"packag" json:"packag"`
+
+	Org string `yaml:"Org" json:"Org"`
+
+	Version string `yaml:"Version" json:"Version"`
 }
 
 // Namespace struct defines namespace properties
@@ -91,6 +97,7 @@ type TestTarget struct {
 	ExcludeContainersFromConnectivityTests []ContainerIdentifier `yaml:"excludeContainersFromConnectivityTests" json:"excludeContainersFromConnectivityTests"`
 	// Operator is the list of operator objects that needs to be tested.
 	Operators []Operator `yaml:"operators,omitempty"  json:"operators,omitempty"`
+	//
 	// Node list
 	Nodes map[string]Node `yaml:"Nodes"  json:"Nodes"`
 }

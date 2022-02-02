@@ -83,7 +83,7 @@ func FindTestTarget(labels []configsections.Label, target *configsections.TestTa
 	for _, csv := range csvs.Items {
 		if ns[csv.Metadata.Namespace] {
 			csv := csv
-			target.Operators = append(target.Operators, buildOperatorFromCSVResource(&csv))
+			target.Operators = append(target.Operators, buildOperatorFromCSVResource(&csv, false))
 		}
 	}
 	dps := FindTestPodSetsByLabel(labels, string(configsections.Deployment))
@@ -216,7 +216,7 @@ func buildPodUnderTest(pr *PodResource) (podUnderTest *configsections.Pod) {
 }
 
 // buildOperatorFromCSVResource builds a single `configsections.Operator` from a CSVResource
-func buildOperatorFromCSVResource(csv *CSVResource) (op configsections.Operator) {
+func buildOperatorFromCSVResource(csv *CSVResource, istest bool) (op configsections.Operator) {
 	var err error
 	op.Name = csv.Metadata.Name
 	op.Namespace = csv.Metadata.Namespace
@@ -237,6 +237,10 @@ func buildOperatorFromCSVResource(csv *CSVResource) (op configsections.Operator)
 	} else {
 		op.SubscriptionName = subscriptionName[0]
 	}
+	if !istest {
+		op.Packag, op.Org, op.Version = csv.PackOrgVersion(op.Name)
+	}
+
 	return op
 }
 
