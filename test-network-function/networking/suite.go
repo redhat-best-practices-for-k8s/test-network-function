@@ -232,7 +232,7 @@ func testDefaultNetworkConnectivity(env *config.TestEnvironment, count int) {
 				// The first container is used to get the network namespace
 				aContainerInPod := pod.ContainerList[0]
 				if _, ok := env.ContainersToExcludeFromConnectivityTests[aContainerInPod.ContainerIdentifier]; ok {
-					tnf.ClaimFilePrintf("Skipping pod %s because it is excluded from connectivity tests (default interface)", pod.Name)
+					tnf.ClaimFilePrintf("Skipping pod %s because it is excluded from all connectivity tests", pod.Name)
 					continue
 				}
 				netKey := "default" //nolint:goconst // only used once
@@ -261,7 +261,11 @@ func testMultusNetworkConnectivity(env *config.TestEnvironment, count int) {
 				// The first container is used to get the network namespace
 				aContainerInPod := pod.ContainerList[0]
 				if _, ok := env.ContainersToExcludeFromConnectivityTests[aContainerInPod.ContainerIdentifier]; ok {
-					tnf.ClaimFilePrintf("Skipping pod %s because it is excluded from connectivity tests (multus interface)", pod.Name)
+					tnf.ClaimFilePrintf("Skipping pod %s because it is excluded from all connectivity tests", pod.Name)
+					continue
+				}
+				if _, ok := env.ContainersToExcludeFromMultusConnectivityTests[aContainerInPod.ContainerIdentifier]; ok {
+					tnf.ClaimFilePrintf("Skipping pod %s because it is excluded from multus connectivity tests only", pod.Name)
 					continue
 				}
 				for netKey, multusIPAddress := range pod.MultusIPAddressesPerNet {
