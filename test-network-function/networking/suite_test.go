@@ -32,13 +32,25 @@ func TestParseVariables(t *testing.T) {
 
 		// expected outputs here
 		expectedDeclaredPorts map[key]string
-		exceptedRes           string
+		expectedRes           string
 	}{
+		{
+			inputRes:              `[\n  {\n    \"containerPort\": 8080,\n    \"name\": \"http-probe\",\n    \"protocol\": \"UDP\"\n  }\n]`,
+			declaredPorts:         map[key]string{},
+			expectedDeclaredPorts: map[key]string{{port: 8080, protocol: "UDP"}: "http-probe"},
+			expectedRes:           `[\n  {\n    \"containerPort\": 8080,\n    \"name\": \"http-probe\",\n    \"protocol\": \"UDP\"\n  }\n]`,
+		},
+		{
+			inputRes:              "",
+			declaredPorts:         map[key]string{},
+			expectedDeclaredPorts: map[key]string{},
+			expectedRes:           "",
+		},
 		{
 			inputRes:              `[\n  {\n    \"containerPort\": 8080,\n    \"name\": \"http-probe\",\n    \"protocol\": \"TCP\"\n  }\n]`,
 			declaredPorts:         map[key]string{},
-			expectedDeclaredPorts: map[key]string{},
-			exceptedRes:           `[\n  {\n    \"containerPort\": 8080,\n    \"name\": \"http-probe\",\n    \"protocol\": \"TCP\"\n  }\n]`,
+			expectedDeclaredPorts: map[key]string{{port: 8080, protocol: "TCP"}: "http-probe"},
+			expectedRes:           `[\n  {\n    \"containerPort\": 8080,\n    \"name\": \"http-probe\",\n    \"protocol\": \"TCP\"\n  }\n]`,
 		},
 	}
 
@@ -66,6 +78,13 @@ func TestDeclaredPortList(t *testing.T) {
 			podName:               "test-54bc4c6d7-2gwlz",
 			podNamespace:          "tnf",
 			declaredPorts:         map[key]string{},
+			expectedDeclaredPorts: map[key]string{{port: 8080, protocol: "TCP"}: "http-probe"},
+		},
+		{
+			container:             0,
+			podName:               "",
+			podNamespace:          "",
+			declaredPorts:         map[key]string{},
 			expectedDeclaredPorts: map[key]string{},
 		},
 	}
@@ -92,6 +111,12 @@ func TestListeningPortList(t *testing.T) {
 			commandlisten:          []string{"nsenter -t 4380 -n", "ss -tulwnH"},
 			nodeOc:                 nil,
 			listeningPorts:         map[key]string{},
+			expectedlisteningPorts: map[key]string{{port: 8080, protocol: "TCP"}: ""},
+		},
+		{
+			commandlisten:          []string{},
+			nodeOc:                 nil,
+			listeningPorts:         map[key]string{},
 			expectedlisteningPorts: map[key]string{},
 		},
 	}
@@ -116,6 +141,16 @@ func TestCheckIfListenIsDeclared(t *testing.T) {
 			listeningPorts: map[key]string{},
 			declaredPorts:  map[key]string{},
 			expectedres:    map[key]string{},
+		},
+		{
+			listeningPorts: map[key]string{{port: 8080, protocol: "TCP"}: ""},
+			declaredPorts:  map[key]string{{port: 8080, protocol: "TCP"}: "http-probe"},
+			expectedres:    map[key]string{},
+		},
+		{
+			listeningPorts: map[key]string{{port: 8080, protocol: "TCP"}: ""},
+			declaredPorts:  map[key]string{},
+			expectedres:    map[key]string{{port: 8080, protocol: "TCP"}: ""},
 		},
 	}
 	for _, tc := range testCases {
