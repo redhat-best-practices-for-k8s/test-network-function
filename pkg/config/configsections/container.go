@@ -125,7 +125,7 @@ type ContainerIdentifier struct {
 	ContainerRuntime string `yaml:"containerRuntime" json:"containerRuntime"`
 }
 
-func (cid *ContainerIdentifier) MarshalText() (text []byte, err error) {
+func (cid ContainerIdentifier) MarshalText() (text []byte, err error) { //nolint:gocritic // This is the type for a key using pointer won't work
 	return []byte(cid.Namespace + "_" +
 		cid.PodName + "_" +
 		cid.ContainerName + "_" +
