@@ -39,6 +39,12 @@ type Operator struct {
 	// Subscription name is required field, Name of used subscription.
 	SubscriptionName string `yaml:"subscriptionName" json:"subscriptionName"`
 
+	// BundleImage is the URL referencing the bundle image
+	BundleImage string `yaml:"bundleImage" json:"bundleImage"`
+
+	// IndexImage is the URL referencing the index image
+	IndexImage string `yaml:"indexImage" json:"indexImage"`
+
 	Packag string `yaml:"packag" json:"packag"`
 
 	Org string `yaml:"Org" json:"Org"`

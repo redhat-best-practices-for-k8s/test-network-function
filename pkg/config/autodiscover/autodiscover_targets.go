@@ -17,6 +17,7 @@
 package autodiscover
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
@@ -301,6 +302,7 @@ func buildOperatorFromCSVResource(csv *CSVResource, istest bool) (op configsecti
 		op.SubscriptionName = subscriptionName[0]
 	}
 	if !istest {
+		op.BundleImage, op.IndexImage = setBundleAndIndexImage(op.Name, op.Namespace)
 		op.Packag, op.Org, op.Version = csv.PackOrgVersion(op.Name)
 	}
 
@@ -321,6 +323,31 @@ func getConfiguredOperatorTests() []string {
 	}
 	log.WithField("opTests", opTests).Infof("got all tests from %s.", testcases.ConfiguredTestFile)
 	return opTests
+}
+
+// setBundleAndIndexImage provides the bundle image and index image for a given CSV.
+// These variables are saved in the `configsections.Operator` in order to be used by DCI,
+// which obtains them from the claim.json and provides them to preflight suite.
+func setBundleAndIndexImage(csvName string, csvNamespace string) (string, string) {
+	// First step is to extract the installplan related to the csv
+	installPlanCmd := fmt.Sprintf("oc get installplan -n %s | grep %q | awk '{ print $1 }'", csvNamespace, csvName)
+	installPlan := execCommandOutput(installPlanCmd)
+
+	// Then, retrieve the bundle image using the installplan
+	bundleImageCmd := fmt.Sprintf("oc get installplan -n %s %s -o json | jq .status.bundleLookups[].path", csvNamespace, installPlan)
+	bundleImage := execCommandOutput(bundleImageCmd)
+
+	// To retrieve the index image, we firstly need the catalogsource and the namespace in which it is deployed
+	catalogSourceNameCmd := fmt.Sprintf("oc get installplan -n %s %s -o json | jq .status.bundleLookups[].catalogSourceRef.name", csvNamespace, installPlan)
+	catalogSourceNamespaceCmd := fmt.Sprintf("oc get installplan -n %s %s -o json | jq .status.bundleLookups[].catalogSourceRef.namespace", csvNamespace, installPlan)
+	catalogSourceName := execCommandOutput(catalogSourceNameCmd)
+	catalogSourceNamespace := execCommandOutput(catalogSourceNamespaceCmd)
+
+	// Then, we can retrieve the index image
+	indexImageCmd := fmt.Sprintf("oc get catalogsource -n %s %s -o json | jq .spec.image", catalogSourceNamespace, catalogSourceName)
+	indexImage := execCommandOutput(indexImageCmd)
+
+	return bundleImage, indexImage
 }
 
 // getClusterCrdNames returns a list of crd names found in the cluster.
