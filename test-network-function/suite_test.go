@@ -272,15 +272,17 @@ func writeClaimOutput(claimOutputFile string, payload []byte) {
 
 func generateNodes() map[string]interface{} {
 	const (
-		nodeSummaryField = "nodeSummary"
-		cniPluginsField  = "cniPlugins"
-		nodesHwInfo      = "nodesHwInfo"
-		csiDriverInfo    = "csiDriver"
+		nodeSummaryField  = "nodeSummary"
+		cniPluginsField   = "cniPlugins"
+		nodesHwInfo       = "nodesHwInfo"
+		csiDriverInfo     = "csiDriver"
+		initialRuntimeEnv = "InitialRuntimeEnv"
 	)
 	nodes := map[string]interface{}{}
 	nodes[nodeSummaryField] = diagnostic.GetNodeSummary()
 	nodes[cniPluginsField] = diagnostic.GetCniPlugins()
 	nodes[nodesHwInfo] = diagnostic.GetNodesHwInfo()
 	nodes[csiDriverInfo] = diagnostic.GetCsiDriverInfo()
+	nodes[initialRuntimeEnv] = diagnostic.GetInitialRuntimeEnv()
 	return nodes
 }

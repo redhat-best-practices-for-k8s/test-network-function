@@ -280,8 +280,9 @@ func buildPodUnderTest(pr *PodResource) (podUnderTest *configsections.Pod) {
 }
 
 // buildOperatorFromCSVResource builds a single `configsections.Operator` from a CSVResource
-func buildOperatorFromCSVResource(csv *CSVResource, istest bool) (op configsections.Operator) {
+func buildOperatorFromCSVResource(csv *CSVResource, istest bool) (op *configsections.Operator) {
 	var err error
+	op = &configsections.Operator{}
 	op.Name = csv.Metadata.Name
 	op.Namespace = csv.Metadata.Namespace
 
@@ -328,14 +329,14 @@ func getConfiguredOperatorTests() []string {
 // setBundleAndIndexImage provides the bundle image and index image for a given CSV.
 // These variables are saved in the `configsections.Operator` in order to be used by DCI,
 // which obtains them from the claim.json and provides them to preflight suite.
-func setBundleAndIndexImage(csvName string, csvNamespace string) (string, string) {
+func setBundleAndIndexImage(csvName, csvNamespace string) (bundleImage, indexImage string) {
 	// First step is to extract the installplan related to the csv
 	installPlanCmd := fmt.Sprintf("oc get installplan -n %s | grep %q | awk '{ print $1 }'", csvNamespace, csvName)
 	installPlan := execCommandOutput(installPlanCmd)
 
 	// Then, retrieve the bundle image using the installplan
 	bundleImageCmd := fmt.Sprintf("oc get installplan -n %s %s -o json | jq .status.bundleLookups[].path", csvNamespace, installPlan)
-	bundleImage := execCommandOutput(bundleImageCmd)
+	bundleImage = execCommandOutput(bundleImageCmd)
 
 	// To retrieve the index image, we firstly need the catalogsource and the namespace in which it is deployed
 	catalogSourceNameCmd := fmt.Sprintf("oc get installplan -n %s %s -o json | jq .status.bundleLookups[].catalogSourceRef.name", csvNamespace, installPlan)
@@ -345,7 +346,7 @@ func setBundleAndIndexImage(csvName string, csvNamespace string) (string, string
 
 	// Then, we can retrieve the index image
 	indexImageCmd := fmt.Sprintf("oc get catalogsource -n %s %s -o json | jq .spec.image", catalogSourceNamespace, catalogSourceName)
-	indexImage := execCommandOutput(indexImageCmd)
+	indexImage = execCommandOutput(indexImageCmd)
 
 	return bundleImage, indexImage
 }
