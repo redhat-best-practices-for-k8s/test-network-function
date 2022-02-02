@@ -360,6 +360,7 @@ func parseVariables(res string, declaredPorts map[key]string) error {
 		k.port = p[element].ContainerPort
 		k.protocol = p[element].Protocol
 		declaredPorts[k] = p[element].Name
+		tnf.ClaimFilePrintf(fmt.Sprintf("%d", k.port))
 	}
 	return nil
 }
