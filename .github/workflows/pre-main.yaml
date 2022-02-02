@@ -157,7 +157,7 @@ jobs:
       # Perform smoke tests.
 
       - name: 'Test: Run test suites'
-        run: ./run-cnf-suites.sh --focus access-control diagnostic lifecycle platform observability networking affiliated-certification operator
+        run: ./run-cnf-suites.sh --focus access-control lifecycle platform observability networking affiliated-certification operator
 
       - name: Upload smoke test results as an artifact
         uses: actions/upload-artifact@v2
@@ -188,8 +188,8 @@ jobs:
           cp test-network-function/*.yml $TNF_CONFIG_DIR
         shell: bash
 
-      - name: 'Test: Run diagnostic test suite in a TNF container'
-        run: ./run-tnf-container.sh ${{ env.TESTING_CMD_PARAMS }} -f diagnostic
+      - name: 'Test: Run without any TS, just get diagnostic information'
+        run: ./run-tnf-container.sh ${{ env.TESTING_CMD_PARAMS }}
 
       - name: Delete the deployment and deploy Statefulset pods
         uses: ./cnf-certification-test-partner/.github/actions/deploy-statefulset-pods

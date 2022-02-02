@@ -24,6 +24,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/test-network-function/test-network-function/test-network-function/diagnostic"
 	"github.com/test-network-function/test-network-function/test-network-function/results"
 
 	"github.com/onsi/ginkgo/v2"
@@ -38,7 +39,6 @@ import (
 	_ "github.com/test-network-function/test-network-function/test-network-function/accesscontrol"
 	_ "github.com/test-network-function/test-network-function/test-network-function/certification"
 	"github.com/test-network-function/test-network-function/test-network-function/common"
-	"github.com/test-network-function/test-network-function/test-network-function/diagnostic"
 	_ "github.com/test-network-function/test-network-function/test-network-function/generic"
 	_ "github.com/test-network-function/test-network-function/test-network-function/lifecycle"
 	_ "github.com/test-network-function/test-network-function/test-network-function/networking"
@@ -118,12 +118,17 @@ func loadJUnitXMLIntoMap(result map[string]interface{}, junitFilename, key strin
 
 //nolint:funlen // TestTest invokes the CNF Certification Test Suite.
 func TestTest(t *testing.T) {
-	// set up input flags and register failure handlers.
-	flag.Parse()
-
 	// Checking if output directories exist
 	utils.CheckFileExists(*claimPath, "claim")
 	utils.CheckFileExists(*junitPath, "junit")
+
+	ginkgoConfig, _ := ginkgo.GinkgoConfiguration()
+	log.Infof("Focused test suites : %v", ginkgoConfig.FocusStrings)
+	log.Infof("TC skip patterns    : %v", ginkgoConfig.SkipStrings)
+	log.Infof("Labels filter       : %v", ginkgoConfig.LabelFilter)
+
+	// Diagnostic functions will run also when no focus test suites were provided.
+	diagnosticMode := len(ginkgoConfig.FocusStrings) == 0
 
 	gomega.RegisterFailHandler(ginkgo.Fail)
 	common.SetLogFormat()
@@ -148,28 +153,57 @@ func TestTest(t *testing.T) {
 	claimData.Configurations = make(map[string]interface{})
 	claimData.Nodes = make(map[string]interface{})
 
-	// run the test suite
-	ginkgo.RunSpecs(t, CnfCertificationTestSuiteName)
-	endTime := time.Now()
+	if diagnosticMode {
+		log.Warn("No test suites selected to run. Diagnostic mode enabled.")
+		// In diagnostic mode, we need to remove labels explicitly before exiting tnf.
+		defer common.RemoveLabelsFromAllNodes()
+	}
+
+	// Make sure cluster nodes don't have the debug pod label from previous runs,
+	// which might happen in case of some aborted/failed tnf runs.
+	common.RemoveLabelsFromAllNodes()
+
+	// Run first autodiscovery.
+	config.GetTestEnvironment().LoadAndRefresh()
+
+	// Collect diagnostic data
+	errs := diagnostic.GetDiagnosticData()
+	if len(errs) > 0 {
+		// Should we abort here?
+		log.Errorf("Errors found while getting diagnostic information from cluster: %v", errs)
+	}
 
 	incorporateVersions(claimData)
-	// process the test results from this test suite, the cnf-features-deploy test suite, and any extra informational
-	// messages.
-	junitMap := make(map[string]interface{})
-	cnfCertificationJUnitFilename := filepath.Join(*junitPath, TNFJunitXMLFileName)
-	loadJUnitXMLIntoMap(junitMap, cnfCertificationJUnitFilename, TNFReportKey)
-	appendCNFFeatureValidationReportResults(junitPath, junitMap)
-	junitMap[extraInfoKey] = tnf.TestsExtraInfo
 
-	// fill out the remaining claim information.
-	claimData.RawResults = junitMap
-	claimData.Results = results.GetReconciledResults()
 	configurations := marshalConfigurations()
 	claimData.Nodes = generateNodes()
 	unmarshalConfigurations(configurations, claimData.Configurations)
+
+	// Run tests specs only if not in diagnostic mode, otherwise all TSs would run.
+	if !diagnosticMode {
+		ginkgo.RunSpecs(t, CnfCertificationTestSuiteName)
+	}
+
+	endTime := time.Now()
 	claimData.Metadata.EndTime = endTime.UTC().Format(dateTimeFormatDirective)
 
-	// marshal the claim and output to file
+	// Process the test results from the suites, the cnf-features-deploy test suite,
+	// and any extra informational messages.
+	junitMap := make(map[string]interface{})
+	cnfCertificationJUnitFilename := filepath.Join(*junitPath, TNFJunitXMLFileName)
+
+	if !diagnosticMode {
+		loadJUnitXMLIntoMap(junitMap, cnfCertificationJUnitFilename, TNFReportKey)
+		appendCNFFeatureValidationReportResults(junitPath, junitMap)
+	}
+
+	junitMap[extraInfoKey] = tnf.TestsExtraInfo
+
+	// Append results to claim file data.
+	claimData.RawResults = junitMap
+	claimData.Results = results.GetReconciledResults()
+
+	// Marshal the claim and output to file
 	payload := marshalClaimOutput(claimRoot)
 	claimOutputFile := filepath.Join(*claimPath, claimFileName)
 	writeClaimOutput(claimOutputFile, payload)
