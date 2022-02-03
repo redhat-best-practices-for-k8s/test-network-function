@@ -74,7 +74,7 @@ func testLogging() {
 		failedCutIds := []*configsections.ContainerIdentifier{}
 		for _, cut := range env.ContainersUnderTest {
 			cutIdentifier := &cut.ContainerIdentifier
-			ginkgo.By(fmt.Sprintf("Test container:: %+v. should emit at least one line of log to stderr/stdout", cutIdentifier))
+			ginkgo.By(fmt.Sprintf("Test container: %+v. should emit at least one line of log to stderr/stdout", cutIdentifier))
 
 			context := env.GetLocalShellContext()
 
