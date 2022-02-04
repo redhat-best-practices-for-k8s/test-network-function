@@ -142,7 +142,7 @@ jobs:
         shell: bash
 
       - name: 'Test: Run without any TS, just get diagnostic information'
-        run: ./run-tnf-container.sh ${{ env.TESTING_CMD_PARAMS }} 
+        run: ./run-tnf-container.sh ${{ env.TESTING_CMD_PARAMS }} -f diagnostic
 
       # Push the new TNF image to Quay.io.
 
