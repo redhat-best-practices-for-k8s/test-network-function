@@ -336,7 +336,7 @@ func setBundleAndIndexImage(csvName, csvNamespace string) (bundleImage, indexIma
 
 	// Then, retrieve the bundle image using the installplan
 	bundleImageCmd := fmt.Sprintf("oc get installplan -n %s %s -o json | jq .status.bundleLookups[].path", csvNamespace, installPlan)
-	bundleImage = execCommandOutput(bundleImageCmd)
+	bundleImage = strings.Replace(execCommandOutput(bundleImageCmd), "\"", "", -1)
 
 	// To retrieve the index image, we firstly need the catalogsource and the namespace in which it is deployed
 	catalogSourceNameCmd := fmt.Sprintf("oc get installplan -n %s %s -o json | jq .status.bundleLookups[].catalogSourceRef.name", csvNamespace, installPlan)
@@ -346,7 +346,7 @@ func setBundleAndIndexImage(csvName, csvNamespace string) (bundleImage, indexIma
 
 	// Then, we can retrieve the index image
 	indexImageCmd := fmt.Sprintf("oc get catalogsource -n %s %s -o json | jq .spec.image", catalogSourceNamespace, catalogSourceName)
-	indexImage = execCommandOutput(indexImageCmd)
+	indexImage = strings.Replace(execCommandOutput(indexImageCmd), "\"", "", -1)
 
 	return bundleImage, indexImage
 }
