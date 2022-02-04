@@ -36,6 +36,7 @@ jobs:
     name: 'Test and push the `test-network-function` image'
     runs-on: ubuntu-20.04
     strategy:
+      max-parallel: 1
       matrix:
         branch: [3.1.x, 3.2.x, 3.3.x]
     env:
