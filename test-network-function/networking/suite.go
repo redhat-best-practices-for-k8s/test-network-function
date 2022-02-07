@@ -200,28 +200,6 @@ func processContainerIpsPerNet(containerID *configsections.ContainerIdentifier,
 	netsUnderTest[netKey] = entry
 }
 
-func IsIPv4(address string) bool {
-	ip := net.ParseIP(address)
-	if ip == nil {
-		return false
-	}
-	if ip.To4() == nil {
-		return false
-	}
-	return true
-}
-
-func IsIPv6(address string) bool {
-	ip := net.ParseIP(address)
-	if ip == nil {
-		return false
-	}
-	if ip.To4() != nil {
-		return false
-	}
-	return true
-}
-
 func FilterIPListPerVersion(ipList []string, aIPVersion ipVersion) []string {
 	var filteredIPList []string
 	for _, aIP := range ipList {
@@ -233,13 +211,14 @@ func FilterIPListPerVersion(ipList []string, aIPVersion ipVersion) []string {
 }
 
 func getIPVersion(aIP string) (ipVersion, error) {
-	if IsIPv4(aIP) {
+	ip := net.ParseIP(aIP)
+	if ip == nil {
+		return "", fmt.Errorf("%s is Not an IPv4 or an IPv6", aIP)
+	}
+	if ip.To4() != nil {
 		return IPv4, nil
 	}
-	if IsIPv6(aIP) {
-		return IPv6, nil
-	}
-	return "", fmt.Errorf("%s is Not an IPv4 or an IPv6", aIP)
+	return IPv6, nil
 }
 
 // runNetworkingTests takes a map netTestContext, e.g. one context per network attachment
