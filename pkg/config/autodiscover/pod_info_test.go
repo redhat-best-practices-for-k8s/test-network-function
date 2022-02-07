@@ -68,7 +68,7 @@ func TestPodResource_getDefaultPodIPAddresses(t *testing.T) {
 		want     []string
 	}
 
-	// Passing tests
+	// Positive tests
 	var testsExpectFail = []test{
 		{name: "ipv4ipv6",
 			testFile: "testorchestrator.json",
@@ -76,7 +76,7 @@ func TestPodResource_getDefaultPodIPAddresses(t *testing.T) {
 		},
 	}
 
-	// Failing tests
+	// Negative tests
 	var testsExpectPass = []test{
 		{name: "ipv4ipv6",
 			testFile: "ipv4ipv6pod.json",
@@ -92,7 +92,7 @@ func TestPodResource_getDefaultPodIPAddresses(t *testing.T) {
 		},
 	}
 
-	// Expect fail
+	// negative tests
 	for _, tt := range testsExpectFail {
 		t.Run(tt.name, func(t *testing.T) {
 			pr := loadPodResource(path.Join(filePath, tt.testFile))
@@ -101,7 +101,7 @@ func TestPodResource_getDefaultPodIPAddresses(t *testing.T) {
 			}
 		})
 	}
-	// Expect pass
+	// positive tests
 	for _, tt := range testsExpectPass {
 		t.Run(tt.name, func(t *testing.T) {
 			pr := loadPodResource(path.Join(filePath, tt.testFile))
