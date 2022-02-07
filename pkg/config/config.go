@@ -283,7 +283,7 @@ func (env *TestEnvironment) labelNodes() {
 
 // create Nodes data from podset
 func (env *TestEnvironment) createNodes(nodes map[string]configsections.Node) map[string]*NodeConfig {
-	log.Debug("autodiscovery: create nodes  start")
+	log.Debug("autodiscovery: create nodes start")
 	defer log.Debug("autodiscovery: create nodes done")
 	nodesConfig := make(map[string]*NodeConfig)
 	for _, n := range nodes {
@@ -344,6 +344,7 @@ func (env *TestEnvironment) createContainerMapWithOcSession(containers []configs
 	containerMap := make(map[configsections.ContainerIdentifier]*configsections.Container)
 	for i := range containers {
 		c := &containers[i]
+		log.Debugf("Creating shell session for pod %s - container %s (ns %s)", c.PodName, c.ContainerName, c.Namespace)
 		c.Oc = configsections.GetOcSession(c.PodName, c.ContainerName, c.Namespace, DefaultTimeout, interactive.Verbose(expectersVerboseModeEnabled), interactive.SendTimeout(DefaultTimeout))
 		containerMap[c.ContainerIdentifier] = c
 	}
