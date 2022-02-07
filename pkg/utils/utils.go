@@ -161,20 +161,13 @@ func NewGenericTesterAndValidate(templateFile, schemaPath string, values map[str
 	return tester, handlers
 }
 
-// RunCommandInContainerNameSpace run a host command in a running container with the nsenter command.
-// takes the container nodeName, node Oc and container UID
-// returns the raw output of the command
-func RunCommandInContainerNameSpace(nodeName string, nodeOc *interactive.Oc, containerID, command string, timeout time.Duration, runtime string) string {
-	containrPID := GetContainerPID(nodeName, nodeOc, containerID, runtime)
-	nodeCommand := "nsenter -t " + containrPID + " -n " + command
-	return RunCommandInNode(nodeName, nodeOc, nodeCommand, timeout)
-}
-
 // GetContainerPID gets the container PID from a kubernetes node, Oc and container PID
 func GetContainerPID(nodeName string, nodeOc *interactive.Oc, containerID, runtime string) string {
 	command := ""
 	switch runtime {
 	case "docker": //nolint:goconst // used only once
+		command = "chroot /host docker inspect -f '{{.State.Pid}}' " + containerID + " 2>/dev/null"
+	case "docker-pullable": //nolint:goconst // used only once
 		command = "chroot /host docker inspect -f '{{.State.Pid}}' " + containerID + " 2>/dev/null"
 	case "cri-o": //nolint:goconst // used only once
 	case "containerd": //nolint:goconst // used only once

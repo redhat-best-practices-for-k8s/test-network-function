@@ -96,7 +96,10 @@ type TestEnvironment struct {
 	// ContainersToExcludeFromConnectivityTests is a set used for storing the containers that should be excluded from
 	// connectivity testing.
 	ContainersToExcludeFromConnectivityTests map[configsections.ContainerIdentifier]interface{}
-	Config                                   configsections.TestConfiguration
+	// ContainersToExcludeFromMultusConnectivityTests is a set used for storing the containers that should be excluded from
+	// Multus connectivity testing.
+	ContainersToExcludeFromMultusConnectivityTests map[configsections.ContainerIdentifier]interface{}
+	Config                                         configsections.TestConfiguration
 	// loaded tracks if the config has been loaded to prevent it being reloaded.
 	loaded bool
 	// set when an intrusive test has done something that would cause Pod/Container to be recreated
@@ -212,11 +215,14 @@ func (env *TestEnvironment) doAutodiscover() {
 	}
 
 	env.ContainersToExcludeFromConnectivityTests = make(map[configsections.ContainerIdentifier]interface{})
+	env.ContainersToExcludeFromMultusConnectivityTests = make(map[configsections.ContainerIdentifier]interface{})
 
 	for _, cid := range env.Config.ExcludeContainersFromConnectivityTests {
 		env.ContainersToExcludeFromConnectivityTests[cid] = ""
 	}
-
+	for _, cid := range env.Config.ExcludeContainersFromMultusConnectivityTests {
+		env.ContainersToExcludeFromMultusConnectivityTests[cid] = ""
+	}
 	env.ContainersUnderTest = env.createContainerMapWithOcSession(env.Config.ContainerList)
 	env.PodsUnderTest = env.Config.PodsUnderTest
 
@@ -226,6 +232,7 @@ func (env *TestEnvironment) doAutodiscover() {
 
 	for _, cid := range env.Config.Partner.ContainersDebugList {
 		env.ContainersToExcludeFromConnectivityTests[cid.ContainerIdentifier] = ""
+		env.ContainersToExcludeFromMultusConnectivityTests[cid.ContainerIdentifier] = ""
 	}
 	env.DeploymentsUnderTest = env.Config.DeploymentsUnderTest
 	env.StateFulSetUnderTest = env.Config.StateFulSetUnderTest
@@ -276,7 +283,7 @@ func (env *TestEnvironment) labelNodes() {
 
 // create Nodes data from podset
 func (env *TestEnvironment) createNodes(nodes map[string]configsections.Node) map[string]*NodeConfig {
-	log.Debug("autodiscovery: create nodes  start")
+	log.Debug("autodiscovery: create nodes start")
 	defer log.Debug("autodiscovery: create nodes done")
 	nodesConfig := make(map[string]*NodeConfig)
 	for _, n := range nodes {
@@ -324,6 +331,7 @@ func (env *TestEnvironment) discoverNodes() {
 	autodiscover.FindDebugPods(&env.Config.Partner)
 	for _, debugPod := range env.Config.Partner.ContainersDebugList {
 		env.ContainersToExcludeFromConnectivityTests[debugPod.ContainerIdentifier] = ""
+		env.ContainersToExcludeFromMultusConnectivityTests[debugPod.ContainerIdentifier] = ""
 	}
 	env.DebugContainers = env.createContainerMapWithOcSession(env.Config.Partner.ContainersDebugList)
 
@@ -336,6 +344,7 @@ func (env *TestEnvironment) createContainerMapWithOcSession(containers []configs
 	containerMap := make(map[configsections.ContainerIdentifier]*configsections.Container)
 	for i := range containers {
 		c := &containers[i]
+		log.Debugf("Creating shell session for pod %s - container %s (ns %s)", c.PodName, c.ContainerName, c.Namespace)
 		c.Oc = configsections.GetOcSession(c.PodName, c.ContainerName, c.Namespace, DefaultTimeout, interactive.Verbose(expectersVerboseModeEnabled), interactive.SendTimeout(DefaultTimeout))
 		containerMap[c.ContainerIdentifier] = c
 	}
