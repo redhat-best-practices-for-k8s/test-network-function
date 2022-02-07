@@ -31,7 +31,7 @@ func TestIsIPv6(t *testing.T) {
 		args args
 		want bool
 	}
-	// Passing tests
+	// tests
 	var tests = []test{
 		{
 			name: "ipv4ok",
@@ -72,7 +72,7 @@ func TestIsIPv4(t *testing.T) {
 		args args
 		want bool
 	}
-	// Passing tests
+	// tests
 	var tests = []test{
 		{
 			name: "ipv4ok",
@@ -112,11 +112,11 @@ func TestFilterIPListPerVersion(t *testing.T) {
 		args args
 		want []string
 	}{
-		{name: "passingIPv4",
+		{name: "IPv4",
 			args: args{ipList: []string{"2.2.2.2", "3.3.3.3", "fd00:10:244:1::3", "fd00:10:244:1::4"}, ipVersion: IPv4},
 			want: []string{"2.2.2.2", "3.3.3.3"},
 		},
-		{name: "passingIPv6",
+		{name: "IPv6",
 			args: args{ipList: []string{"2.2.2.2", "3.3.3.3", "fd00:10:244:1::3", "fd00:10:244:1::4"}, ipVersion: IPv6},
 			want: []string{"fd00:10:244:1::3", "fd00:10:244:1::4"},
 		},
@@ -125,6 +125,52 @@ func TestFilterIPListPerVersion(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := FilterIPListPerVersion(tt.args.ipList, tt.args.ipVersion); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("FilterIPListPerVersion() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_getIPVersion(t *testing.T) {
+	type args struct {
+		aIP string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    ipVersion
+		wantErr bool
+	}{
+		{name: "GoodIPv4",
+			args:    args{aIP: "2.2.2.2"},
+			want:    IPv4,
+			wantErr: false,
+		},
+		{name: "GoodIPv6",
+			args:    args{aIP: "fd00:10:244:1::3"},
+			want:    IPv6,
+			wantErr: false,
+		},
+		{name: "BadIPv4",
+			args:    args{aIP: "2.hfh.2.2"},
+			want:    "",
+			wantErr: true,
+		},
+		{name: "BadIPv6",
+			args:    args{aIP: "fd00:10:ono;ogmo:1::3"},
+			want:    "",
+			wantErr: true,
+		},
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := getIPVersion(tt.args.aIP)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("getIPVersion() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("getIPVersion() = %v, want %v", got, tt.want)
 			}
 		})
 	}

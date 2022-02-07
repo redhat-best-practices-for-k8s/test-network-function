@@ -225,15 +225,21 @@ func IsIPv6(address string) bool {
 func FilterIPListPerVersion(ipList []string, aIPVersion ipVersion) []string {
 	var filteredIPList []string
 	for _, aIP := range ipList {
-		if aIPVersion == IPv4 && IsIPv4(aIP) {
+		if ver, _ := getIPVersion(aIP); aIPVersion == ver {
 			filteredIPList = append(filteredIPList, aIP)
-		} else if aIPVersion == IPv6 && IsIPv6(aIP) {
-			filteredIPList = append(filteredIPList, aIP)
-		} else {
-			log.Errorf("The IP address: %s, is not a valid IPv4 or IPv6. It will not be added to the %s test", aIP, aIPVersion)
 		}
 	}
 	return filteredIPList
+}
+
+func getIPVersion(aIP string) (ipVersion, error) {
+	if IsIPv4(aIP) {
+		return IPv4, nil
+	}
+	if IsIPv6(aIP) {
+		return IPv6, nil
+	}
+	return "", fmt.Errorf("%s is Not an IPv4 or an IPv6", aIP)
 }
 
 // runNetworkingTests takes a map netTestContext, e.g. one context per network attachment
