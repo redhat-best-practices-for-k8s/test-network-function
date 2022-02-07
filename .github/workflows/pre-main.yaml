@@ -143,7 +143,6 @@ jobs:
         with:
           repository: test-network-function/cnf-certification-test-partner
           path: cnf-certification-test-partner
-          ref: ipv6
 
       - name: Start the minikube cluster for `local-test-infra`
         uses: ./cnf-certification-test-partner/.github/actions/start-k8s-cluster
