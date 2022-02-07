@@ -195,8 +195,8 @@ func CreateContainerCatalogQueryURL(id configsections.ContainerImageIdentifier) 
 
 // IsOperatorCertified get operator bundle by package name and check if package details is present
 // If present then returns `true` as certified operators.
-func (api CertAPIClient) IsOperatorCertified(org, packageName string) (bool, error) {
-	imageID, err := api.GetOperatorBundleIDByPackageName(org, packageName)
+func (api CertAPIClient) IsOperatorCertified(org, packageName, version string) (bool, error) {
+	imageID, err := api.GetOperatorBundleIDByPackageName(org, packageName, version)
 	if err == nil {
 		if imageID == "" {
 			return false, nil
@@ -219,9 +219,14 @@ func (api CertAPIClient) GetImageByID(id string) (string, error) {
 
 // GetOperatorBundleIDByPackageName get published operator bundle Id by organization and package name.
 // Returns (ImageID, error).
-func (api CertAPIClient) GetOperatorBundleIDByPackageName(org, name string) (string, error) {
+func (api CertAPIClient) GetOperatorBundleIDByPackageName(org, name, vsersion string) (string, error) {
 	var imageID string
-	url := fmt.Sprintf("%s/bundles?page_size=1&organization=%s&package=%s", apiOperatorCatalogExternalBaseEndPoint, org, name)
+	url := ""
+	if vsersion != "" {
+		url = fmt.Sprintf("%s/bundles?page_size=1&filter=organization==%s;csv_name==%s;ocp_version==%s", apiOperatorCatalogExternalBaseEndPoint, org, name, vsersion)
+	} else {
+		url = fmt.Sprintf("%s/bundles?page_size=1&filter=organization==%s;csv_name==%s", apiOperatorCatalogExternalBaseEndPoint, org, name)
+	}
 	responseData, err := api.getRequest(url)
 	if err == nil {
 		imageID, err = api.getIDFromResponse(responseData)
