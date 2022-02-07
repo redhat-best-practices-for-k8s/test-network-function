@@ -127,7 +127,7 @@ jobs:
           ref: ${{ env.PARTNER_VERSION }}
           
       - name: Start the minikube cluster for `local-test-infra`
-        uses: ./cnf-certification-test-partner/.github/actions/start-minikube
+        uses: ./cnf-certification-test-partner/.github/actions/start-k8s-cluster
           
       - name: Create `local-test-infra` OpenShift resources
         uses: ./cnf-certification-test-partner/.github/actions/create-local-test-infra-resources

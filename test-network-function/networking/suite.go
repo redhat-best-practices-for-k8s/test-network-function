@@ -19,6 +19,7 @@ package networking
 import (
 	"encoding/json"
 	"fmt"
+	"net"
 	"strconv"
 	"strings"
 	"time"
@@ -46,10 +47,17 @@ import (
 const (
 	commandportdeclared = "oc get pod %s -n %s -o json  | jq -r '.spec.containers[%d].ports'"
 	commandportlisten   = "ss -tulwnH"
-	defaultNumPings     = 5
 	ocCommandTimeOut    = time.Second * 10
 	indexprotocolname   = 0
 	indexport           = 4
+	defaultNumPings     = 5
+)
+
+type ipVersion string
+
+const (
+	IPv4 ipVersion = "IPv4"
+	IPv6 ipVersion = "IPv6"
 )
 
 type key struct {
@@ -132,11 +140,13 @@ var _ = ginkgo.Describe(common.NetworkingTestKey, func() {
 		ginkgo.AfterEach(env.CloseLocalShellContext)
 
 		ginkgo.Context("Both Pods are on the Default network", func() {
-			testDefaultNetworkConnectivity(env, defaultNumPings)
+			testDefaultNetworkConnectivity(env, defaultNumPings, IPv4)
+			testDefaultNetworkConnectivity(env, defaultNumPings, IPv6)
 		})
 
 		ginkgo.Context("Both Pods are connected via a Multus Overlay Network", func() {
-			testMultusNetworkConnectivity(env, defaultNumPings)
+			testMultusNetworkConnectivity(env, defaultNumPings, IPv4)
+			testMultusNetworkConnectivity(env, defaultNumPings, IPv6)
 		})
 		ginkgo.Context("Should not have type of nodePort", func() {
 			testNodePort(env)
@@ -151,10 +161,12 @@ var _ = ginkgo.Describe(common.NetworkingTestKey, func() {
 // The first container in the loop is selected as the test initiator. the Oc context of the container is used to initiate the pings
 func processContainerIpsPerNet(containerID *configsections.ContainerIdentifier,
 	netKey string,
-	ipAddress []string,
+	ipAddresses []string,
 	netsUnderTest map[string]netTestContext,
-	containerNodeOc *interactive.Oc) {
-	if len(ipAddress) == 0 {
+	containerNodeOc *interactive.Oc,
+	aIPVersion ipVersion) {
+	ipAddressesFiltered := FilterIPListPerVersion(ipAddresses, aIPVersion)
+	if len(ipAddressesFiltered) == 0 {
 		// if no multus addresses found, skip this container
 		tnf.ClaimFilePrintf("Skipping container %s, Network %s because no multus IPs are present", containerID.PodName, netKey)
 		return
@@ -172,12 +184,12 @@ func processContainerIpsPerNet(containerID *configsections.ContainerIdentifier,
 		entry.testerSource.containerIdentifier = containerID
 		entry.testerContainerNodeOc = containerNodeOc
 		// if multiple interfaces are present for this network on this container/pod, pick the first one as the tester source ip
-		entry.testerSource.ip = ipAddress[firstIPIndex]
+		entry.testerSource.ip = ipAddressesFiltered[firstIPIndex]
 		// do no include tester's IP in the list of destination IPs to ping
 		firstIPIndex++
 	}
 
-	for _, aIP := range ipAddress[firstIPIndex:] {
+	for _, aIP := range ipAddressesFiltered[firstIPIndex:] {
 		ipDestEntry := containerIP{}
 		ipDestEntry.containerIdentifier = containerID
 		ipDestEntry.ip = aIP
@@ -188,23 +200,52 @@ func processContainerIpsPerNet(containerID *configsections.ContainerIdentifier,
 	netsUnderTest[netKey] = entry
 }
 
+func FilterIPListPerVersion(ipList []string, aIPVersion ipVersion) []string {
+	var filteredIPList []string
+	for _, aIP := range ipList {
+		if ver, _ := getIPVersion(aIP); aIPVersion == ver {
+			filteredIPList = append(filteredIPList, aIP)
+		}
+	}
+	return filteredIPList
+}
+
+func getIPVersion(aIP string) (ipVersion, error) {
+	ip := net.ParseIP(aIP)
+	if ip == nil {
+		return "", fmt.Errorf("%s is Not an IPv4 or an IPv6", aIP)
+	}
+	if ip.To4() != nil {
+		return IPv4, nil
+	}
+	return IPv6, nil
+}
+
 // runNetworkingTests takes a map netTestContext, e.g. one context per network attachment
 // and runs pings test with it. Returns a network name to a slice of bad target IPs map.
-func runNetworkingTests(netsUnderTest map[string]netTestContext, count int) map[string][]string {
+func runNetworkingTests(netsUnderTest map[string]netTestContext, count int, aIPVersion ipVersion) map[string][]string {
 	tnf.ClaimFilePrintf("%s", printNetTestContextMap(netsUnderTest))
 	log.Debugf("%s", printNetTestContextMap(netsUnderTest))
 	if len(netsUnderTest) == 0 {
-		ginkgo.Skip("There are no networks to test, skipping test")
+		ginkgo.Skip(fmt.Sprintf("There are no %s networks to test, skipping test", aIPVersion))
 	}
+	// maps a net name to a list of failed destination IPs
+	badNets := map[string][]string{}
 
-	badNets := map[string][]string{} // maps a net name to a list of failed destination IPs
+	// if no network can be tested, then we need to skip the test entirely.
+	// If at least one network can be tested (e.g. > 2 IPs/ interfaces present), then we do not skip the test
+	atLeastOneNetworkTested := false
 	for netName, netUnderTest := range netsUnderTest {
 		if len(netUnderTest.destTargets) == 0 {
-			ginkgo.Skip(fmt.Sprintf("There are no containers to ping for network %s. A minimum of 2 containers is needed to run a ping test (a source and a destination) Skipping test", netName))
+			log.Warnf("There are no containers to ping for %s network %s. A minimum of 2 containers is needed to run a ping test (a source and a destination) Skipping test", aIPVersion, netName)
+			tnf.ClaimFilePrintf("There are no containers to ping for %s network %s. Skip testing this network", aIPVersion, netName)
+			continue
 		}
-		ginkgo.By(fmt.Sprintf("Ping tests on network %s. Number of target IPs: %d", netName, len(netUnderTest.destTargets)))
+		atLeastOneNetworkTested = true
+		ginkgo.By(fmt.Sprintf("%s Ping tests on network %s. Number of target IPs: %d", aIPVersion, netName, len(netUnderTest.destTargets)))
 		for _, aDestIP := range netUnderTest.destTargets {
-			ginkgo.By(fmt.Sprintf("a Ping is issued from %s(%s) %s to %s(%s) %s",
+			ginkgo.By(fmt.Sprintf("a %s Ping is issued from %s(%s) %s to %s(%s) %s",
+				aIPVersion,
 				netUnderTest.testerSource.containerIdentifier.PodName,
 				netUnderTest.testerSource.containerIdentifier.ContainerName,
 				netUnderTest.testerSource.ip, aDestIP.containerIdentifier.PodName,
@@ -220,12 +261,18 @@ func runNetworkingTests(netsUnderTest map[string]netTestContext, count int) map[
 			}
 		}
 	}
-
+	if !atLeastOneNetworkTested {
+		ginkgo.Skip(fmt.Sprintf("There are no network to test for any %s networks, skipping test", aIPVersion))
+	}
 	return badNets
 }
-func testDefaultNetworkConnectivity(env *config.TestEnvironment, count int) {
+func testDefaultNetworkConnectivity(env *config.TestEnvironment, count int, aIPVersion ipVersion) {
 	ginkgo.When("Testing Default network connectivity", func() {
-		testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestICMPv4ConnectivityIdentifier)
+		identifier := identifiers.TestICMPv4ConnectivityIdentifier
+		if aIPVersion == IPv6 {
+			identifier = identifiers.TestICMPv6ConnectivityIdentifier
+		}
+		testID := identifiers.XformToGinkgoItIdentifier(identifier)
 		ginkgo.It(testID, ginkgo.Label(testID), func() {
 			netsUnderTest := make(map[string]netTestContext)
 			for _, pod := range env.PodsUnderTest {
@@ -236,25 +283,29 @@ func testDefaultNetworkConnectivity(env *config.TestEnvironment, count int) {
 					continue
 				}
 				netKey := "default" //nolint:goconst // only used once
-				defaultIPAddress := []string{pod.DefaultNetworkIPAddress}
+				defaultIPAddress := pod.DefaultNetworkIPAddresses
 				gomega.Expect(env).To(gomega.Not(gomega.BeNil()))
 				gomega.Expect(env.NodesUnderTest[aContainerInPod.NodeName]).To(gomega.Not(gomega.BeNil()))
 				gomega.Expect(env.NodesUnderTest[aContainerInPod.NodeName].DebugContainer.GetOc()).To(gomega.Not(gomega.BeNil()))
 				nodeOc := env.NodesUnderTest[aContainerInPod.NodeName].DebugContainer.GetOc()
-				processContainerIpsPerNet(&aContainerInPod.ContainerIdentifier, netKey, defaultIPAddress, netsUnderTest, nodeOc)
+				processContainerIpsPerNet(&aContainerInPod.ContainerIdentifier, netKey, defaultIPAddress, netsUnderTest, nodeOc, aIPVersion)
 			}
-			badNets := runNetworkingTests(netsUnderTest, count)
+			badNets := runNetworkingTests(netsUnderTest, count, aIPVersion)
 
 			if n := len(badNets); n > 0 {
 				log.Warnf("Failed nets: %+v", badNets)
-				ginkgo.Fail(fmt.Sprintf("%d nets failed the default network ping test.", n))
+				ginkgo.Fail(fmt.Sprintf("%d nets failed the default network %s ping test.", n, aIPVersion))
 			}
 		})
 	})
 }
-func testMultusNetworkConnectivity(env *config.TestEnvironment, count int) {
+func testMultusNetworkConnectivity(env *config.TestEnvironment, count int, aIPVersion ipVersion) {
+	identifier := identifiers.TestICMPv4ConnectivityMultusIdentifier
+	if aIPVersion == IPv6 {
+		identifier = identifiers.TestICMPv6ConnectivityMultusIdentifier
+	}
 	ginkgo.When("Testing Multus network connectivity", func() {
-		testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestICMPv4ConnectivityMultusIdentifier)
+		testID := identifiers.XformToGinkgoItIdentifier(identifier)
 		ginkgo.It(testID, ginkgo.Label(testID), func() {
 			netsUnderTest := make(map[string]netTestContext)
 			for _, pod := range env.PodsUnderTest {
@@ -273,14 +324,14 @@ func testMultusNetworkConnectivity(env *config.TestEnvironment, count int) {
 					gomega.Expect(env.NodesUnderTest[aContainerInPod.NodeName]).To(gomega.Not(gomega.BeNil()))
 					gomega.Expect(env.NodesUnderTest[aContainerInPod.NodeName].DebugContainer.GetOc()).To(gomega.Not(gomega.BeNil()))
 					nodeOc := env.NodesUnderTest[aContainerInPod.NodeName].DebugContainer.GetOc()
-					processContainerIpsPerNet(&aContainerInPod.ContainerIdentifier, netKey, multusIPAddress, netsUnderTest, nodeOc)
+					processContainerIpsPerNet(&aContainerInPod.ContainerIdentifier, netKey, multusIPAddress, netsUnderTest, nodeOc, aIPVersion)
 				}
 			}
-			badNets := runNetworkingTests(netsUnderTest, count)
+			badNets := runNetworkingTests(netsUnderTest, count, aIPVersion)
 
 			if n := len(badNets); n > 0 {
 				log.Warnf("Failed nets: %+v", badNets)
-				ginkgo.Fail(fmt.Sprintf("%d nets failed the multus ping test.", n))
+				ginkgo.Fail(fmt.Sprintf("%d nets failed the multus %s ping test.", n, aIPVersion))
 			}
 		})
 	})

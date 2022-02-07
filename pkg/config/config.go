@@ -25,11 +25,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/test-network-function/test-network-function/pkg/config/autodiscover"
 	"github.com/test-network-function/test-network-function/pkg/config/configsections"
-	"github.com/test-network-function/test-network-function/pkg/tnf"
-	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/ipaddr"
 	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
-	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
-	"github.com/test-network-function/test-network-function/pkg/utils"
 	"gopkg.in/yaml.v2"
 )
 
@@ -83,21 +79,6 @@ func (n NodeConfig) HasDebugPod() bool {
 
 // DefaultTimeout for creating new interactive sessions (oc, ssh, tty)
 var DefaultTimeout = time.Duration(defaultTimeoutSeconds) * time.Second
-
-// Extract a container IP address for a particular device.  This is needed since container default network IP address
-// is served by dhcp, and thus is ephemeral.
-func getContainerDefaultNetworkIPAddress(initiatingPodNodeOc *interactive.Oc, nodeName, containerID, runtime, dev string) (string, error) {
-	log.Infof("Getting IP Information for: %s(%s) in ns=%s", initiatingPodNodeOc.GetPodName(), initiatingPodNodeOc.GetPodContainerName(), initiatingPodNodeOc.GetPodNamespace())
-	containerPID := utils.GetContainerPID(nodeName, initiatingPodNodeOc, containerID, runtime)
-	ipTester := ipaddr.NewIPAddrNsenter(DefaultTimeout, containerPID, dev)
-	test, err := tnf.NewTest(initiatingPodNodeOc.GetExpecter(), ipTester, []reel.Handler{ipTester}, initiatingPodNodeOc.GetErrorChannel())
-	gomega.Expect(err).To(gomega.BeNil())
-	result, err := test.Run()
-	if result == tnf.SUCCESS && err == nil {
-		return ipTester.GetIPv4Address(), nil
-	}
-	return "", err
-}
 
 // TestEnvironment includes the representation of the current state of the test targets and partners as well as the test configuration
 type TestEnvironment struct {
@@ -249,7 +230,6 @@ func (env *TestEnvironment) doAutodiscover() {
 	// But after getting a node list in FindTestTarget() and a container under test list in env.ContainersUnderTest
 	env.discoverNodes()
 
-	env.recordPodsDefaultIP(env.PodsUnderTest)
 	for _, cid := range env.Config.Partner.ContainersDebugList {
 		env.ContainersToExcludeFromConnectivityTests[cid.ContainerIdentifier] = ""
 		env.ContainersToExcludeFromMultusConnectivityTests[cid.ContainerIdentifier] = ""
@@ -369,34 +349,6 @@ func (env *TestEnvironment) createContainerMapWithOcSession(containers []configs
 		containerMap[c.ContainerIdentifier] = c
 	}
 	return containerMap
-}
-
-// recordContainersDefaultIP default IP populated in container map
-func (env *TestEnvironment) recordPodsDefaultIP(pods []*configsections.Pod) {
-	for _, p := range pods {
-		// the first container is used to get the network namespace
-		c := p.ContainerList[0]
-		var defaultIPAddress = "UNKNOWN"
-		var err error
-		if _, ok := env.ContainersToExcludeFromConnectivityTests[c.ContainerIdentifier]; !ok {
-			if env.NodesUnderTest[c.NodeName].HasDebugPod() {
-				defaultIPAddress, err = getContainerDefaultNetworkIPAddress(env.NodesUnderTest[c.NodeName].DebugContainer.Oc,
-					c.NodeName,
-					c.ContainerUID,
-					c.ContainerRuntime,
-					p.DefaultNetworkDevice)
-				if err != nil {
-					log.Warnf("Failed to get default network ip, Adding container pod:%s container:%s ns:%s to the ExcludeFromConnectivityTests list due to: %v",
-						c.PodName,
-						c.ContainerName,
-						c.Namespace,
-						err)
-					env.ContainersToExcludeFromConnectivityTests[c.ContainerIdentifier] = ""
-				}
-			}
-		}
-		p.DefaultNetworkIPAddress = defaultIPAddress
-	}
 }
 
 // SetNeedsRefresh marks the config stale so that the next getInstance call will redo discovery
