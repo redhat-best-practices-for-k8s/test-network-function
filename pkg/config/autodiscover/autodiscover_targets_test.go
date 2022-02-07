@@ -19,6 +19,7 @@ package autodiscover
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 	"testing"
 	"time"
@@ -215,5 +216,38 @@ func TestFindTestPodSetsByLabel(t *testing.T) {
 		}
 
 		execCommandOutput = origFunc
+	}
+}
+
+func TestSetBundleAndIndexImage(t *testing.T) {
+	testCases := []struct {
+		csvName      string
+		csvNamespace string
+		indexImage   string
+		bundleImage  string
+	}{
+		{
+			csvName:      "csvexample1",
+			csvNamespace: "csvns1",
+			indexImage:   "http://index-csvexample1-in-csvns1:sha",
+			bundleImage:  "http://bundle-csvexample1-in-csvns1:sha",
+		},
+		{
+			csvName:      "csvexample2",
+			csvNamespace: "csvns2",
+			indexImage:   "http://index-csvexample2-in-csvns2:sha",
+			bundleImage:  "http://bundle-csvexample2-in-csvns2:sha",
+		},
+	}
+
+	for _, tc := range testCases {
+		// The real method takes csvName and csvNamespace and execute several commands
+		// to obtain indexImage and bundleImage. Here we will do the same but with
+		// dummy commands (just echo)
+		obtainedIndexImage := execCommandOutput(fmt.Sprintf("echo http://index-%s-in-%s:sha", tc.csvName, tc.csvNamespace))
+		obtainedBundleImage := execCommandOutput(fmt.Sprintf("echo http://bundle-%s-in-%s:sha", tc.csvName, tc.csvNamespace))
+
+		assert.Equal(t, tc.indexImage, obtainedIndexImage)
+		assert.Equal(t, tc.bundleImage, obtainedBundleImage)
 	}
 }
