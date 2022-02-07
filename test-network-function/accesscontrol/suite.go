@@ -86,9 +86,11 @@ var _ = ginkgo.Describe(common.AccessControlTestKey, func() {
 				renderedTestCase, err := testConfigure.RenderTestCaseSpec(testcases.Cnf, testType)
 				gomega.Expect(err).To(gomega.BeNil())
 				gomega.Expect(renderedTestCase).ToNot(gomega.BeNil())
-				for _, testCase := range renderedTestCase.TestCase {
-					if !testCase.SkipTest {
-						runTestOnPods(env, testCase, testType)
+
+				// Loop through test cases
+				for i := range renderedTestCase.TestCase {
+					if !renderedTestCase.TestCase[i].SkipTest {
+						runTestOnPods(env, &renderedTestCase.TestCase[i], testType)
 					}
 				}
 			}
@@ -111,23 +113,19 @@ func addFailedTcInfo(failedTcs map[string][]failedTcInfo, tc, pod, ns string, co
 	}
 }
 
-//nolint:gocritic,funlen // ignore hugeParam error. Pointers to loop iterator vars are bad and `testCmd` is likely to be such.
-func runTestOnPods(env *config.TestEnvironment, testCmd testcases.BaseTestCase, testType string) {
+//nolint:funlen // ignore hugeParam error. Pointers to loop iterator vars are bad and `testCmd` is likely to be such.
+func runTestOnPods(env *config.TestEnvironment, testCmd *testcases.BaseTestCase, testType string) {
 	const noContainerIdx = -1
 	testID := identifiers.XformToGinkgoItIdentifierExtended(identifiers.TestHostResourceIdentifier, testCmd.Name)
 	ginkgo.It(testID, ginkgo.Label(testID), func() {
 		context := env.GetLocalShellContext()
 		failedTcs := map[string][]failedTcInfo{} // maps a pod name to a slice of failed TCs
 		for _, podUnderTest := range env.PodsUnderTest {
-			podName := podUnderTest.Name
-			podNamespace := podUnderTest.Namespace
 			if testCmd.ExpectedType == testcases.Function {
 				for _, val := range testCmd.ExpectedStatus {
-					testCmd.ExpectedStatusFn(podName, testcases.StatusFunctionType(val))
+					testCmd.ExpectedStatusFn(podUnderTest.Name, testcases.StatusFunctionType(val))
 				}
 			}
-			testType := testType
-			testCmd := testCmd
 			var args []interface{}
 			if testType == testcases.PrivilegedRoles {
 				args = []interface{}{podUnderTest.Namespace, podUnderTest.Namespace, podUnderTest.ServiceAccount}
@@ -144,8 +142,8 @@ func runTestOnPods(env *config.TestEnvironment, testCmd testcases.BaseTestCase, 
 			if count > 0 {
 				count := 0
 				for count < podUnderTest.ContainerCount {
-					ginkgo.By(fmt.Sprintf("Executing TC %s on pod %s (ns %s), container index %d", testCmd.Name, podNamespace, podName, count))
-					argsCount := append(args, count)
+					ginkgo.By(fmt.Sprintf("Executing TC %s on pod %s (ns %s), container index %d", testCmd.Name, podUnderTest.Namespace, podUnderTest.Name, count))
+					argsCount := append(args, count) //nolint:gocritic
 					cmd := fmt.Sprintf(testCmd.Command, argsCount...)
 					cmdArgs := strings.Split(cmd, " ")
 					cnfInTest := containerpkg.NewPod(cmdArgs, podUnderTest.Name, podUnderTest.Namespace, testCmd.ExpectedStatus, testCmd.ResultType, testCmd.Action, common.DefaultTimeout)
@@ -155,15 +153,15 @@ func runTestOnPods(env *config.TestEnvironment, testCmd testcases.BaseTestCase, 
 					gomega.Expect(test).ToNot(gomega.BeNil())
 					test.RunWithCallbacks(nil, func() {
 						tnf.ClaimFilePrintf("FAILURE: Command sent: %s, Expectations: %v", cmd, testCmd.ExpectedStatus)
-						addFailedTcInfo(failedTcs, testCmd.Name, podName, podNamespace, count)
+						addFailedTcInfo(failedTcs, testCmd.Name, podUnderTest.Name, podUnderTest.Namespace, count)
 					}, func(e error) {
 						tnf.ClaimFilePrintf("ERROR: Command sent: %s, Expectations: %v, Error: %v", cmd, testCmd.ExpectedStatus, e)
-						addFailedTcInfo(failedTcs, testCmd.Name, podName, podNamespace, count)
+						addFailedTcInfo(failedTcs, testCmd.Name, podUnderTest.Name, podUnderTest.Namespace, count)
 					})
 					count++
 				}
 			} else {
-				ginkgo.By(fmt.Sprintf("Executing TC %s on pod %s (ns %s)", testCmd.Name, podNamespace, podName))
+				ginkgo.By(fmt.Sprintf("Executing TC %s on pod %s (ns %s)", testCmd.Name, podUnderTest.Namespace, podUnderTest.Name))
 				cmd := fmt.Sprintf(testCmd.Command, args...)
 				cmdArgs := strings.Split(cmd, " ")
 				podTest := containerpkg.NewPod(cmdArgs, podUnderTest.Name, podUnderTest.Namespace, testCmd.ExpectedStatus, testCmd.ResultType, testCmd.Action, common.DefaultTimeout)
@@ -173,10 +171,10 @@ func runTestOnPods(env *config.TestEnvironment, testCmd testcases.BaseTestCase, 
 				gomega.Expect(test).ToNot(gomega.BeNil())
 				test.RunWithCallbacks(nil, func() {
 					tnf.ClaimFilePrintf("FAILURE: Command sent: %s, Expectations: %v", cmd, testCmd.ExpectedStatus)
-					addFailedTcInfo(failedTcs, testCmd.Name, podName, podNamespace, noContainerIdx)
+					addFailedTcInfo(failedTcs, testCmd.Name, podUnderTest.Name, podUnderTest.Namespace, noContainerIdx)
 				}, func(e error) {
 					tnf.ClaimFilePrintf("ERROR: Command sent: %s, Expectations: %v, Error: %v", cmd, testCmd.ExpectedStatus, e)
-					addFailedTcInfo(failedTcs, testCmd.Name, podName, podNamespace, noContainerIdx)
+					addFailedTcInfo(failedTcs, testCmd.Name, podUnderTest.Name, podUnderTest.Namespace, noContainerIdx)
 				})
 			}
 		}
@@ -189,24 +187,26 @@ func runTestOnPods(env *config.TestEnvironment, testCmd testcases.BaseTestCase, 
 }
 
 func getCrsNamespaces(crdName, crdKind string, context *interactive.Context) (map[string]string, error) {
-	const expectedNumFields = 2
-	const crNameFieldIdx = 0
-	const namespaceFieldIdx = 0
-
 	gomega.Expect(crdKind).NotTo(gomega.BeEmpty())
 	getCrNamespaceCommand := fmt.Sprintf(ocGetCrNamespaceFormat, crdKind)
 	cmdOut := utils.ExecuteCommandAndValidate(getCrNamespaceCommand, common.DefaultTimeout, context, func() {
 		common.TcClaimLogPrintf("CRD %s: Failed to get CRs (kind=%s)", crdName, crdKind)
 	})
 
-	crNamespaces := map[string]string{}
+	return parseCrOutput(cmdOut)
+}
 
-	if cmdOut == "" {
+func parseCrOutput(rawOutput string) (map[string]string, error) {
+	const crNameFieldIdx = 0
+	const namespaceFieldIdx = 1
+	const expectedNumFields = 2
+	crNamespaces := map[string]string{}
+	if rawOutput == "" {
 		// Filter out empty (0 CRs) output.
 		return crNamespaces, nil
 	}
 
-	lines := strings.Split(cmdOut, "\n")
+	lines := strings.Split(rawOutput, "\n")
 	for _, line := range lines {
 		lineFields := strings.Split(line, ",")
 		if len(lineFields) != expectedNumFields {
@@ -234,15 +234,7 @@ func testCrsNamespaces(crNames, configNamespaces []string, context *interactive.
 		ginkgo.By(fmt.Sprintf("CRD %s has %d CRs (plural name: %s).", crdName, len(crNamespaces), crdPluralName))
 		for crName, namespace := range crNamespaces {
 			ginkgo.By(fmt.Sprintf("Checking CR %s - Namespace %s", crName, namespace))
-			found := false
-			for _, configNamespace := range configNamespaces {
-				if namespace == configNamespace {
-					found = true
-					break
-				}
-			}
-
-			if !found {
+			if !utils.StringInSlice(configNamespaces, namespace) {
 				common.TcClaimLogPrintf("CRD: %s (kind:%s) - CR %s has an invalid namespace (%s)", crdName, crdPluralName, crName, namespace)
 				if crNames, exists := invalidCrs[crdName]; exists {
 					invalidCrs[crdName] = append(crNames, crName)
@@ -334,17 +326,14 @@ func testAutomountService(env *config.TestEnvironment) {
 		msg := []string{}
 		for _, podUnderTest := range env.PodsUnderTest {
 			ginkgo.By(fmt.Sprintf("check the existence of pod service account %s (ns= %s )", podUnderTest.Namespace, podUnderTest.Name))
-			podName := podUnderTest.Name
-			podNamespace := podUnderTest.Namespace
-			serviceAccountName := podUnderTest.ServiceAccount
-			gomega.Expect(serviceAccountName).ToNot(gomega.BeEmpty())
+			gomega.Expect(podUnderTest.ServiceAccount).ToNot(gomega.BeEmpty())
 			context := env.GetLocalShellContext()
-			tester := automountservice.NewAutomountService(automountservice.WithNamespace(podNamespace), automountservice.WithServiceAccount(serviceAccountName))
+			tester := automountservice.NewAutomountService(automountservice.WithNamespace(podUnderTest.Namespace), automountservice.WithServiceAccount(podUnderTest.ServiceAccount))
 			test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 			gomega.Expect(err).To(gomega.BeNil())
 			test.RunAndValidate()
 			serviceAccountToken := tester.Token()
-			tester = automountservice.NewAutomountService(automountservice.WithNamespace(podNamespace), automountservice.WithPodname(podName))
+			tester = automountservice.NewAutomountService(automountservice.WithNamespace(podUnderTest.Namespace), automountservice.WithPodname(podUnderTest.Name))
 			test, err = tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 			gomega.Expect(err).To(gomega.BeNil())
 			test.RunAndValidate()
@@ -357,7 +346,7 @@ func testAutomountService(env *config.TestEnvironment) {
 			// the test would pass iif token is explicitly set to false
 			// if the token is set to true in the pod, the test would fail right away
 			if podToken == automountservice.TokenIsTrue {
-				msg = append(msg, fmt.Sprintf("Pod %s:%s is configured with automountServiceAccountToken set to true ", podNamespace, podName))
+				msg = append(msg, fmt.Sprintf("Pod %s:%s is configured with automountServiceAccountToken set to true ", podUnderTest.Namespace, podUnderTest.Name))
 				continue
 			}
 			// The pod token is false means the pod is configured properly
@@ -370,12 +359,12 @@ func testAutomountService(env *config.TestEnvironment) {
 			// using this service account are not configured properly, register the error
 			// message and fail
 			if serviceAccountToken == automountservice.TokenIsTrue {
-				msg = append(msg, fmt.Sprintf("serviceaccount %s:%s is configured with automountServiceAccountToken set to true, impacting pod %s ", podNamespace, serviceAccountName, podName))
+				msg = append(msg, fmt.Sprintf("serviceaccount %s:%s is configured with automountServiceAccountToken set to true, impacting pod %s ", podUnderTest.Namespace, podUnderTest.ServiceAccount, podUnderTest.Name))
 			}
 			// the token should be set explicitly to false, otherwise, it's a failure
 			// register the error message and check the next pod
 			if serviceAccountToken == automountservice.TokenNotSet {
-				msg = append(msg, fmt.Sprintf("serviceaccount %s:%s is not configured with automountServiceAccountToken set to false, impacting pod %s ", podNamespace, serviceAccountName, podName))
+				msg = append(msg, fmt.Sprintf("serviceaccount %s:%s is not configured with automountServiceAccountToken set to false, impacting pod %s ", podUnderTest.Namespace, podUnderTest.ServiceAccount, podUnderTest.Name))
 			}
 		}
 		if len(msg) > 0 {
@@ -391,22 +380,19 @@ func testRoleBindings(env *config.TestEnvironment) {
 		failedPods := []*configsections.Pod{}
 		ginkgo.By("Should not have RoleBinding in other namespaces")
 		for _, podUnderTest := range env.PodsUnderTest {
-			podName := podUnderTest.Name
-			podNamespace := podUnderTest.Namespace
-			serviceAccountName := podUnderTest.ServiceAccount
 			context := env.GetLocalShellContext()
-			ginkgo.By(fmt.Sprintf("Testing role binding  %s %s", podNamespace, podName))
-			if serviceAccountName == "" {
+			ginkgo.By(fmt.Sprintf("Testing role binding  %s %s", podUnderTest.Namespace, podUnderTest.Name))
+			if podUnderTest.ServiceAccount == "" {
 				ginkgo.Skip("Can not test when serviceAccountName is empty. Please check previous tests for failures")
 			}
-			rbTester := rolebinding.NewRoleBinding(common.DefaultTimeout, serviceAccountName, podNamespace)
+			rbTester := rolebinding.NewRoleBinding(common.DefaultTimeout, podUnderTest.ServiceAccount, podUnderTest.Namespace)
 			test, err := tnf.NewTest(context.GetExpecter(), rbTester, []reel.Handler{rbTester}, context.GetErrorChannel())
 			gomega.Expect(err).To(gomega.BeNil())
 			test.RunWithCallbacks(nil, func() {
-				tnf.ClaimFilePrintf("FAILURE: Pod %s (ns: %s) roleBindings: %v", podName, podNamespace, rbTester.GetRoleBindings())
+				tnf.ClaimFilePrintf("FAILURE: Pod %s (ns: %s) roleBindings: %v", podUnderTest.Name, podUnderTest.Namespace, rbTester.GetRoleBindings())
 				failedPods = append(failedPods, podUnderTest)
 			}, func(err error) {
-				tnf.ClaimFilePrintf("ERROR: Pod %s (ns: %s) roleBindings: %v, error: %v", podName, podNamespace, rbTester.GetRoleBindings(), err)
+				tnf.ClaimFilePrintf("ERROR: Pod %s (ns: %s) roleBindings: %v, error: %v", podUnderTest.Name, podUnderTest.Namespace, rbTester.GetRoleBindings(), err)
 				failedPods = append(failedPods, podUnderTest)
 			})
 		}
@@ -423,22 +409,19 @@ func testClusterRoleBindings(env *config.TestEnvironment) {
 		ginkgo.By("Should not have ClusterRoleBindings")
 		failedPods := []*configsections.Pod{}
 		for _, podUnderTest := range env.PodsUnderTest {
-			podName := podUnderTest.Name
-			podNamespace := podUnderTest.Namespace
-			serviceAccountName := podUnderTest.ServiceAccount
 			context := env.GetLocalShellContext()
-			ginkgo.By(fmt.Sprintf("Testing cluster role binding  %s %s", podNamespace, podName))
-			if serviceAccountName == "" {
+			ginkgo.By(fmt.Sprintf("Testing cluster role binding  %s %s", podUnderTest.Namespace, podUnderTest.Name))
+			if podUnderTest.ServiceAccount == "" {
 				ginkgo.Skip("Can not test when serviceAccountName is empty. Please check previous tests for failures")
 			}
-			crbTester := clusterrolebinding.NewClusterRoleBinding(common.DefaultTimeout, serviceAccountName, podNamespace)
+			crbTester := clusterrolebinding.NewClusterRoleBinding(common.DefaultTimeout, podUnderTest.ServiceAccount, podUnderTest.Namespace)
 			test, err := tnf.NewTest(context.GetExpecter(), crbTester, []reel.Handler{crbTester}, context.GetErrorChannel())
 			gomega.Expect(err).To(gomega.BeNil())
 			test.RunWithCallbacks(nil, func() {
-				tnf.ClaimFilePrintf("FAILURE: Pod: %s (ns: %s) SA: %s clusterRoleBindings: %v", podName, podNamespace, serviceAccountName, crbTester.GetClusterRoleBindings())
+				tnf.ClaimFilePrintf("FAILURE: Pod: %s (ns: %s) SA: %s clusterRoleBindings: %v", podUnderTest.Name, podUnderTest.Namespace, podUnderTest.ServiceAccount, crbTester.GetClusterRoleBindings())
 				failedPods = append(failedPods, podUnderTest)
 			}, func(err error) {
-				tnf.ClaimFilePrintf("ERROR: Pod: %s (ns: %s) SA: %s clusterRoleBindings: %v, error: %v", podName, podNamespace, serviceAccountName, crbTester.GetClusterRoleBindings(), err)
+				tnf.ClaimFilePrintf("ERROR: Pod: %s (ns: %s) SA: %s clusterRoleBindings: %v, error: %v", podUnderTest.Name, podUnderTest.Namespace, podUnderTest.ServiceAccount, crbTester.GetClusterRoleBindings(), err)
 				failedPods = append(failedPods, podUnderTest)
 			})
 		}

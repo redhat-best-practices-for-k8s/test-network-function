@@ -36,8 +36,9 @@ jobs:
     name: 'Test and push the `test-network-function` image'
     runs-on: ubuntu-20.04
     strategy:
+      max-parallel: 1
       matrix:
-        branch: [3.1.x, 3.2.x]
+        branch: [3.1.x, 3.2.x, 3.3.x]
     env:
       SHELL: /bin/bash
       KUBECONFIG: '/home/runner/.kube/config'
@@ -141,8 +142,8 @@ jobs:
           cp test-network-function/*.yml $TNF_CONFIG_DIR
         shell: bash
 
-      - name: 'Test: Run diagnostic test suite in a TNF container'
-        run: ./run-tnf-container.sh ${{ env.TESTING_CMD_PARAMS }} -f diagnostic      
+      - name: 'Test: Run without any TS, just get diagnostic information'
+        run: ./run-tnf-container.sh ${{ env.TESTING_CMD_PARAMS }} -f diagnostic
 
       # Push the new TNF image to Quay.io.
 

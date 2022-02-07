@@ -24,7 +24,7 @@ import (
 
 func TestBuildOperatorFromCSVResource(t *testing.T) {
 	csvResource := loadCSVResource(csvFilePath)
-	operator := buildOperatorFromCSVResource(&csvResource)
+	operator := buildOperatorFromCSVResource(&csvResource, true)
 
 	assert.Equal(t, "CSVNamespace", operator.Namespace)
 	assert.Equal(t, "CSVName", operator.Name)

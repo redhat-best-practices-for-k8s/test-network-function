@@ -347,9 +347,7 @@ func testSysctlConfigs(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestSysctlConfigsIdentifier)
 	ginkgo.It(testID, ginkgo.Label(testID), func() {
 		for _, podUnderTest := range env.PodsUnderTest {
-			podName := podUnderTest.Name
-			podNameSpace := podUnderTest.Namespace
-			testSysctlConfigsHelper(podName, podNameSpace, env.GetLocalShellContext())
+			testSysctlConfigsHelper(podUnderTest.Name, podUnderTest.Namespace, env.GetLocalShellContext())
 		}
 	})
 }
