@@ -195,7 +195,7 @@ func ModuleInTree(nodeName, moduleName string, nodeOc *interactive.Oc) bool {
 	// The output, if found, should look something like 'intree:   Y'.
 	// As long as we look for 'intree:' being contained in the string we should be good to go.
 	found := false
-	if StringInSlice(outputSlice, `intree:`) {
+	if StringInSlice(outputSlice, `intree:`, false) {
 		found = true
 	}
 	return found
@@ -219,10 +219,16 @@ func AddNsenterPrefix(containerPID string) string {
 }
 
 // StringInSlice checks a slice for a given string.
-func StringInSlice(s []string, str string) bool {
+func StringInSlice(s []string, str string, contains bool) bool {
 	for _, v := range s {
-		if strings.TrimSpace(v) == str {
-			return true
+		if !contains {
+			if strings.TrimSpace(v) == str {
+				return true
+			}
+		} else {
+			if strings.Contains(strings.TrimSpace(v), str) {
+				return true
+			}
 		}
 	}
 	return false
