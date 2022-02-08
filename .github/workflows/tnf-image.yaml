@@ -126,10 +126,33 @@ jobs:
           repository: test-network-function/cnf-certification-test-partner
           path: cnf-certification-test-partner
           ref: ${{ env.PARTNER_VERSION }}
-          
-      - name: Start the minikube cluster for `local-test-infra`
+
+      # Only one of the following 2 steps will work depending on the repo version
+
+      # For versions > 3.3.0
+
+      - name: Check for start-k8s-cluster existence
+        id: check_start_k8s_cluster
+        uses: andstor/file-existence-action@v1
+        with:
+          files: "./cnf-certification-test-partner/.github/actions/start-k8s-cluster"
+
+      - name: Start the k8s cluster for `local-test-infra`
+        if: steps.check_start_k8s_cluster.outputs.files_exists == 'true'
         uses: ./cnf-certification-test-partner/.github/actions/start-k8s-cluster
-          
+
+      # For version <= 3.3.0
+
+      - name: Check for start-minikube existence
+        id: check_start_minikube
+        uses: andstor/file-existence-action@v1
+        with:
+          files: "./cnf-certification-test-partner/.github/actions/start-minikube"
+
+      - name: Start the minikube cluster for `local-test-infra`
+        if: steps.check_start_minikube.outputs.files_exists == 'true'
+        uses: ./cnf-certification-test-partner/.github/actions/start-minikube
+
       - name: Create `local-test-infra` OpenShift resources
         uses: ./cnf-certification-test-partner/.github/actions/create-local-test-infra-resources
         with:
