@@ -355,6 +355,7 @@ func parseVariables(res string, declaredPorts map[key]string) error {
 	if err != nil {
 		return err
 	}
+
 	for element := range p {
 		var k key
 		k.port = p[element].ContainerPort
@@ -365,8 +366,11 @@ func parseVariables(res string, declaredPorts map[key]string) error {
 }
 func declaredPortList(container int, podName, podNamespace string, declaredPorts map[key]string) error {
 	ocCommandToExecute := fmt.Sprintf(commandportdeclared, podName, podNamespace, container)
-	res, _ := utils.ExecuteCommand(ocCommandToExecute, ocCommandTimeOut, interactive.GetContext(false))
-	err := parseVariables(res, declaredPorts)
+	res, err := utils.ExecuteCommand(ocCommandToExecute, ocCommandTimeOut, interactive.GetContext(false))
+	if err != nil {
+		return err
+	}
+	err = parseVariables(res, declaredPorts)
 	return err
 }
 

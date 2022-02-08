@@ -17,17 +17,23 @@
 package networking
 
 import (
+	"os"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
+	"github.com/test-network-function/test-network-function/pkg/utils"
 )
 
 func TestParseVariables(t *testing.T) {
 	// expected inputs
 	testCases := []struct {
 		// inputs
-		inputRes      string
+		// inputRes is string that include the result after we run the command ""oc get pod %s -n %s -o json  | jq -r '.spec.containers[%d].ports'""
+		inputRes string
+
+		// now is empty but maybe in the future has be not empty.
 		declaredPorts map[key]string
 
 		// expected outputs here
@@ -35,22 +41,16 @@ func TestParseVariables(t *testing.T) {
 		expectedRes           string
 	}{
 		{
-			inputRes:              `[\n  {\n    \"containerPort\": 8080,\n    \"name\": \"http-probe\",\n    \"protocol\": \"UDP\"\n  }\n]`,
-			declaredPorts:         map[key]string{},
-			expectedDeclaredPorts: map[key]string{{port: 8080, protocol: "UDP"}: "http-probe"},
-			expectedRes:           `[\n  {\n    \"containerPort\": 8080,\n    \"name\": \"http-probe\",\n    \"protocol\": \"UDP\"\n  }\n]`,
-		},
-		{
-			inputRes:              "",
-			declaredPorts:         map[key]string{},
-			expectedDeclaredPorts: map[key]string{},
-			expectedRes:           "",
-		},
-		{
-			inputRes:              `[\n  {\n    \"containerPort\": 8080,\n    \"name\": \"http-probe\",\n    \"protocol\": \"TCP\"\n  }\n]`,
+			inputRes:              "[\n  {\n    \"containerPort\": 8080,\n    \"name\": \"http-probe\",\n    \"protocol\": \"TCP\"\n  }\n]",
 			declaredPorts:         map[key]string{},
 			expectedDeclaredPorts: map[key]string{{port: 8080, protocol: "TCP"}: "http-probe"},
-			expectedRes:           `[\n  {\n    \"containerPort\": 8080,\n    \"name\": \"http-probe\",\n    \"protocol\": \"TCP\"\n  }\n]`,
+			expectedRes:           "[\n  {\n    \"containerPort\": 8080,\n    \"name\": \"http-probe\",\n    \"protocol\": \"TCP\"\n  }\n]",
+		},
+		{
+			inputRes:              "[\n  {\n    \"containerPort\": 8080,\n    \"name\": \"http-probe\",\n    \"protocol\": \"UDP\"\n  }\n]",
+			declaredPorts:         map[key]string{},
+			expectedDeclaredPorts: map[key]string{{port: 8080, protocol: "UDP"}: "http-probe"},
+			expectedRes:           "[\n  {\n    \"containerPort\": 8080,\n    \"name\": \"http-probe\",\n    \"protocol\": \"UDP\"\n  }\n]",
 		},
 	}
 
@@ -65,6 +65,7 @@ func TestDeclaredPortList(t *testing.T) {
 	// expected inputs
 	testCases := []struct {
 		// inputs
+		jsonFileName  string
 		container     int
 		podName       string
 		podNamespace  string
@@ -74,32 +75,36 @@ func TestDeclaredPortList(t *testing.T) {
 		expectedDeclaredPorts map[key]string
 	}{
 		{
+			jsonFileName:          "test-network-functions/pkg/config/autodiscover/testdata/pods_with_json.json",
 			container:             0,
-			podName:               "test-54bc4c6d7-2gwlz",
+			podName:               "test-54bc4c6d7-8rzch",
 			podNamespace:          "tnf",
 			declaredPorts:         map[key]string{},
 			expectedDeclaredPorts: map[key]string{{port: 8080, protocol: "TCP"}: "http-probe"},
 		},
-		{
-			container:             0,
-			podName:               "",
-			podNamespace:          "",
-			declaredPorts:         map[key]string{},
-			expectedDeclaredPorts: map[key]string{},
-		},
 	}
 
+	origFunc := utils.ExecuteCommand
+	defer func() {
+		utils.ExecuteCommand = origFunc
+	}()
 	for _, tc := range testCases {
+		utils.ExecuteCommand = func(command string, timeout time.Duration, context *interactive.Context) (string, error) {
+			output, err := os.ReadFile(tc.jsonFileName)
+			return string(output), err
+		}
 		err := declaredPortList(tc.container, tc.podName, tc.podNamespace, tc.declaredPorts)
 		assert.Nil(t, err)
 		assert.Equal(t, tc.expectedDeclaredPorts, tc.declaredPorts)
 	}
+	utils.ExecuteCommand = origFunc
 }
 
 func TestListeningPortList(t *testing.T) {
 	// expected inputs
 	testCases := []struct {
 		// inputs
+		jsonFileName   string
 		commandlisten  []string
 		nodeOc         *interactive.Context
 		listeningPorts map[key]string
@@ -120,7 +125,15 @@ func TestListeningPortList(t *testing.T) {
 			expectedlisteningPorts: map[key]string{},
 		},
 	}
+	origFunc := utils.ExecuteCommand
+	defer func() {
+		utils.ExecuteCommand = origFunc
+	}()
 	for _, tc := range testCases {
+		utils.ExecuteCommand = func(command string, timeout time.Duration, context *interactive.Context) (string, error) {
+			output, err := os.ReadFile(tc.jsonFileName)
+			return string(output), err
+		}
 		err := listeningPortList(tc.commandlisten, tc.nodeOc, tc.listeningPorts)
 		assert.Nil(t, err)
 		assert.Equal(t, tc.expectedlisteningPorts, tc.listeningPorts)
@@ -154,8 +167,8 @@ func TestCheckIfListenIsDeclared(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		err := checkIfListenIsDeclared(tc.listeningPorts, tc.declaredPorts)
-		assert.Nil(t, err)
-		assert.Equal(t, tc.listeningPorts, checkIfListenIsDeclared(nil, nil))
+		res := checkIfListenIsDeclared(tc.listeningPorts, tc.declaredPorts)
+		assert.Nil(t, res)
+		assert.Equal(t, tc.listeningPorts, tc.declaredPorts)
 	}
 }

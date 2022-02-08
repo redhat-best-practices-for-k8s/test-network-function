@@ -1,0 +1,1905 @@
+{
+    "apiVersion": "v1",
+    "items": [
+        {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {
+                "annotations": {
+                    "cni.projectcalico.org/podIP": "10.244.205.197/32",
+                    "cni.projectcalico.org/podIPs": "10.244.205.197/32",
+                    "k8s.v1.cni.cncf.io/network-status": "[{\n    \"name\": \"k8s-pod-network\",\n    \"ips\": [\n        \"10.244.205.197\"\n    ],\n    \"default\": true,\n    \"dns\": {}\n}]",
+                    "k8s.v1.cni.cncf.io/networks-status": "[{\n    \"name\": \"k8s-pod-network\",\n    \"ips\": [\n        \"10.244.205.197\"\n    ],\n    \"default\": true,\n    \"dns\": {}\n}]"
+                },
+                "creationTimestamp": "2022-02-08T12:09:48Z",
+                "generateName": "4c926df73b15df26b6874260a4f71ca3bf7c6ce2bdfd87aa90759a6aeb5d8a9-",
+                "labels": {
+                    "controller-uid": "90326664-adc2-4060-96a1-a90f4df6dd3d",
+                    "job-name": "4c926df73b15df26b6874260a4f71ca3bf7c6ce2bdfd87aa90759a6aeb5d8a9"
+                },
+                "name": "4c926df73b15df26b6874260a4f71ca3bf7c6ce2bdfd87aa90759a6aebdb7m5",
+                "namespace": "tnf",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "batch/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "Job",
+                        "name": "4c926df73b15df26b6874260a4f71ca3bf7c6ce2bdfd87aa90759a6aeb5d8a9",
+                        "uid": "90326664-adc2-4060-96a1-a90f4df6dd3d"
+                    }
+                ],
+                "resourceVersion": "1553",
+                "uid": "351db2d7-c95a-4e2c-b1b5-b05d6205447b"
+            },
+            "spec": {
+                "containers": [
+                    {
+                        "command": [
+                            "opm",
+                            "alpha",
+                            "bundle",
+                            "extract",
+                            "-m",
+                            "/bundle/",
+                            "-n",
+                            "tnf",
+                            "-c",
+                            "4c926df73b15df26b6874260a4f71ca3bf7c6ce2bdfd87aa90759a6aeb5d8a9"
+                        ],
+                        "env": [
+                            {
+                                "name": "CONTAINER_IMAGE",
+                                "value": "quay.io/testnetworkfunction/nginx-operator-bundle:v0.0.1"
+                            }
+                        ],
+                        "image": "quay.io/operator-framework/configmap-operator-registry:latest",
+                        "imagePullPolicy": "Always",
+                        "name": "extract",
+                        "resources": {
+                            "requests": {
+                                "cpu": "10m",
+                                "memory": "50Mi"
+                            }
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/bundle",
+                                "name": "bundle"
+                            },
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "default-token-rm99l",
+                                "readOnly": true
+                            }
+                        ]
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "imagePullSecrets": [
+                    {}
+                ],
+                "initContainers": [
+                    {
+                        "command": [
+                            "/bin/cp",
+                            "-Rv",
+                            "/bin/cpb",
+                            "/util/cpb"
+                        ],
+                        "image": "quay.io/operator-framework/olm@sha256:e74b2ac57963c7f3ba19122a8c31c9f2a0deb3c0c5cac9e5323ccffd0ca198ed",
+                        "imagePullPolicy": "IfNotPresent",
+                        "name": "util",
+                        "resources": {
+                            "requests": {
+                                "cpu": "10m",
+                                "memory": "50Mi"
+                            }
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/util",
+                                "name": "util"
+                            },
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "default-token-rm99l",
+                                "readOnly": true
+                            }
+                        ]
+                    },
+                    {
+                        "command": [
+                            "/util/cpb",
+                            "/bundle"
+                        ],
+                        "image": "quay.io/testnetworkfunction/nginx-operator-bundle:v0.0.1",
+                        "imagePullPolicy": "Always",
+                        "name": "pull",
+                        "resources": {
+                            "requests": {
+                                "cpu": "10m",
+                                "memory": "50Mi"
+                            }
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/bundle",
+                                "name": "bundle"
+                            },
+                            {
+                                "mountPath": "/util",
+                                "name": "util"
+                            },
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "default-token-rm99l",
+                                "readOnly": true
+                            }
+                        ]
+                    }
+                ],
+                "nodeName": "minikube-m02",
+                "preemptionPolicy": "PreemptLowerPriority",
+                "priority": 0,
+                "restartPolicy": "Never",
+                "schedulerName": "default-scheduler",
+                "securityContext": {},
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    }
+                ],
+                "volumes": [
+                    {
+                        "emptyDir": {},
+                        "name": "bundle"
+                    },
+                    {
+                        "emptyDir": {},
+                        "name": "util"
+                    },
+                    {
+                        "name": "default-token-rm99l",
+                        "secret": {
+                            "defaultMode": 420,
+                            "secretName": "default-token-rm99l"
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2022-02-08T12:09:56Z",
+                        "reason": "PodCompleted",
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2022-02-08T12:09:49Z",
+                        "reason": "PodCompleted",
+                        "status": "False",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2022-02-08T12:09:49Z",
+                        "reason": "PodCompleted",
+                        "status": "False",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2022-02-08T12:09:49Z",
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "docker://f8c0f4c42f69b83c7e178df88daa1eb7c9b70bf2fc2d6564b9edf0c4be50b8cd",
+                        "image": "quay.io/operator-framework/configmap-operator-registry:latest",
+                        "imageID": "docker-pullable://quay.io/operator-framework/configmap-operator-registry@sha256:54a3f6168a0384ed1c1e9420c5d40e78da7045bc6be33afbcfc16c05c5b807e6",
+                        "lastState": {},
+                        "name": "extract",
+                        "ready": false,
+                        "restartCount": 0,
+                        "started": false,
+                        "state": {
+                            "terminated": {
+                                "containerID": "docker://f8c0f4c42f69b83c7e178df88daa1eb7c9b70bf2fc2d6564b9edf0c4be50b8cd",
+                                "exitCode": 0,
+                                "finishedAt": "2022-02-08T12:10:03Z",
+                                "reason": "Completed",
+                                "startedAt": "2022-02-08T12:10:03Z"
+                            }
+                        }
+                    }
+                ],
+                "hostIP": "192.168.49.3",
+                "initContainerStatuses": [
+                    {
+                        "containerID": "docker://793b12b8b2e8aedd610016b644daa12d4b73d8a6730a99122dfc22643ef86ab3",
+                        "image": "sha256:518fd05ba6b5b1c87dfa90d4ea6d9bf650013f8c6a2c52bd1bdaf72788beb8cf",
+                        "imageID": "docker-pullable://quay.io/operator-framework/olm@sha256:e74b2ac57963c7f3ba19122a8c31c9f2a0deb3c0c5cac9e5323ccffd0ca198ed",
+                        "lastState": {},
+                        "name": "util",
+                        "ready": true,
+                        "restartCount": 0,
+                        "state": {
+                            "terminated": {
+                                "containerID": "docker://793b12b8b2e8aedd610016b644daa12d4b73d8a6730a99122dfc22643ef86ab3",
+                                "exitCode": 0,
+                                "finishedAt": "2022-02-08T12:09:50Z",
+                                "reason": "Completed",
+                                "startedAt": "2022-02-08T12:09:50Z"
+                            }
+                        }
+                    },
+                    {
+                        "containerID": "docker://8a113faffb80cf1839a6a37fb9b426477f4452da98b9f049e8727a6788402895",
+                        "image": "quay.io/testnetworkfunction/nginx-operator-bundle:v0.0.1",
+                        "imageID": "docker-pullable://quay.io/testnetworkfunction/nginx-operator-bundle@sha256:4a5be87b5934ad20946acf293cfc5339d7ffc10c60a354331d63778db9755ed5",
+                        "lastState": {},
+                        "name": "pull",
+                        "ready": true,
+                        "restartCount": 0,
+                        "state": {
+                            "terminated": {
+                                "containerID": "docker://8a113faffb80cf1839a6a37fb9b426477f4452da98b9f049e8727a6788402895",
+                                "exitCode": 0,
+                                "finishedAt": "2022-02-08T12:09:56Z",
+                                "reason": "Completed",
+                                "startedAt": "2022-02-08T12:09:55Z"
+                            }
+                        }
+                    }
+                ],
+                "phase": "Succeeded",
+                "podIP": "10.244.205.197",
+                "podIPs": [
+                    {
+                        "ip": "10.244.205.197"
+                    }
+                ],
+                "qosClass": "Burstable",
+                "startTime": "2022-02-08T12:09:49Z"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {
+                "annotations": {
+                    "alm-examples": "[\n  {\n    \"apiVersion\": \"cnftest.quay.io/v0\",\n    \"kind\": \"Nginx\",\n    \"metadata\": {\n      \"name\": \"nginx-sample\"\n    },\n    \"spec\": {\n      \"affinity\": {},\n      \"autoscaling\": {\n        \"enabled\": false,\n        \"maxReplicas\": 100,\n        \"minReplicas\": 1,\n        \"targetCPUUtilizationPercentage\": 80\n      },\n      \"fullnameOverride\": \"\",\n      \"image\": {\n        \"pullPolicy\": \"IfNotPresent\",\n        \"repository\": \"nginx\",\n        \"tag\": \"\"\n      },\n      \"imagePullSecrets\": [],\n      \"ingress\": {\n        \"annotations\": {},\n        \"className\": \"\",\n        \"enabled\": false,\n        \"hosts\": [\n          {\n            \"host\": \"chart-example.local\",\n            \"paths\": [\n              {\n                \"path\": \"/\",\n                \"pathType\": \"ImplementationSpecific\"\n              }\n            ]\n          }\n        ],\n        \"tls\": []\n      },\n      \"nameOverride\": \"\",\n      \"nodeSelector\": {},\n      \"podAnnotations\": {},\n      \"podSecurityContext\": {},\n      \"replicaCount\": 1,\n      \"resources\": {},\n      \"securityContext\": {},\n      \"service\": {\n        \"port\": 80,\n        \"type\": \"ClusterIP\"\n      },\n      \"serviceAccount\": {\n        \"annotations\": {},\n        \"create\": true,\n        \"name\": \"\"\n      },\n      \"tolerations\": []\n    }\n  }\n]",
+                    "capabilities": "Basic Install",
+                    "cni.projectcalico.org/podIP": "10.244.205.198/32",
+                    "cni.projectcalico.org/podIPs": "10.244.205.198/32",
+                    "k8s.v1.cni.cncf.io/network-status": "[{\n    \"name\": \"k8s-pod-network\",\n    \"ips\": [\n        \"10.244.205.198\"\n    ],\n    \"default\": true,\n    \"dns\": {}\n}]",
+                    "k8s.v1.cni.cncf.io/networks-status": "[{\n    \"name\": \"k8s-pod-network\",\n    \"ips\": [\n        \"10.244.205.198\"\n    ],\n    \"default\": true,\n    \"dns\": {}\n}]",
+                    "olm.operatorGroup": "operator-sdk-og",
+                    "olm.operatorNamespace": "tnf",
+                    "olm.targetNamespaces": "",
+                    "operatorframework.io/properties": "{\"properties\":[{\"type\":\"olm.package\",\"value\":{\"packageName\":\"nginx-operator\",\"version\":\"0.0.1\"}},{\"type\":\"olm.gvk\",\"value\":{\"group\":\"cnftest.quay.io\",\"kind\":\"Nginx\",\"version\":\"v0\"}}]}",
+                    "operators.operatorframework.io/builder": "operator-sdk-v1.10.0+git",
+                    "operators.operatorframework.io/project_layout": "helm.sdk.operatorframework.io/v1",
+                    "test-network-function.com/subscription_name": "[\"nginx-operator-v0-0-1-sub\"]"
+                },
+                "creationTimestamp": "2022-02-08T12:10:09Z",
+                "generateName": "nginx-operator-controller-manager-794656b996-",
+                "labels": {
+                    "control-plane": "controller-manager",
+                    "pod-template-hash": "794656b996"
+                },
+                "managedFields": [
+                    {
+                        "apiVersion": "v1",
+                        "fieldsType": "FieldsV1",
+                        "fieldsV1": {
+                            "f:metadata": {
+                                "f:annotations": {
+                                    ".": {},
+                                    "f:alm-examples": {},
+                                    "f:capabilities": {},
+                                    "f:olm.operatorGroup": {},
+                                    "f:olm.operatorNamespace": {},
+                                    "f:olm.targetNamespaces": {},
+                                    "f:operatorframework.io/properties": {},
+                                    "f:operators.operatorframework.io/builder": {},
+                                    "f:operators.operatorframework.io/project_layout": {},
+                                    "f:test-network-function.com/subscription_name": {}
+                                },
+                                "f:generateName": {},
+                                "f:labels": {
+                                    ".": {},
+                                    "f:control-plane": {},
+                                    "f:pod-template-hash": {}
+                                },
+                                "f:ownerReferences": {
+                                    ".": {},
+                                    "k:{\"uid\":\"599f9566-f724-4ca6-8234-b3f7ed8ab62d\"}": {
+                                        ".": {},
+                                        "f:apiVersion": {},
+                                        "f:blockOwnerDeletion": {},
+                                        "f:controller": {},
+                                        "f:kind": {},
+                                        "f:name": {},
+                                        "f:uid": {}
+                                    }
+                                }
+                            },
+                            "f:spec": {
+                                "f:containers": {
+                                    "k:{\"name\":\"kube-rbac-proxy\"}": {
+                                        ".": {},
+                                        "f:args": {},
+                                        "f:env": {
+                                            ".": {},
+                                            "k:{\"name\":\"OPERATOR_CONDITION_NAME\"}": {
+                                                ".": {},
+                                                "f:name": {},
+                                                "f:value": {}
+                                            }
+                                        },
+                                        "f:image": {},
+                                        "f:imagePullPolicy": {},
+                                        "f:name": {},
+                                        "f:ports": {
+                                            ".": {},
+                                            "k:{\"containerPort\":8443,\"protocol\":\"TCP\"}": {
+                                                ".": {},
+                                                "f:containerPort": {},
+                                                "f:name": {},
+                                                "f:protocol": {}
+                                            }
+                                        },
+                                        "f:resources": {},
+                                        "f:terminationMessagePath": {},
+                                        "f:terminationMessagePolicy": {}
+                                    },
+                                    "k:{\"name\":\"manager\"}": {
+                                        ".": {},
+                                        "f:args": {},
+                                        "f:env": {
+                                            ".": {},
+                                            "k:{\"name\":\"OPERATOR_CONDITION_NAME\"}": {
+                                                ".": {},
+                                                "f:name": {},
+                                                "f:value": {}
+                                            }
+                                        },
+                                        "f:image": {},
+                                        "f:imagePullPolicy": {},
+                                        "f:livenessProbe": {
+                                            ".": {},
+                                            "f:failureThreshold": {},
+                                            "f:httpGet": {
+                                                ".": {},
+                                                "f:path": {},
+                                                "f:port": {},
+                                                "f:scheme": {}
+                                            },
+                                            "f:initialDelaySeconds": {},
+                                            "f:periodSeconds": {},
+                                            "f:successThreshold": {},
+                                            "f:timeoutSeconds": {}
+                                        },
+                                        "f:name": {},
+                                        "f:readinessProbe": {
+                                            ".": {},
+                                            "f:failureThreshold": {},
+                                            "f:httpGet": {
+                                                ".": {},
+                                                "f:path": {},
+                                                "f:port": {},
+                                                "f:scheme": {}
+                                            },
+                                            "f:initialDelaySeconds": {},
+                                            "f:periodSeconds": {},
+                                            "f:successThreshold": {},
+                                            "f:timeoutSeconds": {}
+                                        },
+                                        "f:resources": {
+                                            ".": {},
+                                            "f:limits": {
+                                                ".": {},
+                                                "f:cpu": {},
+                                                "f:memory": {}
+                                            },
+                                            "f:requests": {
+                                                ".": {},
+                                                "f:cpu": {},
+                                                "f:memory": {}
+                                            }
+                                        },
+                                        "f:securityContext": {
+                                            ".": {},
+                                            "f:allowPrivilegeEscalation": {}
+                                        },
+                                        "f:terminationMessagePath": {},
+                                        "f:terminationMessagePolicy": {}
+                                    }
+                                },
+                                "f:dnsPolicy": {},
+                                "f:enableServiceLinks": {},
+                                "f:restartPolicy": {},
+                                "f:schedulerName": {},
+                                "f:securityContext": {
+                                    ".": {},
+                                    "f:runAsNonRoot": {}
+                                },
+                                "f:serviceAccount": {},
+                                "f:serviceAccountName": {},
+                                "f:terminationGracePeriodSeconds": {}
+                            }
+                        },
+                        "manager": "kube-controller-manager",
+                        "operation": "Update",
+                        "time": "2022-02-08T12:10:09Z"
+                    },
+                    {
+                        "apiVersion": "v1",
+                        "fieldsType": "FieldsV1",
+                        "fieldsV1": {
+                            "f:metadata": {
+                                "f:annotations": {
+                                    "f:cni.projectcalico.org/podIP": {},
+                                    "f:cni.projectcalico.org/podIPs": {}
+                                }
+                            }
+                        },
+                        "manager": "calico",
+                        "operation": "Update",
+                        "time": "2022-02-08T12:10:10Z"
+                    },
+                    {
+                        "apiVersion": "v1",
+                        "fieldsType": "FieldsV1",
+                        "fieldsV1": {
+                            "f:metadata": {
+                                "f:annotations": {
+                                    "f:k8s.v1.cni.cncf.io/network-status": {},
+                                    "f:k8s.v1.cni.cncf.io/networks-status": {}
+                                }
+                            }
+                        },
+                        "manager": "multus",
+                        "operation": "Update",
+                        "time": "2022-02-08T12:10:10Z"
+                    },
+                    {
+                        "apiVersion": "v1",
+                        "fieldsType": "FieldsV1",
+                        "fieldsV1": {
+                            "f:status": {
+                                "f:conditions": {
+                                    "k:{\"type\":\"ContainersReady\"}": {
+                                        ".": {},
+                                        "f:lastProbeTime": {},
+                                        "f:lastTransitionTime": {},
+                                        "f:status": {},
+                                        "f:type": {}
+                                    },
+                                    "k:{\"type\":\"Initialized\"}": {
+                                        ".": {},
+                                        "f:lastProbeTime": {},
+                                        "f:lastTransitionTime": {},
+                                        "f:status": {},
+                                        "f:type": {}
+                                    },
+                                    "k:{\"type\":\"Ready\"}": {
+                                        ".": {},
+                                        "f:lastProbeTime": {},
+                                        "f:lastTransitionTime": {},
+                                        "f:status": {},
+                                        "f:type": {}
+                                    }
+                                },
+                                "f:containerStatuses": {},
+                                "f:hostIP": {},
+                                "f:phase": {},
+                                "f:podIP": {},
+                                "f:podIPs": {
+                                    ".": {},
+                                    "k:{\"ip\":\"10.244.205.198\"}": {
+                                        ".": {},
+                                        "f:ip": {}
+                                    }
+                                },
+                                "f:startTime": {}
+                            }
+                        },
+                        "manager": "kubelet",
+                        "operation": "Update",
+                        "time": "2022-02-08T12:10:35Z"
+                    }
+                ],
+                "name": "nginx-operator-controller-manager-794656b996-4sbw6",
+                "namespace": "tnf",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "apps/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "ReplicaSet",
+                        "name": "nginx-operator-controller-manager-794656b996",
+                        "uid": "599f9566-f724-4ca6-8234-b3f7ed8ab62d"
+                    }
+                ],
+                "resourceVersion": "1737",
+                "uid": "79145217-de78-4e2f-b245-6aaac67e805c"
+            },
+            "spec": {
+                "containers": [
+                    {
+                        "args": [
+                            "--secure-listen-address=0.0.0.0:8443",
+                            "--upstream=http://127.0.0.1:8080/",
+                            "--logtostderr=true",
+                            "--v=10"
+                        ],
+                        "env": [
+                            {
+                                "name": "OPERATOR_CONDITION_NAME",
+                                "value": "nginx-operator.v0.0.1"
+                            }
+                        ],
+                        "image": "gcr.io/kubebuilder/kube-rbac-proxy:v0.8.0",
+                        "imagePullPolicy": "IfNotPresent",
+                        "name": "kube-rbac-proxy",
+                        "ports": [
+                            {
+                                "containerPort": 8443,
+                                "name": "https",
+                                "protocol": "TCP"
+                            }
+                        ],
+                        "resources": {},
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "nginx-operator-controller-manager-token-4s55h",
+                                "readOnly": true
+                            }
+                        ]
+                    },
+                    {
+                        "args": [
+                            "--health-probe-bind-address=:8081",
+                            "--metrics-bind-address=127.0.0.1:8080",
+                            "--leader-elect",
+                            "--leader-election-id=nginx-operator"
+                        ],
+                        "env": [
+                            {
+                                "name": "OPERATOR_CONDITION_NAME",
+                                "value": "nginx-operator.v0.0.1"
+                            }
+                        ],
+                        "image": "quay.io/testnetworkfunction/nginx-operator:v0.0.1",
+                        "imagePullPolicy": "IfNotPresent",
+                        "livenessProbe": {
+                            "failureThreshold": 3,
+                            "httpGet": {
+                                "path": "/healthz",
+                                "port": 8081,
+                                "scheme": "HTTP"
+                            },
+                            "initialDelaySeconds": 15,
+                            "periodSeconds": 20,
+                            "successThreshold": 1,
+                            "timeoutSeconds": 1
+                        },
+                        "name": "manager",
+                        "readinessProbe": {
+                            "failureThreshold": 3,
+                            "httpGet": {
+                                "path": "/readyz",
+                                "port": 8081,
+                                "scheme": "HTTP"
+                            },
+                            "initialDelaySeconds": 5,
+                            "periodSeconds": 10,
+                            "successThreshold": 1,
+                            "timeoutSeconds": 1
+                        },
+                        "resources": {
+                            "limits": {
+                                "cpu": "200m",
+                                "memory": "100Mi"
+                            },
+                            "requests": {
+                                "cpu": "100m",
+                                "memory": "60Mi"
+                            }
+                        },
+                        "securityContext": {
+                            "allowPrivilegeEscalation": false
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "nginx-operator-controller-manager-token-4s55h",
+                                "readOnly": true
+                            }
+                        ]
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "nodeName": "minikube-m02",
+                "preemptionPolicy": "PreemptLowerPriority",
+                "priority": 0,
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {
+                    "runAsNonRoot": true
+                },
+                "serviceAccount": "nginx-operator-controller-manager",
+                "serviceAccountName": "nginx-operator-controller-manager",
+                "terminationGracePeriodSeconds": 10,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    }
+                ],
+                "volumes": [
+                    {
+                        "name": "nginx-operator-controller-manager-token-4s55h",
+                        "secret": {
+                            "defaultMode": 420,
+                            "secretName": "nginx-operator-controller-manager-token-4s55h"
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2022-02-08T12:10:09Z",
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2022-02-08T12:10:35Z",
+                        "status": "True",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2022-02-08T12:10:35Z",
+                        "status": "True",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2022-02-08T12:10:09Z",
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "docker://a8d95d1cfe67dd976180dfc642b9b209eefad06f40c484b2a944a1fdac1ef87e",
+                        "image": "gcr.io/kubebuilder/kube-rbac-proxy:v0.8.0",
+                        "imageID": "docker-pullable://gcr.io/kubebuilder/kube-rbac-proxy@sha256:db06cc4c084dd0253134f156dddaaf53ef1c3fb3cc809e5d81711baa4029ea4c",
+                        "lastState": {},
+                        "name": "kube-rbac-proxy",
+                        "ready": true,
+                        "restartCount": 0,
+                        "started": true,
+                        "state": {
+                            "running": {
+                                "startedAt": "2022-02-08T12:10:14Z"
+                            }
+                        }
+                    },
+                    {
+                        "containerID": "docker://959f2080d4cd3e4a5b41057a8c1e7af265fb01f8470dd8f833795be3d4d2e125",
+                        "image": "quay.io/testnetworkfunction/nginx-operator:v0.0.1",
+                        "imageID": "docker-pullable://quay.io/testnetworkfunction/nginx-operator@sha256:2a053dd54e3048ebea8cbefaa2f337aab74650fd53d01c3fa9e4e9d0ca3bba42",
+                        "lastState": {},
+                        "name": "manager",
+                        "ready": true,
+                        "restartCount": 0,
+                        "started": true,
+                        "state": {
+                            "running": {
+                                "startedAt": "2022-02-08T12:10:21Z"
+                            }
+                        }
+                    }
+                ],
+                "hostIP": "192.168.49.3",
+                "phase": "Running",
+                "podIP": "10.244.205.198",
+                "podIPs": [
+                    {
+                        "ip": "10.244.205.198"
+                    }
+                ],
+                "qosClass": "Burstable",
+                "startTime": "2022-02-08T12:10:09Z"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {
+                "annotations": {
+                    "cni.projectcalico.org/podIP": "10.244.205.196/32",
+                    "cni.projectcalico.org/podIPs": "10.244.205.196/32",
+                    "k8s.v1.cni.cncf.io/network-status": "[{\n    \"name\": \"k8s-pod-network\",\n    \"ips\": [\n        \"10.244.205.196\"\n    ],\n    \"default\": true,\n    \"dns\": {}\n}]",
+                    "k8s.v1.cni.cncf.io/networks-status": "[{\n    \"name\": \"k8s-pod-network\",\n    \"ips\": [\n        \"10.244.205.196\"\n    ],\n    \"default\": true,\n    \"dns\": {}\n}]"
+                },
+                "creationTimestamp": "2022-02-08T12:09:32Z",
+                "managedFields": [
+                    {
+                        "apiVersion": "v1",
+                        "fieldsType": "FieldsV1",
+                        "fieldsV1": {
+                            "f:metadata": {
+                                "f:ownerReferences": {
+                                    ".": {},
+                                    "k:{\"uid\":\"35b176dd-a25e-4525-b983-31ba2bf1a5c6\"}": {
+                                        ".": {},
+                                        "f:apiVersion": {},
+                                        "f:kind": {},
+                                        "f:name": {},
+                                        "f:uid": {}
+                                    }
+                                }
+                            },
+                            "f:spec": {
+                                "f:containers": {
+                                    "k:{\"name\":\"registry-grpc\"}": {
+                                        ".": {},
+                                        "f:command": {},
+                                        "f:image": {},
+                                        "f:imagePullPolicy": {},
+                                        "f:name": {},
+                                        "f:ports": {
+                                            ".": {},
+                                            "k:{\"containerPort\":50051,\"protocol\":\"TCP\"}": {
+                                                ".": {},
+                                                "f:containerPort": {},
+                                                "f:name": {},
+                                                "f:protocol": {}
+                                            }
+                                        },
+                                        "f:resources": {},
+                                        "f:terminationMessagePath": {},
+                                        "f:terminationMessagePolicy": {}
+                                    }
+                                },
+                                "f:dnsPolicy": {},
+                                "f:enableServiceLinks": {},
+                                "f:restartPolicy": {},
+                                "f:schedulerName": {},
+                                "f:securityContext": {},
+                                "f:terminationGracePeriodSeconds": {}
+                            }
+                        },
+                        "manager": "operator-sdk",
+                        "operation": "Update",
+                        "time": "2022-02-08T12:09:32Z"
+                    },
+                    {
+                        "apiVersion": "v1",
+                        "fieldsType": "FieldsV1",
+                        "fieldsV1": {
+                            "f:metadata": {
+                                "f:annotations": {
+                                    ".": {},
+                                    "f:cni.projectcalico.org/podIP": {},
+                                    "f:cni.projectcalico.org/podIPs": {}
+                                }
+                            }
+                        },
+                        "manager": "calico",
+                        "operation": "Update",
+                        "time": "2022-02-08T12:09:33Z"
+                    },
+                    {
+                        "apiVersion": "v1",
+                        "fieldsType": "FieldsV1",
+                        "fieldsV1": {
+                            "f:metadata": {
+                                "f:annotations": {
+                                    "f:k8s.v1.cni.cncf.io/network-status": {},
+                                    "f:k8s.v1.cni.cncf.io/networks-status": {}
+                                }
+                            }
+                        },
+                        "manager": "multus",
+                        "operation": "Update",
+                        "time": "2022-02-08T12:09:33Z"
+                    },
+                    {
+                        "apiVersion": "v1",
+                        "fieldsType": "FieldsV1",
+                        "fieldsV1": {
+                            "f:status": {
+                                "f:conditions": {
+                                    "k:{\"type\":\"ContainersReady\"}": {
+                                        ".": {},
+                                        "f:lastProbeTime": {},
+                                        "f:lastTransitionTime": {},
+                                        "f:status": {},
+                                        "f:type": {}
+                                    },
+                                    "k:{\"type\":\"Initialized\"}": {
+                                        ".": {},
+                                        "f:lastProbeTime": {},
+                                        "f:lastTransitionTime": {},
+                                        "f:status": {},
+                                        "f:type": {}
+                                    },
+                                    "k:{\"type\":\"Ready\"}": {
+                                        ".": {},
+                                        "f:lastProbeTime": {},
+                                        "f:lastTransitionTime": {},
+                                        "f:status": {},
+                                        "f:type": {}
+                                    }
+                                },
+                                "f:containerStatuses": {},
+                                "f:hostIP": {},
+                                "f:phase": {},
+                                "f:podIP": {},
+                                "f:podIPs": {
+                                    ".": {},
+                                    "k:{\"ip\":\"10.244.205.196\"}": {
+                                        ".": {},
+                                        "f:ip": {}
+                                    }
+                                },
+                                "f:startTime": {}
+                            }
+                        },
+                        "manager": "kubelet",
+                        "operation": "Update",
+                        "time": "2022-02-08T12:09:39Z"
+                    }
+                ],
+                "name": "quay-io-testnetworkfunction-nginx-operator-bundle-v0-0-1",
+                "namespace": "tnf",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "operators.coreos.com/v1alpha1",
+                        "kind": "CatalogSource",
+                        "name": "nginx-operator-catalog",
+                        "uid": "35b176dd-a25e-4525-b983-31ba2bf1a5c6"
+                    }
+                ],
+                "resourceVersion": "1451",
+                "uid": "08e05d31-f284-474b-bbf7-d0f910ae11a2"
+            },
+            "spec": {
+                "containers": [
+                    {
+                        "command": [
+                            "/bin/sh",
+                            "-c",
+                            "/bin/mkdir -p /database \u0026\u0026 \\\n/bin/opm registry add -d /database/index.db -b quay.io/testnetworkfunction/nginx-operator-bundle:v0.0.1 --mode=semver --skip-tls=false \u0026\u0026 \\\n/bin/opm registry serve -d /database/index.db -p 50051\n"
+                        ],
+                        "image": "quay.io/operator-framework/upstream-opm-builder:latest",
+                        "imagePullPolicy": "Always",
+                        "name": "registry-grpc",
+                        "ports": [
+                            {
+                                "containerPort": 50051,
+                                "name": "grpc",
+                                "protocol": "TCP"
+                            }
+                        ],
+                        "resources": {},
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "default-token-rm99l",
+                                "readOnly": true
+                            }
+                        ]
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "nodeName": "minikube-m02",
+                "preemptionPolicy": "PreemptLowerPriority",
+                "priority": 0,
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {},
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    }
+                ],
+                "volumes": [
+                    {
+                        "name": "default-token-rm99l",
+                        "secret": {
+                            "defaultMode": 420,
+                            "secretName": "default-token-rm99l"
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2022-02-08T12:09:32Z",
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2022-02-08T12:09:39Z",
+                        "status": "True",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2022-02-08T12:09:39Z",
+                        "status": "True",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2022-02-08T12:09:32Z",
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "docker://6e5191467e6e51c98fd8c377e4cc3b33e885a9175e2c985ed16c659196c22488",
+                        "image": "quay.io/operator-framework/upstream-opm-builder:latest",
+                        "imageID": "docker-pullable://quay.io/operator-framework/upstream-opm-builder@sha256:1af83eab227c7b083be08578c3cdd01cc0f7a992fcb71410a8e00a7515c32af6",
+                        "lastState": {},
+                        "name": "registry-grpc",
+                        "ready": true,
+                        "restartCount": 0,
+                        "started": true,
+                        "state": {
+                            "running": {
+                                "startedAt": "2022-02-08T12:09:39Z"
+                            }
+                        }
+                    }
+                ],
+                "hostIP": "192.168.49.3",
+                "phase": "Running",
+                "podIP": "10.244.205.196",
+                "podIPs": [
+                    {
+                        "ip": "10.244.205.196"
+                    }
+                ],
+                "qosClass": "BestEffort",
+                "startTime": "2022-02-08T12:09:32Z"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {
+                "annotations": {
+                    "cni.projectcalico.org/podIP": "10.244.151.5/32",
+                    "cni.projectcalico.org/podIPs": "10.244.151.5/32",
+                    "k8s.v1.cni.cncf.io/network-status": "[{\n    \"name\": \"k8s-pod-network\",\n    \"ips\": [\n        \"10.244.151.5\"\n    ],\n    \"default\": true,\n    \"dns\": {}\n},{\n    \"name\": \"tnf/macvlan-conf\",\n    \"interface\": \"net1\",\n    \"ips\": [\n        \"192.168.1.3\"\n    ],\n    \"mac\": \"7a:68:ab:98:5c:82\",\n    \"dns\": {}\n}]",
+                    "k8s.v1.cni.cncf.io/networks": "macvlan-conf",
+                    "k8s.v1.cni.cncf.io/networks-status": "[{\n    \"name\": \"k8s-pod-network\",\n    \"ips\": [\n        \"10.244.151.5\"\n    ],\n    \"default\": true,\n    \"dns\": {}\n},{\n    \"name\": \"tnf/macvlan-conf\",\n    \"interface\": \"net1\",\n    \"ips\": [\n        \"192.168.1.3\"\n    ],\n    \"mac\": \"7a:68:ab:98:5c:82\",\n    \"dns\": {}\n}]",
+                    "test-network-function.com/container_tests": "[\"PRIVILEGED_POD\",\"PRIVILEGED_ROLE\"]",
+                    "test-network-function.com/defaultnetworkinterface": "\"eth0\""
+                },
+                "creationTimestamp": "2022-02-08T12:08:24Z",
+                "generateName": "test-54bc4c6d7-",
+                "labels": {
+                    "app": "test",
+                    "pod-template-hash": "54bc4c6d7",
+                    "test-network-function.com/container": "target",
+                    "test-network-function.com/generic": "target"
+                },
+                "managedFields": [
+                    {
+                        "apiVersion": "v1",
+                        "fieldsType": "FieldsV1",
+                        "fieldsV1": {
+                            "f:metadata": {
+                                "f:annotations": {
+                                    ".": {},
+                                    "f:k8s.v1.cni.cncf.io/networks": {},
+                                    "f:test-network-function.com/container_tests": {},
+                                    "f:test-network-function.com/defaultnetworkinterface": {}
+                                },
+                                "f:generateName": {},
+                                "f:labels": {
+                                    ".": {},
+                                    "f:app": {},
+                                    "f:pod-template-hash": {},
+                                    "f:test-network-function.com/container": {},
+                                    "f:test-network-function.com/generic": {}
+                                },
+                                "f:ownerReferences": {
+                                    ".": {},
+                                    "k:{\"uid\":\"f661701a-0751-4fae-8758-3493eec49d2e\"}": {
+                                        ".": {},
+                                        "f:apiVersion": {},
+                                        "f:blockOwnerDeletion": {},
+                                        "f:controller": {},
+                                        "f:kind": {},
+                                        "f:name": {},
+                                        "f:uid": {}
+                                    }
+                                }
+                            },
+                            "f:spec": {
+                                "f:affinity": {
+                                    ".": {},
+                                    "f:podAntiAffinity": {
+                                        ".": {},
+                                        "f:requiredDuringSchedulingIgnoredDuringExecution": {}
+                                    }
+                                },
+                                "f:automountServiceAccountToken": {},
+                                "f:containers": {
+                                    "k:{\"name\":\"test\"}": {
+                                        ".": {},
+                                        "f:command": {},
+                                        "f:image": {},
+                                        "f:imagePullPolicy": {},
+                                        "f:lifecycle": {
+                                            ".": {},
+                                            "f:preStop": {
+                                                ".": {},
+                                                "f:exec": {
+                                                    ".": {},
+                                                    "f:command": {}
+                                                }
+                                            }
+                                        },
+                                        "f:livenessProbe": {
+                                            ".": {},
+                                            "f:failureThreshold": {},
+                                            "f:httpGet": {
+                                                ".": {},
+                                                "f:httpHeaders": {},
+                                                "f:path": {},
+                                                "f:port": {},
+                                                "f:scheme": {}
+                                            },
+                                            "f:initialDelaySeconds": {},
+                                            "f:periodSeconds": {},
+                                            "f:successThreshold": {},
+                                            "f:timeoutSeconds": {}
+                                        },
+                                        "f:name": {},
+                                        "f:ports": {
+                                            ".": {},
+                                            "k:{\"containerPort\":8080,\"protocol\":\"TCP\"}": {
+                                                ".": {},
+                                                "f:containerPort": {},
+                                                "f:name": {},
+                                                "f:protocol": {}
+                                            }
+                                        },
+                                        "f:readinessProbe": {
+                                            ".": {},
+                                            "f:failureThreshold": {},
+                                            "f:httpGet": {
+                                                ".": {},
+                                                "f:httpHeaders": {},
+                                                "f:path": {},
+                                                "f:port": {},
+                                                "f:scheme": {}
+                                            },
+                                            "f:initialDelaySeconds": {},
+                                            "f:periodSeconds": {},
+                                            "f:successThreshold": {},
+                                            "f:timeoutSeconds": {}
+                                        },
+                                        "f:resources": {
+                                            ".": {},
+                                            "f:limits": {
+                                                ".": {},
+                                                "f:cpu": {},
+                                                "f:memory": {}
+                                            },
+                                            "f:requests": {
+                                                ".": {},
+                                                "f:cpu": {},
+                                                "f:memory": {}
+                                            }
+                                        },
+                                        "f:terminationMessagePath": {},
+                                        "f:terminationMessagePolicy": {}
+                                    }
+                                },
+                                "f:dnsPolicy": {},
+                                "f:enableServiceLinks": {},
+                                "f:restartPolicy": {},
+                                "f:schedulerName": {},
+                                "f:securityContext": {},
+                                "f:terminationGracePeriodSeconds": {}
+                            }
+                        },
+                        "manager": "kube-controller-manager",
+                        "operation": "Update",
+                        "time": "2022-02-08T12:08:24Z"
+                    },
+                    {
+                        "apiVersion": "v1",
+                        "fieldsType": "FieldsV1",
+                        "fieldsV1": {
+                            "f:status": {
+                                "f:conditions": {
+                                    ".": {},
+                                    "k:{\"type\":\"PodScheduled\"}": {
+                                        ".": {},
+                                        "f:lastProbeTime": {},
+                                        "f:lastTransitionTime": {},
+                                        "f:message": {},
+                                        "f:reason": {},
+                                        "f:status": {},
+                                        "f:type": {}
+                                    }
+                                }
+                            }
+                        },
+                        "manager": "kube-scheduler",
+                        "operation": "Update",
+                        "time": "2022-02-08T12:08:24Z"
+                    },
+                    {
+                        "apiVersion": "v1",
+                        "fieldsType": "FieldsV1",
+                        "fieldsV1": {
+                            "f:metadata": {
+                                "f:annotations": {
+                                    "f:cni.projectcalico.org/podIP": {},
+                                    "f:cni.projectcalico.org/podIPs": {}
+                                }
+                            }
+                        },
+                        "manager": "calico",
+                        "operation": "Update",
+                        "time": "2022-02-08T12:08:56Z"
+                    },
+                    {
+                        "apiVersion": "v1",
+                        "fieldsType": "FieldsV1",
+                        "fieldsV1": {
+                            "f:metadata": {
+                                "f:annotations": {
+                                    "f:k8s.v1.cni.cncf.io/network-status": {},
+                                    "f:k8s.v1.cni.cncf.io/networks-status": {}
+                                }
+                            }
+                        },
+                        "manager": "multus",
+                        "operation": "Update",
+                        "time": "2022-02-08T12:08:56Z"
+                    },
+                    {
+                        "apiVersion": "v1",
+                        "fieldsType": "FieldsV1",
+                        "fieldsV1": {
+                            "f:status": {
+                                "f:conditions": {
+                                    "k:{\"type\":\"ContainersReady\"}": {
+                                        ".": {},
+                                        "f:lastProbeTime": {},
+                                        "f:lastTransitionTime": {},
+                                        "f:status": {},
+                                        "f:type": {}
+                                    },
+                                    "k:{\"type\":\"Initialized\"}": {
+                                        ".": {},
+                                        "f:lastProbeTime": {},
+                                        "f:lastTransitionTime": {},
+                                        "f:status": {},
+                                        "f:type": {}
+                                    },
+                                    "k:{\"type\":\"Ready\"}": {
+                                        ".": {},
+                                        "f:lastProbeTime": {},
+                                        "f:lastTransitionTime": {},
+                                        "f:status": {},
+                                        "f:type": {}
+                                    }
+                                },
+                                "f:containerStatuses": {},
+                                "f:hostIP": {},
+                                "f:phase": {},
+                                "f:podIP": {},
+                                "f:podIPs": {
+                                    ".": {},
+                                    "k:{\"ip\":\"10.244.151.5\"}": {
+                                        ".": {},
+                                        "f:ip": {}
+                                    }
+                                },
+                                "f:startTime": {}
+                            }
+                        },
+                        "manager": "kubelet",
+                        "operation": "Update",
+                        "time": "2022-02-08T12:09:10Z"
+                    }
+                ],
+                "name": "test-54bc4c6d7-8rzch",
+                "namespace": "tnf",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "apps/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "ReplicaSet",
+                        "name": "test-54bc4c6d7",
+                        "uid": "f661701a-0751-4fae-8758-3493eec49d2e"
+                    }
+                ],
+                "resourceVersion": "1392",
+                "uid": "fd1213e5-103b-4bfc-a170-296959e63e48"
+            },
+            "spec": {
+                "affinity": {
+                    "podAntiAffinity": {
+                        "requiredDuringSchedulingIgnoredDuringExecution": [
+                            {
+                                "labelSelector": {
+                                    "matchExpressions": [
+                                        {
+                                            "key": "app",
+                                            "operator": "In",
+                                            "values": [
+                                                "test"
+                                            ]
+                                        }
+                                    ]
+                                },
+                                "topologyKey": "kubernetes.io/hostname"
+                            }
+                        ]
+                    }
+                },
+                "automountServiceAccountToken": false,
+                "containers": [
+                    {
+                        "command": [
+                            "./bin/app"
+                        ],
+                        "image": "quay.io/testnetworkfunction/cnf-test-partner:latest",
+                        "imagePullPolicy": "IfNotPresent",
+                        "lifecycle": {
+                            "preStop": {
+                                "exec": {
+                                    "command": [
+                                        "/bin/sh",
+                                        "-c",
+                                        "killall -0 tail"
+                                    ]
+                                }
+                            }
+                        },
+                        "livenessProbe": {
+                            "failureThreshold": 3,
+                            "httpGet": {
+                                "httpHeaders": [
+                                    {
+                                        "name": "health-check",
+                                        "value": "liveness"
+                                    }
+                                ],
+                                "path": "/health",
+                                "port": 8080,
+                                "scheme": "HTTP"
+                            },
+                            "initialDelaySeconds": 10,
+                            "periodSeconds": 5,
+                            "successThreshold": 1,
+                            "timeoutSeconds": 1
+                        },
+                        "name": "test",
+                        "ports": [
+                            {
+                                "containerPort": 8080,
+                                "name": "http-probe",
+                                "protocol": "TCP"
+                            }
+                        ],
+                        "readinessProbe": {
+                            "failureThreshold": 3,
+                            "httpGet": {
+                                "httpHeaders": [
+                                    {
+                                        "name": "health-check",
+                                        "value": "readiness"
+                                    }
+                                ],
+                                "path": "/ready",
+                                "port": 8080,
+                                "scheme": "HTTP"
+                            },
+                            "initialDelaySeconds": 10,
+                            "periodSeconds": 5,
+                            "successThreshold": 1,
+                            "timeoutSeconds": 1
+                        },
+                        "resources": {
+                            "limits": {
+                                "cpu": "250m",
+                                "memory": "512Mi"
+                            },
+                            "requests": {
+                                "cpu": "250m",
+                                "memory": "512Mi"
+                            }
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File"
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "nodeName": "minikube-m03",
+                "preemptionPolicy": "PreemptLowerPriority",
+                "priority": 0,
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {},
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2022-02-08T12:08:55Z",
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2022-02-08T12:09:10Z",
+                        "status": "True",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2022-02-08T12:09:10Z",
+                        "status": "True",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2022-02-08T12:08:55Z",
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "docker://7b89bbb432db929c1bd1adf951b22a66da8b6eff0a17414a39c92b2c40e14d41",
+                        "image": "quay.io/testnetworkfunction/cnf-test-partner:latest",
+                        "imageID": "docker-pullable://quay.io/testnetworkfunction/cnf-test-partner@sha256:f092f31e828a67d58e8cd1d2d5a9e60a14f56d131b022c8b74f943c93a7e1e08",
+                        "lastState": {},
+                        "name": "test",
+                        "ready": true,
+                        "restartCount": 0,
+                        "started": true,
+                        "state": {
+                            "running": {
+                                "startedAt": "2022-02-08T12:08:56Z"
+                            }
+                        }
+                    }
+                ],
+                "hostIP": "192.168.49.4",
+                "phase": "Running",
+                "podIP": "10.244.151.5",
+                "podIPs": [
+                    {
+                        "ip": "10.244.151.5"
+                    }
+                ],
+                "qosClass": "Guaranteed",
+                "startTime": "2022-02-08T12:08:55Z"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {
+                "annotations": {
+                    "cni.projectcalico.org/podIP": "10.244.120.67/32",
+                    "cni.projectcalico.org/podIPs": "10.244.120.67/32",
+                    "k8s.v1.cni.cncf.io/network-status": "[{\n    \"name\": \"k8s-pod-network\",\n    \"ips\": [\n        \"10.244.120.67\"\n    ],\n    \"default\": true,\n    \"dns\": {}\n},{\n    \"name\": \"tnf/macvlan-conf\",\n    \"interface\": \"net1\",\n    \"ips\": [\n        \"192.168.1.2\"\n    ],\n    \"mac\": \"2a:45:4a:87:dc:0a\",\n    \"dns\": {}\n}]",
+                    "k8s.v1.cni.cncf.io/networks": "macvlan-conf",
+                    "k8s.v1.cni.cncf.io/networks-status": "[{\n    \"name\": \"k8s-pod-network\",\n    \"ips\": [\n        \"10.244.120.67\"\n    ],\n    \"default\": true,\n    \"dns\": {}\n},{\n    \"name\": \"tnf/macvlan-conf\",\n    \"interface\": \"net1\",\n    \"ips\": [\n        \"192.168.1.2\"\n    ],\n    \"mac\": \"2a:45:4a:87:dc:0a\",\n    \"dns\": {}\n}]",
+                    "test-network-function.com/container_tests": "[\"PRIVILEGED_POD\",\"PRIVILEGED_ROLE\"]",
+                    "test-network-function.com/defaultnetworkinterface": "\"eth0\""
+                },
+                "creationTimestamp": "2022-02-08T12:08:24Z",
+                "generateName": "test-54bc4c6d7-",
+                "labels": {
+                    "app": "test",
+                    "pod-template-hash": "54bc4c6d7",
+                    "test-network-function.com/container": "target",
+                    "test-network-function.com/generic": "target"
+                },
+                "managedFields": [
+                    {
+                        "apiVersion": "v1",
+                        "fieldsType": "FieldsV1",
+                        "fieldsV1": {
+                            "f:metadata": {
+                                "f:annotations": {
+                                    "f:cni.projectcalico.org/podIP": {},
+                                    "f:cni.projectcalico.org/podIPs": {}
+                                }
+                            }
+                        },
+                        "manager": "calico",
+                        "operation": "Update",
+                        "time": "2022-02-08T12:08:24Z"
+                    },
+                    {
+                        "apiVersion": "v1",
+                        "fieldsType": "FieldsV1",
+                        "fieldsV1": {
+                            "f:metadata": {
+                                "f:annotations": {
+                                    ".": {},
+                                    "f:k8s.v1.cni.cncf.io/networks": {},
+                                    "f:test-network-function.com/container_tests": {},
+                                    "f:test-network-function.com/defaultnetworkinterface": {}
+                                },
+                                "f:generateName": {},
+                                "f:labels": {
+                                    ".": {},
+                                    "f:app": {},
+                                    "f:pod-template-hash": {},
+                                    "f:test-network-function.com/container": {},
+                                    "f:test-network-function.com/generic": {}
+                                },
+                                "f:ownerReferences": {
+                                    ".": {},
+                                    "k:{\"uid\":\"f661701a-0751-4fae-8758-3493eec49d2e\"}": {
+                                        ".": {},
+                                        "f:apiVersion": {},
+                                        "f:blockOwnerDeletion": {},
+                                        "f:controller": {},
+                                        "f:kind": {},
+                                        "f:name": {},
+                                        "f:uid": {}
+                                    }
+                                }
+                            },
+                            "f:spec": {
+                                "f:affinity": {
+                                    ".": {},
+                                    "f:podAntiAffinity": {
+                                        ".": {},
+                                        "f:requiredDuringSchedulingIgnoredDuringExecution": {}
+                                    }
+                                },
+                                "f:automountServiceAccountToken": {},
+                                "f:containers": {
+                                    "k:{\"name\":\"test\"}": {
+                                        ".": {},
+                                        "f:command": {},
+                                        "f:image": {},
+                                        "f:imagePullPolicy": {},
+                                        "f:lifecycle": {
+                                            ".": {},
+                                            "f:preStop": {
+                                                ".": {},
+                                                "f:exec": {
+                                                    ".": {},
+                                                    "f:command": {}
+                                                }
+                                            }
+                                        },
+                                        "f:livenessProbe": {
+                                            ".": {},
+                                            "f:failureThreshold": {},
+                                            "f:httpGet": {
+                                                ".": {},
+                                                "f:httpHeaders": {},
+                                                "f:path": {},
+                                                "f:port": {},
+                                                "f:scheme": {}
+                                            },
+                                            "f:initialDelaySeconds": {},
+                                            "f:periodSeconds": {},
+                                            "f:successThreshold": {},
+                                            "f:timeoutSeconds": {}
+                                        },
+                                        "f:name": {},
+                                        "f:ports": {
+                                            ".": {},
+                                            "k:{\"containerPort\":8080,\"protocol\":\"TCP\"}": {
+                                                ".": {},
+                                                "f:containerPort": {},
+                                                "f:name": {},
+                                                "f:protocol": {}
+                                            }
+                                        },
+                                        "f:readinessProbe": {
+                                            ".": {},
+                                            "f:failureThreshold": {},
+                                            "f:httpGet": {
+                                                ".": {},
+                                                "f:httpHeaders": {},
+                                                "f:path": {},
+                                                "f:port": {},
+                                                "f:scheme": {}
+                                            },
+                                            "f:initialDelaySeconds": {},
+                                            "f:periodSeconds": {},
+                                            "f:successThreshold": {},
+                                            "f:timeoutSeconds": {}
+                                        },
+                                        "f:resources": {
+                                            ".": {},
+                                            "f:limits": {
+                                                ".": {},
+                                                "f:cpu": {},
+                                                "f:memory": {}
+                                            },
+                                            "f:requests": {
+                                                ".": {},
+                                                "f:cpu": {},
+                                                "f:memory": {}
+                                            }
+                                        },
+                                        "f:terminationMessagePath": {},
+                                        "f:terminationMessagePolicy": {}
+                                    }
+                                },
+                                "f:dnsPolicy": {},
+                                "f:enableServiceLinks": {},
+                                "f:restartPolicy": {},
+                                "f:schedulerName": {},
+                                "f:securityContext": {},
+                                "f:terminationGracePeriodSeconds": {}
+                            }
+                        },
+                        "manager": "kube-controller-manager",
+                        "operation": "Update",
+                        "time": "2022-02-08T12:08:24Z"
+                    },
+                    {
+                        "apiVersion": "v1",
+                        "fieldsType": "FieldsV1",
+                        "fieldsV1": {
+                            "f:metadata": {
+                                "f:annotations": {
+                                    "f:k8s.v1.cni.cncf.io/network-status": {},
+                                    "f:k8s.v1.cni.cncf.io/networks-status": {}
+                                }
+                            }
+                        },
+                        "manager": "multus",
+                        "operation": "Update",
+                        "time": "2022-02-08T12:08:24Z"
+                    },
+                    {
+                        "apiVersion": "v1",
+                        "fieldsType": "FieldsV1",
+                        "fieldsV1": {
+                            "f:status": {
+                                "f:conditions": {
+                                    "k:{\"type\":\"ContainersReady\"}": {
+                                        ".": {},
+                                        "f:lastProbeTime": {},
+                                        "f:lastTransitionTime": {},
+                                        "f:status": {},
+                                        "f:type": {}
+                                    },
+                                    "k:{\"type\":\"Initialized\"}": {
+                                        ".": {},
+                                        "f:lastProbeTime": {},
+                                        "f:lastTransitionTime": {},
+                                        "f:status": {},
+                                        "f:type": {}
+                                    },
+                                    "k:{\"type\":\"Ready\"}": {
+                                        ".": {},
+                                        "f:lastProbeTime": {},
+                                        "f:lastTransitionTime": {},
+                                        "f:status": {},
+                                        "f:type": {}
+                                    }
+                                },
+                                "f:containerStatuses": {},
+                                "f:hostIP": {},
+                                "f:phase": {},
+                                "f:podIP": {},
+                                "f:podIPs": {
+                                    ".": {},
+                                    "k:{\"ip\":\"10.244.120.67\"}": {
+                                        ".": {},
+                                        "f:ip": {}
+                                    }
+                                },
+                                "f:startTime": {}
+                            }
+                        },
+                        "manager": "kubelet",
+                        "operation": "Update",
+                        "time": "2022-02-08T12:09:08Z"
+                    }
+                ],
+                "name": "test-54bc4c6d7-wvc72",
+                "namespace": "tnf",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "apps/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "ReplicaSet",
+                        "name": "test-54bc4c6d7",
+                        "uid": "f661701a-0751-4fae-8758-3493eec49d2e"
+                    }
+                ],
+                "resourceVersion": "1388",
+                "uid": "606fe150-00c6-460a-abda-fe6c9edfc875"
+            },
+            "spec": {
+                "affinity": {
+                    "podAntiAffinity": {
+                        "requiredDuringSchedulingIgnoredDuringExecution": [
+                            {
+                                "labelSelector": {
+                                    "matchExpressions": [
+                                        {
+                                            "key": "app",
+                                            "operator": "In",
+                                            "values": [
+                                                "test"
+                                            ]
+                                        }
+                                    ]
+                                },
+                                "topologyKey": "kubernetes.io/hostname"
+                            }
+                        ]
+                    }
+                },
+                "automountServiceAccountToken": false,
+                "containers": [
+                    {
+                        "command": [
+                            "./bin/app"
+                        ],
+                        "image": "quay.io/testnetworkfunction/cnf-test-partner:latest",
+                        "imagePullPolicy": "IfNotPresent",
+                        "lifecycle": {
+                            "preStop": {
+                                "exec": {
+                                    "command": [
+                                        "/bin/sh",
+                                        "-c",
+                                        "killall -0 tail"
+                                    ]
+                                }
+                            }
+                        },
+                        "livenessProbe": {
+                            "failureThreshold": 3,
+                            "httpGet": {
+                                "httpHeaders": [
+                                    {
+                                        "name": "health-check",
+                                        "value": "liveness"
+                                    }
+                                ],
+                                "path": "/health",
+                                "port": 8080,
+                                "scheme": "HTTP"
+                            },
+                            "initialDelaySeconds": 10,
+                            "periodSeconds": 5,
+                            "successThreshold": 1,
+                            "timeoutSeconds": 1
+                        },
+                        "name": "test",
+                        "ports": [
+                            {
+                                "containerPort": 8080,
+                                "name": "http-probe",
+                                "protocol": "TCP"
+                            }
+                        ],
+                        "readinessProbe": {
+                            "failureThreshold": 3,
+                            "httpGet": {
+                                "httpHeaders": [
+                                    {
+                                        "name": "health-check",
+                                        "value": "readiness"
+                                    }
+                                ],
+                                "path": "/ready",
+                                "port": 8080,
+                                "scheme": "HTTP"
+                            },
+                            "initialDelaySeconds": 10,
+                            "periodSeconds": 5,
+                            "successThreshold": 1,
+                            "timeoutSeconds": 1
+                        },
+                        "resources": {
+                            "limits": {
+                                "cpu": "250m",
+                                "memory": "512Mi"
+                            },
+                            "requests": {
+                                "cpu": "250m",
+                                "memory": "512Mi"
+                            }
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File"
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "nodeName": "minikube",
+                "preemptionPolicy": "PreemptLowerPriority",
+                "priority": 0,
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {},
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2022-02-08T12:08:24Z",
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2022-02-08T12:09:08Z",
+                        "status": "True",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2022-02-08T12:09:08Z",
+                        "status": "True",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2022-02-08T12:08:24Z",
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "docker://51c476caf3c485b24daad242c898c14d3d71162e742df8fd6758358fd5f35f4d",
+                        "image": "quay.io/testnetworkfunction/cnf-test-partner:latest",
+                        "imageID": "docker-pullable://quay.io/testnetworkfunction/cnf-test-partner@sha256:f092f31e828a67d58e8cd1d2d5a9e60a14f56d131b022c8b74f943c93a7e1e08",
+                        "lastState": {},
+                        "name": "test",
+                        "ready": true,
+                        "restartCount": 0,
+                        "started": true,
+                        "state": {
+                            "running": {
+                                "startedAt": "2022-02-08T12:08:57Z"
+                            }
+                        }
+                    }
+                ],
+                "hostIP": "192.168.49.2",
+                "phase": "Running",
+                "podIP": "10.244.120.67",
+                "podIPs": [
+                    {
+                        "ip": "10.244.120.67"
+                    }
+                ],
+                "qosClass": "Guaranteed",
+                "startTime": "2022-02-08T12:08:24Z"
+            }
+        }
+    ],
+    "kind": "List",
+    "metadata": {
+        "resourceVersion": "",
+        "selfLink": ""
+    }
+}
