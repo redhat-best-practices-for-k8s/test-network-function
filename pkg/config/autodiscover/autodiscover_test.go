@@ -85,11 +85,13 @@ func TestGetContainersByLabel(t *testing.T) {
 						ContainerRuntime: "docker",
 					},
 					ImageSource: &configsections.ContainerImageSource{
-						Registry:   "k8s.gcr.io",
-						Repository: "coredns",
-						Name:       "coredns",
-						Tag:        "v1.8.4",
-						Digest:     "",
+						Registry: "k8s.gcr.io",
+						ContainerImageIdentifier: configsections.ContainerImageIdentifier{
+							Repository: "coredns",
+							Name:       "coredns",
+							Tag:        "v1.8.4",
+							Digest:     "",
+						},
 					},
 				},
 			},
@@ -204,21 +206,25 @@ func TestBuildContainerImageSource(t *testing.T) {
 	}{
 		{
 			expectedOutput: configsections.ContainerImageSource{
-				Registry:   "k8s.gcr.io",
-				Repository: "coredns",
-				Name:       "coredns",
-				Tag:        "v1.8.0",
-				Digest:     "",
+				Registry: "k8s.gcr.io",
+				ContainerImageIdentifier: configsections.ContainerImageIdentifier{
+					Repository: "coredns",
+					Name:       "coredns",
+					Tag:        "v1.8.0",
+					Digest:     "",
+				},
 			},
 			url: "k8s.gcr.io/coredns/coredns:v1.8.0",
 		},
 		{
 			expectedOutput: configsections.ContainerImageSource{
-				Registry:   "quay.io",
-				Repository: "rh-nfv-int",
-				Name:       "testpmd-operator",
-				Tag:        "",
-				Digest:     "sha256:3e8fc703c71a7ccaca24b7312f8fcb3495370c46e7abc12975757b76430addf5",
+				Registry: "quay.io",
+				ContainerImageIdentifier: configsections.ContainerImageIdentifier{
+					Repository: "rh-nfv-int",
+					Name:       "testpmd-operator",
+					Tag:        "",
+					Digest:     "sha256:3e8fc703c71a7ccaca24b7312f8fcb3495370c46e7abc12975757b76430addf5",
+				},
 			},
 			url: "quay.io/rh-nfv-int/testpmd-operator@sha256:3e8fc703c71a7ccaca24b7312f8fcb3495370c46e7abc12975757b76430addf5",
 		},

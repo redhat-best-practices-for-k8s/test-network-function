@@ -47,7 +47,7 @@ COMMON_GO_ARGS=-race
 GIT_COMMIT=$(shell git rev-list -1 HEAD)
 GIT_RELEASE=$(shell git tag --points-at HEAD | head -n 1)
 GIT_PREVIOUS_RELEASE=$(shell git tag --no-contains HEAD --sort=v:refname | tail -n 1)
-GOLANGCI_VERSION=v1.43.0
+GOLANGCI_VERSION=v1.44.0
 
 # Run the unit tests and build all binaries
 build:
@@ -126,7 +126,7 @@ update-deps:
 
 # Install build tools and other required software.
 install-tools:
-	go install github.com/onsi/ginkgo/ginkgo@v1.16.5
+	go install github.com/onsi/ginkgo/v2/ginkgo@v2.1.1
 	go install github.com/onsi/gomega
 	go install github.com/golang/mock/mockgen@v1.6.0
 

@@ -16,19 +16,20 @@
 
 package configsections
 
-// CertifiedOperatorRequestInfo contains all certified operator request info
-type CertifiedOperatorRequestInfo struct {
+import (
+	"testing"
 
-	// Name is the name of the `operator bundle package name` that you want to check if exists in the RedHat catalog
-	Name string `yaml:"name" json:"name"`
+	"github.com/stretchr/testify/assert"
+)
 
-	// Organization as understood by the operator publisher , e.g. `redhat-marketplace`
-	Organization string `yaml:"organization" json:"organization"`
-}
-
-// AcceptedKernelTaintsInfo contains all certified operator request info
-type AcceptedKernelTaintsInfo struct {
-
-	// Accepted modules that cause taints that we want to supply to the test suite
-	Module string `yaml:"module" json:"module"`
+func TestString(t *testing.T) {
+	cID := ContainerIdentifier{
+		NodeName:         "node1",
+		Namespace:        "namespace1",
+		PodName:          "pod1",
+		ContainerName:    "container1",
+		ContainerUID:     "uid1",
+		ContainerRuntime: "runtime1",
+	}
+	assert.Equal(t, "node:node1 ns:namespace1 podName:pod1 containerName:container1 containerUID:uid1 containerRuntime:runtime1", cID.String())
 }

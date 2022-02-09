@@ -94,7 +94,7 @@ Test Case Name|container-is-certified
 Test Case Label|affiliated-certification-container-is-certified
 Unique ID|http://test-network-function.com/testcases/affiliated-certification/container-is-certified
 Version|v1.0.0
-Description|http://test-network-function.com/testcases/affiliated-certification/container-is-certified tests whether container images listed in the configuration file or used by test target Pods have passed the Red Hat Container Certification Program (CCP).
+Description|http://test-network-function.com/testcases/affiliated-certification/container-is-certified tests whether container images listed in the configuration file or used by test target Pods have passed the Red Hat Container  			Certification Program (CCP) with a [health index](https://redhat-connect.gitbook.io/catalog-help/container-images/container-health) C or above.
 Result Type|normative
 Suggested Remediation|Ensure that your container has passed the Red Hat Container Certification Program (CCP).
 Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.3.7
@@ -110,69 +110,6 @@ Description|http://test-network-function.com/testcases/affiliated-certification/
 Result Type|normative
 Suggested Remediation|Ensure that your Operator has passed Red Hat's Operator Certification Program (OCP).
 Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2.12 and Section 6.3.3
-
-### diagnostic
-
-#### cluster-csi-info
-
-Property|Description
----|---
-Test Case Name|cluster-csi-info
-Test Case Label|diagnostic-cluster-csi-info
-Unique ID|http://test-network-function.com/testcases/diagnostic/cluster-csi-info
-Version|v1.0.0
-Description|http://test-network-function.com/testcases/diagnostic/cluster-csi-info extracts CSI driver information in the cluster.
-Result Type|informative
-Suggested Remediation|
-Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.3.6
-#### clusterversion
-
-Property|Description
----|---
-Test Case Name|clusterversion
-Test Case Label|diagnostic-clusterversion
-Unique ID|http://test-network-function.com/testcases/diagnostic/clusterversion
-Version|v1.0.0
-Description|http://test-network-function.com/testcases/diagnostic/clusterversion Extracts OCP versions from the cluster.
-Result Type|informative
-Suggested Remediation|
-Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.3.6
-#### extract-node-information
-
-Property|Description
----|---
-Test Case Name|extract-node-information
-Test Case Label|diagnostic-extract-node-information
-Unique ID|http://test-network-function.com/testcases/diagnostic/extract-node-information
-Version|v1.0.0
-Description|http://test-network-function.com/testcases/diagnostic/extract-node-information extracts informational information about the cluster.
-Result Type|informative
-Suggested Remediation|
-Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.3.6
-#### list-cni-plugins
-
-Property|Description
----|---
-Test Case Name|list-cni-plugins
-Test Case Label|diagnostic-list-cni-plugins
-Unique ID|http://test-network-function.com/testcases/diagnostic/list-cni-plugins
-Version|v1.0.0
-Description|http://test-network-function.com/testcases/diagnostic/list-cni-plugins lists CNI plugins
-Result Type|normative
-Suggested Remediation|
-Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2.4 and 6.3.7
-#### nodes-hw-info
-
-Property|Description
----|---
-Test Case Name|nodes-hw-info
-Test Case Label|diagnostic-nodes-hw-info
-Unique ID|http://test-network-function.com/testcases/diagnostic/nodes-hw-info
-Version|v1.0.0
-Description|http://test-network-function.com/testcases/diagnostic/nodes-hw-info list nodes HW info
-Result Type|normative
-Suggested Remediation|
-Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2
 
 ### lifecycle
 
@@ -310,6 +247,30 @@ Version|v1.0.0
 Description|http://test-network-function.com/testcases/networking/icmpv4-connectivity-multus checks that each CNF Container is able to communicate via ICMPv4 on the Multus network(s).  This test case requires the Deployment of the debug daemonset.
 Result Type|normative
 Suggested Remediation|Ensure that the CNF is able to communicate via the Multus network(s). In some rare cases, CNFs may require routing table changes in order to communicate over the Multus network(s). To exclude a particular pod from ICMPv4 connectivity tests, add the test-network-function.com/skip_connectivity_tests label to it. The label value is not important, only its presence.
+Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2
+#### icmpv6-connectivity
+
+Property|Description
+---|---
+Test Case Name|icmpv6-connectivity
+Test Case Label|networking-icmpv6-connectivity
+Unique ID|http://test-network-function.com/testcases/networking/icmpv6-connectivity
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/networking/icmpv6-connectivity checks that each CNF Container is able to communicate via ICMPv6 on the Default OpenShift network.  This test case requires the Deployment of the debug daemonset.
+Result Type|normative
+Suggested Remediation|Ensure that the CNF is able to communicate via the Default OpenShift network. In some rare cases, CNFs may require routing table changes in order to communicate over the Default network. To exclude a particular pod from ICMPv6 connectivity tests, add the test-network-function.com/skip_connectivity_tests label to it. The label value is not important, only its presence.
+Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2
+#### icmpv6-connectivity-multus
+
+Property|Description
+---|---
+Test Case Name|icmpv6-connectivity-multus
+Test Case Label|networking-icmpv6-connectivity-multus
+Unique ID|http://test-network-function.com/testcases/networking/icmpv6-connectivity-multus
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/networking/icmpv6-connectivity-multus checks that each CNF Container is able to communicate via ICMPv6 on the Multus network(s).  This test case requires the Deployment of the debug daemonset.
+Result Type|normative
+Suggested Remediation|Ensure that the CNF is able to communicate via the Multus network(s). In some rare cases, CNFs may require routing table changes in order to communicate over the Multus network(s). To exclude a particular pod from ICMPv6 connectivity tests, add the test-network-function.com/skip_connectivity_tests label to it.The label value is not important, only its presence. 
 Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2
 #### service-type
 

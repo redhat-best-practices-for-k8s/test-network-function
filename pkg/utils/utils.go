@@ -1,3 +1,19 @@
+// Copyright (C) 2020-2022 Red Hat, Inc.
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along
+// with this program; if not, write to the Free Software Foundation, Inc.,
+// 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
 package utils
 
 import (
@@ -10,7 +26,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/onsi/ginkgo"
+	"github.com/onsi/ginkgo/v2"
 	"github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
@@ -145,22 +161,15 @@ func NewGenericTesterAndValidate(templateFile, schemaPath string, values map[str
 	return tester, handlers
 }
 
-// RunCommandInContainerNameSpace run a host command in a running container with the nsenter command.
-// takes the container nodeName, node Oc and container UID
-// returns the raw output of the command
-func RunCommandInContainerNameSpace(nodeName string, nodeOc *interactive.Oc, containerID, command string, timeout time.Duration, runtime string) string {
-	containrPID := GetContainerPID(nodeName, nodeOc, containerID, runtime)
-	nodeCommand := "nsenter -t " + containrPID + " -n " + command
-	return RunCommandInNode(nodeName, nodeOc, nodeCommand, timeout)
-}
-
 // GetContainerPID gets the container PID from a kubernetes node, Oc and container PID
 func GetContainerPID(nodeName string, nodeOc *interactive.Oc, containerID, runtime string) string {
 	command := ""
 	switch runtime {
 	case "docker": //nolint:goconst // used only once
 		command = "chroot /host docker inspect -f '{{.State.Pid}}' " + containerID + " 2>/dev/null"
-	case "cri-o": //nolint:goconst // used only once
+	case "docker-pullable": //nolint:goconst // used only once
+		command = "chroot /host docker inspect -f '{{.State.Pid}}' " + containerID + " 2>/dev/null"
+	case "cri-o", "containerd": //nolint:goconst // used only once
 		command = "chroot /host crictl inspect --output go-template --template '{{.info.pid}}' " + containerID + " 2>/dev/null"
 	default:
 		ginkgo.Skip(fmt.Sprintf("Container runtime %s not supported yet for this test, skipping", runtime))
@@ -168,10 +177,33 @@ func GetContainerPID(nodeName string, nodeOc *interactive.Oc, containerID, runti
 	return RunCommandInNode(nodeName, nodeOc, command, timeoutPid)
 }
 
+func GetModulesFromNode(nodeName string, nodeOc *interactive.Oc) []string {
+	// Get the 1st column list of the modules running on the node.
+	// Split on the return/newline and get the list of the modules back.
+	//nolint:goconst // used only once
+	command := `chroot /host lsmod | awk '{ print $1 }' | grep -v Module`
+	output := RunCommandInNode(nodeName, nodeOc, command, timeoutPid)
+	output = strings.ReplaceAll(output, "\t", "")
+	return strings.Split(strings.ReplaceAll(output, "\r\n", "\n"), "\n")
+}
+
+func ModuleInTree(nodeName, moduleName string, nodeOc *interactive.Oc) bool {
+	command := `chroot /host modinfo ` + moduleName + ` | awk '{ print $1 }'`
+	cmdOutput := RunCommandInNode(nodeName, nodeOc, command, timeoutPid)
+	outputSlice := strings.Split(strings.ReplaceAll(cmdOutput, "\r\n", "\n"), "\n")
+	// The output, if found, should look something like 'intree:   Y'.
+	// As long as we look for 'intree:' being contained in the string we should be good to go.
+	found := false
+	if StringInSlice(outputSlice, `intree:`, false) {
+		found = true
+	}
+	return found
+}
+
 // RunCommandInNode runs a command on a remote kubernetes node
 // takes the node name, node oc and command
 // returns the command raw output
-func RunCommandInNode(nodeName string, nodeOc *interactive.Oc, command string, timeout time.Duration) string {
+var RunCommandInNode = func(nodeName string, nodeOc *interactive.Oc, command string, timeout time.Duration) string {
 	context := nodeOc
 	tester := nodedebug.NewNodeDebug(timeout, nodeName, command, true, true)
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
@@ -183,4 +215,20 @@ func RunCommandInNode(nodeName string, nodeOc *interactive.Oc, command string, t
 // AddNsenterPrefix adds the nsenter command prefix to run inside a container namespace
 func AddNsenterPrefix(containerPID string) string {
 	return "nsenter -t " + containerPID + " -n "
+}
+
+// StringInSlice checks a slice for a given string.
+func StringInSlice(s []string, str string, contains bool) bool {
+	for _, v := range s {
+		if !contains {
+			if strings.TrimSpace(v) == str {
+				return true
+			}
+		} else {
+			if strings.Contains(strings.TrimSpace(v), str) {
+				return true
+			}
+		}
+	}
+	return false
 }

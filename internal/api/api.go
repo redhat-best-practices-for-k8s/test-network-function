@@ -6,7 +6,7 @@ import (
 	"io"
 	"net/http"
 
-	log "github.com/sirupsen/logrus"
+	"github.com/test-network-function/test-network-function/pkg/config/configsections"
 )
 
 // Endpoints document can be found here
@@ -19,15 +19,9 @@ const apiOperatorCatalogExternalBaseEndPoint = "https://catalog.redhat.com/api/c
 const apiCatalogByRepositoriesBaseEndPoint = "https://catalog.redhat.com/api/containers/v1/repositories/registry/registry.access.redhat.com/repository"
 
 var (
-	dataKey           = "data"
-	errorContainer404 = fmt.Errorf("error code 404: A container/operator with the specified identifier was not found")
-	idKey             = "_id"
+	dataKey = "data"
+	idKey   = "_id"
 )
-
-// GetContainer404Error return error object with 404 error string
-func GetContainer404Error() error {
-	return errorContainer404
-}
 
 // HTTPClient Client interface
 type HTTPClient interface {
@@ -44,22 +38,172 @@ func NewHTTPClient() CertAPIClient {
 	return CertAPIClient{Client: &http.Client{}}
 }
 
-// IsContainerCertified get container image info by repo/name and checks if container details is present
-// If present then returns `true` as certified operators.
-func (api CertAPIClient) IsContainerCertified(repository, imageName string) bool {
-	if imageID, err := api.GetImageIDByRepository(repository, imageName); err != nil || imageID == "" {
-		return false
+type catalogQueryResponse struct {
+	Page     uint `json:"page"`
+	PageSize uint `json:"page_size"`
+	Total    uint `json:"total"`
+}
+
+type ContainerImageFreshnessGrade struct {
+	// CreationDate time.Time `json:"creation_date"`
+	Grade string `json:"grade"`
+	// StartDate    time.Time `json:"start_date"`
+}
+type ContainerCatalogEntry struct {
+	ID string `json:"_id"`
+	/*Links struct {
+		RpmManifest struct {
+			Href string `json:"href"`
+		} `json:"rpm_manifest"`
+		Vulnerabilities struct {
+			Href string `json:"href"`
+		} `json:"vulnerabilities"`
+	} `json:"_links"`
+	Architecture string `json:"architecture"`
+	Brew         struct {
+		Build          string    `json:"build"`
+		CompletionDate time.Time `json:"completion_date"`
+		Nvra           string    `json:"nvra"`
+		Package        string    `json:"package"`
+	} `json:"brew"`
+	Certified       bool      `json:"certified"`
+	ContentSets     []string  `json:"content_sets"`
+	CpeIds          []string  `json:"cpe_ids"`
+	CreationDate    time.Time `json:"creation_date"`
+	DockerImageID   string    `json:"docker_image_id"`*/
+	FreshnessGrades []ContainerImageFreshnessGrade `json:"freshness_grades"`
+	/*
+		ImageID        string    `json:"image_id"`
+		LastUpdateDate time.Time `json:"last_update_date"`
+		ObjectType     string    `json:"object_type"`
+		ParsedData     struct {
+			Architecture  string    `json:"architecture"`
+			Command       string    `json:"command"`
+			Comment       string    `json:"comment"`
+			Created       time.Time `json:"created"`
+			DockerVersion string    `json:"docker_version"`
+			EnvVariables  []string  `json:"env_variables"`
+			Labels        []struct {
+				Name  string `json:"name"`
+				Value string `json:"value"`
+			} `json:"labels"`
+			Layers                 []string `json:"layers"`
+			Os                     string   `json:"os"`
+			Size                   int      `json:"size"`
+			UncompressedLayerSizes []struct {
+				LayerID   string `json:"layer_id"`
+				SizeBytes int    `json:"size_bytes"`
+			} `json:"uncompressed_layer_sizes"`
+			UncompressedSizeBytes int    `json:"uncompressed_size_bytes"`
+			User                  string `json:"user"`
+		} `json:"parsed_data"`
+		Repositories []struct {
+			Links struct {
+				ImageAdvisory struct {
+					Href string `json:"href"`
+				} `json:"image_advisory"`
+				Repository struct {
+					Href string `json:"href"`
+				} `json:"repository"`
+			} `json:"_links"`
+			Comparison struct {
+				AdvisoryRpmMapping []struct {
+					AdvisoryIds []string `json:"advisory_ids"`
+					Nvra        string   `json:"nvra"`
+				} `json:"advisory_rpm_mapping"`
+				Reason     string `json:"reason"`
+				ReasonText string `json:"reason_text"`
+				Rpms       struct {
+					Downgrade []interface{} `json:"downgrade"`
+					New       []string      `json:"new"`
+					Remove    []string      `json:"remove"`
+					Upgrade   []string      `json:"upgrade"`
+				} `json:"rpms"`
+				WithNvr string `json:"with_nvr"`
+			} `json:"comparison"`
+			ContentAdvisoryIds    []string  `json:"content_advisory_ids"`
+			ImageAdvisoryID       string    `json:"image_advisory_id"`
+			ManifestListDigest    string    `json:"manifest_list_digest"`
+			ManifestSchema2Digest string    `json:"manifest_schema2_digest"`
+			Published             bool      `json:"published"`
+			PublishedDate         time.Time `json:"published_date"`
+			PushDate              time.Time `json:"push_date"`
+			Registry              string    `json:"registry"`
+			Repository            string    `json:"repository"`
+			Signatures            []struct {
+				KeyLongID string   `json:"key_long_id"`
+				Tags      []string `json:"tags"`
+			} `json:"signatures"`
+			Tags []struct {
+				Links struct {
+					TagHistory struct {
+						Href string `json:"href"`
+					} `json:"tag_history"`
+				} `json:"_links"`
+				AddedDate time.Time `json:"added_date"`
+				Name      string    `json:"name"`
+			} `json:"tags"`
+		} `json:"repositories"`
+		SumLayerSizeBytes      int    `json:"sum_layer_size_bytes"`
+		TopLayerID             string `json:"top_layer_id"`
+		UncompressedTopLayerID string `json:"uncompressed_top_layer_id"`*/
+}
+
+func (e ContainerCatalogEntry) GetBestFreshnessGrade() string {
+	grade := "F"
+	for _, g := range e.FreshnessGrades {
+		if g.Grade < grade {
+			grade = g.Grade
+		}
 	}
-	return true
+	return grade
+}
+
+type containerCatalogQueryResponse struct {
+	catalogQueryResponse
+	Data []ContainerCatalogEntry `json:"data"`
+}
+
+// GetContainerCatalogEntry gets the container image entry with highest freshness grade
+func (api CertAPIClient) GetContainerCatalogEntry(id configsections.ContainerImageIdentifier) (*ContainerCatalogEntry, error) {
+	responseData, err := api.getRequest(CreateContainerCatalogQueryURL(id))
+	if err == nil {
+		var response containerCatalogQueryResponse
+		err = json.Unmarshal(responseData, &response)
+		if err == nil && len(response.Data) > 0 {
+			return &response.Data[0], nil
+		}
+	}
+	return nil, err
+}
+
+func CreateContainerCatalogQueryURL(id configsections.ContainerImageIdentifier) string {
+	var url string
+	const defaultTag = "latest"
+	const arch = "amd64"
+	if id.Digest == "" {
+		if id.Tag == "" {
+			id.Tag = defaultTag
+		}
+		url = fmt.Sprintf("%s/%s/%s/images?filter=architecture==%s;repositories.repository==%s/%s;repositories.tags.name==%s",
+			apiCatalogByRepositoriesBaseEndPoint, id.Repository, id.Name, arch, id.Repository, id.Name, id.Tag)
+	} else {
+		url = fmt.Sprintf("%s/%s/%s/images?filter=architecture==%s;image_id==%s", apiCatalogByRepositoriesBaseEndPoint, id.Repository, id.Name, arch, id.Digest)
+	}
+	return url
 }
 
 // IsOperatorCertified get operator bundle by package name and check if package details is present
 // If present then returns `true` as certified operators.
-func (api CertAPIClient) IsOperatorCertified(org, packageName string) bool {
-	if imageID, err := api.GetOperatorBundleIDByPackageName(org, packageName); err != nil || imageID == "" {
-		return false
+func (api CertAPIClient) IsOperatorCertified(org, packageName, version string) (bool, error) {
+	imageID, err := api.GetOperatorBundleIDByPackageName(org, packageName, version)
+	if err == nil {
+		if imageID == "" {
+			return false, nil
+		}
+		return true, nil
 	}
-	return true
+	return false, err
 }
 
 // GetImageByID get container image data for the given container Id.  Returns (response, error).
@@ -73,22 +217,16 @@ func (api CertAPIClient) GetImageByID(id string) (string, error) {
 	return response, err
 }
 
-// GetImageIDByRepository get container image data for the given container Id. Returns (ImageID, error).
-func (api CertAPIClient) GetImageIDByRepository(repository, imageName string) (string, error) {
-	var imageID string
-	url := fmt.Sprintf("%s/%s/%s/images?page_size=1", apiCatalogByRepositoriesBaseEndPoint, repository, imageName)
-	responseData, err := api.getRequest(url)
-	if err == nil {
-		imageID, err = api.getIDFromResponse(responseData)
-	}
-	return imageID, err
-}
-
 // GetOperatorBundleIDByPackageName get published operator bundle Id by organization and package name.
 // Returns (ImageID, error).
-func (api CertAPIClient) GetOperatorBundleIDByPackageName(org, name string) (string, error) {
+func (api CertAPIClient) GetOperatorBundleIDByPackageName(org, name, vsersion string) (string, error) {
 	var imageID string
-	url := fmt.Sprintf("%s/bundles?page_size=1&organization=%s&package=%s", apiOperatorCatalogExternalBaseEndPoint, org, name)
+	url := ""
+	if vsersion != "" {
+		url = fmt.Sprintf("%s/bundles?page_size=1&filter=organization==%s;csv_name==%s;ocp_version==%s", apiOperatorCatalogExternalBaseEndPoint, org, name, vsersion)
+	} else {
+		url = fmt.Sprintf("%s/bundles?page_size=1&filter=organization==%s;csv_name==%s", apiOperatorCatalogExternalBaseEndPoint, org, name)
+	}
 	responseData, err := api.getRequest(url)
 	if err == nil {
 		imageID, err = api.getIDFromResponse(responseData)
@@ -107,14 +245,8 @@ func (api CertAPIClient) getRequest(url string) ([]byte, error) {
 		return nil, err
 	}
 	defer resp.Body.Close()
-	if resp.StatusCode == http.StatusNotFound {
-		err = GetContainer404Error()
-		return nil, err
-	}
-
 	response, err := io.ReadAll(resp.Body)
 	if err != nil {
-		err = GetContainer404Error()
 		return nil, err
 	}
 	return response, nil
@@ -125,9 +257,7 @@ func (api CertAPIClient) getIDFromResponse(response []byte) (string, error) {
 	var data interface{}
 	var id string
 	if err := json.Unmarshal(response, &data); err != nil {
-		log.Errorf("Error calling API Request %v", err.Error())
-		err = GetContainer404Error()
-		return id, err
+		return id, fmt.Errorf("error unmarshalling payload in API Response %v", err.Error())
 	}
 	m := data.(map[string]interface{})
 	for k, v := range m {

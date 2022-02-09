@@ -38,6 +38,12 @@ type Operator struct {
 
 	// Subscription name is required field, Name of used subscription.
 	SubscriptionName string `yaml:"subscriptionName" json:"subscriptionName"`
+
+	Packag string `yaml:"packag" json:"packag"`
+
+	Org string `yaml:"Org" json:"Org"`
+
+	Version string `yaml:"Version" json:"Version"`
 }
 
 // Namespace struct defines namespace properties
@@ -57,13 +63,15 @@ type TestConfiguration struct {
 	// TestPartner contains the helper containers that can be used to facilitate tests
 	Partner TestPartner `yaml:"testPartner" json:"testPartner"`
 	// CertifiedContainerInfo is the list of container images to be checked for certification status.
-	CertifiedContainerInfo []CertifiedContainerRequestInfo `yaml:"certifiedcontainerinfo,omitempty" json:"certifiedcontainerinfo,omitempty"`
+	CertifiedContainerInfo []ContainerImageIdentifier `yaml:"certifiedcontainerinfo,omitempty" json:"certifiedcontainerinfo,omitempty"`
 	// CheckDiscoveredContainerCertificationStatus controls whether the container certification test will validate images used by autodiscovered containers, in addition to the configured image list
 	CheckDiscoveredContainerCertificationStatus bool `yaml:"checkDiscoveredContainerCertificationStatus" json:"checkDiscoveredContainerCertificationStatus"`
 	// CertifiedOperatorInfo is list of operator bundle names that are queried for certification status.
 	CertifiedOperatorInfo []CertifiedOperatorRequestInfo `yaml:"certifiedoperatorinfo,omitempty" json:"certifiedoperatorinfo,omitempty"`
 	// CRDs section.
 	CrdFilters []CrdFilter `yaml:"targetCrdFilters" json:"targetCrdFilters"`
+	// AcceptedKernelTaints
+	AcceptedKernelTaints []AcceptedKernelTaintsInfo `yaml:"acceptedKernelTaints,omitempty" json:"acceptedKernelTaints,omitempty"`
 }
 
 // TestPartner contains the helper containers that can be used to facilitate tests
@@ -86,9 +94,12 @@ type TestTarget struct {
 	// ContainerConfigList is the list of containers that needs to be tested.
 	ContainerList []Container `yaml:"containersUnderTest" json:"containersUnderTest"`
 	// ExcludeContainersFromConnectivityTests excludes specific containers from network connectivity tests.  This is particularly useful for containers that don't have ping available.
-	ExcludeContainersFromConnectivityTests []ContainerIdentifier `yaml:"excludeContainersFromConnectivityTests" json:"excludeContainersFromConnectivityTests"`
+	ExcludeContainersFromConnectivityTests []ContainerIdentifier `yaml:"ExcludeContainersFromConnectivityTests" json:"ExcludeContainersFromConnectivityTests"`
+	// ExcludeContainersFromMultusConnectivityTests excludes specific containers from network connectivity tests.  This is particularly useful for containers that don't have ping available.
+	ExcludeContainersFromMultusConnectivityTests []ContainerIdentifier `yaml:"excludeContainersFromMultusConnectivityTests" json:"excludeContainersFromMultusConnectivityTests"`
 	// Operator is the list of operator objects that needs to be tested.
 	Operators []Operator `yaml:"operators,omitempty"  json:"operators,omitempty"`
+	//
 	// Node list
 	Nodes map[string]Node `yaml:"Nodes"  json:"Nodes"`
 }

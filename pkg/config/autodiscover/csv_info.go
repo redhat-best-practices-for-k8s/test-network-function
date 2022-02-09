@@ -18,6 +18,7 @@ package autodiscover
 
 import (
 	"fmt"
+	"strings"
 
 	log "github.com/sirupsen/logrus"
 
@@ -60,6 +61,17 @@ func (csv *CSVResource) GetAnnotationValue(annotationKey string, v interface{}) 
 		return csv.annotationUnmarshalError(annotationKey, err)
 	}
 	return err
+}
+func (csv *CSVResource) PackOrgVersion(subscription string) (org, packag, version string) {
+	ocCmd := fmt.Sprintf("oc get subscriptions.operators.coreos.com -A -o go-template='{{range .items}}{{if .status.installedCSV}}{{if eq .status.installedCSV %q}}{{.spec.source}} {{.status.currentCSV}}{{end}}{{end}}{{end}}'", subscription)
+	out := execCommandOutput(ocCmd)
+	orgNameVer := strings.Split(out, " ")
+	org = orgNameVer[0]
+	nameVersion := strings.SplitN(orgNameVer[1], ".", 2) //nolint:gomnd // ok
+	packag = orgNameVer[1]
+	version = nameVersion[1]
+
+	return packag, org, version
 }
 
 func (csv *CSVResource) annotationUnmarshalError(annotationKey string, err error) error {

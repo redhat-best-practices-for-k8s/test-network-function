@@ -37,12 +37,12 @@ type unmarshalFunc func([]byte, interface{}) error
 // test data
 var (
 	// bananas go in the fruit bowl.
-	fruitbowlRequestInfo = CertifiedContainerRequestInfo{
+	fruitbowlRequestInfo = ContainerImageIdentifier{
 		Name:       "banana",
 		Repository: "fruitbowl",
 	}
 	// apples go in the fridge.
-	fridgeRequestInfo = CertifiedContainerRequestInfo{
+	fridgeRequestInfo = ContainerImageIdentifier{
 		Name:       "apple",
 		Repository: "fridge",
 	}
@@ -55,6 +55,10 @@ var (
 	etcdOperatorRequestInfo = CertifiedOperatorRequestInfo{
 		Name:         "etcd",
 		Organization: "Core OS",
+	}
+
+	acceptedKernelTaintsInfo = AcceptedKernelTaintsInfo{
+		Module: "taint1",
 	}
 )
 
@@ -112,13 +116,16 @@ func cleanupTempfiles() {
 
 func buildRequestConfig() *TestConfiguration {
 	conf := &TestConfiguration{}
-	conf.CertifiedContainerInfo = []CertifiedContainerRequestInfo{
+	conf.CertifiedContainerInfo = []ContainerImageIdentifier{
 		fruitbowlRequestInfo,
 		fridgeRequestInfo,
 	}
 	conf.CertifiedOperatorInfo = []CertifiedOperatorRequestInfo{
 		jenkinsOperatorRequestInfo,
 		etcdOperatorRequestInfo,
+	}
+	conf.AcceptedKernelTaints = []AcceptedKernelTaintsInfo{
+		acceptedKernelTaintsInfo,
 	}
 	return conf
 }
@@ -132,6 +139,7 @@ func RequestTest(t *testing.T, marshalFun marshalFunc, unmarshalFun unmarshalFun
 	assert.Equal(t, len(cfg.CertifiedOperatorInfo), 2)
 	assert.Equal(t, cfg.CertifiedOperatorInfo[0], jenkinsOperatorRequestInfo)
 	assert.Equal(t, cfg.CertifiedOperatorInfo[1], etcdOperatorRequestInfo)
+	assert.Equal(t, cfg.AcceptedKernelTaints[0], acceptedKernelTaintsInfo)
 }
 
 func TestRequestInfos(t *testing.T) {

@@ -1,5 +1,4 @@
 // Copyright (C) 2021 Red Hat, Inc.
-// Copyright (C) 2021 Red Hat, Inc.
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -72,21 +71,6 @@ var (
 		Url:     formTestURL(common.AffiliatedCertTestKey, "container-is-certified"),
 		Version: versionOne,
 	}
-	// TestExtractNodeInformationIdentifier is a test which extracts Node information.
-	TestExtractNodeInformationIdentifier = claim.Identifier{
-		Url:     formTestURL(common.DiagnosticTestKey, "extract-node-information"),
-		Version: versionOne,
-	}
-	// TestListCniPluginsIdentifier retrieves list of CNI plugins.
-	TestListCniPluginsIdentifier = claim.Identifier{
-		Url:     formTestURL(common.DiagnosticTestKey, "list-cni-plugins"),
-		Version: versionOne,
-	}
-	// TestNodesHwInfoIdentifier retrieves nodes HW info.
-	TestNodesHwInfoIdentifier = claim.Identifier{
-		Url:     formTestURL(common.DiagnosticTestKey, "nodes-hw-info"),
-		Version: versionOne,
-	}
 	// TestHugepagesNotManuallyManipulated represents the test identifier testing hugepages have not been manipulated.
 	TestHugepagesNotManuallyManipulated = claim.Identifier{
 		Url:     formTestURL(common.PlatformAlterationTestKey, "hugepages-config"),
@@ -97,9 +81,19 @@ var (
 		Url:     formTestURL(common.NetworkingTestKey, "icmpv4-connectivity"),
 		Version: versionOne,
 	}
-	// TestICMPv4ConnectivityMultusIdentifier tests icmpv4 connectivity on multus networks.
+	// TestICMPv6ConnectivityIdentifier tests icmpv6 connectivity.
+	TestICMPv6ConnectivityIdentifier = claim.Identifier{
+		Url:     formTestURL(common.NetworkingTestKey, "icmpv6-connectivity"),
+		Version: versionOne,
+	}
+	// TestICMPv4ConnectivityIdentifier tests icmpv4 Multus connectivity.
 	TestICMPv4ConnectivityMultusIdentifier = claim.Identifier{
 		Url:     formTestURL(common.NetworkingTestKey, "icmpv4-connectivity-multus"),
+		Version: versionOne,
+	}
+	// TestICMPv6ConnectivityIdentifier tests icmpv6 Multus connectivity.
+	TestICMPv6ConnectivityMultusIdentifier = claim.Identifier{
+		Url:     formTestURL(common.NetworkingTestKey, "icmpv6-connectivity-multus"),
 		Version: versionOne,
 	}
 	// TestNamespaceBestPracticesIdentifier ensures the namespace has followed best namespace practices.
@@ -230,16 +224,6 @@ var (
 		Url:     formTestURL(common.PlatformAlterationTestKey, "isredhat-release"),
 		Version: versionOne,
 	}
-	// TestClusterCsiInfoIdentifier list Cluster CSIdriver Identifier retrieves Third Party CSI driver info.
-	TestClusterCsiInfoIdentifier = claim.Identifier{
-		Url:     formTestURL(common.DiagnosticTestKey, "cluster-csi-info"),
-		Version: versionOne,
-	}
-	// TestClusterVersionIdentifier list Cluster CSIdriver Identifier retrieves Third Party CSI driver info.
-	TestClusterVersionIdentifier = claim.Identifier{
-		Url:     formTestURL(common.DiagnosticTestKey, "clusterversion"),
-		Version: versionOne,
-	}
 )
 
 func formDescription(identifier claim.Identifier, description string) string {
@@ -255,7 +239,7 @@ func XformToGinkgoItIdentifier(identifier claim.Identifier) string {
 // XformToGinkgoItIdentifierExtended transform the claim.Identifier into a test Id that can be used to skip
 // specific tests
 func XformToGinkgoItIdentifierExtended(identifier claim.Identifier, extra string) string {
-	itID := strings.ReplaceAll(strings.TrimPrefix(identifier.Url, url+"/"), "/", "-")
+	itID := strings.ReplaceAll(strings.Join(GetSuiteAndTestFromIdentifier(identifier), "/"), "/", "-")
 	var key string
 	if extra != "" {
 		key = itID + "-" + extra
@@ -269,8 +253,8 @@ func XformToGinkgoItIdentifierExtended(identifier claim.Identifier, extra string
 // it extracts the suite name and test name from a claim.Identifier based
 // on the const url which contains a base domain
 // From a claim.Identifier.url:
-//   http://test-network-function.com/tests-case/SuitName/TestName
-// It extracts SuitNAme and TestName
+//   http://test-network-function.com/testcases/SuiteName/TestName
+// It extracts SuiteName and TestName
 
 func GetSuiteAndTestFromIdentifier(identifier claim.Identifier) []string {
 	result := strings.Split(identifier.Url, url+"/")
@@ -280,7 +264,8 @@ func GetSuiteAndTestFromIdentifier(identifier claim.Identifier) []string {
 	if len(result) != SPLITN {
 		return nil
 	}
-	return strings.Split(result[1], "/")
+	// Return only the first two items in the slice.
+	return strings.Split(result[1], "/")[0:2]
 }
 
 // Catalog is the JUnit testcase catalog of tests.
@@ -314,18 +299,10 @@ cannot be followed.`,
 		Type:        normativeResult,
 		Remediation: `Ensure that your container has passed the Red Hat Container Certification Program (CCP).`,
 		Description: formDescription(TestContainerIsCertifiedIdentifier,
-			`tests whether container images listed in the configuration file or used by test target Pods have passed the Red Hat Container Certification Program (CCP).`),
+			`tests whether container images listed in the configuration file or used by test target Pods have passed the Red Hat Container 
+			Certification Program (CCP) with a [health index](https://redhat-connect.gitbook.io/catalog-help/container-images/container-health) C or above.`),
 		BestPracticeReference: bestPracticeDocV1dot2URL + " Section 6.3.7",
 	},
-
-	TestExtractNodeInformationIdentifier: {
-		Identifier: TestExtractNodeInformationIdentifier,
-		Type:       informativeResult,
-		Description: formDescription(TestExtractNodeInformationIdentifier,
-			`extracts informational information about the cluster.`),
-		BestPracticeReference: bestPracticeDocV1dot2URL + " Section 6.3.6",
-	},
-
 	TestHugepagesNotManuallyManipulated: {
 		Identifier: TestHugepagesNotManuallyManipulated,
 		Type:       normativeResult,
@@ -354,6 +331,18 @@ test case requires the Deployment of the debug daemonset.`),
 		BestPracticeReference: bestPracticeDocV1dot2URL + " Section 6.2",
 	},
 
+	TestICMPv6ConnectivityIdentifier: {
+		Identifier: TestICMPv6ConnectivityIdentifier,
+		Type:       normativeResult,
+		Remediation: `Ensure that the CNF is able to communicate via the Default OpenShift network. In some rare cases,
+CNFs may require routing table changes in order to communicate over the Default network. To exclude a particular pod
+from ICMPv6 connectivity tests, add the test-network-function.com/skip_connectivity_tests label to it. The label value is not important, only its presence.`,
+		Description: formDescription(TestICMPv6ConnectivityIdentifier,
+			`checks that each CNF Container is able to communicate via ICMPv6 on the Default OpenShift network.  This
+test case requires the Deployment of the debug daemonset.`),
+		BestPracticeReference: bestPracticeDocV1dot2URL + " Section 6.2",
+	},
+
 	TestICMPv4ConnectivityMultusIdentifier: {
 		Identifier: TestICMPv4ConnectivityMultusIdentifier,
 		Type:       normativeResult,
@@ -362,6 +351,19 @@ CNFs may require routing table changes in order to communicate over the Multus n
 from ICMPv4 connectivity tests, add the test-network-function.com/skip_connectivity_tests label to it. The label value is not important, only its presence.`,
 		Description: formDescription(TestICMPv4ConnectivityMultusIdentifier,
 			`checks that each CNF Container is able to communicate via ICMPv4 on the Multus network(s).  This
+test case requires the Deployment of the debug daemonset.`),
+		BestPracticeReference: bestPracticeDocV1dot2URL + " Section 6.2",
+	},
+
+	TestICMPv6ConnectivityMultusIdentifier: {
+		Identifier: TestICMPv6ConnectivityMultusIdentifier,
+		Type:       normativeResult,
+		Remediation: `Ensure that the CNF is able to communicate via the Multus network(s). In some rare cases,
+CNFs may require routing table changes in order to communicate over the Multus network(s). To exclude a particular pod
+from ICMPv6 connectivity tests, add the test-network-function.com/skip_connectivity_tests label to it.The label value is not important, only its presence.
+`,
+		Description: formDescription(TestICMPv6ConnectivityMultusIdentifier,
+			`checks that each CNF Container is able to communicate via ICMPv6 on the Multus network(s).  This
 test case requires the Deployment of the debug daemonset.`),
 		BestPracticeReference: bestPracticeDocV1dot2URL + " Section 6.2",
 	},
@@ -551,23 +553,6 @@ the changes for you.`,
 			`tests that boot parameters are set through the MachineConfigOperator, and not set manually on the Node.`),
 		BestPracticeReference: bestPracticeDocV1dot2URL + " Section 6.2.13 and 6.2.14",
 	},
-	TestListCniPluginsIdentifier: {
-		Identifier:  TestListCniPluginsIdentifier,
-		Type:        normativeResult,
-		Remediation: "",
-		Description: formDescription(TestListCniPluginsIdentifier,
-			`lists CNI plugins`),
-		BestPracticeReference: bestPracticeDocV1dot2URL + " Section 6.2.4 and 6.3.7",
-	},
-	TestNodesHwInfoIdentifier: {
-		Identifier:  TestNodesHwInfoIdentifier,
-		Type:        normativeResult,
-		Remediation: "",
-		Description: formDescription(TestNodesHwInfoIdentifier,
-			`list nodes HW info`),
-		BestPracticeReference: bestPracticeDocV1dot2URL + " Section 6.2",
-	},
-
 	TestShudtownIdentifier: {
 		Identifier: TestShudtownIdentifier,
 		Type:       normativeResult,
@@ -641,20 +626,6 @@ the changes for you.`,
 			`verifies if the container base image is redhat.`),
 		Remediation:           `build a new docker image that's based on UBI (redhat universal base image).`,
 		BestPracticeReference: bestPracticeDocV1dot2URL + " Section 6.2",
-	},
-	TestClusterCsiInfoIdentifier: {
-		Identifier: TestClusterCsiInfoIdentifier,
-		Type:       informativeResult,
-		Description: formDescription(TestClusterCsiInfoIdentifier,
-			`extracts CSI driver information in the cluster.`),
-		BestPracticeReference: bestPracticeDocV1dot2URL + " Section 6.3.6",
-	},
-	TestClusterVersionIdentifier: {
-		Identifier: TestClusterVersionIdentifier,
-		Type:       informativeResult,
-		Description: formDescription(TestClusterVersionIdentifier,
-			`Extracts OCP versions from the cluster.`),
-		BestPracticeReference: bestPracticeDocV1dot2URL + " Section 6.3.6",
 	},
 	TestCrdsStatusSubresourceIdentifier: {
 		Identifier: TestCrdsStatusSubresourceIdentifier,

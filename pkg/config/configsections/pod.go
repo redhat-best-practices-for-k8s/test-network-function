@@ -33,7 +33,7 @@ type Pod struct {
 	// Tests this is list of test that need to run against the Pod.
 	Tests []string `yaml:"tests" json:"tests"`
 
-	DefaultNetworkIPAddress string `yaml:"defaultnetworkipaddress" json:"defaultnetworkipaddress"`
+	DefaultNetworkIPAddresses []string `yaml:"defaultnetworkipaddresses,omitempty" json:"defaultnetworkipaddresses,omitempty"`
 
 	// OpenShift Default network interface name (i.e., eth0)
 	DefaultNetworkDevice string `yaml:"defaultNetworkDevice" json:"defaultNetworkDevice"`
