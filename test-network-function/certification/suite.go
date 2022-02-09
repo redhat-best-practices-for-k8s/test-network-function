@@ -68,8 +68,14 @@ var _ = ginkgo.Describe(common.AffiliatedCertTestKey, func() {
 
 		testContainerCertificationStatus()
 		testAllOperatorCertified(env)
+		testHelmCertified()
 	}
 })
+
+//
+func testHelmCertified() {
+	certAPIClient.getYamlFile()
+}
 
 // getContainerCertificationRequestFunction returns function that will try to get the certification status (CCP) for a container.
 func getContainerCertificationRequestFunction(id configsections.ContainerImageIdentifier) func() (interface{}, error) {

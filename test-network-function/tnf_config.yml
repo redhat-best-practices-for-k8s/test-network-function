@@ -1,5 +1,5 @@
 targetNameSpaces:
-  - name: tnf
+  - name: david
 targetPodLabels:
   - prefix: test-network-function.com
     name: generic
