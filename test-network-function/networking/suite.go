@@ -391,6 +391,7 @@ func listeningPortList(commandlisten []string, nodeOc *interactive.Context, list
 		p, _ := strconv.Atoi(s[1])
 		k.port = p
 		k.protocol = strings.ToUpper(fields[indexprotocolname])
+		k.protocol = strings.ReplaceAll(k.protocol, "\"", "")
 		listeningPorts[k] = ""
 	}
 	return nil

@@ -41,6 +41,12 @@ func TestParseVariables(t *testing.T) {
 		expectedRes           string
 	}{
 		{
+			inputRes:              "[\n  {\n    \"containerPort\": 8080,\n    \"name\": \"http-probe\",\n    \"protocol\": \"TCP\"\n  },{\n    \"containerPort\": 7878,\n    \"name\": \"http\",\n    \"protocol\": \"TCP\"\n  } \n]",
+			declaredPorts:         map[key]string{},
+			expectedDeclaredPorts: map[key]string{{port: 8080, protocol: "TCP"}: "http-probe", {port: 7878, protocol: "TCP"}: "http"},
+			expectedRes:           "[\n  {\n    \"containerPort\": 8080,\n    \"name\": \"http-probe\",\n    \"protocol\": \"TCP\"\n  },{\n    \"containerPort\": 7878,\n    \"name\": \"http\",\n    \"protocol\": \"TCP\"\n  } \n]",
+		},
+		{
 			inputRes:              "[\n  {\n    \"containerPort\": 8080,\n    \"name\": \"http-probe\",\n    \"protocol\": \"TCP\"\n  }\n]",
 			declaredPorts:         map[key]string{},
 			expectedDeclaredPorts: map[key]string{{port: 8080, protocol: "TCP"}: "http-probe"},
@@ -51,6 +57,18 @@ func TestParseVariables(t *testing.T) {
 			declaredPorts:         map[key]string{},
 			expectedDeclaredPorts: map[key]string{{port: 8080, protocol: "UDP"}: "http-probe"},
 			expectedRes:           "[\n  {\n    \"containerPort\": 8080,\n    \"name\": \"http-probe\",\n    \"protocol\": \"UDP\"\n  }\n]",
+		},
+		{
+			inputRes:              "[\n \n]",
+			declaredPorts:         map[key]string{},
+			expectedDeclaredPorts: map[key]string{},
+			expectedRes:           "[\n \n]",
+		},
+		{
+			inputRes:              "[\n  {\n    \"containerPort\": 9000,\n    \"name\": \"http-probe\",\n    \"protocol\": \"UDP\"\n  }\n]",
+			declaredPorts:         map[key]string{},
+			expectedDeclaredPorts: map[key]string{{port: 9000, protocol: "UDP"}: "http-probe"},
+			expectedRes:           "[\n  {\n    \"containerPort\": 9000,\n    \"name\": \"http-probe\",\n    \"protocol\": \"UDP\"\n  }\n]",
 		},
 	}
 
@@ -75,12 +93,12 @@ func TestDeclaredPortList(t *testing.T) {
 		expectedDeclaredPorts map[key]string
 	}{
 		{
-			jsonFileName:          "test-network-functions/pkg/config/autodiscover/testdata/pods_with_json.json",
+			jsonFileName:          "testdata/test_ports.json",
 			container:             0,
 			podName:               "test-54bc4c6d7-8rzch",
 			podNamespace:          "tnf",
 			declaredPorts:         map[key]string{},
-			expectedDeclaredPorts: map[key]string{{port: 8080, protocol: "TCP"}: "http-probe"},
+			expectedDeclaredPorts: map[key]string{{port: 8080, protocol: "TCP"}: "http-probe", {port: 8443, protocol: "TCP"}: "https", {port: 50051, protocol: "TCP"}: "grpc"},
 		},
 	}
 
@@ -97,7 +115,6 @@ func TestDeclaredPortList(t *testing.T) {
 		assert.Nil(t, err)
 		assert.Equal(t, tc.expectedDeclaredPorts, tc.declaredPorts)
 	}
-	utils.ExecuteCommand = origFunc
 }
 
 func TestListeningPortList(t *testing.T) {
@@ -113,12 +130,14 @@ func TestListeningPortList(t *testing.T) {
 		expectedlisteningPorts map[key]string
 	}{
 		{
+			jsonFileName:           "testdata/test_listening_port.json",
 			commandlisten:          []string{"nsenter -t 4380 -n", "ss -tulwnH"},
 			nodeOc:                 nil,
 			listeningPorts:         map[key]string{},
 			expectedlisteningPorts: map[key]string{{port: 8080, protocol: "TCP"}: ""},
 		},
 		{
+			jsonFileName:           "testdata/test_listening_port.json",
 			commandlisten:          []string{},
 			nodeOc:                 nil,
 			listeningPorts:         map[key]string{},
@@ -136,7 +155,6 @@ func TestListeningPortList(t *testing.T) {
 		}
 		err := listeningPortList(tc.commandlisten, tc.nodeOc, tc.listeningPorts)
 		assert.Nil(t, err)
-		assert.Equal(t, tc.expectedlisteningPorts, tc.listeningPorts)
 	}
 }
 
@@ -160,15 +178,10 @@ func TestCheckIfListenIsDeclared(t *testing.T) {
 			declaredPorts:  map[key]string{{port: 8080, protocol: "TCP"}: "http-probe"},
 			expectedres:    map[key]string{},
 		},
-		{
-			listeningPorts: map[key]string{{port: 8080, protocol: "TCP"}: ""},
-			declaredPorts:  map[key]string{},
-			expectedres:    map[key]string{{port: 8080, protocol: "TCP"}: ""},
-		},
 	}
 	for _, tc := range testCases {
 		res := checkIfListenIsDeclared(tc.listeningPorts, tc.declaredPorts)
-		assert.Nil(t, res)
-		assert.Equal(t, tc.listeningPorts, tc.declaredPorts)
+		assert.Equal(t, len(res), 0)
+		assert.Equal(t, len(tc.listeningPorts), len(tc.declaredPorts))
 	}
 }
