@@ -155,6 +155,14 @@ func (pr *PodResource) getPodIPsPerNet() (map[string][]string, error) {
 	return ips, nil
 }
 
+func (pr *PodResource) getDefaultPodIPAddresses() []string {
+	var allDefaultIPs []string
+	for _, defaultIP := range pr.Status.PodIPs {
+		allDefaultIPs = append(allDefaultIPs, defaultIP["ip"])
+	}
+	return allDefaultIPs
+}
+
 func (pr *PodResource) annotationUnmarshalError(annotationKey string, err error) error {
 	return fmt.Errorf("error (%s) attempting to unmarshal value of annotation '%s' on pod '%s/%s'",
 		err, annotationKey, pr.Metadata.Namespace, pr.Metadata.Name)

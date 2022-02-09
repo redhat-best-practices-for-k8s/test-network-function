@@ -186,3 +186,58 @@ func TestGetModulesFromNode(t *testing.T) {
 		assert.Equal(t, tc.expectedOutput, GetModulesFromNode("testNode", nil))
 	}
 }
+
+//nolint:funlen
+func TestStringInSlice(t *testing.T) {
+	testCases := []struct {
+		testSlice       []string
+		testString      string
+		containsFeature bool
+		expected        bool
+	}{
+		{
+			testSlice: []string{
+				"apples",
+				"bananas",
+				"oranges",
+			},
+			testString:      "apples",
+			containsFeature: false,
+			expected:        true,
+		},
+		{
+			testSlice: []string{
+				"apples",
+				"bananas",
+				"oranges",
+			},
+			testString:      "tacos",
+			containsFeature: false,
+			expected:        false,
+		},
+		{
+			testSlice: []string{
+				"intree: Y",
+				"intree: N",
+				"outoftree: Y",
+			},
+			testString:      "intree:",
+			containsFeature: true, // Note: Turn 'on' the contains check
+			expected:        true,
+		},
+		{
+			testSlice: []string{
+				"intree: Y",
+				"intree: N",
+				"outoftree: Y",
+			},
+			testString:      "intree:",
+			containsFeature: false, // Note: Turn 'off' the contains check
+			expected:        false,
+		},
+	}
+
+	for _, tc := range testCases {
+		assert.Equal(t, tc.expected, StringInSlice(tc.testSlice, tc.testString, tc.containsFeature))
+	}
+}
