@@ -18,6 +18,7 @@ package networking
 
 import (
 	"os"
+	"reflect"
 	"testing"
 	"time"
 
@@ -183,7 +184,7 @@ func TestCheckIfListenIsDeclared(t *testing.T) {
 		res := checkIfListenIsDeclared(tc.listeningPorts, tc.declaredPorts)
 		assert.Equal(t, len(res), 0)
 		assert.Equal(t, len(tc.listeningPorts), len(tc.declaredPorts))
-  }
+	}
 }
 
 func TestFilterIPListPerVersion(t *testing.T) {
