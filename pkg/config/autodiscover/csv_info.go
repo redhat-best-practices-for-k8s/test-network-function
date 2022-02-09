@@ -63,7 +63,7 @@ func (csv *CSVResource) GetAnnotationValue(annotationKey string, v interface{}) 
 	return err
 }
 func (csv *CSVResource) PackOrgVersion(subscription string) (org, packag, version string) {
-	ocCmd := fmt.Sprintf("oc get subscriptions.operators.coreos.com -A -o go-template='{{range .items}}{{if eq .status.installedCSV %q}}{{.spec.source}} {{.status.currentCSV}}{{end}}{{end}}'", subscription)
+	ocCmd := fmt.Sprintf("oc get subscriptions.operators.coreos.com -A -o go-template='{{range .items}}{{if .status.installedCSV}}{{if eq .status.installedCSV %q}}{{.spec.source}} {{.status.currentCSV}}{{end}}{{end}}{{end}}'", subscription)
 	out := execCommandOutput(ocCmd)
 	orgNameVer := strings.Split(out, " ")
 	org = orgNameVer[0]
