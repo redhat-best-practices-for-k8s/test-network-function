@@ -6,6 +6,8 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/go-yaml/yaml"
+
 	"github.com/test-network-function/test-network-function/pkg/config/configsections"
 )
 
@@ -148,6 +150,27 @@ type ContainerCatalogEntry struct {
 		TopLayerID             string `json:"top_layer_id"`
 		UncompressedTopLayerID string `json:"uncompressed_top_layer_id"`*/
 }
+type chartStruct struct {
+	entries struct {
+		Annotations map[string]string `json:"annotations"`
+	} `json:"entries"`
+}
+
+func convert(i interface{}) interface{} {
+	switch x := i.(type) {
+	case map[interface{}]interface{}:
+		m2 := map[string]interface{}{}
+		for k, v := range x {
+			m2[k.(string)] = convert(v)
+		}
+		return m2
+	case []interface{}:
+		for i, v := range x {
+			x[i] = convert(v)
+		}
+	}
+	return i
+}
 
 func (e ContainerCatalogEntry) GetBestFreshnessGrade() string {
 	grade := "F"
@@ -220,17 +243,43 @@ func (api CertAPIClient) GetImageByID(id string) (string, error) {
 // GetOperatorBundleIDByPackageName get published operator bundle Id by organization and package name.
 // Returns (ImageID, error).
 func (api CertAPIClient) GetOperatorBundleIDByPackageName(org, name, vsersion string) (string, error) {
-	var imageID string
-	url := ""
+
+	/*url := ""
 	if vsersion != "" {
 		url = fmt.Sprintf("%s/bundles?page_size=1&filter=organization==%s;csv_name==%s;ocp_version==%s", apiOperatorCatalogExternalBaseEndPoint, org, name, vsersion)
 	} else {
 		url = fmt.Sprintf("%s/bundles?page_size=1&filter=organization==%s;csv_name==%s", apiOperatorCatalogExternalBaseEndPoint, org, name)
 	}
-	responseData, err := api.getRequest(url)
+
+
+	/*responseData, err := api.getRequest(url)
 	if err == nil {
 		imageID, err = api.getIDFromResponse(responseData)
+	}*/
+	imageID, err := api.getYamlFile()
+	return imageID, err
+}
+func (api CertAPIClient) getYamlFile() (string, error) {
+	var imageID string
+	url := ("https://charts.openshift.io/index.yaml")
+
+	responseData, err := api.getRequest(url)
+	var body interface{}
+	if err := yaml.Unmarshal([]byte(responseData), &body); err != nil {
+		panic(err)
 	}
+
+	body = convert(body)
+
+	if b, err := json.Marshal(body); err != nil {
+		panic(err)
+	} else {
+		fmt.Printf("Output: %s\n", b)
+		var yaml []chartStruct
+		err = json.Unmarshal([]byte(b), &yaml)
+		return imageID, err
+	}
+
 	return imageID, err
 }
 

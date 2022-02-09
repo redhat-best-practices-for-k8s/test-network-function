@@ -102,6 +102,7 @@ func FindTestTarget(labels []configsections.Label, target *configsections.TestTa
 	stateFulSet := FindTestPodSetsByLabel(labels, string(configsections.StateFulSet))
 	target.StateFulSetUnderTest = appendPodsets(stateFulSet, ns)
 	target.Nodes = GetNodesList()
+	Gethelm()
 }
 
 // func for appending the pod sets
