@@ -468,8 +468,8 @@ func testListenAndDeclared(env *config.TestEnvironment) {
 	undeclaredPorts := make(map[key]string)
 	var skippedPods []configsections.Pod
 	var failedPods []configsections.Pod
-	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestServicesDoNotUseNodeportsIdentifier)
-	ginkgo.It(testID, func() {
+	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestUndeclaredContainerPortsUsage)
+	ginkgo.It(testID, ginkgo.Label(testID), func() {
 	OUTER:
 		for _, podUnderTest := range env.PodsUnderTest {
 			for i := 0; i < podUnderTest.ContainerCount; i++ {
