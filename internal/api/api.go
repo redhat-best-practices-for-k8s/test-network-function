@@ -261,9 +261,7 @@ func (api CertAPIClient) GetOperatorBundleIDByPackageName(org, name, vsersion st
 	return imageID, err
 }
 func (api CertAPIClient) GetYamlFile() (ChartStruct, error) {
-
 	url := ("https://charts.openshift.io/index.yaml")
-
 	responseData, err := api.getRequest(url)
 	var body interface{}
 	var charts ChartStruct

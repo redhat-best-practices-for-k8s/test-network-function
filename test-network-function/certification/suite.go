@@ -102,7 +102,6 @@ func testHelmCertified(env *configpkg.TestEnvironment) {
 				log.Info(fmt.Sprintf("Helm %s with version %s is not certified", helm.Chart, helm.Version))
 			}
 		}
-
 	})
 }
 
