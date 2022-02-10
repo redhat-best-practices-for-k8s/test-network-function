@@ -439,6 +439,9 @@ func listeningPortList(commandlisten []string, nodeOc *interactive.Context, list
 	lines := strings.Split(res, "\n")
 	for _, line := range lines {
 		fields := strings.Fields(line)
+		if !strings.Contains(line, "LISTEN") {
+			continue
+		}
 		if indexprotocolname > len(fields) || indexport > len(fields) {
 			return err
 		}
@@ -454,7 +457,7 @@ func listeningPortList(commandlisten []string, nodeOc *interactive.Context, list
 
 func checkIfListenIsDeclared(listeningPorts, declaredPorts map[key]string) map[key]string {
 	res := make(map[key]string)
-	if len(listeningPorts) == 0 || len(declaredPorts) == 0 {
+	if len(listeningPorts) == 0 {
 		return res
 	}
 	for k := range listeningPorts {
