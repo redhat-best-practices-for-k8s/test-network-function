@@ -37,8 +37,6 @@ var (
 
 	nodesHwInfo = NodesHwInfo{}
 
-	initialRuntimeTestEnvironment config.TestEnvironment
-
 	// csiDriver stores the csi driver JSON output of `oc get csidriver -o json`
 	csiDriver = make(map[string]interface{})
 
@@ -120,8 +118,6 @@ func GetDiagnosticData() []error {
 		errs = append(errs, hwErrs...)
 	}
 
-	saveInitialRuntimeEnv()
-
 	return errs
 }
 
@@ -183,11 +179,6 @@ func GetNodesHwInfo() NodesHwInfo {
 // GetCsiDriverInfo returns the CSI driver info of running `oc get csidriver -o json`.
 func GetCsiDriverInfo() map[string]interface{} {
 	return csiDriver
-}
-
-// GetInitialRuntimeEnv returns initial test environment
-func GetInitialRuntimeEnv() config.TestEnvironment {
-	return initialRuntimeTestEnvironment
 }
 
 func getMasterNodeName(env *config.TestEnvironment) string {
@@ -322,12 +313,6 @@ func getNodesHwInfo() []error {
 	errs = append(errs, getNodeHwInfo(&nodesHwInfo.Worker, workerNodeName, "worker")...)
 
 	return errs
-}
-
-// saveInitialRuntimeEnv Saves the initial runtime environment to a global variable for use in suite_test.go
-func saveInitialRuntimeEnv() {
-	log.Infof("Saving initial runtime environement in diagnostics")
-	initialRuntimeTestEnvironment = *config.GetTestEnvironment()
 }
 
 func getNodeLscpu(nodeName string) (map[string]string, error) {
