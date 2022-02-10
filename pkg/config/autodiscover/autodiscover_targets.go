@@ -126,7 +126,6 @@ func GethelmCharts() (chartslist []configsections.Helm) {
 			Chart:   str,
 		}
 		chartslist = append(chartslist, chart)
-
 	}
 	return chartslist
 }

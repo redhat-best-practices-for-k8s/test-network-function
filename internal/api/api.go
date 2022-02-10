@@ -150,7 +150,7 @@ type ContainerCatalogEntry struct {
 		TopLayerID             string `json:"top_layer_id"`
 		UncompressedTopLayerID string `json:"uncompressed_top_layer_id"`*/
 }
-type chartStruct struct {
+type ChartStruct struct {
 	Entries map[string][]struct {
 		Name        string `json:"name"`
 		Version     string `json:"version"`
@@ -260,13 +260,13 @@ func (api CertAPIClient) GetOperatorBundleIDByPackageName(org, name, vsersion st
 
 	return imageID, err
 }
-func (api CertAPIClient) GetYamlFile() (chartStruct, error) {
+func (api CertAPIClient) GetYamlFile() (ChartStruct, error) {
 
 	url := ("https://charts.openshift.io/index.yaml")
 
 	responseData, err := api.getRequest(url)
 	var body interface{}
-	var charts chartStruct
+	var charts ChartStruct
 	if errorr := yaml.Unmarshal(responseData, &body); errorr != nil && err != nil {
 		panic(errorr)
 	}
@@ -277,11 +277,10 @@ func (api CertAPIClient) GetYamlFile() (chartStruct, error) {
 		panic(eror)
 	} else {
 		fmt.Printf("Output: %s\n", b)
-		err = json.Unmarshal([]byte(b), &charts)
+		err = json.Unmarshal(b, &charts)
 		if err != nil {
 			panic(err)
 		}
-
 	}
 	return charts, err
 }
