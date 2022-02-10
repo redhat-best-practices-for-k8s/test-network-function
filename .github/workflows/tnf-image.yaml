@@ -30,14 +30,16 @@ env:
   PARTNER_REPO: test-network-function/cnf-certification-test-partner
   PARTNER_SRC_URL: 'https://github.com/${PARTNER_REPO}'
   TESTING_CMD_PARAMS: '-n host -i ${REGISTRY_LOCAL}/${IMAGE_NAME}:${IMAGE_TAG} -t ${TNF_CONFIG_DIR} -o ${TNF_OUTPUT_DIR}'
+  LATEST_BRANCH_VERSION: 3.3.x
 
 jobs:
   test-and-push-tnf-image:
     name: 'Test and push the `test-network-function` image'
     runs-on: ubuntu-20.04
     strategy:
+      fail-fast: false
       matrix:
-        branch: [3.1.x, 3.2.x]
+        branch: [3.1.x, 3.2.x, 3.3.x]
     env:
       SHELL: /bin/bash
       KUBECONFIG: '/home/runner/.kube/config'
@@ -124,10 +126,33 @@ jobs:
           repository: test-network-function/cnf-certification-test-partner
           path: cnf-certification-test-partner
           ref: ${{ env.PARTNER_VERSION }}
-          
+
+      # Only one of the following 2 steps will work depending on the repo version
+
+      # For versions > 3.3.0
+
+      - name: Check for start-k8s-cluster existence
+        id: check_start_k8s_cluster
+        uses: andstor/file-existence-action@v1
+        with:
+          files: "./cnf-certification-test-partner/.github/actions/start-k8s-cluster"
+
+      - name: Start the k8s cluster for `local-test-infra`
+        if: steps.check_start_k8s_cluster.outputs.files_exists == 'true'
+        uses: ./cnf-certification-test-partner/.github/actions/start-k8s-cluster
+
+      # For version <= 3.3.0
+
+      - name: Check for start-minikube existence
+        id: check_start_minikube
+        uses: andstor/file-existence-action@v1
+        with:
+          files: "./cnf-certification-test-partner/.github/actions/start-minikube"
+
       - name: Start the minikube cluster for `local-test-infra`
+        if: steps.check_start_minikube.outputs.files_exists == 'true'
         uses: ./cnf-certification-test-partner/.github/actions/start-minikube
-          
+
       - name: Create `local-test-infra` OpenShift resources
         uses: ./cnf-certification-test-partner/.github/actions/create-local-test-infra-resources
         with:
@@ -142,7 +167,7 @@ jobs:
         shell: bash
 
       - name: 'Test: Run without any TS, just get diagnostic information'
-        run: ./run-tnf-container.sh ${{ env.TESTING_CMD_PARAMS }} 
+        run: ./run-tnf-container.sh ${{ env.TESTING_CMD_PARAMS }} -f diagnostic
 
       # Push the new TNF image to Quay.io.
 
@@ -156,4 +181,9 @@ jobs:
           password: ${{ secrets.QUAY_ROBOT_TOKEN }}
 
       - name: Push the newly built image to Quay.io
-        run: docker push --all-tags ${REGISTRY}/${IMAGE_NAME}
+        run: |
+          docker push ${REGISTRY}/${IMAGE_NAME}:${TNF_VERSION}
+          if [ "$CURRENT_VERSION_GENERIC_BRANCH" == "$LATEST_BRANCH_VERSION" ]; then
+            docker push ${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}
+          fi
+

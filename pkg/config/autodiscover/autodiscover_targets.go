@@ -225,6 +225,9 @@ func buildPodUnderTest(pr *PodResource) (podUnderTest *configsections.Pod) {
 	if err != nil {
 		log.Warnf("error encountered getting default network device: %s", err)
 	}
+
+	podUnderTest.DefaultNetworkIPAddresses = pr.getDefaultPodIPAddresses()
+
 	podUnderTest.MultusIPAddressesPerNet, err = pr.getPodIPsPerNet()
 	if err != nil {
 		log.Warnf("error encountered getting multus IPs: %s", err)
