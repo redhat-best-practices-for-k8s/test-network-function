@@ -103,7 +103,6 @@ func FindTestTarget(labels []configsections.Label, target *configsections.TestTa
 	target.StateFulSetUnderTest = appendPodsets(stateFulSet, ns)
 	target.Nodes = GetNodesList()
 	target.Helm = GethelmCharts()
-
 }
 func GethelmCharts() (chartslist []configsections.Helm) {
 	charts := Gethelm()
@@ -121,7 +120,6 @@ func GethelmCharts() (chartslist []configsections.Helm) {
 			} else {
 				str = str + "-" + val
 			}
-
 		}
 		chart := configsections.Helm{
 			Version: version,

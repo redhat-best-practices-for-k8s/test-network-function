@@ -267,14 +267,14 @@ func (api CertAPIClient) GetYamlFile() (chartStruct, error) {
 	responseData, err := api.getRequest(url)
 	var body interface{}
 	var charts chartStruct
-	if errorr := yaml.Unmarshal([]byte(responseData), &body); errorr != nil && err != nil {
+	if errorr := yaml.Unmarshal(responseData, &body); errorr != nil && err != nil {
 		panic(errorr)
 	}
 
 	body = convert(body)
 
-	if b, err := json.Marshal(body); err != nil {
-		panic(err)
+	if b, eror := json.Marshal(body); eror != nil {
+		panic(eror)
 	} else {
 		fmt.Printf("Output: %s\n", b)
 		err = json.Unmarshal([]byte(b), &charts)
