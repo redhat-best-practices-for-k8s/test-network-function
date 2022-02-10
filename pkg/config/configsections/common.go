@@ -99,6 +99,7 @@ type TestTarget struct {
 	ExcludeContainersFromMultusConnectivityTests []ContainerIdentifier `yaml:"excludeContainersFromMultusConnectivityTests" json:"excludeContainersFromMultusConnectivityTests"`
 	// Operator is the list of operator objects that needs to be tested.
 	Operators []Operator `yaml:"operators,omitempty"  json:"operators,omitempty"`
+	Helm      []Helm     `yaml:"helm" json:"helm"`
 	//
 	// Node list
 	Nodes map[string]Node `yaml:"Nodes"  json:"Nodes"`

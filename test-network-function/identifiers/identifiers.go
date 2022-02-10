@@ -111,6 +111,11 @@ var (
 		Url:     formTestURL(common.AffiliatedCertTestKey, "operator-is-certified"),
 		Version: versionOne,
 	}
+	// TestHelmIsCertifiedIdentifier tests that helm chart has passed helm certification.
+	TestHelmIsCertifiedIdentifier = claim.Identifier{
+		Url:     formTestURL(common.AffiliatedCertTestKey, "helm-is-certified"),
+		Version: versionOne,
+	}
 	// TestOperatorIsInstalledViaOLMIdentifier tests that an Operator is installed via OLM.
 	TestOperatorIsInstalledViaOLMIdentifier = claim.Identifier{
 		Url:     formTestURL(common.OperatorTestKey, "install-source"),
@@ -389,6 +394,15 @@ with no resourceNames under its rules.`),
 		Remediation: `Ensure that your Operator has passed Red Hat's Operator Certification Program (OCP).`,
 		Description: formDescription(TestOperatorIsCertifiedIdentifier,
 			`tests whether CNF Operators listed in the configuration file have passed the Red Hat Operator Certification Program (OCP).`),
+		BestPracticeReference: bestPracticeDocV1dot2URL + " Section 6.2.12 and Section 6.3.3",
+	},
+
+	TestHelmIsCertifiedIdentifier: {
+		Identifier:  TestHelmIsCertifiedIdentifier,
+		Type:        normativeResult,
+		Remediation: `Ensure that your helms list has passed Red Hat's helm Certification Program (OCP).`,
+		Description: formDescription(TestHelmIsCertifiedIdentifier,
+			`tests whether CNF Helm listed in the cluster passed the Red Hat Helm Certification Program (OCP).`),
 		BestPracticeReference: bestPracticeDocV1dot2URL + " Section 6.2.12 and Section 6.3.3",
 	},
 

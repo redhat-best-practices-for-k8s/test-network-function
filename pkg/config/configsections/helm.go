@@ -17,6 +17,6 @@
 package configsections
 
 type Helm struct {
-	name  string
-	chart string
+	Version string
+	Chart   string
 }

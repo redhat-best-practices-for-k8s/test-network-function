@@ -108,6 +108,7 @@ type TestEnvironment struct {
 	DeploymentsUnderTest []configsections.PodSet
 	StateFulSetUnderTest []configsections.PodSet
 	OperatorsUnderTest   []configsections.Operator
+	Helmcharts           []configsections.Helm
 	NameSpacesUnderTest  []string
 	CrdNames             []string
 	NodesUnderTest       map[string]*NodeConfig
@@ -257,6 +258,7 @@ func (env *TestEnvironment) doAutodiscover() {
 	env.DeploymentsUnderTest = env.Config.DeploymentsUnderTest
 	env.StateFulSetUnderTest = env.Config.StateFulSetUnderTest
 	env.OperatorsUnderTest = env.Config.Operators
+	env.Helmcharts = env.Config.Helm
 	env.CrdNames = autodiscover.FindTestCrdNames(env.Config.CrdFilters)
 
 	log.Infof("Test Configuration: %+v", *env)

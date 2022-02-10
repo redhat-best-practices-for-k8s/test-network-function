@@ -151,8 +151,10 @@ type ContainerCatalogEntry struct {
 		UncompressedTopLayerID string `json:"uncompressed_top_layer_id"`*/
 }
 type chartStruct struct {
-	entries struct {
-		Annotations map[string]string `json:"annotations"`
+	Entries map[string][]struct {
+		Name        string `json:"name"`
+		Version     string `json:"version"`
+		KubeVersion string `json:"kubeVersion"`
 	} `json:"entries"`
 }
 
@@ -243,7 +245,7 @@ func (api CertAPIClient) GetImageByID(id string) (string, error) {
 // GetOperatorBundleIDByPackageName get published operator bundle Id by organization and package name.
 // Returns (ImageID, error).
 func (api CertAPIClient) GetOperatorBundleIDByPackageName(org, name, vsersion string) (string, error) {
-
+	var imageID string
 	url := ""
 	if vsersion != "" {
 		url = fmt.Sprintf("%s/bundles?page_size=1&filter=organization==%s;csv_name==%s;ocp_version==%s", apiOperatorCatalogExternalBaseEndPoint, org, name, vsersion)
@@ -258,14 +260,15 @@ func (api CertAPIClient) GetOperatorBundleIDByPackageName(org, name, vsersion st
 
 	return imageID, err
 }
-func (api CertAPIClient) getYamlFile() (string, error) {
-	var imageID string
+func (api CertAPIClient) GetYamlFile() (chartStruct, error) {
+
 	url := ("https://charts.openshift.io/index.yaml")
 
 	responseData, err := api.getRequest(url)
 	var body interface{}
-	if err := yaml.Unmarshal([]byte(responseData), &body); err != nil {
-		panic(err)
+	var charts chartStruct
+	if errorr := yaml.Unmarshal([]byte(responseData), &body); errorr != nil && err != nil {
+		panic(errorr)
 	}
 
 	body = convert(body)
@@ -274,12 +277,13 @@ func (api CertAPIClient) getYamlFile() (string, error) {
 		panic(err)
 	} else {
 		fmt.Printf("Output: %s\n", b)
-		var yaml []chartStruct
-		err = json.Unmarshal([]byte(b), &yaml)
-		return imageID, err
-	}
+		err = json.Unmarshal([]byte(b), &charts)
+		if err != nil {
+			panic(err)
+		}
 
-	return imageID, err
+	}
+	return charts, err
 }
 
 // getRequest a http call to rest api, returns byte array or error. Returns (response, error).

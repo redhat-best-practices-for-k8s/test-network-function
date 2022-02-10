@@ -68,13 +68,43 @@ var _ = ginkgo.Describe(common.AffiliatedCertTestKey, func() {
 
 		testContainerCertificationStatus()
 		testAllOperatorCertified(env)
-		testHelmCertified()
+		testHelmCertified(env)
 	}
 })
 
 //
-func testHelmCertified() {
-	certAPIClient.getYamlFile()
+/*func helmCertified() func() (interface{}, error) {
+	return func() (interface{}, error) {
+		return certAPIClient.GetYamlFile()
+	}
+}*/
+func testHelmCertified(env *configpkg.TestEnvironment) {
+	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestHelmIsCertifiedIdentifier)
+	ginkgo.It(testID, ginkgo.Label(testID), func() {
+		certAPIClient = api.NewHTTPClient()
+		out, _ := certAPIClient.GetYamlFile()
+		helmcharts := env.Helmcharts
+		for _, helm := range helmcharts {
+			certified := false
+			for _, v := range out.Entries {
+				for _, val := range v {
+					if val.Name == helm.Chart && val.Version == helm.Version {
+						certified = true
+						log.Info(fmt.Sprintf("Helm %s with version %s is certified", helm.Chart, helm.Version))
+						break
+					}
+				}
+				if certified {
+					break
+				}
+			}
+			if !certified {
+				log.Info(fmt.Sprintf("Helm %s with version %s is not certified", helm.Chart, helm.Version))
+			}
+
+		}
+
+	})
 }
 
 // getContainerCertificationRequestFunction returns function that will try to get the certification status (CCP) for a container.
@@ -193,7 +223,7 @@ func testAllOperatorCertified(env *configpkg.TestEnvironment) {
 			}
 		}
 		if testFailed {
-			ginkgo.Skip("At least one  operator was not certified to run on this version of openshift. Check Claim.json file for details.")
+			log.Info("At least one  operator was not certified to run on this version of openshift. Check Claim.json file for details.")
 		}
 	})
 }
