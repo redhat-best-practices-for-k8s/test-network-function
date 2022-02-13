@@ -274,7 +274,6 @@ func (api CertAPIClient) GetYamlFile() (ChartStruct, error) {
 	if b, eror := json.Marshal(body); eror != nil {
 		panic(eror)
 	} else {
-		fmt.Printf("Output: %s\n", b)
 		err = json.Unmarshal(b, &charts)
 		if err != nil {
 			panic(err)
