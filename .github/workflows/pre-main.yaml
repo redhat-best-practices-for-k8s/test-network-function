@@ -50,8 +50,6 @@ jobs:
 
       - name: make vet
         run: make vet
-      - name: Install install-tools
-        run: make install-tools
 
   yamllint:
     runs-on: ubuntu-20.04
@@ -135,8 +133,15 @@ jobs:
       - name: Install ginkgo
         run: go install github.com/onsi/ginkgo/ginkgo@v1.16.5
 
+      - name: install helm
+        run: git clone https://github.com/helm/helm.git
+
+      - name: make install helm
+        run: cd helm && make install
+
       - name: Execute `make build`
         run: make build
+        
 
       # Create a minikube cluster for testing.
 
