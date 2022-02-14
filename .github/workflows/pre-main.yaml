@@ -50,6 +50,8 @@ jobs:
 
       - name: make vet
         run: make vet
+      - name: Install install-tools
+        run: make install-tools
 
   yamllint:
     runs-on: ubuntu-20.04
