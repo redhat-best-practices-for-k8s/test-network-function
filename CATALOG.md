@@ -98,6 +98,18 @@ Description|http://test-network-function.com/testcases/affiliated-certification/
 Result Type|normative
 Suggested Remediation|Ensure that your container has passed the Red Hat Container Certification Program (CCP).
 Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.3.7
+#### helm-is-certified
+
+Property|Description
+---|---
+Test Case Name|helm-is-certified
+Test Case Label|affiliated-certification-helm-is-certified
+Unique ID|http://test-network-function.com/testcases/affiliated-certification/helm-is-certified
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/affiliated-certification/helm-is-certified tests whether CNF Helm listed in the cluster passed the Red Hat Helm Certification Program (OCP).
+Result Type|normative
+Suggested Remediation|Ensure that your helms list has passed Red Hat's helm Certification Program (OCP).
+Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2.12 and Section 6.3.3
 #### operator-is-certified
 
 Property|Description
