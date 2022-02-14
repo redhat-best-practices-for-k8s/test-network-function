@@ -410,6 +410,7 @@ func parseVariables(res string, declaredPorts map[key]string) error {
 	if err != nil {
 		return err
 	}
+
 	for element := range p {
 		var k key
 		k.port = p[element].ContainerPort
@@ -420,8 +421,11 @@ func parseVariables(res string, declaredPorts map[key]string) error {
 }
 func declaredPortList(container int, podName, podNamespace string, declaredPorts map[key]string) error {
 	ocCommandToExecute := fmt.Sprintf(commandportdeclared, podName, podNamespace, container)
-	res, _ := utils.ExecuteCommand(ocCommandToExecute, ocCommandTimeOut, interactive.GetContext(false))
-	err := parseVariables(res, declaredPorts)
+	res, err := utils.ExecuteCommand(ocCommandToExecute, ocCommandTimeOut, interactive.GetContext(false))
+	if err != nil {
+		return err
+	}
+	err = parseVariables(res, declaredPorts)
 	return err
 }
 
@@ -435,6 +439,9 @@ func listeningPortList(commandlisten []string, nodeOc *interactive.Context, list
 	lines := strings.Split(res, "\n")
 	for _, line := range lines {
 		fields := strings.Fields(line)
+		if !strings.Contains(line, "LISTEN") {
+			continue
+		}
 		if indexprotocolname > len(fields) || indexport > len(fields) {
 			return err
 		}
@@ -442,6 +449,7 @@ func listeningPortList(commandlisten []string, nodeOc *interactive.Context, list
 		p, _ := strconv.Atoi(s[1])
 		k.port = p
 		k.protocol = strings.ToUpper(fields[indexprotocolname])
+		k.protocol = strings.ReplaceAll(k.protocol, "\"", "")
 		listeningPorts[k] = ""
 	}
 	return nil
@@ -449,7 +457,7 @@ func listeningPortList(commandlisten []string, nodeOc *interactive.Context, list
 
 func checkIfListenIsDeclared(listeningPorts, declaredPorts map[key]string) map[key]string {
 	res := make(map[key]string)
-	if len(listeningPorts) == 0 || len(declaredPorts) == 0 {
+	if len(listeningPorts) == 0 {
 		return res
 	}
 	for k := range listeningPorts {
