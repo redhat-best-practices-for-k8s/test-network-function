@@ -97,6 +97,7 @@ RUN yum remove -y gcc git wget && \
 	rm -rf /usr/lib/golang/pkg && \
 	rm -rf /usr/lib/golang/src
 
+RUN yum install git -y
 RUN git clone https://github.com/helm/helm.git && \
     cd helm && make install && cd ..
 
