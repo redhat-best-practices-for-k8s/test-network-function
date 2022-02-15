@@ -138,6 +138,10 @@ jobs:
 
       - name: make install helm
         run: cd helm && make install
+      - name: wich helm
+        run: which helm
+      - name: echo $PATH
+        run: echo $PATH
 
       - name: Execute `make build`
         run: make build
@@ -162,7 +166,11 @@ jobs:
           working_directory: cnf-certification-test-partner
 
       # Perform smoke tests.
-
+      - name: wich helm
+        run: which helm
+      - name: echo $PATH
+        run: echo $PATH
+        
       - name: 'Test: Run test suites'
         run: ./run-cnf-suites.sh --focus access-control lifecycle platform observability networking affiliated-certification operator
 
