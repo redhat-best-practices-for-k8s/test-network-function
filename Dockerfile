@@ -97,6 +97,9 @@ RUN yum remove -y gcc git wget && \
 	rm -rf /usr/lib/golang/pkg && \
 	rm -rf /usr/lib/golang/src
 
+RUN git clone https://github.com/helm/helm.git && \
+    cd helm && make install && cd ..
+
 # Copy the state into a new flattened image to reduce size.
 # TODO run as non-root
 FROM scratch
