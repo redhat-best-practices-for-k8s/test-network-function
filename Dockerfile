@@ -97,7 +97,9 @@ RUN yum remove -y gcc git wget && \
 	rm -rf /usr/lib/golang/pkg && \
 	rm -rf /usr/lib/golang/src
 
-RUN echo ${PATH}
+RUN wget https://get.helm.sh/helm-v3.8.0-linux-amd64.tar.gz && \
+    tar -xvf helm-v3.8.0-linux-amd64.tar.gz && \
+    cp linux-amd64/helm /usr/local/bin/helm
 # Copy the state into a new flattened image to reduce size.
 # TODO run as non-root
 FROM scratch
@@ -107,7 +109,6 @@ ENV TNF_CONFIGURATION_PATH=/usr/tnf/config/tnf_config.yml
 ENV KUBECONFIG=/usr/tnf/kubeconfig/config
 ENV TNF_PARTNER_SRC_DIR=$TNF_PARTNER_DIR/src
 ENV PATH="/usr/local/oc/bin:${PATH}"
-ENV PATH="/usr/local/bin:${PATH}"
 WORKDIR /usr/tnf
 ENV SHELL=/bin/bash
 CMD ["./run-cnf-suites.sh", "-o", "claim", "-f", "diagnostic"]
