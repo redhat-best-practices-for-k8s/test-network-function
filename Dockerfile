@@ -13,7 +13,9 @@ ENV TEMP_DIR=/tmp
 
 # Install dependencies
 RUN yum install -y gcc git jq make wget
-
+RUN wget https://get.helm.sh/helm-v3.8.0-linux-amd64.tar.gz && \
+    tar -xvf helm-v3.8.0-linux-amd64.tar.gz && \
+    cp linux-amd64/helm /usr/local/bin/helm
 # Install Go binary
 ENV GO_DL_URL="https://golang.org/dl"
 ENV GO_BIN_TAR="go1.17.6.linux-amd64.tar.gz"
@@ -97,9 +99,7 @@ RUN yum remove -y gcc git wget && \
 	rm -rf /usr/lib/golang/pkg && \
 	rm -rf /usr/lib/golang/src
 
-RUN wget https://get.helm.sh/helm-v3.8.0-linux-amd64.tar.gz && \
-    tar -xvf helm-v3.8.0-linux-amd64.tar.gz && \
-    cp linux-amd64/helm /usr/local/bin/helm
+
 # Copy the state into a new flattened image to reduce size.
 # TODO run as non-root
 FROM scratch
