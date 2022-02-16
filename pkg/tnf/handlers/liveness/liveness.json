@@ -1,0 +1,26 @@
+{
+	"identifier" : {
+	  "url" :  "http://test-network-function.com/tests/liveness",
+	  "version": "v1.0.0"
+	},
+	"description": "Test",
+	"testResult": 0,
+	"testTimeout": 5000000000,
+	"reelFirstStep": {
+	  "execute": "oc get pod -n {{.POD_NAMESPACE}} {{.POD_NAME}} -o  go-template-file={{.GO_TEMPLATE_PATH}}/liveness.gotemplate",
+	  "expect":[ "(?m)prestop-not-defined",
+				 "(?m)prestop-defined"],
+	  "timeout": 5000000000
+	},
+	"resultContexts":[
+	  {
+		"pattern": "(?m)prestop-not-defined",
+		"defaultResult": 2
+	  },
+	  {
+		"pattern": "(?m)prestop-defined",
+		"defaultResult": 1
+	  }
+	]
+  }
+  

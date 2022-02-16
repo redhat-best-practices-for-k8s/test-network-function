@@ -54,6 +54,8 @@ const (
 	loggingIdentifierURL                  = urlTests + "/logging"
 	podantiaffinityIdentifierURL          = urlTests + "/testPodHighAvailability"
 	shutdownIdentifierURL                 = urlTests + "/shutdown"
+	livenessIdentifierURL                 = urlTests + "/liveness"
+	readinessIdentifierURL                = urlTests + "/readiness"
 	scalingIdentifierURL                  = urlTests + "/scaling"
 	csiDriverIdentifierURL                = urlTests + "/csiDriver"
 	clusterVersionIdentifierURL           = urlTests + "/clusterVersion"
@@ -786,6 +788,17 @@ var PodAntiAffinityIdentifier = Identifier{
 // ShutdownURLIdentifier is the Identifier used to represent a test that checks if pre-stop lifecyle is defined
 var ShutdownURLIdentifier = Identifier{
 	URL:             shutdownIdentifierURL,
+	SemanticVersion: versionOne,
+}
+
+// LivenessURLIdentifier is the Identifier used to represent a test that checks if pre-stop lifecyle is defined
+var LivenessURLIdentifier = Identifier{
+	URL:             livenessIdentifierURL,
+	SemanticVersion: versionOne,
+}
+
+var ReadinessURLIdentifier = Identifier{
+	URL:             readinessIdentifierURL,
 	SemanticVersion: versionOne,
 }
 

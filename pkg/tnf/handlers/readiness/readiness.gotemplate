@@ -1,0 +1,3 @@
+{{- range .Containers.test.Readiness -}}
+  {{ if .platform.preStop }} {{"prestop-defined\n"}} {{- else -}} {{"prestop-not-defined\n"}}{{- end -}}
+{{- end -}}
