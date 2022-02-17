@@ -15,7 +15,7 @@ ENV TEMP_DIR=/tmp
 RUN yum install -y gcc git jq make wget
 RUN wget https://get.helm.sh/helm-v3.8.0-linux-amd64.tar.gz && \
     tar -xvf helm-v3.8.0-linux-amd64.tar.gz && \
-    cp linux-amd64/helm /usr/local/bin/helm
+    cp linux-amd64/helm /usr/bin/helm
 # Install Go binary
 ENV GO_DL_URL="https://golang.org/dl"
 ENV GO_BIN_TAR="go1.17.7.linux-amd64.tar.gz"
