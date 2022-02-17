@@ -8,17 +8,17 @@
 	"testTimeout": 5000000000,
 	"reelFirstStep": {
 	  "execute": "oc get pod -n {{.POD_NAMESPACE}} {{.POD_NAME}} -o  go-template-file={{.GO_TEMPLATE_PATH}}/readiness.gotemplate",
-	  "expect":[ "(?m)prestop-not-defined",
-				 "(?m)prestop-defined"],
+	  "expect":[ "(?m)readiness-not-defined",
+				 "(?m)readiness-defined"],
 	  "timeout": 5000000000
 	},
 	"resultContexts":[
 	  {
-		"pattern": "(?m)prestop-not-defined",
+		"pattern": "(?m)readiness-not-defined",
 		"defaultResult": 2
 	  },
 	  {
-		"pattern": "(?m)prestop-defined",
+		"pattern": "(?m)readiness-defined",
 		"defaultResult": 1
 	  }
 	]

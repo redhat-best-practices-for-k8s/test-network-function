@@ -8,17 +8,17 @@
 	"testTimeout": 5000000000,
 	"reelFirstStep": {
 	  "execute": "oc get pod -n {{.POD_NAMESPACE}} {{.POD_NAME}} -o  go-template-file={{.GO_TEMPLATE_PATH}}/liveness.gotemplate",
-	  "expect":[ "(?m)prestop-not-defined",
-				 "(?m)prestop-defined"],
+	  "expect":[ "(?m)liveness-not-defined",
+				 "(?m)liveness-defined"],
 	  "timeout": 5000000000
 	},
 	"resultContexts":[
 	  {
-		"pattern": "(?m)prestop-not-defined",
+		"pattern": "(?m)liveness-not-defined",
 		"defaultResult": 2
 	  },
 	  {
-		"pattern": "(?m)prestop-defined",
+		"pattern": "(?m)liveness-defined",
 		"defaultResult": 1
 	  }
 	]

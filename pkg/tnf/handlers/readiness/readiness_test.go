@@ -38,8 +38,8 @@ var (
 	genericTestSchemaFile = path.Join("schemas", "generic-test.schema.json")
 	livenessFilename      = "readiness.json"
 	/* #nosec G101 */
-	expectedPassPattern  = "(?m)prestop-defined"
-	expectedFailPattern  = "(?m)prestop-not-defined"
+	expectedPassPattern  = "(?m)readiness-defined"
+	expectedFailPattern  = "(?m)readiness-not-defined"
 	pathRelativeToRoot   = path.Join("..", "..", "..", "..")
 	pathToTestSchemaFile = path.Join(pathRelativeToRoot, genericTestSchemaFile)
 	testPodNameSpace     = "testnamespace"
@@ -125,12 +125,12 @@ func TestLiveness_ReelMatch(t *testing.T) {
 
 	assert.Equal(t, 1, len(handlers))
 	handler := handlers[0]
-	step := handler.ReelMatch(expectedFailPattern, "", "prestop-not-defined")
+	step := handler.ReelMatch(expectedFailPattern, "", "readiness-not-defined")
 
 	assert.Nil(t, step)
 	assert.Equal(t, tnf.FAILURE, (*tester).Result())
 
-	step = handler.ReelMatch(expectedPassPattern, "", "prestop-defined")
+	step = handler.ReelMatch(expectedPassPattern, "", "readiness-defined")
 
 	assert.Nil(t, step)
 	assert.Equal(t, tnf.SUCCESS, (*tester).Result())
