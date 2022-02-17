@@ -100,7 +100,7 @@ func escapeToJSONstringFormat(line string) (string, error) {
 
 // ExecuteCommand uses the generic command handler to execute an arbitrary interactive command, returning
 // its output wihout any filtering/matching if the command is successfully executed
-func ExecuteCommand(command string, timeout time.Duration, context *interactive.Context) (string, error) {
+var ExecuteCommand = func(command string, timeout time.Duration, context *interactive.Context) (string, error) {
 	tester, test := newGenericCommandTester(command, timeout, context)
 	result, err := test.Run()
 	if result == tnf.SUCCESS && err == nil {

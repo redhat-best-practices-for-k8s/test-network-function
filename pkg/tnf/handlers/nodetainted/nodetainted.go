@@ -47,16 +47,6 @@ func NewNodeTainted(timeout time.Duration) *NodeTainted {
 	}
 }
 
-func NewLSMod(timeout time.Duration) *NodeTainted {
-	return &NodeTainted{
-		timeout: timeout,
-		result:  tnf.ERROR,
-		args: []string{
-			"lsmod",
-		},
-	}
-}
-
 // Args returns the command line args for the test.
 func (nt *NodeTainted) Args() []string {
 	return nt.args
