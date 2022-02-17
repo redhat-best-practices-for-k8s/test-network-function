@@ -791,12 +791,13 @@ var ShutdownURLIdentifier = Identifier{
 	SemanticVersion: versionOne,
 }
 
-// LivenessURLIdentifier is the Identifier used to represent a test that checks if pre-stop lifecyle is defined
+// LivenessURLIdentifier is the Identifier used to represent a test that checks if liveness is defined
 var LivenessURLIdentifier = Identifier{
 	URL:             livenessIdentifierURL,
 	SemanticVersion: versionOne,
 }
 
+// ReadinessURLIdentifier is the Identifier used to represent a test that checks if readiness is defined
 var ReadinessURLIdentifier = Identifier{
 	URL:             readinessIdentifierURL,
 	SemanticVersion: versionOne,
