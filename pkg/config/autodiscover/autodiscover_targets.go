@@ -102,9 +102,9 @@ func FindTestTarget(labels []configsections.Label, target *configsections.TestTa
 	stateFulSet := FindTestPodSetsByLabel(labels, string(configsections.StateFulSet))
 	target.StateFulSetUnderTest = appendPodsets(stateFulSet, ns)
 	target.Nodes = GetNodesList()
-	target.Helm = GethelmCharts()
+	target.HelmChart = GethelmCharts()
 }
-func GethelmCharts() (chartslist []configsections.Helm) {
+func GethelmCharts() (chartslist []configsections.HelmChart) {
 	charts := GetClusterHelmCharts()
 	for _, ch := range charts.Items {
 		str := ""
@@ -121,7 +121,7 @@ func GethelmCharts() (chartslist []configsections.Helm) {
 				str = str + "-" + val
 			}
 		}
-		chart := configsections.Helm{
+		chart := configsections.HelmChart{
 			Version: version,
 			Chart:   str,
 		}

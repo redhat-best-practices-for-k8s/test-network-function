@@ -98,8 +98,8 @@ type TestTarget struct {
 	// ExcludeContainersFromMultusConnectivityTests excludes specific containers from network connectivity tests.  This is particularly useful for containers that don't have ping available.
 	ExcludeContainersFromMultusConnectivityTests []ContainerIdentifier `yaml:"excludeContainersFromMultusConnectivityTests" json:"excludeContainersFromMultusConnectivityTests"`
 	// Operator is the list of operator objects that needs to be tested.
-	Operators []Operator `yaml:"operators,omitempty"  json:"operators,omitempty"`
-	Helm      []Helm     `yaml:"helm" json:"helm"`
+	Operators []Operator  `yaml:"operators,omitempty"  json:"operators,omitempty"`
+	HelmChart []HelmChart `yaml:"helm" json:"helm"`
 	//
 	// Node list
 	Nodes map[string]Node `yaml:"Nodes"  json:"Nodes"`
