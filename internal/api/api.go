@@ -158,17 +158,17 @@ type ChartStruct struct {
 	} `json:"entries"`
 }
 
-func convertYamlToJson(i interface{}) interface{} {
+func convertYamlToJSON(i interface{}) interface{} {
 	switch x := i.(type) {
 	case map[interface{}]interface{}:
 		m2 := map[string]interface{}{}
 		for k, v := range x {
-			m2[k.(string)] = convertYamlToJson(v)
+			m2[k.(string)] = convertYamlToJSON(v)
 		}
 		return m2
 	case []interface{}:
 		for i, v := range x {
-			x[i] = convertYamlToJson(v)
+			x[i] = convertYamlToJSON(v)
 		}
 	}
 	return i
@@ -269,7 +269,7 @@ func (api CertAPIClient) GetYamlFile() (ChartStruct, error) {
 		panic(errorr)
 	}
 
-	body = convertYamlToJson(body)
+	body = convertYamlToJSON(body)
 
 	if b, eror := json.Marshal(body); eror != nil {
 		panic(eror)
