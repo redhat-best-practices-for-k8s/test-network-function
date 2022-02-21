@@ -133,19 +133,8 @@ jobs:
       - name: Install ginkgo
         run: go install github.com/onsi/ginkgo/ginkgo@v1.16.5
 
-      - name: install helm
-        run: git clone https://github.com/helm/helm.git
-
-      - name: make install helm
-        run: cd helm && make install
-      - name: wich helm
-        run: which helm
-      - name: echo $PATH
-        run: echo $PATH
-
       - name: Execute `make build`
         run: make build
-        
 
       # Create a minikube cluster for testing.
 
@@ -166,11 +155,6 @@ jobs:
           working_directory: cnf-certification-test-partner
 
       # Perform smoke tests.
-      - name: wich helm
-        run: which helm
-      - name: echo $PATH
-        run: echo $PATH
-        
       - name: 'Test: Run test suites'
         run: ./run-cnf-suites.sh --focus access-control lifecycle platform observability networking affiliated-certification operator
 

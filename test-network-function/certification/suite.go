@@ -82,9 +82,9 @@ func testHelmCertified(env *configpkg.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestHelmIsCertifiedIdentifier)
 	ginkgo.It(testID, ginkgo.Label(testID), func() {
 		certAPIClient = api.NewHTTPClient()
-		helmcharts := env.Helmcharts
+		helmcharts := env.HelmchartsUnderTest
 		if len(helmcharts) == 0 {
-			ginkgo.Skip("No helms to check  ")
+			ginkgo.Skip("No helm charts to check")
 		}
 		out, _ := certAPIClient.GetYamlFile()
 		for _, helm := range helmcharts {
@@ -102,7 +102,7 @@ func testHelmCertified(env *configpkg.TestEnvironment) {
 				}
 			}
 			if !certified {
-				log.Info(fmt.Sprintf("Helm %s with version %s is not certified", helm.Chart, helm.Version))
+				log.Info(fmt.Sprintf("Helm chart %s with version %s is not certified", helm.Chart, helm.Version))
 			}
 		}
 	})

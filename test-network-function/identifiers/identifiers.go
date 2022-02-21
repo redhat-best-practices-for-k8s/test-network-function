@@ -123,7 +123,7 @@ var (
 	}
 	// TestHelmIsCertifiedIdentifier tests that helm chart has passed helm certification.
 	TestHelmIsCertifiedIdentifier = claim.Identifier{
-		Url:     formTestURL(common.AffiliatedCertTestKey, "helm-is-certified"),
+		Url:     formTestURL(common.AffiliatedCertTestKey, "helmchart-is-certified"),
 		Version: versionOne,
 	}
 	// TestOperatorIsInstalledViaOLMIdentifier tests that an Operator is installed via OLM.
@@ -439,9 +439,9 @@ with no resourceNames under its rules.`),
 	TestHelmIsCertifiedIdentifier: {
 		Identifier:  TestHelmIsCertifiedIdentifier,
 		Type:        normativeResult,
-		Remediation: `Ensure that your helms list has passed Red Hat's helm Certification Program (OCP).`,
+		Remediation: `Ensure that the helm charts under test passed the Red Hat's helm Certification Program (e.g. listed in https://charts.openshift.io/index.yaml).`,
 		Description: formDescription(TestHelmIsCertifiedIdentifier,
-			`tests whether CNF Helm listed in the cluster passed the Red Hat Helm Certification Program (OCP).`),
+			`tests whether helm charts listed in the cluster passed the Red Hat Helm Certification Program.`),
 		BestPracticeReference: bestPracticeDocV1dot2URL + " Section 6.2.12 and Section 6.3.3",
 	},
 

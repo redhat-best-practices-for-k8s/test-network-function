@@ -105,7 +105,7 @@ func FindTestTarget(labels []configsections.Label, target *configsections.TestTa
 	target.Helm = GethelmCharts()
 }
 func GethelmCharts() (chartslist []configsections.Helm) {
-	charts := Gethelm()
+	charts := GetClusterHelmCharts()
 	for _, ch := range charts.Items {
 		str := ""
 		version := ""

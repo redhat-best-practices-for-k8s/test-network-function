@@ -9,7 +9,7 @@ type HelmList struct {
 	Chart     string `json:"chart"`
 }
 
-func Gethelm() *HelmSetList {
+func GetClusterHelmCharts() *HelmSetList {
 	out := execCommandOutput("helm list -A -o json")
 	var helmList HelmSetList
 	if out != "" {
