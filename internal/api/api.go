@@ -245,7 +245,9 @@ func (api CertAPIClient) getRequest(url string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	resp, err := api.Client.Do(req)
+	log.Info("resp is:%s", resp)
 	if err != nil {
 		return nil, err
 	}
