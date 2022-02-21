@@ -242,10 +242,10 @@ func (api CertAPIClient) getRequest(url string) ([]byte, error) {
 	log.Info("inside the request func")
 	req, err := http.NewRequest(http.MethodGet, url, http.NoBody) //nolint:noctx
 	log.Info("req is:%s", req)
+	log.Info("error is:%s", err)
 	if err != nil {
 		return nil, err
 	}
-
 	resp, err := api.Client.Do(req)
 	log.Info("resp is:%s", resp)
 	if err != nil {
