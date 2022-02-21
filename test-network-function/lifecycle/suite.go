@@ -131,11 +131,7 @@ var _ = ginkgo.Describe(common.LifecycleTestKey, func() {
 
 		testGracePeriod(env)
 
-		testShutdown(env)
-
-		testLiveness(env)
-
-		testReadiness(env)
+		test(env)
 
 		testPodAntiAffinity(env)
 
@@ -452,116 +448,45 @@ func testGracePeriod(env *config.TestEnvironment) {
 	})
 }
 
-func testShutdown(env *config.TestEnvironment) {
+func test(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestShudtownIdentifier)
+	testfunction(env, testID, relativeShutdownTestDirectoryPath, relativeShutdownTestPath, "pre-stop")
+
+	testID = identifiers.XformToGinkgoItIdentifier(identifiers.TestLivenessIdentifier)
+	testfunction(env, testID, relativeLivenessTestDirectoryPath, relativeLivenessTestPath, "liveness")
+
+	testID = identifiers.XformToGinkgoItIdentifier(identifiers.TestReadinessIdentifier)
+	testfunction(env, testID, relativeReadinessTestDirectoryPath, relativeReadinessTestPath, "readiness")
+}
+func testfunction(env *config.TestEnvironment, testID, relativeNameTestDirectoryPath, relativeNameTestPath, name string) {
 	ginkgo.It(testID, ginkgo.Label(testID), func() {
 		failedPods := []*configsections.Pod{}
-		ginkgo.By("Testing PUTs are configured with pre-stop lifecycle")
+		ginkgo.By(fmt.Sprintf("Testing PUTs are configured with %s lifecycle", name))
 		for _, podUnderTest := range env.PodsUnderTest {
-			ginkgo.By(fmt.Sprintf("should have pre-stop configured %s/%s", podUnderTest.Namespace, podUnderTest.Name))
-			passed := shutdownTest(podUnderTest.Namespace, podUnderTest.Name, env.GetLocalShellContext())
+			ginkgo.By(fmt.Sprintf("should have %s configured %s/%s", name, podUnderTest.Namespace, podUnderTest.Name))
+			passed := functionTest(podUnderTest.Namespace, podUnderTest.Name, env.GetLocalShellContext(), relativeNameTestDirectoryPath, relativeNameTestPath, name)
 			if !passed {
 				failedPods = append(failedPods, podUnderTest)
 			}
 		}
 		if n := len(failedPods); n > 0 {
-			log.Debugf("Pods without pre-stop configured: %+v", failedPods)
-			ginkgo.Fail(fmt.Sprintf("%d pods do not have pre-stop configured.", n))
+			log.Debugf("Pods without %s configured: %+v", name, failedPods)
 		}
 	})
 }
-
-func testLiveness(env *config.TestEnvironment) {
-	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestLivenessIdentifier)
-	ginkgo.It(testID, ginkgo.Label(testID), func() {
-		failedPods := []*configsections.Pod{}
-		ginkgo.By("Testing PUTs are configured with liveness lifecycle")
-		for _, podUnderTest := range env.PodsUnderTest {
-			ginkgo.By(fmt.Sprintf("should have liveness configured %s/%s", podUnderTest.Namespace, podUnderTest.Name))
-			passed := livenessTest(podUnderTest.Namespace, podUnderTest.Name, env.GetLocalShellContext())
-			if !passed {
-				failedPods = append(failedPods, podUnderTest)
-			}
-		}
-		if n := len(failedPods); n > 0 {
-			log.Debugf("Pods without liveness: %+v", failedPods)
-		}
-	})
-}
-
-func testReadiness(env *config.TestEnvironment) {
-	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestReadinessIdentifier)
-	ginkgo.It(testID, ginkgo.Label(testID), func() {
-		failedPods := []*configsections.Pod{}
-		ginkgo.By("Testing PUTs are configured with readiness lifecycle")
-		for _, podUnderTest := range env.PodsUnderTest {
-			ginkgo.By(fmt.Sprintf("should have readiness configured %s/%s", podUnderTest.Namespace, podUnderTest.Name))
-			passed := readinessTest(podUnderTest.Namespace, podUnderTest.Name, env.GetLocalShellContext())
-			if !passed {
-				failedPods = append(failedPods, podUnderTest)
-			}
-		}
-		if n := len(failedPods); n > 0 {
-			log.Debugf("Pods without readiness: %+v", failedPods)
-		}
-	})
-}
-
-func shutdownTest(podNamespace, podName string, context *interactive.Context) bool {
+func functionTest(podNamespace, podName string, context *interactive.Context, relativeNameTestDirectoryPath, relativeNameTestPath, name string) bool {
 	passed := true
 	values := make(map[string]interface{})
 	values["POD_NAMESPACE"] = podNamespace
 	values["POD_NAME"] = podName
-	values["GO_TEMPLATE_PATH"] = relativeShutdownTestDirectoryPath
-	tester, handlers := utils.NewGenericTesterAndValidate(relativeShutdownTestPath, common.RelativeSchemaPath, values)
+	values["GO_TEMPLATE_PATH"] = relativeNameTestDirectoryPath
+	tester, handlers := utils.NewGenericTesterAndValidate(relativeNameTestPath, common.RelativeSchemaPath, values)
 	test, err := tnf.NewTest(context.GetExpecter(), *tester, handlers, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
 	gomega.Expect(test).ToNot(gomega.BeNil())
 
 	test.RunWithCallbacks(nil, func() {
-		tnf.ClaimFilePrintf("FAILURE: Pod %s/%s does not have pre-stop configured", podNamespace, podName)
-		passed = false
-	}, func(err error) {
-		tnf.ClaimFilePrintf("ERROR: Pod %s/%s, error: %v", podNamespace, podName, err)
-		passed = false
-	})
-	return passed
-}
-
-func livenessTest(podNamespace, podName string, context *interactive.Context) bool {
-	passed := true
-	values := make(map[string]interface{})
-	values["POD_NAMESPACE"] = podNamespace
-	values["POD_NAME"] = podName
-	values["GO_TEMPLATE_PATH"] = relativeLivenessTestDirectoryPath
-	tester, handlers := utils.NewGenericTesterAndValidate(relativeLivenessTestPath, common.RelativeSchemaPath, values)
-	test, err := tnf.NewTest(context.GetExpecter(), *tester, handlers, context.GetErrorChannel())
-	gomega.Expect(err).To(gomega.BeNil())
-	gomega.Expect(test).ToNot(gomega.BeNil())
-
-	test.RunWithCallbacks(nil, func() {
-		tnf.ClaimFilePrintf("FAILURE: Pod %s/%s does not have liveness defined", podNamespace, podName)
-		passed = false
-	}, func(err error) {
-		tnf.ClaimFilePrintf("ERROR: Pod %s/%s, error: %v", podNamespace, podName, err)
-		passed = false
-	})
-	return passed
-}
-
-func readinessTest(podNamespace, podName string, context *interactive.Context) bool {
-	passed := true
-	values := make(map[string]interface{})
-	values["POD_NAMESPACE"] = podNamespace
-	values["POD_NAME"] = podName
-	values["GO_TEMPLATE_PATH"] = relativeReadinessTestDirectoryPath
-	tester, handlers := utils.NewGenericTesterAndValidate(relativeReadinessTestPath, common.RelativeSchemaPath, values)
-	test, err := tnf.NewTest(context.GetExpecter(), *tester, handlers, context.GetErrorChannel())
-	gomega.Expect(err).To(gomega.BeNil())
-	gomega.Expect(test).ToNot(gomega.BeNil())
-
-	test.RunWithCallbacks(nil, func() {
-		tnf.ClaimFilePrintf("FAILURE: Pod %s/%s does not have liveness defined", podNamespace, podName)
+		tnf.ClaimFilePrintf("FAILURE: Pod %s/%s does not have %s configured", podNamespace, podName, name)
 		passed = false
 	}, func(err error) {
 		tnf.ClaimFilePrintf("ERROR: Pod %s/%s, error: %v", podNamespace, podName, err)
