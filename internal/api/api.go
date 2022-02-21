@@ -6,6 +6,8 @@ import (
 	"io"
 	"net/http"
 
+	log "github.com/sirupsen/logrus"
+
 	"github.com/test-network-function/test-network-function/pkg/config/configsections"
 )
 
@@ -227,6 +229,7 @@ func (api CertAPIClient) GetOperatorBundleIDByPackageName(org, name, vsersion st
 	} else {
 		url = fmt.Sprintf("%s/bundles?page_size=1&filter=organization==%s;csv_name==%s", apiOperatorCatalogExternalBaseEndPoint, org, name)
 	}
+	log.Info("inside the GetOperatorBundleIDByPackageName")
 	responseData, err := api.getRequest(url)
 	if err == nil {
 		imageID, err = api.getIDFromResponse(responseData)
@@ -236,7 +239,9 @@ func (api CertAPIClient) GetOperatorBundleIDByPackageName(org, name, vsersion st
 
 // getRequest a http call to rest api, returns byte array or error. Returns (response, error).
 func (api CertAPIClient) getRequest(url string) ([]byte, error) {
+	log.Info("inside the request func")
 	req, err := http.NewRequest(http.MethodGet, url, http.NoBody) //nolint:noctx
+	log.Info("req is:%s", req)
 	if err != nil {
 		return nil, err
 	}
