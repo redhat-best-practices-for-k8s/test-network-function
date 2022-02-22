@@ -87,8 +87,7 @@ func testHelmCertified(env *configpkg.TestEnvironment) {
 		if len(helmcharts) == 0 {
 			ginkgo.Skip("No helm charts to check")
 		}
-		ourKubeVersionStr := GetKubeVersion()[1:]
-		ourKubeVersion, _ := version.NewVersion(ourKubeVersionStr)
+		ourKubeVersion, _ := version.NewVersion(GetKubeVersion()[1:])
 		out, _ := certAPIClient.GetYamlFile()
 		for _, helm := range helmcharts {
 			certified := false
@@ -103,7 +102,6 @@ func testHelmCertified(env *configpkg.TestEnvironment) {
 								maxVersion, _ := version.NewVersion(kubever[1])
 								if ourKubeVersion.GreaterThanOrEqual(minVersion) && ourKubeVersion.LessThan(maxVersion) {
 									certified = true
-									log.Info(fmt.Sprintf("Helm %s with version %s is certified", helm.Name, helm.Version))
 									break
 								}
 							} else {
@@ -111,19 +109,18 @@ func testHelmCertified(env *configpkg.TestEnvironment) {
 								minVersion, _ := version.NewVersion(kubever[0])
 								if ourKubeVersion.GreaterThanOrEqual(minVersion) {
 									certified = true
-									log.Info(fmt.Sprintf("Helm %s with version %s is certified", helm.Name, helm.Version))
 									break
 								}
 							}
 						} else {
 							certified = true
-							log.Info(fmt.Sprintf("Helm %s with version %s is certified", helm.Name, helm.Version))
 							break
 						}
 
 					}
 				}
 				if certified {
+					log.Info(fmt.Sprintf("Helm %s with version %s is certified", helm.Name, helm.Version))
 					break
 				}
 			}
