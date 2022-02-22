@@ -186,10 +186,6 @@ jobs:
           mkdir -p $TNF_CONFIG_DIR $TNF_OUTPUT_DIR
           cp test-network-function/*.yml $TNF_CONFIG_DIR
         shell: bash
-      - name: wich helm
-        run: which helm
-      - name: echo $PATH
-        run: echo $PATH
       - name: 'Test: Run without any TS, just get diagnostic information'
         run: ./run-tnf-container.sh ${{ env.TESTING_CMD_PARAMS }}
 
