@@ -228,7 +228,7 @@ func testAllOperatorCertified(env *configpkg.TestEnvironment) {
 		if len(operatorsToQuery) == 0 {
 			ginkgo.Skip("No operators to check configured ")
 		}
-
+		certAPIClient = api.NewHTTPClient()
 		ginkgo.By(fmt.Sprintf("Verify operator as certified. Number of operators to check: %d", len(operatorsToQuery)))
 		testFailed := false
 		for _, op := range operatorsToQuery {
