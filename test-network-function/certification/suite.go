@@ -18,10 +18,10 @@ package certification
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
+	version "github.com/hashicorp/go-version"
 	"github.com/onsi/ginkgo/v2"
 	log "github.com/sirupsen/logrus"
 	"github.com/test-network-function/test-network-function/internal/api"
@@ -46,7 +46,7 @@ const (
 
 var (
 	ocpVersionCommand        = "oc version -o json | jq '.openshiftVersion'"
-	kubernatesVersionCommand = "oc version -o json | jq '.serverVersion.gitVersion'"
+	kubernetesVersionCommand = "oc version -o json | jq '.serverVersion.gitVersion'"
 	execCommandOutput        = func(command string) string {
 		return utils.ExecuteCommandAndValidate(command, apiRequestTimeout, interactive.GetContext(expectersVerboseModeEnabled), func() {
 			log.Error("can't run command: ", command)
@@ -87,7 +87,8 @@ func testHelmCertified(env *configpkg.TestEnvironment) {
 		if len(helmcharts) == 0 {
 			ginkgo.Skip("No helm charts to check")
 		}
-		ourKubeVersion := GetKubeVersion()[1:]
+		ourKubeVersionStr := GetKubeVersion()[1:]
+		ourKubeVersion, _ := version.NewVersion(ourKubeVersionStr)
 		out, _ := certAPIClient.GetYamlFile()
 		for _, helm := range helmcharts {
 			certified := false
@@ -98,14 +99,17 @@ func testHelmCertified(env *configpkg.TestEnvironment) {
 							kubeVersion := strings.ReplaceAll(val.KubeVersion, " ", "")[2:]
 							if strings.Contains(kubeVersion, "<") {
 								kubever := strings.Split(kubeVersion, "<")
-								if CompareNumber(ourKubeVersion, kubever[0], "bigthan") && CompareNumber(ourKubeVersion, kubever[1], "small") {
+								minVersion, _ := version.NewVersion(kubever[0])
+								maxVersion, _ := version.NewVersion(kubever[1])
+								if ourKubeVersion.GreaterThanOrEqual(minVersion) && ourKubeVersion.LessThan(maxVersion) {
 									certified = true
 									log.Info(fmt.Sprintf("Helm %s with version %s is certified", helm.Chart, helm.Version))
 									break
 								}
 							} else {
 								kubever := strings.Split(kubeVersion, "-")
-								if CompareNumber(ourKubeVersion, kubever[0], "bigthan") {
+								minVersion, _ := version.NewVersion(kubever[0])
+								if ourKubeVersion.GreaterThanOrEqual(minVersion) {
 									certified = true
 									log.Info(fmt.Sprintf("Helm %s with version %s is certified", helm.Chart, helm.Version))
 									break
@@ -263,7 +267,7 @@ func GetOcpVersion() string {
 	return ocVersion
 }
 func GetKubeVersion() string {
-	ocCmd := kubernatesVersionCommand
+	ocCmd := kubernetesVersionCommand
 	kubeVersion := execCommandOutput(ocCmd)
 	if kubeVersion != outMinikubeVersion {
 		kubeVersion = strings.Split(kubeVersion, "+")[0]
@@ -272,31 +276,4 @@ func GetKubeVersion() string {
 		kubeVersion = ""
 	}
 	return kubeVersion
-}
-func CompareNumber(num1, num2, kind string) bool {
-	newnum1 := strings.Split(num1, ".")
-	firstNum1, _ := strconv.ParseFloat(newnum1[0]+"."+newnum1[1], 64)
-	secNum1, _ := strconv.Atoi(newnum1[2])
-	newnum2 := strings.Split(num2, ".")
-	secNum2 := 0
-	if len(newnum2) > 2 {
-		secNum2, _ = strconv.Atoi(newnum2[2])
-	}
-	firstNum2, _ := strconv.ParseFloat(newnum2[0]+"."+newnum2[1], 64)
-	if kind == "bigthan" {
-		if firstNum1 == firstNum2 && secNum1 >= secNum2 {
-			return true
-		}
-		if firstNum1 > firstNum2 {
-			return true
-		}
-	} else {
-		if firstNum1 == firstNum2 && secNum1 < secNum2 {
-			return true
-		}
-		if firstNum1 < firstNum2 {
-			return true
-		}
-	}
-	return false
 }
