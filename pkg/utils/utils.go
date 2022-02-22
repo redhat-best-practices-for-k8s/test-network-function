@@ -100,7 +100,7 @@ func escapeToJSONstringFormat(line string) (string, error) {
 
 // ExecuteCommand uses the generic command handler to execute an arbitrary interactive command, returning
 // its output wihout any filtering/matching if the command is successfully executed
-func ExecuteCommand(command string, timeout time.Duration, context *interactive.Context) (string, error) {
+var ExecuteCommand = func(command string, timeout time.Duration, context *interactive.Context) (string, error) {
 	tester, test := newGenericCommandTester(command, timeout, context)
 	result, err := test.Run()
 	if result == tnf.SUCCESS && err == nil {
@@ -161,22 +161,15 @@ func NewGenericTesterAndValidate(templateFile, schemaPath string, values map[str
 	return tester, handlers
 }
 
-// RunCommandInContainerNameSpace run a host command in a running container with the nsenter command.
-// takes the container nodeName, node Oc and container UID
-// returns the raw output of the command
-func RunCommandInContainerNameSpace(nodeName string, nodeOc *interactive.Oc, containerID, command string, timeout time.Duration, runtime string) string {
-	containrPID := GetContainerPID(nodeName, nodeOc, containerID, runtime)
-	nodeCommand := "nsenter -t " + containrPID + " -n " + command
-	return RunCommandInNode(nodeName, nodeOc, nodeCommand, timeout)
-}
-
 // GetContainerPID gets the container PID from a kubernetes node, Oc and container PID
 func GetContainerPID(nodeName string, nodeOc *interactive.Oc, containerID, runtime string) string {
 	command := ""
 	switch runtime {
 	case "docker": //nolint:goconst // used only once
 		command = "chroot /host docker inspect -f '{{.State.Pid}}' " + containerID + " 2>/dev/null"
-	case "cri-o": //nolint:goconst // used only once
+	case "docker-pullable": //nolint:goconst // used only once
+		command = "chroot /host docker inspect -f '{{.State.Pid}}' " + containerID + " 2>/dev/null"
+	case "cri-o", "containerd": //nolint:goconst // used only once
 		command = "chroot /host crictl inspect --output go-template --template '{{.info.pid}}' " + containerID + " 2>/dev/null"
 	default:
 		ginkgo.Skip(fmt.Sprintf("Container runtime %s not supported yet for this test, skipping", runtime))
@@ -201,7 +194,7 @@ func ModuleInTree(nodeName, moduleName string, nodeOc *interactive.Oc) bool {
 	// The output, if found, should look something like 'intree:   Y'.
 	// As long as we look for 'intree:' being contained in the string we should be good to go.
 	found := false
-	if StringInSlice(outputSlice, `intree:`) {
+	if StringInSlice(outputSlice, `intree:`, false) {
 		found = true
 	}
 	return found
@@ -225,10 +218,16 @@ func AddNsenterPrefix(containerPID string) string {
 }
 
 // StringInSlice checks a slice for a given string.
-func StringInSlice(s []string, str string) bool {
+func StringInSlice(s []string, str string, contains bool) bool {
 	for _, v := range s {
-		if strings.TrimSpace(v) == str {
-			return true
+		if !contains {
+			if strings.TrimSpace(v) == str {
+				return true
+			}
+		} else {
+			if strings.Contains(strings.TrimSpace(v), str) {
+				return true
+			}
 		}
 	}
 	return false

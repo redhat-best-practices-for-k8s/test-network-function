@@ -81,9 +81,19 @@ var (
 		Url:     formTestURL(common.NetworkingTestKey, "icmpv4-connectivity"),
 		Version: versionOne,
 	}
-	// TestICMPv4ConnectivityMultusIdentifier tests icmpv4 connectivity on multus networks.
+	// TestICMPv6ConnectivityIdentifier tests icmpv6 connectivity.
+	TestICMPv6ConnectivityIdentifier = claim.Identifier{
+		Url:     formTestURL(common.NetworkingTestKey, "icmpv6-connectivity"),
+		Version: versionOne,
+	}
+	// TestICMPv4ConnectivityIdentifier tests icmpv4 Multus connectivity.
 	TestICMPv4ConnectivityMultusIdentifier = claim.Identifier{
 		Url:     formTestURL(common.NetworkingTestKey, "icmpv4-connectivity-multus"),
+		Version: versionOne,
+	}
+	// TestICMPv6ConnectivityIdentifier tests icmpv6 Multus connectivity.
+	TestICMPv6ConnectivityMultusIdentifier = claim.Identifier{
+		Url:     formTestURL(common.NetworkingTestKey, "icmpv6-connectivity-multus"),
 		Version: versionOne,
 	}
 	// TestNamespaceBestPracticesIdentifier ensures the namespace has followed best namespace practices.
@@ -214,6 +224,10 @@ var (
 		Url:     formTestURL(common.PlatformAlterationTestKey, "isredhat-release"),
 		Version: versionOne,
 	}
+	TestUndeclaredContainerPortsUsage = claim.Identifier{
+		Url:     formTestURL(common.NetworkingTestKey, "undeclared-container-ports-usage"),
+		Version: versionOne,
+	}
 )
 
 func formDescription(identifier claim.Identifier, description string) string {
@@ -321,6 +335,18 @@ test case requires the Deployment of the debug daemonset.`),
 		BestPracticeReference: bestPracticeDocV1dot2URL + " Section 6.2",
 	},
 
+	TestICMPv6ConnectivityIdentifier: {
+		Identifier: TestICMPv6ConnectivityIdentifier,
+		Type:       normativeResult,
+		Remediation: `Ensure that the CNF is able to communicate via the Default OpenShift network. In some rare cases,
+CNFs may require routing table changes in order to communicate over the Default network. To exclude a particular pod
+from ICMPv6 connectivity tests, add the test-network-function.com/skip_connectivity_tests label to it. The label value is not important, only its presence.`,
+		Description: formDescription(TestICMPv6ConnectivityIdentifier,
+			`checks that each CNF Container is able to communicate via ICMPv6 on the Default OpenShift network.  This
+test case requires the Deployment of the debug daemonset.`),
+		BestPracticeReference: bestPracticeDocV1dot2URL + " Section 6.2",
+	},
+
 	TestICMPv4ConnectivityMultusIdentifier: {
 		Identifier: TestICMPv4ConnectivityMultusIdentifier,
 		Type:       normativeResult,
@@ -329,6 +355,19 @@ CNFs may require routing table changes in order to communicate over the Multus n
 from ICMPv4 connectivity tests, add the test-network-function.com/skip_connectivity_tests label to it. The label value is not important, only its presence.`,
 		Description: formDescription(TestICMPv4ConnectivityMultusIdentifier,
 			`checks that each CNF Container is able to communicate via ICMPv4 on the Multus network(s).  This
+test case requires the Deployment of the debug daemonset.`),
+		BestPracticeReference: bestPracticeDocV1dot2URL + " Section 6.2",
+	},
+
+	TestICMPv6ConnectivityMultusIdentifier: {
+		Identifier: TestICMPv6ConnectivityMultusIdentifier,
+		Type:       normativeResult,
+		Remediation: `Ensure that the CNF is able to communicate via the Multus network(s). In some rare cases,
+CNFs may require routing table changes in order to communicate over the Multus network(s). To exclude a particular pod
+from ICMPv6 connectivity tests, add the test-network-function.com/skip_connectivity_tests label to it.The label value is not important, only its presence.
+`,
+		Description: formDescription(TestICMPv6ConnectivityMultusIdentifier,
+			`checks that each CNF Container is able to communicate via ICMPv6 on the Multus network(s).  This
 test case requires the Deployment of the debug daemonset.`),
 		BestPracticeReference: bestPracticeDocV1dot2URL + " Section 6.2",
 	},
@@ -615,5 +654,13 @@ the changes for you.`,
 			`check that all pods under test have automountServiceAccountToken set to false`),
 		Remediation:           `check that pod has automountServiceAccountToken set to false or pod is attached to service account which has automountServiceAccountToken set to false`,
 		BestPracticeReference: bestPracticeDocV1dot2URL + " Section 13.7",
+	},
+	TestUndeclaredContainerPortsUsage: {
+		Identifier: TestUndeclaredContainerPortsUsage,
+		Type:       normativeResult,
+		Description: formDescription(TestUndeclaredContainerPortsUsage,
+			`check that containers don't listen on ports that weren't declared in their specification`),
+		Remediation:           `ensure the CNF apps don't listen on undeclared containers' ports`,
+		BestPracticeReference: bestPracticeDocV1dot2URL + " Section 16.3.1.1",
 	},
 }
