@@ -94,7 +94,7 @@ func testHelmCertified(env *configpkg.TestEnvironment) {
 			certified := false
 			for _, v := range out.Entries {
 				for _, val := range v {
-					if val.Name == helm.Chart && val.Version == helm.Version {
+					if val.Name == helm.Name && val.Version == helm.Version {
 						if val.KubeVersion != "" {
 							kubeVersion := strings.ReplaceAll(val.KubeVersion, " ", "")[2:]
 							if strings.Contains(kubeVersion, "<") {
@@ -103,7 +103,7 @@ func testHelmCertified(env *configpkg.TestEnvironment) {
 								maxVersion, _ := version.NewVersion(kubever[1])
 								if ourKubeVersion.GreaterThanOrEqual(minVersion) && ourKubeVersion.LessThan(maxVersion) {
 									certified = true
-									log.Info(fmt.Sprintf("Helm %s with version %s is certified", helm.Chart, helm.Version))
+									log.Info(fmt.Sprintf("Helm %s with version %s is certified", helm.Name, helm.Version))
 									break
 								}
 							} else {
@@ -111,13 +111,13 @@ func testHelmCertified(env *configpkg.TestEnvironment) {
 								minVersion, _ := version.NewVersion(kubever[0])
 								if ourKubeVersion.GreaterThanOrEqual(minVersion) {
 									certified = true
-									log.Info(fmt.Sprintf("Helm %s with version %s is certified", helm.Chart, helm.Version))
+									log.Info(fmt.Sprintf("Helm %s with version %s is certified", helm.Name, helm.Version))
 									break
 								}
 							}
 						} else {
 							certified = true
-							log.Info(fmt.Sprintf("Helm %s with version %s is certified", helm.Chart, helm.Version))
+							log.Info(fmt.Sprintf("Helm %s with version %s is certified", helm.Name, helm.Version))
 							break
 						}
 
@@ -128,7 +128,7 @@ func testHelmCertified(env *configpkg.TestEnvironment) {
 				}
 			}
 			if !certified {
-				log.Info(fmt.Sprintf("Helm chart %s with version %s is not certified", helm.Chart, helm.Version))
+				log.Info(fmt.Sprintf("Helm chart %s with version %s is not certified", helm.Name, helm.Version))
 			}
 		}
 	})

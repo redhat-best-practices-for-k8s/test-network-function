@@ -123,7 +123,7 @@ func GethelmCharts() (chartslist []configsections.HelmChart) {
 		}
 		chart := configsections.HelmChart{
 			Version: version,
-			Chart:   str,
+			Name:    str,
 		}
 		chartslist = append(chartslist, chart)
 	}
