@@ -118,29 +118,23 @@ func TestModuleInTree(t *testing.T) {
 		isInTree   bool
 	}{
 		{
-			fakeOutput: `filename:
-			alias:
-			version:
-			license:
-			srcversion:
-			depends:
-			retpoline:
-			intree:
-			name:
-			vermagic:`,
-			isInTree: true,
+			fakeOutput: "",
+			isInTree:   true,
 		},
 		{
-			fakeOutput: `filename:
-			alias:
-			version:
-			license:
-			srcversion:
-			depends:
-			retpoline:
-			name:
-			vermagic:`,
-			isInTree: false,
+			// "K": kernel has been live patched
+			fakeOutput: "K",
+			isInTree:   true,
+		},
+		{
+			// "O": externally-built (“out-of-tree”) module was loaded
+			// "E": unsigned module was loaded
+			fakeOutput: "OE",
+			isInTree:   false,
+		},
+		{
+			fakeOutput: "O",
+			isInTree:   false,
 		},
 	}
 
