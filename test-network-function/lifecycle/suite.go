@@ -564,7 +564,7 @@ func readinessTest(podNamespace, podName string, context *interactive.Context) b
 	gomega.Expect(test).ToNot(gomega.BeNil())
 
 	test.RunWithCallbacks(nil, func() {
-		tnf.ClaimFilePrintf("FAILURE: Pod %s/%s does not have liveness defined", podNamespace, podName)
+		tnf.ClaimFilePrintf("FAILURE: Pod %s/%s does not have readiness defined", podNamespace, podName)
 		passed = false
 	}, func(err error) {
 		tnf.ClaimFilePrintf("ERROR: Pod %s/%s, error: %v", podNamespace, podName, err)
