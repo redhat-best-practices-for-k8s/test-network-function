@@ -1,9 +1,9 @@
 package autodiscover
 
 type HelmSetList struct {
-	Items []HelmList `json:""`
+	Items []HelmChart `json:""`
 }
-type HelmList struct {
+type HelmChart struct {
 	Name      string `json:"name"`
 	Namespace string `json:"namespace"`
 	Chart     string `json:"chart"`
