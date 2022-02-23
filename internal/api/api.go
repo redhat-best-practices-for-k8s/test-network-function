@@ -253,11 +253,11 @@ func (api CertAPIClient) GetYamlFile() (ChartStruct, error) {
 	var charts ChartStruct
 	if err == nil {
 		if errorr := yaml.Unmarshal(responseData, &charts); errorr != nil {
-			log.Error("error while parsing the yaml file of the helm certification list %s", errorr)
+			log.Error("error while parsing the yaml file of the helm certification list ", errorr)
 			ginkgo.Fail("error parsing the yaml file")
 		}
 	} else {
-		log.Error("error reading the helm certification list %s", err)
+		log.Error("error reading the helm certification list ", err)
 		ginkgo.Fail("error reading the helm certification list")
 	}
 	return charts, err
