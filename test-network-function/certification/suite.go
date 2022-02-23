@@ -73,12 +73,6 @@ var _ = ginkgo.Describe(common.AffiliatedCertTestKey, func() {
 	}
 })
 
-//
-/*func helmCertified() func() (interface{}, error) {
-	return func() (interface{}, error) {
-		return certAPIClient.GetYamlFile()
-	}
-}*/
 func testHelmCertified(env *configpkg.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestHelmIsCertifiedIdentifier)
 	ginkgo.It(testID, ginkgo.Label(testID), func() {
@@ -89,6 +83,7 @@ func testHelmCertified(env *configpkg.TestEnvironment) {
 		}
 		ourKubeVersion, _ := version.NewVersion(GetKubeVersion()[1:])
 		out, _ := certAPIClient.GetYamlFile()
+		failedHelms := []configsections.HelmChart{}
 		for _, helm := range helmcharts {
 			certified := false
 			for _, v := range out.Entries {
@@ -125,8 +120,13 @@ func testHelmCertified(env *configpkg.TestEnvironment) {
 				}
 			}
 			if !certified {
+				failedHelms = append(failedHelms, helm)
 				log.Info(fmt.Sprintf("Helm chart %s with version %s is not certified", helm.Name, helm.Version))
 			}
+		}
+		if len(failedHelms) > 0 {
+			log.Warnf("Helms that are not certified: %+v", failedHelms)
+			ginkgo.Fail(fmt.Sprintf("%d helms chart are not certified.", len(failedHelms)))
 		}
 	})
 }

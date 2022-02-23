@@ -6,6 +6,9 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/onsi/ginkgo/v2"
+	log "github.com/sirupsen/logrus"
+
 	"github.com/go-yaml/yaml"
 
 	"github.com/test-network-function/test-network-function/pkg/config/configsections"
@@ -152,26 +155,10 @@ type ContainerCatalogEntry struct {
 }
 type ChartStruct struct {
 	Entries map[string][]struct {
-		Name        string `json:"name"`
-		Version     string `json:"version"`
-		KubeVersion string `json:"kubeVersion"`
-	} `json:"entries"`
-}
-
-func convertYamlToJSON(i interface{}) interface{} {
-	switch x := i.(type) {
-	case map[interface{}]interface{}:
-		m2 := map[string]interface{}{}
-		for k, v := range x {
-			m2[k.(string)] = convertYamlToJSON(v)
-		}
-		return m2
-	case []interface{}:
-		for i, v := range x {
-			x[i] = convertYamlToJSON(v)
-		}
-	}
-	return i
+		Name        string `yaml:"name"`
+		Version     string `yaml:"version"`
+		KubeVersion string `yaml:"kubeVersion"`
+	} `yaml:"entries"`
 }
 
 func (e ContainerCatalogEntry) GetBestFreshnessGrade() string {
@@ -263,23 +250,18 @@ func (api CertAPIClient) GetOperatorBundleIDByPackageName(org, name, vsersion st
 func (api CertAPIClient) GetYamlFile() (ChartStruct, error) {
 	url := ("https://charts.openshift.io/index.yaml")
 	responseData, err := api.getRequest(url)
-	var body interface{}
 	var charts ChartStruct
-	if errorr := yaml.Unmarshal(responseData, &body); errorr != nil && err != nil {
-		panic(errorr)
-	}
-
-	body = convertYamlToJSON(body)
-
-	if b, eror := json.Marshal(body); eror != nil {
-		panic(eror)
-	} else {
-		err = json.Unmarshal(b, &charts)
-		if err != nil {
-			panic(err)
+	if err == nil {
+		if errorr := yaml.Unmarshal(responseData, &charts); errorr != nil {
+			log.Error("error while parsing the yaml file of the helm certification list %s", errorr)
+			ginkgo.Fail("error parsing the yaml file")
 		}
+	} else {
+		log.Error("error reading the helm certification list %s", err)
+		ginkgo.Fail("error reading the helm certification list")
 	}
 	return charts, err
+
 }
 
 // getRequest a http call to rest api, returns byte array or error. Returns (response, error).
