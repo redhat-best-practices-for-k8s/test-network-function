@@ -81,8 +81,8 @@ func testHelmCertified(env *configpkg.TestEnvironment) {
 		if len(helmcharts) == 0 {
 			ginkgo.Skip("No helm charts to check")
 		}
-		ourKubeVersion, _ := version.NewVersion(GetKubeVersion()[1:])
 		out, _ := certAPIClient.GetYamlFile()
+		ourKubeVersion := GetKubeVersion()[1:]
 		failedHelms := []configsections.HelmChart{}
 		for _, helm := range helmcharts {
 			certified := false
@@ -90,28 +90,14 @@ func testHelmCertified(env *configpkg.TestEnvironment) {
 				for _, val := range v {
 					if val.Name == helm.Name && val.Version == helm.Version {
 						if val.KubeVersion != "" {
-							kubeVersion := strings.ReplaceAll(val.KubeVersion, " ", "")[2:]
-							if strings.Contains(kubeVersion, "<") {
-								kubever := strings.Split(kubeVersion, "<")
-								minVersion, _ := version.NewVersion(kubever[0])
-								maxVersion, _ := version.NewVersion(kubever[1])
-								if ourKubeVersion.GreaterThanOrEqual(minVersion) && ourKubeVersion.LessThan(maxVersion) {
-									certified = true
-									break
-								}
-							} else {
-								kubever := strings.Split(kubeVersion, "-")
-								minVersion, _ := version.NewVersion(kubever[0])
-								if ourKubeVersion.GreaterThanOrEqual(minVersion) {
-									certified = true
-									break
-								}
+							if CompareVersion(ourKubeVersion, val.KubeVersion) {
+								certified = true
+								break
 							}
 						} else {
 							certified = true
 							break
 						}
-
 					}
 				}
 				if certified {
@@ -121,7 +107,6 @@ func testHelmCertified(env *configpkg.TestEnvironment) {
 			}
 			if !certified {
 				failedHelms = append(failedHelms, helm)
-				log.Info(fmt.Sprintf("Helm chart %s with version %s is not certified", helm.Name, helm.Version))
 			}
 		}
 		if len(failedHelms) > 0 {
@@ -273,4 +258,23 @@ func GetKubeVersion() string {
 		kubeVersion = ""
 	}
 	return kubeVersion
+}
+func CompareVersion(ver1, ver2 string) bool {
+	ourKubeVersion, _ := version.NewVersion(ver1)
+	kubeVersion := strings.ReplaceAll(ver2, " ", "")[2:]
+	if strings.Contains(kubeVersion, "<") {
+		kubever := strings.Split(kubeVersion, "<")
+		minVersion, _ := version.NewVersion(kubever[0])
+		maxVersion, _ := version.NewVersion(kubever[1])
+		if ourKubeVersion.GreaterThanOrEqual(minVersion) && ourKubeVersion.LessThan(maxVersion) {
+			return true
+		}
+	} else {
+		kubever := strings.Split(kubeVersion, "-")
+		minVersion, _ := version.NewVersion(kubever[0])
+		if ourKubeVersion.GreaterThanOrEqual(minVersion) {
+			return true
+		}
+	}
+	return false
 }

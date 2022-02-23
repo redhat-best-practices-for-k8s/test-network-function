@@ -261,7 +261,6 @@ func (api CertAPIClient) GetYamlFile() (ChartStruct, error) {
 		ginkgo.Fail("error reading the helm certification list")
 	}
 	return charts, err
-
 }
 
 // getRequest a http call to rest api, returns byte array or error. Returns (response, error).
