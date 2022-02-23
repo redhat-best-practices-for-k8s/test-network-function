@@ -450,7 +450,6 @@ func testGracePeriod(env *config.TestEnvironment) {
 	})
 }
 
-//nolint:dupl
 func testShutdown(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestShudtownIdentifier)
 	ginkgo.It(testID, ginkgo.Label(testID), func() {
@@ -492,7 +491,7 @@ func shutdownTest(podNamespace, podName string, context *interactive.Context) bo
 	return passed
 }
 
-//nolint:dupl
+//nolint:nolintlint
 func testLiveness(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestLivenessIdentifier)
 	ginkgo.It(testID, ginkgo.Label(testID), func() {
@@ -533,7 +532,7 @@ func livenessTest(podNamespace, podName string, context *interactive.Context) bo
 	return passed
 }
 
-//nolint:dupl
+//nolint:nolintlint
 func testReadiness(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestReadinessIdentifier)
 	ginkgo.It(testID, ginkgo.Label(testID), func() {
