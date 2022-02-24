@@ -102,18 +102,20 @@ func FindTestTarget(labels []configsections.Label, target *configsections.TestTa
 	stateFulSet := FindTestPodSetsByLabel(labels, string(configsections.StateFulSet))
 	target.StateFulSetUnderTest = appendPodsets(stateFulSet, ns)
 	target.Nodes = GetNodesList()
-	target.HelmChart = GethelmCharts(notcheckhelmlist)
+	target.HelmChart = GethelmCharts(notcheckhelmlist, ns)
 }
-func GethelmCharts(notcheckhelmlist []configsections.Notcheckhelmlist) (chartslist []configsections.HelmChart) {
+func GethelmCharts(notcheckhelmlist []configsections.Notcheckhelmlist, ns map[string]bool) (chartslist []configsections.HelmChart) {
 	charts := GetClusterHelmCharts()
 	for _, ch := range charts.Items {
-		if !checkifnoneedtocheck(ch.Name, notcheckhelmlist) {
-			name, version := getHelmNameVersion(ch.Chart)
-			chart := configsections.HelmChart{
-				Version: version,
-				Name:    name,
+		if ns[ch.Namespace] {
+			if !checkifnoneedtocheck(ch.Name, notcheckhelmlist) {
+				name, version := getHelmNameVersion(ch.Chart)
+				chart := configsections.HelmChart{
+					Version: version,
+					Name:    name,
+				}
+				chartslist = append(chartslist, chart)
 			}
-			chartslist = append(chartslist, chart)
 		}
 	}
 	return chartslist
