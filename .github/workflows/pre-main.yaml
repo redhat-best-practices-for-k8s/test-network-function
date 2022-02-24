@@ -155,6 +155,7 @@ jobs:
           working_directory: cnf-certification-test-partner
 
       # Perform smoke tests.
+      
       - name: 'Test: Run test suites'
         run: ./run-cnf-suites.sh --focus access-control lifecycle platform observability networking affiliated-certification operator
 
