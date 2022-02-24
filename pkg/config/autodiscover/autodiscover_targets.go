@@ -47,7 +47,7 @@ var (
 // FindTestTarget finds test targets from the current state of the cluster,
 // using labels and annotations, and add them to the `configsections.TestTarget` passed in.
 //nolint:funlen
-func FindTestTarget(labels []configsections.Label, target *configsections.TestTarget, namespaces []string) {
+func FindTestTarget(labels []configsections.Label, target *configsections.TestTarget, namespaces []string, notcheckhelmlist []configsections.Notcheckhelmlist) {
 	ns := make(map[string]bool)
 	for _, n := range namespaces {
 		ns[n] = true
@@ -102,32 +102,52 @@ func FindTestTarget(labels []configsections.Label, target *configsections.TestTa
 	stateFulSet := FindTestPodSetsByLabel(labels, string(configsections.StateFulSet))
 	target.StateFulSetUnderTest = appendPodsets(stateFulSet, ns)
 	target.Nodes = GetNodesList()
-	target.HelmChart = GethelmCharts()
+	target.HelmChart = GethelmCharts(notcheckhelmlist)
 }
-func GethelmCharts() (chartslist []configsections.HelmChart) {
+func GethelmCharts(notcheckhelmlist []configsections.Notcheckhelmlist) (chartslist []configsections.HelmChart) {
 	charts := GetClusterHelmCharts()
 	for _, ch := range charts.Items {
-		str := ""
-		version := ""
-		nameVersion := strings.Split(ch.Chart, "-")
-		for k, val := range nameVersion {
-			if strings.Contains(val, ".") {
-				version = val
-				continue
+		if !checkifnoneedtocheck(ch.Name, notcheckhelmlist) {
+			name, version := getHelmNameVersion(ch.Chart)
+			chart := configsections.HelmChart{
+				Version: version,
+				Name:    name,
 			}
-			if k == 0 {
-				str = val
-			} else {
-				str = str + "-" + val
-			}
+			chartslist = append(chartslist, chart)
 		}
-		chart := configsections.HelmChart{
-			Version: version,
-			Name:    str,
-		}
-		chartslist = append(chartslist, chart)
 	}
 	return chartslist
+}
+
+// func to check if the helm is exist on the no need to check list that are under the tnf_config.yml
+func checkifnoneedtocheck(helmName string, notcheckhelmlist []configsections.Notcheckhelmlist) bool {
+	if len(notcheckhelmlist) == 0 {
+		return false
+	}
+	for _, helm := range notcheckhelmlist {
+		if helmName == helm.Name {
+			return true
+		}
+	}
+	return false
+}
+
+// func to get the name and verstion need to split the number that have dots and the string valuse
+// we could have a chart name like orion-ld-1.0.1 version=1.0.1 and name is orion-ld
+func getHelmNameVersion(nameVersion string) (Name, Version string) {
+	nameversion := strings.Split(nameVersion, "-")
+	for k, val := range nameversion {
+		if strings.Contains(val, ".") {
+			Version = val
+			continue
+		}
+		if k == 0 {
+			Name = val
+		} else {
+			Name = Name + "-" + val
+		}
+	}
+	return Name, Version
 }
 
 // func for appending the pod sets

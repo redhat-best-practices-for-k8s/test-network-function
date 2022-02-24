@@ -19,3 +19,5 @@ certifiedoperatorinfo:
 acceptedKernelTaints:
   - module: vboxsf
   - module: vboxguest
+notcheckhelmlist:
+  - name: coredns

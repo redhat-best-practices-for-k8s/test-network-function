@@ -212,7 +212,7 @@ func (env *TestEnvironment) doAutodiscover() {
 	}
 
 	if autodiscover.PerformAutoDiscovery() {
-		autodiscover.FindTestTarget(env.Config.TargetPodLabels, &env.Config.TestTarget, env.NameSpacesUnderTest)
+		autodiscover.FindTestTarget(env.Config.TargetPodLabels, &env.Config.TestTarget, env.NameSpacesUnderTest, env.Config.Notcheckhelmlist)
 	}
 
 	env.ContainersToExcludeFromConnectivityTests = make(map[configsections.ContainerIdentifier]interface{})
