@@ -81,7 +81,10 @@ func testHelmCertified(env *configpkg.TestEnvironment) {
 		if len(helmcharts) == 0 {
 			ginkgo.Skip("No helm charts to check")
 		}
-		out, _ := certAPIClient.GetYamlFile()
+		out, err := certAPIClient.GetYamlFile()
+		if err != nil {
+			ginkgo.Fail(fmt.Sprintf("error while reading the helm yaml file from the api %s", err))
+		}
 		if out.Entries == nil {
 			ginkgo.Skip("No helm charts from the api")
 		}
@@ -89,11 +92,11 @@ func testHelmCertified(env *configpkg.TestEnvironment) {
 		failedHelms := []configsections.HelmChart{}
 		for _, helm := range helmcharts {
 			certified := false
-			for _, v := range out.Entries {
-				for _, val := range v {
-					if val.Name == helm.Name && val.Version == helm.Version {
-						if val.KubeVersion != "" {
-							if CompareVersion(ourKubeVersion, val.KubeVersion) {
+			for _, entryList := range out.Entries {
+				for _, entry := range entryList {
+					if entry.Name == helm.Name && entry.Version == helm.Version {
+						if entry.KubeVersion != "" {
+							if CompareVersion(ourKubeVersion, entry.KubeVersion) {
 								certified = true
 								break
 							}

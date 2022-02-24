@@ -256,7 +256,6 @@ func (api CertAPIClient) GetYamlFile() (ChartStruct, error) {
 	}
 	if err = yaml.Unmarshal(responseData, &charts); err != nil {
 		log.Error("error while parsing the yaml file of the helm certification list ", err)
-		return charts, err
 	}
 	return charts, err
 }
