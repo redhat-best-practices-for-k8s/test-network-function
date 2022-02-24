@@ -113,7 +113,7 @@ func testHelmCertified(env *configpkg.TestEnvironment) {
 			}
 		}
 		if len(failedHelms) > 0 {
-			log.Error("Helms that are not certified: %+v", failedHelms)
+			log.Errorf("Helms that are not certified: %+v", failedHelms)
 			tnf.ClaimFilePrintf("Helms that are not certified: %+v", failedHelms)
 			ginkgo.Fail(fmt.Sprintf("%d helms chart are not certified.", len(failedHelms)))
 		}

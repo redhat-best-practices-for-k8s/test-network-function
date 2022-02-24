@@ -250,12 +250,13 @@ func (api CertAPIClient) GetYamlFile() (ChartStruct, error) {
 	url := ("https://charts.openshift.io/index.yaml")
 	responseData, err := api.getRequest(url)
 	var charts ChartStruct
-	if err == nil {
-		if errorr := yaml.Unmarshal(responseData, &charts); errorr != nil {
-			log.Error("error while parsing the yaml file of the helm certification list ", errorr)
-		}
-	} else {
+	if err != nil {
 		log.Error("error reading the helm certification list ", err)
+		return charts, err
+	}
+	if err = yaml.Unmarshal(responseData, &charts); err != nil {
+		log.Error("error while parsing the yaml file of the helm certification list ", err)
+		return charts, err
 	}
 	return charts, err
 }
