@@ -155,7 +155,7 @@ jobs:
           working_directory: cnf-certification-test-partner
 
       # Perform smoke tests.
-      
+
       - name: 'Test: Run test suites'
         run: ./run-cnf-suites.sh --focus access-control lifecycle platform observability networking affiliated-certification operator
 
@@ -187,6 +187,7 @@ jobs:
           mkdir -p $TNF_CONFIG_DIR $TNF_OUTPUT_DIR
           cp test-network-function/*.yml $TNF_CONFIG_DIR
         shell: bash
+        
       - name: 'Test: Run without any TS, just get diagnostic information'
         run: ./run-tnf-container.sh ${{ env.TESTING_CMD_PARAMS }}
 
