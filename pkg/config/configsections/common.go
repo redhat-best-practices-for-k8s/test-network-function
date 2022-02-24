@@ -50,7 +50,7 @@ type Operator struct {
 type Namespace struct {
 	Name string `yaml:"name" json:"name"`
 }
-type Notcheckhelmlist struct {
+type SkipHelmChartList struct {
 	Name string `yaml:"name" json:"name"`
 }
 
@@ -75,7 +75,7 @@ type TestConfiguration struct {
 	CrdFilters []CrdFilter `yaml:"targetCrdFilters" json:"targetCrdFilters"`
 	// AcceptedKernelTaints
 	AcceptedKernelTaints []AcceptedKernelTaintsInfo `yaml:"acceptedKernelTaints,omitempty" json:"acceptedKernelTaints,omitempty"`
-	Notcheckhelmlist     []Notcheckhelmlist         `yaml:"notcheckhelmlist,omitempty" json:"notcheckhelmlist,omitempty"`
+	SkipHelmChartList    []SkipHelmChartList        `yaml:"skipHelmChartList,omitempty" json:"skipHelmChartList,omitempty"`
 }
 
 // TestPartner contains the helper containers that can be used to facilitate tests

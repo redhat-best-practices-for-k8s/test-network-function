@@ -47,7 +47,7 @@ var (
 // FindTestTarget finds test targets from the current state of the cluster,
 // using labels and annotations, and add them to the `configsections.TestTarget` passed in.
 //nolint:funlen
-func FindTestTarget(labels []configsections.Label, target *configsections.TestTarget, namespaces []string, notcheckhelmlist []configsections.Notcheckhelmlist) {
+func FindTestTarget(labels []configsections.Label, target *configsections.TestTarget, namespaces []string, skipHelmChartList []configsections.SkipHelmChartList) {
 	ns := make(map[string]bool)
 	for _, n := range namespaces {
 		ns[n] = true
@@ -102,13 +102,13 @@ func FindTestTarget(labels []configsections.Label, target *configsections.TestTa
 	stateFulSet := FindTestPodSetsByLabel(labels, string(configsections.StateFulSet))
 	target.StateFulSetUnderTest = appendPodsets(stateFulSet, ns)
 	target.Nodes = GetNodesList()
-	target.HelmChart = GethelmCharts(notcheckhelmlist, ns)
+	target.HelmChart = GethelmCharts(skipHelmChartList, ns)
 }
-func GethelmCharts(notcheckhelmlist []configsections.Notcheckhelmlist, ns map[string]bool) (chartslist []configsections.HelmChart) {
-	charts := GetClusterHelmCharts()
+func GethelmCharts(skipHelmChartList []configsections.SkipHelmChartList, ns map[string]bool) (chartslist []configsections.HelmChart) {
+	charts, _ := GetClusterHelmCharts()
 	for _, ch := range charts.Items {
 		if ns[ch.Namespace] {
-			if !checkifnoneedtocheck(ch.Name, notcheckhelmlist) {
+			if !checkifnoneedtocheck(ch.Name, skipHelmChartList) {
 				name, version := getHelmNameVersion(ch.Chart)
 				chart := configsections.HelmChart{
 					Version: version,
@@ -122,12 +122,13 @@ func GethelmCharts(notcheckhelmlist []configsections.Notcheckhelmlist, ns map[st
 }
 
 // func to check if the helm is exist on the no need to check list that are under the tnf_config.yml
-func checkifnoneedtocheck(helmName string, notcheckhelmlist []configsections.Notcheckhelmlist) bool {
-	if len(notcheckhelmlist) == 0 {
+func checkifnoneedtocheck(helmName string, skipHelmChartList []configsections.SkipHelmChartList) bool {
+	if len(skipHelmChartList) == 0 {
 		return false
 	}
-	for _, helm := range notcheckhelmlist {
+	for _, helm := range skipHelmChartList {
 		if helmName == helm.Name {
+			log.Infof("Helm chart with name %s was skiped", helmName)
 			return true
 		}
 	}

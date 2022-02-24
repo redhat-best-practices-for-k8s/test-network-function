@@ -9,14 +9,14 @@ type HelmChart struct {
 	Chart     string `json:"chart"`
 }
 
-func GetClusterHelmCharts() *HelmSetList {
+func GetClusterHelmCharts() (*HelmSetList, error) {
 	out := execCommandOutput("helm list -A -o json")
 	var helmList HelmSetList
 	if out != "" {
 		err := jsonUnmarshal([]byte(out), &helmList.Items)
 		if err != nil {
-			return nil
+			return nil, err
 		}
 	}
-	return &helmList
+	return &helmList, nil
 }
