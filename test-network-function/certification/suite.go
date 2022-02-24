@@ -24,7 +24,6 @@ import (
 	version "github.com/hashicorp/go-version"
 	"github.com/onsi/ginkgo/v2"
 	log "github.com/sirupsen/logrus"
-	"github.com/test-network-function/cnf-certification-test/pkg/tnf"
 	"github.com/test-network-function/test-network-function/internal/api"
 	configpkg "github.com/test-network-function/test-network-function/pkg/config"
 	"github.com/test-network-function/test-network-function/pkg/config/configsections"
