@@ -134,20 +134,20 @@ func checkifnoneedtocheck(helmName string, notcheckhelmlist []configsections.Not
 
 // func to get the name and verstion need to split the number that have dots and the string valuse
 // we could have a chart name like orion-ld-1.0.1 version=1.0.1 and name is orion-ld
-func getHelmNameVersion(nameVersion string) (Name, Version string) {
+func getHelmNameVersion(nameVersion string) (name, version string) {
 	nameversion := strings.Split(nameVersion, "-")
 	for k, val := range nameversion {
 		if strings.Contains(val, ".") {
-			Version = val
+			version = val
 			continue
 		}
 		if k == 0 {
-			Name = val
+			name = val
 		} else {
-			Name = Name + "-" + val
+			name = name + "-" + val
 		}
 	}
-	return Name, Version
+	return name, version
 }
 
 // func for appending the pod sets
