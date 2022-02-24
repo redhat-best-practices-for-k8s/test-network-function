@@ -24,6 +24,7 @@ import (
 	version "github.com/hashicorp/go-version"
 	"github.com/onsi/ginkgo/v2"
 	log "github.com/sirupsen/logrus"
+	"github.com/test-network-function/cnf-certification-test/pkg/tnf"
 	"github.com/test-network-function/test-network-function/internal/api"
 	configpkg "github.com/test-network-function/test-network-function/pkg/config"
 	"github.com/test-network-function/test-network-function/pkg/config/configsections"
@@ -113,7 +114,8 @@ func testHelmCertified(env *configpkg.TestEnvironment) {
 			}
 		}
 		if len(failedHelms) > 0 {
-			log.Warnf("Helms that are not certified: %+v", failedHelms)
+			log.Error("Helms that are not certified: %+v", failedHelms)
+			tnf.ClaimFilePrintf("Helms that are not certified: %+v", failedHelms)
 			ginkgo.Fail(fmt.Sprintf("%d helms chart are not certified.", len(failedHelms)))
 		}
 	})

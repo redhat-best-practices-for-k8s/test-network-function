@@ -6,7 +6,6 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/onsi/ginkgo/v2"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/go-yaml/yaml"
@@ -254,11 +253,9 @@ func (api CertAPIClient) GetYamlFile() (ChartStruct, error) {
 	if err == nil {
 		if errorr := yaml.Unmarshal(responseData, &charts); errorr != nil {
 			log.Error("error while parsing the yaml file of the helm certification list ", errorr)
-			ginkgo.Fail("error parsing the yaml file")
 		}
 	} else {
 		log.Error("error reading the helm certification list ", err)
-		ginkgo.Fail("error reading the helm certification list")
 	}
 	return charts, err
 }
