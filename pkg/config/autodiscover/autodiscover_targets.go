@@ -108,7 +108,7 @@ func GethelmCharts(skipHelmChartList []configsections.SkipHelmChartList, ns map[
 	charts, _ := GetClusterHelmCharts()
 	for _, ch := range charts.Items {
 		if ns[ch.Namespace] {
-			if !checkifnoneedtocheck(ch.Name, skipHelmChartList) {
+			if !isSkipHelmChart(ch.Name, skipHelmChartList) {
 				name, version := getHelmNameVersion(ch.Chart)
 				chart := configsections.HelmChart{
 					Version: version,
@@ -122,13 +122,13 @@ func GethelmCharts(skipHelmChartList []configsections.SkipHelmChartList, ns map[
 }
 
 // func to check if the helm is exist on the no need to check list that are under the tnf_config.yml
-func checkifnoneedtocheck(helmName string, skipHelmChartList []configsections.SkipHelmChartList) bool {
+func isSkipHelmChart(helmName string, skipHelmChartList []configsections.SkipHelmChartList) bool {
 	if len(skipHelmChartList) == 0 {
 		return false
 	}
 	for _, helm := range skipHelmChartList {
 		if helmName == helm.Name {
-			log.Infof("Helm chart with name %s was skiped", helmName)
+			log.Infof("Helm chart with name %s was skipped", helmName)
 			return true
 		}
 	}

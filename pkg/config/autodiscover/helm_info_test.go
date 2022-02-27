@@ -33,7 +33,6 @@ var (
 	testHelmChartPath = path.Join(filePath, testHelmChart)
 )
 
-//nolint:funlen
 func TestGetClusterHelmCharts(t *testing.T) {
 	testCases := []struct {
 		badJSONUnmarshal bool
