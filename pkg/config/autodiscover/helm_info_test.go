@@ -19,10 +19,11 @@ package autodiscover
 import (
 	"encoding/json"
 	"errors"
-	"github.com/stretchr/testify/assert"
 	"os"
 	"path"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 const (
