@@ -450,6 +450,7 @@ func testGracePeriod(env *config.TestEnvironment) {
 	})
 }
 
+//nolint:dupl
 func testShutdown(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestShudtownIdentifier)
 	ginkgo.It(testID, ginkgo.Label(testID), func() {
@@ -469,7 +470,6 @@ func testShutdown(env *config.TestEnvironment) {
 	})
 }
 
-//nolint:dupl
 func shutdownTest(podNamespace, podName string, context *interactive.Context) bool {
 	passed := true
 	values := make(map[string]interface{})
@@ -491,7 +491,7 @@ func shutdownTest(podNamespace, podName string, context *interactive.Context) bo
 	return passed
 }
 
-//nolint:nolintlint
+//nolint:dupl
 func testLiveness(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestLivenessIdentifier)
 	ginkgo.It(testID, ginkgo.Label(testID), func() {
@@ -506,11 +506,11 @@ func testLiveness(env *config.TestEnvironment) {
 		}
 		if n := len(failedPods); n > 0 {
 			log.Debugf("Pods without liveness: %+v", failedPods)
+			ginkgo.Fail(fmt.Sprintf("%d pods do not have liveness configured.", n))
 		}
 	})
 }
 
-//nolint:dupl
 func livenessTest(podNamespace, podName string, context *interactive.Context) bool {
 	passed := true
 	values := make(map[string]interface{})
@@ -532,7 +532,7 @@ func livenessTest(podNamespace, podName string, context *interactive.Context) bo
 	return passed
 }
 
-//nolint:nolintlint
+//nolint:dupl
 func testReadiness(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestReadinessIdentifier)
 	ginkgo.It(testID, ginkgo.Label(testID), func() {
@@ -547,11 +547,11 @@ func testReadiness(env *config.TestEnvironment) {
 		}
 		if n := len(failedPods); n > 0 {
 			log.Debugf("Pods without readiness: %+v", failedPods)
+			ginkgo.Fail(fmt.Sprintf("%d pods do not have readiness configured.", n))
 		}
 	})
 }
 
-//nolint:dupl
 func readinessTest(podNamespace, podName string, context *interactive.Context) bool {
 	passed := true
 	values := make(map[string]interface{})

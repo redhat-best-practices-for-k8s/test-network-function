@@ -1,3 +1,3 @@
-{{- range .spec.containers. -}}
-  {{ if readinessProb }} {{"readiness-defined\n"}} {{- else -}} {{"readiness-not-defined\n"}}{{- end -}}
+{{- range .spec.containers -}}
+  {{ if .readinessProbe }} {{"readiness-defined\n"}} {{- else -}} {{"readiness-not-defined\n"}}{{- end -}}
 {{- end -}}
