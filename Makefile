@@ -129,7 +129,8 @@ install-tools:
 	go install github.com/onsi/ginkgo/v2/ginkgo@v2.1.3
 	go install github.com/onsi/gomega
 	go install github.com/golang/mock/mockgen@v1.6.0
-
+	git clone https://github.com/helm/helm.git && cd helm && make install
+	
 # Install golangci-lint	
 install-lint:
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b ${GO_PATH}/bin ${GOLANGCI_VERSION}

@@ -21,6 +21,7 @@ import (
 	"strings"
 	"time"
 
+	version "github.com/hashicorp/go-version"
 	"github.com/onsi/ginkgo/v2"
 	log "github.com/sirupsen/logrus"
 	"github.com/test-network-function/test-network-function/internal/api"
@@ -44,9 +45,9 @@ const (
 )
 
 var (
-	ocpVersionCommand = "oc version -o json | jq '.openshiftVersion'"
-
-	execCommandOutput = func(command string) string {
+	ocpVersionCommand        = "oc version -o json | jq '.openshiftVersion'"
+	kubernetesVersionCommand = "oc version -o json | jq '.serverVersion.gitVersion'"
+	execCommandOutput        = func(command string) string {
 		return utils.ExecuteCommandAndValidate(command, apiRequestTimeout, interactive.GetContext(expectersVerboseModeEnabled), func() {
 			log.Error("can't run command: ", command)
 		})
@@ -68,8 +69,59 @@ var _ = ginkgo.Describe(common.AffiliatedCertTestKey, func() {
 
 		testContainerCertificationStatus()
 		testAllOperatorCertified(env)
+		testHelmCertified(env)
 	}
 })
+
+func testHelmCertified(env *configpkg.TestEnvironment) {
+	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestHelmIsCertifiedIdentifier)
+	ginkgo.It(testID, ginkgo.Label(testID), func() {
+		certAPIClient = api.NewHTTPClient()
+		helmcharts := env.HelmchartsUnderTest
+		if len(helmcharts) == 0 {
+			ginkgo.Skip("No helm charts to check")
+		}
+		out, err := certAPIClient.GetYamlFile()
+		if err != nil {
+			ginkgo.Fail(fmt.Sprintf("error while reading the helm yaml file from the api %s", err))
+		}
+		if out.Entries == nil {
+			ginkgo.Skip("No helm charts from the api")
+		}
+		ourKubeVersion := GetKubeVersion()[1:]
+		failedHelmCharts := []configsections.HelmChart{}
+		for _, helm := range helmcharts {
+			certified := false
+			for _, entryList := range out.Entries {
+				for _, entry := range entryList {
+					if entry.Name == helm.Name && entry.Version == helm.Version {
+						if entry.KubeVersion != "" {
+							if CompareVersion(ourKubeVersion, entry.KubeVersion) {
+								certified = true
+								break
+							}
+						} else {
+							certified = true
+							break
+						}
+					}
+				}
+				if certified {
+					log.Info(fmt.Sprintf("Helm %s with version %s is certified", helm.Name, helm.Version))
+					break
+				}
+			}
+			if !certified {
+				failedHelmCharts = append(failedHelmCharts, helm)
+			}
+		}
+		if len(failedHelmCharts) > 0 {
+			log.Errorf("Helms that are not certified: %+v", failedHelmCharts)
+			tnf.ClaimFilePrintf("Helms that are not certified: %+v", failedHelmCharts)
+			ginkgo.Fail(fmt.Sprintf("%d helms chart are not certified.", len(failedHelmCharts)))
+		}
+	})
+}
 
 // getContainerCertificationRequestFunction returns function that will try to get the certification status (CCP) for a container.
 func getContainerCertificationRequestFunction(id configsections.ContainerImageIdentifier) func() (interface{}, error) {
@@ -202,4 +254,34 @@ func GetOcpVersion() string {
 		ocVersion = ""
 	}
 	return ocVersion
+}
+func GetKubeVersion() string {
+	ocCmd := kubernetesVersionCommand
+	kubeVersion := execCommandOutput(ocCmd)
+	if kubeVersion != outMinikubeVersion {
+		kubeVersion = strings.Split(kubeVersion, "+")[0]
+		kubeVersion = kubeVersion[1:]
+	} else {
+		kubeVersion = ""
+	}
+	return kubeVersion
+}
+func CompareVersion(ver1, ver2 string) bool {
+	ourKubeVersion, _ := version.NewVersion(ver1)
+	kubeVersion := strings.ReplaceAll(ver2, " ", "")[2:]
+	if strings.Contains(kubeVersion, "<") {
+		kubever := strings.Split(kubeVersion, "<")
+		minVersion, _ := version.NewVersion(kubever[0])
+		maxVersion, _ := version.NewVersion(kubever[1])
+		if ourKubeVersion.GreaterThanOrEqual(minVersion) && ourKubeVersion.LessThan(maxVersion) {
+			return true
+		}
+	} else {
+		kubever := strings.Split(kubeVersion, "-")
+		minVersion, _ := version.NewVersion(kubever[0])
+		if ourKubeVersion.GreaterThanOrEqual(minVersion) {
+			return true
+		}
+	}
+	return false
 }

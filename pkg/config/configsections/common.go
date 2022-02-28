@@ -50,6 +50,9 @@ type Operator struct {
 type Namespace struct {
 	Name string `yaml:"name" json:"name"`
 }
+type SkipHelmChartList struct {
+	Name string `yaml:"name" json:"name"`
+}
 
 // TestConfiguration provides test related configuration
 type TestConfiguration struct {
@@ -72,6 +75,7 @@ type TestConfiguration struct {
 	CrdFilters []CrdFilter `yaml:"targetCrdFilters" json:"targetCrdFilters"`
 	// AcceptedKernelTaints
 	AcceptedKernelTaints []AcceptedKernelTaintsInfo `yaml:"acceptedKernelTaints,omitempty" json:"acceptedKernelTaints,omitempty"`
+	SkipHelmChartList    []SkipHelmChartList        `yaml:"skipHelmChartList,omitempty" json:"skipHelmChartList,omitempty"`
 }
 
 // TestPartner contains the helper containers that can be used to facilitate tests
@@ -98,7 +102,8 @@ type TestTarget struct {
 	// ExcludeContainersFromMultusConnectivityTests excludes specific containers from network connectivity tests.  This is particularly useful for containers that don't have ping available.
 	ExcludeContainersFromMultusConnectivityTests []ContainerIdentifier `yaml:"excludeContainersFromMultusConnectivityTests" json:"excludeContainersFromMultusConnectivityTests"`
 	// Operator is the list of operator objects that needs to be tested.
-	Operators []Operator `yaml:"operators,omitempty"  json:"operators,omitempty"`
+	Operators []Operator  `yaml:"operators,omitempty"  json:"operators,omitempty"`
+	HelmChart []HelmChart `yaml:"helm" json:"helm"`
 	//
 	// Node list
 	Nodes map[string]Node `yaml:"Nodes"  json:"Nodes"`

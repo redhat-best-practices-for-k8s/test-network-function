@@ -1,0 +1,11 @@
+[
+{
+    "name":"my-test1",
+    "namespace":"test",
+    "revision":"1",
+    "updated":"test",
+    "status":"deployed",
+    "chart":"my-test1-1.13.8",
+    "app_version":"1.7.1"
+}
+]
