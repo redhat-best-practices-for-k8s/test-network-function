@@ -89,7 +89,7 @@ func testHelmCertified(env *configpkg.TestEnvironment) {
 			ginkgo.Skip("No helm charts from the api")
 		}
 		ourKubeVersion := GetKubeVersion()[1:]
-		failedHelms := []configsections.HelmChart{}
+		failedHelmCharts := []configsections.HelmChart{}
 		for _, helm := range helmcharts {
 			certified := false
 			for _, entryList := range out.Entries {
@@ -112,13 +112,13 @@ func testHelmCertified(env *configpkg.TestEnvironment) {
 				}
 			}
 			if !certified {
-				failedHelms = append(failedHelms, helm)
+				failedHelmCharts = append(failedHelmCharts, helm)
 			}
 		}
-		if len(failedHelms) > 0 {
-			log.Errorf("Helms that are not certified: %+v", failedHelms)
-			tnf.ClaimFilePrintf("Helms that are not certified: %+v", failedHelms)
-			ginkgo.Fail(fmt.Sprintf("%d helms chart are not certified.", len(failedHelms)))
+		if len(failedHelmCharts) > 0 {
+			log.Errorf("Helms that are not certified: %+v", failedHelmCharts)
+			tnf.ClaimFilePrintf("Helms that are not certified: %+v", failedHelmCharts)
+			ginkgo.Fail(fmt.Sprintf("%d helms chart are not certified.", len(failedHelmCharts)))
 		}
 	})
 }
