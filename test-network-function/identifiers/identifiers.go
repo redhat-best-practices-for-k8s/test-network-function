@@ -209,6 +209,19 @@ var (
 		Url:     formTestURL(common.LifecycleTestKey, "container-shutdown"),
 		Version: versionOne,
 	}
+
+	// TestLivenessIdentifier ensure liveness is defined.
+	TestLivenessIdentifier = claim.Identifier{
+		Url:     formTestURL(common.LifecycleTestKey, "liveness"),
+		Version: versionOne,
+	}
+
+	// TestReadinessIdentifier ensure readiness is defined.
+	TestReadinessIdentifier = claim.Identifier{
+		Url:     formTestURL(common.LifecycleTestKey, "readiness"),
+		Version: versionOne,
+	}
+
 	// TestSysctlConfigsIdentifier ensures that the node's sysctl configs are consistent with the MachineConfig CR
 	TestSysctlConfigsIdentifier = claim.Identifier{
 		Url:     formTestURL(common.PlatformAlterationTestKey, "sysctl-config"),
@@ -589,6 +602,22 @@ the changes for you.`,
 		2) K8s will wait for a grace period.
 		3) K8s will clean the remaining processes using KILL signal.		
 			`,
+		BestPracticeReference: bestPracticeDocV1dot2URL + " Section 6.2",
+	},
+	TestReadinessIdentifier: {
+		Identifier: TestReadinessIdentifier,
+		Type:       normativeResult,
+		Description: formDescription(TestReadinessIdentifier,
+			`Checks that all pods under test have a readiness probe defined.`),
+		Remediation:           `Ensure that all CNF's pods under test have a readiness probe defined.`,
+		BestPracticeReference: bestPracticeDocV1dot2URL + " Section 6.2",
+	},
+	TestLivenessIdentifier: {
+		Identifier: TestLivenessIdentifier,
+		Type:       normativeResult,
+		Description: formDescription(TestLivenessIdentifier,
+			`Checks that all pods under test have a liveness probe defined.`),
+		Remediation:           `Ensure that all CNF's pods under test have a liveness probe defined.`,
 		BestPracticeReference: bestPracticeDocV1dot2URL + " Section 6.2",
 	},
 	TestPodRecreationIdentifier: {
