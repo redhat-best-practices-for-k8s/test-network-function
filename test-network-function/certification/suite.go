@@ -239,7 +239,7 @@ func testAllOperatorCertified(env *configpkg.TestEnvironment) {
 			}
 		}
 		if testFailed {
-			ginkgo.Skip("At least one  operator was not certified to run on this version of openshift. Check Claim.json file for details.")
+			ginkgo.Skip("At least one operator was not certified to run on this version of Openshift. Check Claim.json file for details.")
 		}
 	})
 }
