@@ -694,8 +694,12 @@ func drainNode(node string, context *interactive.Context) {
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
 	result, err := test.Run()
-	if err != nil || result == tnf.ERROR {
-		log.Fatalf("Test skipped because of draining node failure - platform issue")
+	if err != nil {
+		log.Fatalf("Test skipped because of draining node failure - platform issue, err: %v", err)
+	}
+
+	if result == tnf.ERROR {
+		log.Fatalf("Test skipped because of draining node failure - NewTest returned tnf.ERROR")
 	}
 }
 
