@@ -695,11 +695,11 @@ func drainNode(node string, context *interactive.Context) {
 	gomega.Expect(err).To(gomega.BeNil())
 	result, err := test.Run()
 	if err != nil {
-		log.Fatalf("Test skipped because of draining node failure - platform issue, err: %v", err)
+		log.Fatalf("Failed to drain node %s, err: %v", node, err)
 	}
 
 	if result == tnf.ERROR {
-		log.Fatalf("Test skipped because of draining node failure - NewTest returned tnf.ERROR")
+		log.Fatalf("Failed to drain node %s. The tester returned tnf.ERROR", node)
 	}
 }
 
