@@ -303,7 +303,7 @@ func buildOperatorFromCSVResource(csv *CSVResource, istest bool) (op *configsect
 		op.SubscriptionName = subscriptionName[0]
 	}
 	if !istest {
-		op.BundleImage, op.IndexImage = setBundleAndIndexImage(op.Name, op.Namespace)
+		op.BundleImage, op.IndexImage = getBundleAndIndexImage(op.Name, op.Namespace)
 		op.Packag, op.Org, op.Version = csv.PackOrgVersion(op.Name)
 	}
 
@@ -326,27 +326,31 @@ func getConfiguredOperatorTests() []string {
 	return opTests
 }
 
-// setBundleAndIndexImage provides the bundle image and index image for a given CSV.
+// getBundleAndIndexImage provides the bundle image and index image for a given CSV.
 // These variables are saved in the `configsections.Operator` in order to be used by DCI,
 // which obtains them from the claim.json and provides them to preflight suite.
-func setBundleAndIndexImage(csvName, csvNamespace string) (bundleImage, indexImage string) {
+func getBundleAndIndexImage(csvName, csvNamespace string) (bundleImage, indexImage string) {
 	// First step is to extract the installplan related to the csv
 	installPlanCmd := fmt.Sprintf("oc get installplan -n %s | grep %q | awk '{ print $1 }'", csvNamespace, csvName)
 	installPlan := execCommandOutput(installPlanCmd)
 
-	// Then, retrieve the bundle image using the installplan
-	bundleImageCmd := fmt.Sprintf("oc get installplan -n %s %s -o json | jq .status.bundleLookups[].path", csvNamespace, installPlan)
-	bundleImage = strings.Replace(execCommandOutput(bundleImageCmd), "\"", "", -1)
+	// If no installPlan is obtained, just return an empty string for the two returned variables
+	if installPlan == "" {
+		bundleImage = ""
+		indexImage = ""
+	} else {
+		// Then, retrieve the information we can extract from installplan
+		// Note that .status.bundleLookups is an array, but with length 1
+		infoFromInstallPlanCmd := fmt.Sprintf("oc get installplan -n %s -o go-template='{{range .items}}{{ if eq .metadata.name \"%s\"}}{{ range .status.bundleLookups }}{{ .path }},{{ .catalogSourceRef.name }},{{ .catalogSourceRef.namespace }}{{end}}{{end}}{{end}}'", csvNamespace, installPlan)
+		infoFromInstallPlan := strings.Split(execCommandOutput(infoFromInstallPlanCmd), ",")
+		bundleImage = infoFromInstallPlan[0]
+		catalogSourceName := infoFromInstallPlan[1]
+		catalogSourceNamespace := infoFromInstallPlan[2]
 
-	// To retrieve the index image, we firstly need the catalogsource and the namespace in which it is deployed
-	catalogSourceNameCmd := fmt.Sprintf("oc get installplan -n %s %s -o json | jq .status.bundleLookups[].catalogSourceRef.name", csvNamespace, installPlan)
-	catalogSourceNamespaceCmd := fmt.Sprintf("oc get installplan -n %s %s -o json | jq .status.bundleLookups[].catalogSourceRef.namespace", csvNamespace, installPlan)
-	catalogSourceName := execCommandOutput(catalogSourceNameCmd)
-	catalogSourceNamespace := execCommandOutput(catalogSourceNamespaceCmd)
-
-	// Then, we can retrieve the index image
-	indexImageCmd := fmt.Sprintf("oc get catalogsource -n %s %s -o json | jq .spec.image", catalogSourceNamespace, catalogSourceName)
-	indexImage = strings.Replace(execCommandOutput(indexImageCmd), "\"", "", -1)
+		// Then, we can retrieve the index image
+		indexImageCmd := fmt.Sprintf("oc get catalogsource -n %s %s -o json | jq -r .spec.image", catalogSourceNamespace, catalogSourceName)
+		indexImage = execCommandOutput(indexImageCmd)
+	}
 
 	return bundleImage, indexImage
 }
