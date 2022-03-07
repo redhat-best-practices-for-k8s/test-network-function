@@ -223,6 +223,7 @@ func TestFindTestPodSetsByLabel(t *testing.T) {
 
 func TestSetBundleAndIndexImage(t *testing.T) {
 	gomega.RegisterFailHandler(ginkgo.Fail)
+	defer ginkgo.GinkgoRecover()
 	testCases := []struct {
 		csvName      string
 		csvNamespace string
