@@ -698,8 +698,8 @@ func drainNode(node string, context *interactive.Context) {
 		log.Fatalf("Failed to drain node %s, err: %v", node, err)
 	}
 
-	if result == tnf.ERROR {
-		log.Fatalf("Failed to drain node %s. The tester returned tnf.ERROR", node)
+	if result != tnf.SUCCESS {
+		log.Fatalf("Failed to drain node %s. The tester returned %d", node, result)
 	}
 }
 
