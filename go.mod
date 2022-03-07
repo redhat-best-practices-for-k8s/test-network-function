@@ -12,7 +12,7 @@ require (
 	github.com/google/goexpect v0.0.0-20210330220015-096e5d1cbd97
 	github.com/google/goterm v0.0.0-20190703233501-fc88cf888a3f
 	github.com/kr/pretty v0.2.1 // indirect
-	github.com/onsi/ginkgo/v2 v2.1.1
+	github.com/onsi/ginkgo/v2 v2.1.3
 	github.com/onsi/gomega v1.18.1
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.3.0
@@ -26,7 +26,9 @@ require (
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/go-yaml/yaml v2.1.0+incompatible // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
+	github.com/hashicorp/go-version v1.4.0 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect

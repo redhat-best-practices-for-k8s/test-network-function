@@ -98,6 +98,18 @@ Description|http://test-network-function.com/testcases/affiliated-certification/
 Result Type|normative
 Suggested Remediation|Ensure that your container has passed the Red Hat Container Certification Program (CCP).
 Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.3.7
+#### helmchart-is-certified
+
+Property|Description
+---|---
+Test Case Name|helmchart-is-certified
+Test Case Label|affiliated-certification-helmchart-is-certified
+Unique ID|http://test-network-function.com/testcases/affiliated-certification/helmchart-is-certified
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/affiliated-certification/helmchart-is-certified tests whether helm charts listed in the cluster passed the Red Hat Helm Certification Program.
+Result Type|normative
+Suggested Remediation|Ensure that the helm charts under test passed the Red Hat's helm Certification Program (e.g. listed in https://charts.openshift.io/index.yaml).
+Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2.12 and Section 6.3.3
 #### operator-is-certified
 
 Property|Description
@@ -149,6 +161,18 @@ Description|http://test-network-function.com/testcases/lifecycle/image-pull-poli
 Result Type|normative
 Suggested Remediation|Ensure that the containers under test are using IfNotPresent as Image Pull Policy.
 Best Practice Reference|https://docs.google.com/document/d/1wRHMk1ZYUSVmgp_4kxvqjVOKwolsZ5hDXjr5MLy-wbg/edit#  Section 15.6
+#### liveness
+
+Property|Description
+---|---
+Test Case Name|liveness
+Test Case Label|lifecycle-liveness
+Unique ID|http://test-network-function.com/testcases/lifecycle/liveness
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/lifecycle/liveness Checks that all pods under test have a liveness probe defined.
+Result Type|normative
+Suggested Remediation|Ensure that all CNF's pods under test have a liveness probe defined.
+Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2
 #### pod-high-availability
 
 Property|Description
@@ -208,6 +232,18 @@ Version|v1.0.0
 Description|http://test-network-function.com/testcases/lifecycle/pod-termination-grace-period tests whether the terminationGracePeriod is CNF-specific, or if the default (30s) is utilized.  This test is informative, and will not affect CNF Certification.  In many cases, the default terminationGracePeriod is perfectly acceptable for a CNF.
 Result Type|informative
 Suggested Remediation|Choose a terminationGracePeriod that is appropriate for your given CNF.  If the default (30s) is appropriate, then feel free to ignore this informative message.  This test is meant to raise awareness around how Pods are terminated, and to suggest that a CNF is configured based on its requirements.  In addition to a terminationGracePeriod, consider utilizing a termination hook in the case that your application requires special shutdown instructions.
+Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2
+#### readiness
+
+Property|Description
+---|---
+Test Case Name|readiness
+Test Case Label|lifecycle-readiness
+Unique ID|http://test-network-function.com/testcases/lifecycle/readiness
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/lifecycle/readiness Checks that all pods under test have a readiness probe defined.
+Result Type|normative
+Suggested Remediation|Ensure that all CNF's pods under test have a readiness probe defined.
 Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2
 #### statefulset-scaling
 

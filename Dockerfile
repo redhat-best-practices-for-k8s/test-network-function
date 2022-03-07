@@ -13,10 +13,12 @@ ENV TEMP_DIR=/tmp
 
 # Install dependencies
 RUN yum install -y gcc git jq make wget
-
+RUN wget https://get.helm.sh/helm-v3.8.0-linux-amd64.tar.gz && \
+    tar -xvf helm-v3.8.0-linux-amd64.tar.gz && \
+    cp linux-amd64/helm /usr/bin/helm
 # Install Go binary
 ENV GO_DL_URL="https://golang.org/dl"
-ENV GO_BIN_TAR="go1.17.6.linux-amd64.tar.gz"
+ENV GO_BIN_TAR="go1.17.8.linux-amd64.tar.gz"
 ENV GO_BIN_URL_x86_64=${GO_DL_URL}/${GO_BIN_TAR}
 ENV GOPATH="/root/go"
 RUN if [[ "$(uname -m)" -eq "x86_64" ]] ; then \
@@ -41,7 +43,7 @@ ENV PATH=${PATH}:"/usr/local/go/bin":${GOPATH}/"bin"
 
 # Git identifier to checkout
 ARG TNF_VERSION
-ARG TNF_SRC_URL=https://github.com/test-network-function/test-network-function
+ARG TNF_SRC_URL=$TNF_SRC_URL
 ARG GIT_CHECKOUT_TARGET=$TNF_VERSION
 
 # Git identifier to checkout for partner

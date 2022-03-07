@@ -23,25 +23,23 @@ import (
 	"strings"
 	"time"
 
-	"github.com/test-network-function/test-network-function/pkg/config"
-	"github.com/test-network-function/test-network-function/pkg/config/configsections"
-	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/scaling"
-	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
-	"github.com/test-network-function/test-network-function/pkg/tnf/testcases"
-	"github.com/test-network-function/test-network-function/pkg/utils"
-
-	"github.com/test-network-function/test-network-function/test-network-function/common"
-	"github.com/test-network-function/test-network-function/test-network-function/identifiers"
-
 	"github.com/onsi/ginkgo/v2"
 	"github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
+	"github.com/test-network-function/test-network-function/pkg/config"
+	"github.com/test-network-function/test-network-function/pkg/config/configsections"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
 	dd "github.com/test-network-function/test-network-function/pkg/tnf/handlers/deploymentsdrain"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodeselector"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/owners"
 	ps "github.com/test-network-function/test-network-function/pkg/tnf/handlers/podsets"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/scaling"
+	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
+	"github.com/test-network-function/test-network-function/pkg/tnf/testcases"
+	"github.com/test-network-function/test-network-function/pkg/utils"
+	"github.com/test-network-function/test-network-function/test-network-function/common"
+	"github.com/test-network-function/test-network-function/test-network-function/identifiers"
 	"github.com/test-network-function/test-network-function/test-network-function/results"
 )
 
@@ -60,8 +58,20 @@ var (
 	// shutdownTestPath is the file location of shutdown.json test case relative to the project root.
 	shutdownTestPath = path.Join("pkg", "tnf", "handlers", "shutdown", "shutdown.json")
 
+	// livenessTestPath is the file location of liveness.json test case relative to the project root.
+	livenessTestPath = path.Join("pkg", "tnf", "handlers", "liveness", "liveness.json")
+
+	// readinessTestPath is the file location of readiness.json test case relative to the project root.
+	readinessTestPath = path.Join("pkg", "tnf", "handlers", "readiness", "readiness.json")
+
 	// shutdownTestDirectoryPath is the directory of the shutdown test
 	shutdownTestDirectoryPath = path.Join("pkg", "tnf", "handlers", "shutdown")
+
+	// livenessTestDirectoryPath is the directory of the liveness test
+	livenessTestDirectoryPath = path.Join("pkg", "tnf", "handlers", "liveness")
+
+	// readinessTestDirectoryPath is the directory of the readiness test
+	readinessTestDirectoryPath = path.Join("pkg", "tnf", "handlers", "readiness")
 
 	// relativeNodesTestPath is the relative path to the nodes.json test case.
 	relativeNodesTestPath = path.Join(common.PathRelativeToRoot, nodeUncordonTestPath)
@@ -69,8 +79,20 @@ var (
 	// relativeShutdownTestPath is the relative path to the shutdown.json test case.
 	relativeShutdownTestPath = path.Join(common.PathRelativeToRoot, shutdownTestPath)
 
+	// relativeLivenessTestPath is the relative path to the liveness.json test case.
+	relativeLivenessTestPath = path.Join(common.PathRelativeToRoot, livenessTestPath)
+
+	// relativeReadinessTestPath is the relative path to the readiness.json test case.
+	relativeReadinessTestPath = path.Join(common.PathRelativeToRoot, readinessTestPath)
+
 	// relativeShutdownTestDirectoryPath is the directory of the shutdown directory
 	relativeShutdownTestDirectoryPath = path.Join(common.PathRelativeToRoot, shutdownTestDirectoryPath)
+
+	// relativelivenessTestDirectoryPath is the directory of the liveness directory
+	relativeLivenessTestDirectoryPath = path.Join(common.PathRelativeToRoot, livenessTestDirectoryPath)
+
+	// relativereadinessTestDirectoryPath is the directory of the readiness directory
+	relativeReadinessTestDirectoryPath = path.Join(common.PathRelativeToRoot, readinessTestDirectoryPath)
 
 	// podAntiAffinityTestPath is the file location of the podantiaffinity.json test case relative to the project root.
 	podAntiAffinityTestPath = path.Join("pkg", "tnf", "handlers", "podantiaffinity", "podantiaffinity.json")
@@ -109,6 +131,10 @@ var _ = ginkgo.Describe(common.LifecycleTestKey, func() {
 		testGracePeriod(env)
 
 		testShutdown(env)
+
+		testLiveness(env)
+
+		testReadiness(env)
 
 		testPodAntiAffinity(env)
 
@@ -425,6 +451,7 @@ func testGracePeriod(env *config.TestEnvironment) {
 	})
 }
 
+//nolint:dupl
 func testShutdown(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestShudtownIdentifier)
 	ginkgo.It(testID, ginkgo.Label(testID), func() {
@@ -457,6 +484,88 @@ func shutdownTest(podNamespace, podName string, context *interactive.Context) bo
 
 	test.RunWithCallbacks(nil, func() {
 		tnf.ClaimFilePrintf("FAILURE: Pod %s/%s does not have pre-stop configured", podNamespace, podName)
+		passed = false
+	}, func(err error) {
+		tnf.ClaimFilePrintf("ERROR: Pod %s/%s, error: %v", podNamespace, podName, err)
+		passed = false
+	})
+	return passed
+}
+
+//nolint:dupl
+func testLiveness(env *config.TestEnvironment) {
+	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestLivenessIdentifier)
+	ginkgo.It(testID, ginkgo.Label(testID), func() {
+		failedPods := []*configsections.Pod{}
+		ginkgo.By("Testing PUTs are configured with liveness lifecycle")
+		for _, podUnderTest := range env.PodsUnderTest {
+			ginkgo.By(fmt.Sprintf("should have liveness configured %s/%s", podUnderTest.Namespace, podUnderTest.Name))
+			passed := livenessTest(podUnderTest.Namespace, podUnderTest.Name, env.GetLocalShellContext())
+			if !passed {
+				failedPods = append(failedPods, podUnderTest)
+			}
+		}
+		if n := len(failedPods); n > 0 {
+			log.Debugf("Pods without liveness: %+v", failedPods)
+			ginkgo.Fail(fmt.Sprintf("%d pods do not have liveness configured.", n))
+		}
+	})
+}
+
+func livenessTest(podNamespace, podName string, context *interactive.Context) bool {
+	passed := true
+	values := make(map[string]interface{})
+	values["POD_NAMESPACE"] = podNamespace
+	values["POD_NAME"] = podName
+	values["GO_TEMPLATE_PATH"] = relativeLivenessTestDirectoryPath
+	tester, handlers := utils.NewGenericTesterAndValidate(relativeLivenessTestPath, common.RelativeSchemaPath, values)
+	test, err := tnf.NewTest(context.GetExpecter(), *tester, handlers, context.GetErrorChannel())
+	gomega.Expect(err).To(gomega.BeNil())
+	gomega.Expect(test).ToNot(gomega.BeNil())
+
+	test.RunWithCallbacks(nil, func() {
+		tnf.ClaimFilePrintf("FAILURE: Pod %s/%s does not have liveness defined", podNamespace, podName)
+		passed = false
+	}, func(err error) {
+		tnf.ClaimFilePrintf("ERROR: Pod %s/%s, error: %v", podNamespace, podName, err)
+		passed = false
+	})
+	return passed
+}
+
+//nolint:dupl
+func testReadiness(env *config.TestEnvironment) {
+	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestReadinessIdentifier)
+	ginkgo.It(testID, ginkgo.Label(testID), func() {
+		failedPods := []*configsections.Pod{}
+		ginkgo.By("Testing PUTs are configured with readiness lifecycle")
+		for _, podUnderTest := range env.PodsUnderTest {
+			ginkgo.By(fmt.Sprintf("should have readiness configured %s/%s", podUnderTest.Namespace, podUnderTest.Name))
+			passed := readinessTest(podUnderTest.Namespace, podUnderTest.Name, env.GetLocalShellContext())
+			if !passed {
+				failedPods = append(failedPods, podUnderTest)
+			}
+		}
+		if n := len(failedPods); n > 0 {
+			log.Debugf("Pods without readiness: %+v", failedPods)
+			ginkgo.Fail(fmt.Sprintf("%d pods do not have readiness configured.", n))
+		}
+	})
+}
+
+func readinessTest(podNamespace, podName string, context *interactive.Context) bool {
+	passed := true
+	values := make(map[string]interface{})
+	values["POD_NAMESPACE"] = podNamespace
+	values["POD_NAME"] = podName
+	values["GO_TEMPLATE_PATH"] = relativeReadinessTestDirectoryPath
+	tester, handlers := utils.NewGenericTesterAndValidate(relativeReadinessTestPath, common.RelativeSchemaPath, values)
+	test, err := tnf.NewTest(context.GetExpecter(), *tester, handlers, context.GetErrorChannel())
+	gomega.Expect(err).To(gomega.BeNil())
+	gomega.Expect(test).ToNot(gomega.BeNil())
+
+	test.RunWithCallbacks(nil, func() {
+		tnf.ClaimFilePrintf("FAILURE: Pod %s/%s does not have readiness defined", podNamespace, podName)
 		passed = false
 	}, func(err error) {
 		tnf.ClaimFilePrintf("ERROR: Pod %s/%s, error: %v", podNamespace, podName, err)

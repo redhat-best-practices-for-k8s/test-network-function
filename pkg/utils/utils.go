@@ -100,7 +100,7 @@ func escapeToJSONstringFormat(line string) (string, error) {
 
 // ExecuteCommand uses the generic command handler to execute an arbitrary interactive command, returning
 // its output wihout any filtering/matching if the command is successfully executed
-func ExecuteCommand(command string, timeout time.Duration, context *interactive.Context) (string, error) {
+var ExecuteCommand = func(command string, timeout time.Duration, context *interactive.Context) (string, error) {
 	tester, test := newGenericCommandTester(command, timeout, context)
 	result, err := test.Run()
 	if result == tnf.SUCCESS && err == nil {
@@ -187,17 +187,16 @@ func GetModulesFromNode(nodeName string, nodeOc *interactive.Oc) []string {
 	return strings.Split(strings.ReplaceAll(output, "\r\n", "\n"), "\n")
 }
 
+// ModuleInTree returns true if the module hasn't tainted the kernel with the
+// out-of-tree ("O") bit. The /sys/module/<module>/taint file has the stringified
+// values of all the taints it is adding to the kernel. Each bit is one letter.
+// Refs:
+//  1. https://www.kernel.org/doc/html/latest/admin-guide/tainted-kernels.html
+//  2. https://github.com/torvalds/linux/blob/master/kernel/panic.c#L369
 func ModuleInTree(nodeName, moduleName string, nodeOc *interactive.Oc) bool {
-	command := `chroot /host modinfo ` + moduleName + ` | awk '{ print $1 }'`
+	command := `chroot /host cat /sys/module/` + moduleName + `/taint`
 	cmdOutput := RunCommandInNode(nodeName, nodeOc, command, timeoutPid)
-	outputSlice := strings.Split(strings.ReplaceAll(cmdOutput, "\r\n", "\n"), "\n")
-	// The output, if found, should look something like 'intree:   Y'.
-	// As long as we look for 'intree:' being contained in the string we should be good to go.
-	found := false
-	if StringInSlice(outputSlice, `intree:`, false) {
-		found = true
-	}
-	return found
+	return !strings.Contains(cmdOutput, "O")
 }
 
 // RunCommandInNode runs a command on a remote kubernetes node
