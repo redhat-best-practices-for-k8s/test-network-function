@@ -341,7 +341,9 @@ func getBundleAndIndexImage(csvName, csvNamespace string) (bundleImage, indexIma
 	} else {
 		// Then, retrieve the information we can extract from installplan
 		// Note that .status.bundleLookups is an array, but with length 1
-		infoFromInstallPlanCmd := fmt.Sprintf("oc get installplan -n %s -o go-template='{{range .items}}{{ if eq .metadata.name %q}}{{ range .status.bundleLookups }}{{ .path }},{{ .catalogSourceRef.name }},{{ .catalogSourceRef.namespace }}{{end}}{{end}}{{end}}'", csvNamespace, installPlan)
+		infoFromInstallPlanCmd := fmt.Sprintf("oc get installplan -n %s -o go-template=" + 
+			"'{{range .items}}{{ if eq .metadata.name %q}}{{ range .status.bundleLookups }}" + 
+			"{{ .path }},{{ .catalogSourceRef.name }},{{ .catalogSourceRef.namespace }}{{end}}{{end}}{{end}}'", csvNamespace, installPlan)
 		infoFromInstallPlan := strings.Split(execCommandOutput(infoFromInstallPlanCmd), ",")
 		bundleImage = infoFromInstallPlan[0]
 		catalogSourceName := infoFromInstallPlan[1]
