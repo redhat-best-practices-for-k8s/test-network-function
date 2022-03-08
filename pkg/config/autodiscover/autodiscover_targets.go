@@ -105,7 +105,11 @@ func FindTestTarget(labels []configsections.Label, target *configsections.TestTa
 	target.HelmChart = GethelmCharts(skipHelmChartList, ns)
 }
 func GethelmCharts(skipHelmChartList []configsections.SkipHelmChartList, ns map[string]bool) (chartslist []configsections.HelmChart) {
-	charts, _ := GetClusterHelmCharts()
+	charts, err := GetClusterHelmCharts()
+	if err != nil {
+		log.Errorf("Failed to get helm charts... is helm installed correctly? err: %s", err)
+		return nil
+	}
 	for _, ch := range charts.Items {
 		if ns[ch.Namespace] {
 			if !isSkipHelmChart(ch.Name, skipHelmChartList) {
