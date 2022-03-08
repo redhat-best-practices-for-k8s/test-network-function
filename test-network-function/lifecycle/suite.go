@@ -595,8 +595,12 @@ func testNodeDrain(env *config.TestEnvironment, nodeName string) {
 	// Ensure the node is uncordoned before exiting the function,
 	// and all podsets(deployments/statefulset) are ready
 	defer cleanupNodeDrain(env, nodeName)
+
 	// drain node
-	drainNode(nodeName, env.GetLocalShellContext())
+	if err := drainNode(nodeName, env.GetLocalShellContext()); err != nil {
+		ginkgo.Fail(fmt.Sprintf("Draining node %s failed: %s", nodeName, err))
+	}
+
 	for _, ns := range env.NameSpacesUnderTest {
 		notReadyDeployments := waitForAllPodSetsReady(ns, postNodeDrainRecoveryTimeOut, scalingPollingPeriod, configsections.Deployment, env.GetLocalShellContext())
 		if notReadyDeployments != 0 {
@@ -690,14 +694,25 @@ func collectNodeAndPendingPodInfo(ns string, context *interactive.Context) {
 	common.TcClaimLogPrintf("Events:\n%s", events)
 }
 
-func drainNode(node string, context *interactive.Context) {
+func drainNode(node string, context *interactive.Context) error {
 	tester := dd.NewDeploymentsDrain(drainTimeout, node)
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
+
+	startTime := time.Now()
 	result, err := test.Run()
-	if err != nil || result == tnf.ERROR {
-		log.Fatalf("Test skipped because of draining node failure - platform issue")
+	if err != nil {
+		return err
 	}
+
+	elapsedTime := time.Since(startTime)
+	log.Infof("Draining node %s took %s.", node, elapsedTime)
+
+	if result != tnf.SUCCESS {
+		return fmt.Errorf("tester returned result code %d", result)
+	}
+
+	return nil
 }
 
 func uncordonNode(node string, context *interactive.Context) {
