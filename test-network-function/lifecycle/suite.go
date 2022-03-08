@@ -48,7 +48,7 @@ const (
 	drainTimeoutMinutes           = 7
 	scalingTimeout                = 1 * time.Minute
 	scalingPollingPeriod          = 1 * time.Second
-	nodeDrainTimeout              = 2 * time.Minute
+	postNodeDrainRecoveryTimeOut  = 2 * time.Minute
 )
 
 var (
@@ -577,12 +577,12 @@ func readinessTest(podNamespace, podName string, context *interactive.Context) b
 func cleanupNodeDrain(env *config.TestEnvironment, nodeName string) {
 	uncordonNode(nodeName, env.GetLocalShellContext())
 	for _, ns := range env.NameSpacesUnderTest {
-		notReady := waitForAllPodSetsReady(ns, nodeDrainTimeout, scalingPollingPeriod, configsections.Deployment, env.GetLocalShellContext())
+		notReady := waitForAllPodSetsReady(ns, postNodeDrainRecoveryTimeOut, scalingPollingPeriod, configsections.Deployment, env.GetLocalShellContext())
 		if notReady != 0 {
 			collectNodeAndPendingPodInfo(ns, env.GetLocalShellContext())
 			log.Fatalf("Cleanup after node drain for %s failed, stopping tests to ensure cluster integrity", nodeName)
 		}
-		notReadyStateFulSets := waitForAllPodSetsReady(ns, nodeDrainTimeout, scalingPollingPeriod, configsections.StateFulSet, env.GetLocalShellContext())
+		notReadyStateFulSets := waitForAllPodSetsReady(ns, postNodeDrainRecoveryTimeOut, scalingPollingPeriod, configsections.StateFulSet, env.GetLocalShellContext())
 		if notReadyStateFulSets != 0 {
 			collectNodeAndPendingPodInfo(ns, env.GetLocalShellContext())
 			ginkgo.Fail(fmt.Sprintf("Cleanup after node drain for %s failed, stopping tests to ensure cluster integrity", nodeName))
@@ -598,12 +598,12 @@ func testNodeDrain(env *config.TestEnvironment, nodeName string) {
 	// drain node
 	drainNode(nodeName, env.GetLocalShellContext())
 	for _, ns := range env.NameSpacesUnderTest {
-		notReadyDeployments := waitForAllPodSetsReady(ns, nodeDrainTimeout, scalingPollingPeriod, configsections.Deployment, env.GetLocalShellContext())
+		notReadyDeployments := waitForAllPodSetsReady(ns, postNodeDrainRecoveryTimeOut, scalingPollingPeriod, configsections.Deployment, env.GetLocalShellContext())
 		if notReadyDeployments != 0 {
 			collectNodeAndPendingPodInfo(ns, env.GetLocalShellContext())
 			ginkgo.Fail(fmt.Sprintf("Failed to recover deployments on namespace %s after draining node %s.", ns, nodeName))
 		}
-		notReadyStateFulSets := waitForAllPodSetsReady(ns, nodeDrainTimeout, scalingPollingPeriod, configsections.StateFulSet, env.GetLocalShellContext())
+		notReadyStateFulSets := waitForAllPodSetsReady(ns, postNodeDrainRecoveryTimeOut, scalingPollingPeriod, configsections.StateFulSet, env.GetLocalShellContext())
 		if notReadyStateFulSets != 0 {
 			collectNodeAndPendingPodInfo(ns, env.GetLocalShellContext())
 			ginkgo.Fail(fmt.Sprintf("Failed to recover statefulsets on namespace %s after draining node %s.", ns, nodeName))
