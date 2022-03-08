@@ -306,7 +306,7 @@ func buildOperatorFromCSVResource(csv *CSVResource, istest bool) (op *configsect
 	if !istest {
 		op.BundleImage, op.IndexImage, err = getBundleAndIndexImage(op.Name, op.Namespace)
 		if err != nil {
-			log.Errorf("Failed to get operator bundle and index image for csv % (ns %s), error: %s", op.Name, op.Namespace, err)
+			log.Errorf("Failed to get operator bundle and index image for csv %s (ns %s), error: %s", op.Name, op.Namespace, err)
 		} else {
 			op.Packag, op.Org, op.Version = csv.PackOrgVersion(op.Name)
 		}
