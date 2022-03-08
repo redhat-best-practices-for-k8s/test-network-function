@@ -304,7 +304,11 @@ func buildOperatorFromCSVResource(csv *CSVResource, istest bool) (op *configsect
 	}
 	if !istest {
 		op.BundleImage, op.IndexImage = getBundleAndIndexImage(op.Name, op.Namespace)
-		op.Packag, op.Org, op.Version = csv.PackOrgVersion(op.Name)
+		if err != nil {
+			log.Errorf("Failed to get operator bundle and index image for csv % (ns %s), error: %s", op.Name, op.Namespace, err)
+		} else {
+			op.Packag, op.Org, op.Version = csv.PackOrgVersion(op.Name)
+		}
 	}
 
 	return op
@@ -329,32 +333,31 @@ func getConfiguredOperatorTests() []string {
 // getBundleAndIndexImage provides the bundle image and index image for a given CSV.
 // These variables are saved in the `configsections.Operator` in order to be used by DCI,
 // which obtains them from the claim.json and provides them to preflight suite.
-func getBundleAndIndexImage(csvName, csvNamespace string) (bundleImage, indexImage string) {
+func getBundleAndIndexImage(csvName, csvNamespace string) (bundleImage, indexImage string, err error) {
 	// First step is to extract the installplan related to the csv
 	installPlanCmd := fmt.Sprintf("oc get installplan -n %s | grep %q | awk '{ print $1 }'", csvNamespace, csvName)
 	installPlan := execCommandOutput(installPlanCmd)
 
 	// If no installPlan is obtained, just return an empty string for the two returned variables
 	if installPlan == "" {
-		bundleImage = ""
-		indexImage = ""
-	} else {
-		// Then, retrieve the information we can extract from installplan
-		// Note that .status.bundleLookups is an array, but with length 1
-		infoFromInstallPlanCmd := fmt.Sprintf("oc get installplan -n %s -o go-template="+
-			"'{{range .items}}{{ if eq .metadata.name %q}}{{ range .status.bundleLookups }}"+
-			"{{ .path }},{{ .catalogSourceRef.name }},{{ .catalogSourceRef.namespace }}{{end}}{{end}}{{end}}'", csvNamespace, installPlan)
-		infoFromInstallPlan := strings.Split(execCommandOutput(infoFromInstallPlanCmd), ",")
-		bundleImage = infoFromInstallPlan[0]
-		catalogSourceName := infoFromInstallPlan[1]
-		catalogSourceNamespace := infoFromInstallPlan[2]
-
-		// Then, we can retrieve the index image
-		indexImageCmd := fmt.Sprintf("oc get catalogsource -n %s %s -o json | jq -r .spec.image", catalogSourceNamespace, catalogSourceName)
-		indexImage = execCommandOutput(indexImageCmd)
+		return "", "", errors.New("installplan not found")
 	}
 
-	return bundleImage, indexImage
+	// Then, retrieve the information we can extract from installplan
+	// Note that .status.bundleLookups is an array, but with length 1
+	infoFromInstallPlanCmd := fmt.Sprintf("oc get installplan -n %s -o go-template="+
+		"'{{range .items}}{{ if eq .metadata.name %q}}{{ range .status.bundleLookups }}"+
+		"{{ .path }},{{ .catalogSourceRef.name }},{{ .catalogSourceRef.namespace }}{{end}}{{end}}{{end}}'", csvNamespace, installPlan)
+	infoFromInstallPlan := strings.Split(execCommandOutput(infoFromInstallPlanCmd), ",")
+	bundleImage = infoFromInstallPlan[0]
+	catalogSourceName := infoFromInstallPlan[1]
+	catalogSourceNamespace := infoFromInstallPlan[2]
+
+	// Then, we can retrieve the index image
+	indexImageCmd := fmt.Sprintf("oc get catalogsource -n %s %s -o json | jq -r .spec.image", catalogSourceNamespace, catalogSourceName)
+	indexImage = execCommandOutput(indexImageCmd)
+
+	return bundleImage, indexImage, nil
 }
 
 // getClusterCrdNames returns a list of crd names found in the cluster.
