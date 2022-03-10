@@ -45,7 +45,8 @@ import (
 
 const (
 	defaultTerminationGracePeriod = 30
-	drainTimeoutMinutes           = 7
+	baseNodeDrainTimeout          = 5 * time.Minute
+	maxNodeDrainTimeout           = 30 * time.Minute
 	scalingTimeout                = 1 * time.Minute
 	scalingPollingPeriod          = 1 * time.Second
 	postNodeDrainRecoveryTimeOut  = 2 * time.Minute
@@ -104,8 +105,6 @@ var (
 	imagepullpolicyTestPath         = path.Join("pkg", "tnf", "handlers", "imagepullpolicy", "imagepullpolicy.json")
 	relativeimagepullpolicyTestPath = path.Join(common.PathRelativeToRoot, imagepullpolicyTestPath)
 )
-
-var drainTimeout = time.Duration(drainTimeoutMinutes) * time.Minute
 
 //
 // All actual test code belongs below here.  Utilities belong above.
@@ -694,8 +693,43 @@ func collectNodeAndPendingPodInfo(ns string, context *interactive.Context) {
 	common.TcClaimLogPrintf("Events:\n%s", events)
 }
 
+// getNumPodsDeployedOnNode is a helper function that returns the number of all pods
+// deployed in a given node.
+func getNumPodsDeployedOnNode(nodeName string, context *interactive.Context) (int, error) {
+	const cmdFmt = "oc get pods --all-namespaces -o wide --field-selector spec.nodeName=%s -l pod-template-hash"
+	cmd := fmt.Sprintf(cmdFmt, nodeName)
+	out, err := utils.ExecuteCommand(cmd, common.DefaultTimeout, context)
+	if err != nil {
+		return 0, fmt.Errorf("failed to get a pod list of pods deployed on the node: %s", err)
+	}
+
+	// The ouptut should be a table, should we expect at list one line for the columns description.
+	numPodsDeployed := len(strings.Split(out, "\n"))
+	if numPodsDeployed == 0 {
+		return 0, fmt.Errorf("empty output from cmd: %q", cmd)
+	}
+
+	return numPodsDeployed - 1, nil
+}
+
 func drainNode(node string, context *interactive.Context) error {
-	tester := dd.NewDeploymentsDrain(drainTimeout, node)
+	// Before draining, we'll get the number of pods currently deployed on it.
+	numPodsDeployed, err := getNumPodsDeployedOnNode(node, context)
+	if err != nil {
+		return fmt.Errorf("failed to get number of pods deployed in the node: %s", err)
+	}
+
+	// We'll add one minute per pod to the base timeout for the node drain operation.
+	nodeDrainTimeout := baseNodeDrainTimeout + (time.Duration(numPodsDeployed) * time.Minute)
+
+	// Make sure the calculated timeout won't exceed the allowed maximum.
+	if nodeDrainTimeout > maxNodeDrainTimeout {
+		nodeDrainTimeout = maxNodeDrainTimeout
+	}
+
+	log.Infof("Dynamic timeout for draining node %s: %s (pods deployed: %d)", node, nodeDrainTimeout, numPodsDeployed)
+
+	tester := dd.NewDeploymentsDrain(nodeDrainTimeout, node)
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
 
