@@ -304,7 +304,7 @@ func buildOperatorFromCSVResource(csv *CSVResource, istest bool) (op *configsect
 		op.SubscriptionName = subscriptionName[0]
 	}
 	if !istest {
-		op.BundleImage, op.IndexImage, err = getBundleAndIndexImage(op.Name, op.Namespace)
+		op.InstallPlans, err = getCsvInstallPlans(op.Name, op.Namespace)
 		if err != nil {
 			log.Errorf("Failed to get operator bundle and index image for csv %s (ns %s), error: %s", op.Name, op.Namespace, err)
 		}
@@ -330,34 +330,53 @@ func getConfiguredOperatorTests() []string {
 	return opTests
 }
 
-// getBundleAndIndexImage provides the bundle image and index image for a given CSV.
+// getCsvInstallPlans provides the bundle image and index image of each installplan for a given CSV.
 // These variables are saved in the `configsections.Operator` in order to be used by DCI,
 // which obtains them from the claim.json and provides them to preflight suite.
-func getBundleAndIndexImage(csvName, csvNamespace string) (bundleImage, indexImage string, err error) {
+func getCsvInstallPlans(csvName, csvNamespace string) (installPlans []configsections.InstallPlan, err error) {
+	const installPlanNumFields = 3
+	const bundleImageIndex = 0
+	const catalogSourceIndex = 1
+	const catalogSourceNamespaceIndex = 2
+
 	// First step is to extract the installplan related to the csv
 	installPlanCmd := fmt.Sprintf("oc get installplan -n %s | grep %q | awk '{ print $1 }'", csvNamespace, csvName)
-	installPlan := execCommandOutput(installPlanCmd)
+	out := execCommandOutput(installPlanCmd)
 
 	// If no installPlan is obtained, just return an empty string for the two returned variables
-	if installPlan == "" {
-		return "", "", errors.New("installplan not found")
+	if out == "" {
+		return installPlans, errors.New("installplan not found")
 	}
 
-	// Then, retrieve the information we can extract from installplan
+	// For each installPlan, retrieve the information we can extract from installplan
 	// Note that .status.bundleLookups is an array, but with length 1
-	infoFromInstallPlanCmd := fmt.Sprintf("oc get installplan -n %s -o go-template="+
-		"'{{range .items}}{{ if eq .metadata.name %q}}{{ range .status.bundleLookups }}"+
-		"{{ .path }},{{ .catalogSourceRef.name }},{{ .catalogSourceRef.namespace }}{{end}}{{end}}{{end}}'", csvNamespace, installPlan)
-	infoFromInstallPlan := strings.Split(execCommandOutput(infoFromInstallPlanCmd), ",")
-	bundleImage = infoFromInstallPlan[0]
-	catalogSourceName := infoFromInstallPlan[1]
-	catalogSourceNamespace := infoFromInstallPlan[2]
+	installPlanNames := strings.Split(out, "\n")
+	for _, installPlanName := range installPlanNames {
+		infoFromInstallPlanCmd := fmt.Sprintf("oc get installplan -n %s -o go-template="+
+			"'{{range .items}}{{ if eq .metadata.name %q}}{{ range .status.bundleLookups }}"+
+			"{{ .path }},{{ .catalogSourceRef.name }},{{ .catalogSourceRef.namespace }}{{end}}{{end}}{{end}}'", csvNamespace, installPlanName)
 
-	// Then, we can retrieve the index image
-	indexImageCmd := fmt.Sprintf("oc get catalogsource -n %s %s -o json | jq -r .spec.image", catalogSourceNamespace, catalogSourceName)
-	indexImage = execCommandOutput(indexImageCmd)
+		out := execCommandOutput(infoFromInstallPlanCmd)
+		installPlanFields := strings.Split(out, ",")
+		if len(installPlanFields) != installPlanNumFields {
+			return installPlans, fmt.Errorf("invalid installplan info: %s", out)
+		}
 
-	return bundleImage, indexImage, nil
+		bundleImage := installPlanFields[bundleImageIndex]
+		catalogSourceName := installPlanFields[catalogSourceIndex]
+		catalogSourceNamespace := installPlanFields[catalogSourceNamespaceIndex]
+
+		// Then, we can retrieve the index image
+		indexImageCmd := fmt.Sprintf("oc get catalogsource -n %s %s -o json | jq -r .spec.image", catalogSourceNamespace, catalogSourceName)
+		indexImage := execCommandOutput(indexImageCmd)
+		if indexImage == "" {
+			return installPlans, fmt.Errorf("failed to get index image for catalogsource %s (ns %s)", catalogSourceName, catalogSourceNamespace)
+		}
+
+		installPlans = append(installPlans, configsections.InstallPlan{Name: installPlanName, BundleImage: bundleImage, IndexImage: indexImage})
+	}
+
+	return installPlans, nil
 }
 
 // getClusterCrdNames returns a list of crd names found in the cluster.

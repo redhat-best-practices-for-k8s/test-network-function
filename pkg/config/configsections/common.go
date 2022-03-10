@@ -23,6 +23,17 @@ type Label struct {
 	Value  string `yaml:"value" json:"value"`
 }
 
+type InstallPlan struct {
+	// Operator's installPlan name
+	Name string `yaml:"name" json:"name"`
+
+	// BundleImage is the URL referencing the bundle image
+	BundleImage string `yaml:"bundleImage" json:"bundleImage"`
+
+	// IndexImage is the URL referencing the index image
+	IndexImage string `yaml:"indexImage" json:"indexImage"`
+}
+
 // Operator struct defines operator manifest for testing
 type Operator struct {
 
@@ -39,11 +50,7 @@ type Operator struct {
 	// Subscription name is required field, Name of used subscription.
 	SubscriptionName string `yaml:"subscriptionName" json:"subscriptionName"`
 
-	// BundleImage is the URL referencing the bundle image
-	BundleImage string `yaml:"bundleImage" json:"bundleImage"`
-
-	// IndexImage is the URL referencing the index image
-	IndexImage string `yaml:"indexImage" json:"indexImage"`
+	InstallPlans []InstallPlan `yaml:"installPlans,omitempty" json:"installPlans,omitempty"`
 
 	Packag string `yaml:"packag" json:"packag"`
 
