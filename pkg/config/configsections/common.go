@@ -39,6 +39,12 @@ type Operator struct {
 	// Subscription name is required field, Name of used subscription.
 	SubscriptionName string `yaml:"subscriptionName" json:"subscriptionName"`
 
+	// BundleImage is the URL referencing the bundle image
+	BundleImage string `yaml:"bundleImage" json:"bundleImage"`
+
+	// IndexImage is the URL referencing the index image
+	IndexImage string `yaml:"indexImage" json:"indexImage"`
+
 	Packag string `yaml:"packag" json:"packag"`
 
 	Org string `yaml:"Org" json:"Org"`
@@ -102,7 +108,7 @@ type TestTarget struct {
 	// ExcludeContainersFromMultusConnectivityTests excludes specific containers from network connectivity tests.  This is particularly useful for containers that don't have ping available.
 	ExcludeContainersFromMultusConnectivityTests []ContainerIdentifier `yaml:"excludeContainersFromMultusConnectivityTests" json:"excludeContainersFromMultusConnectivityTests"`
 	// Operator is the list of operator objects that needs to be tested.
-	Operators []Operator  `yaml:"operators,omitempty"  json:"operators,omitempty"`
+	Operators []*Operator `yaml:"operators,omitempty"  json:"operators,omitempty"`
 	HelmChart []HelmChart `yaml:"helm" json:"helm"`
 	//
 	// Node list

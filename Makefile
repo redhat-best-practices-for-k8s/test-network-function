@@ -47,7 +47,7 @@ COMMON_GO_ARGS=-race
 GIT_COMMIT=$(shell git rev-list -1 HEAD)
 GIT_RELEASE=$(shell git tag --points-at HEAD | head -n 1)
 GIT_PREVIOUS_RELEASE=$(shell git tag --no-contains HEAD --sort=v:refname | tail -n 1)
-GOLANGCI_VERSION=v1.44.1
+GOLANGCI_VERSION=v1.44.2
 
 # Run the unit tests and build all binaries
 build:
@@ -78,8 +78,7 @@ lint:
 # Build and run unit tests
 test: mocks
 	go build ${COMMON_GO_ARGS} ./...
-	go test -coverprofile=cover.out -covermode count `go list ./... | grep -v "github.com/test-network-function/test-network-function/test-network-function" | grep -v mock`
-	go tool cover -func cover.out
+	UNIT_TEST="true" go test -coverprofile=cover.out ./...
 
 coverage-html: test
 	go tool cover -html cover.out
