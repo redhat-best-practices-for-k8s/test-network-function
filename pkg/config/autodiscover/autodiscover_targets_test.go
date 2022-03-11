@@ -24,8 +24,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/onsi/ginkgo/v2"
-	"github.com/onsi/gomega"
 	"github.com/stretchr/testify/assert"
 	"github.com/test-network-function/test-network-function/pkg/config/configsections"
 	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
@@ -221,37 +219,89 @@ func TestFindTestPodSetsByLabel(t *testing.T) {
 	}
 }
 
-func TestSetBundleAndIndexImage(t *testing.T) {
-	gomega.RegisterFailHandler(ginkgo.Fail)
-	defer ginkgo.GinkgoRecover()
+//nolint:funlen
+func TestGetCsvInstallPlans(t *testing.T) {
+	// Save the original execCommandOutput function and defer its restoration.
+	originalExecCommandOutput := execCommandOutput
+	defer func() {
+		execCommandOutput = originalExecCommandOutput
+	}()
+
+	mockedInstallPlans := []configsections.InstallPlan{}
+	currInstallPlan := 0
+	// As execCommandOutput is called three times inside getCsvInstallPlans(), will
+	// use this execCommandOutputCallNumber to return a different output on each call.
+	execCommandOutputCallNumber := 0
+	execCommandOutput = func(cmd string) string {
+		if execCommandOutputCallNumber == 0 {
+			execCommandOutputCallNumber = 1
+			out := ""
+			for i, max := 0, len(mockedInstallPlans); i < max; i++ {
+				out += mockedInstallPlans[i].Name
+				if i != (max - 1) {
+					out += "\n"
+				}
+			}
+			currInstallPlan = 0
+			return out
+		} else if execCommandOutputCallNumber == 1 {
+			execCommandOutputCallNumber = 2
+			return fmt.Sprintf("%s,%s,%s", mockedInstallPlans[currInstallPlan].BundleImage, "fake-catalog1", "fake-catalog1-namespace")
+		}
+
+		// The last call returns the indexImage. Also restore the control variable.
+		if currInstallPlan == (len(mockedInstallPlans) - 1) {
+			execCommandOutputCallNumber = 0
+		} else {
+			// There's more install plans to process, go back to 1.
+			execCommandOutputCallNumber = 1
+		}
+
+		indexImage := mockedInstallPlans[currInstallPlan].IndexImage
+		currInstallPlan++
+		if indexImage == "" {
+			// Force the "null" return:
+			indexImage = "null"
+		}
+
+		return indexImage
+	}
+
 	testCases := []struct {
-		csvName      string
-		csvNamespace string
-		indexImage   string
-		bundleImage  string
+		csvName       string
+		csvNamespace  string
+		expectedPlans []configsections.InstallPlan
 	}{
 		{
 			csvName:      "csvexample1",
 			csvNamespace: "csvns1",
-			indexImage:   "http://index-csvexample1-in-csvns1:sha",
-			bundleImage:  "http://bundle-csvexample1-in-csvns1:sha",
+			expectedPlans: []configsections.InstallPlan{
+				{Name: "install-1", BundleImage: "http://bundle-csvexample1-in-csvns1:sha", IndexImage: "http://index-csvexample1-in-csvns1:sha"},
+			},
 		},
 		{
 			csvName:      "csvexample2",
 			csvNamespace: "csvns2",
-			indexImage:   "http://index-csvexample2-in-csvns2:sha",
-			bundleImage:  "http://bundle-csvexample2-in-csvns2:sha",
+			expectedPlans: []configsections.InstallPlan{
+				{Name: "install-1", BundleImage: "http://bundle1-csvexample2-in-csvns2:sha", IndexImage: "http://index1-csvexample2-in-csvns2:sha"},
+				{Name: "install-2", BundleImage: "http://bundle2-csvexample2-in-csvns2:sha", IndexImage: "http://index2-csvexample2-in-csvns2:sha"},
+			},
+		},
+		{
+			csvName:      "csvexample3",
+			csvNamespace: "csvns3",
+			expectedPlans: []configsections.InstallPlan{
+				{Name: "install-1", BundleImage: "http://bundle1-csvexample2-in-csvns2:sha", IndexImage: "http://index1-csvexample2-in-csvns2:sha"},
+				{Name: "install-2", BundleImage: "http://bundle2-csvexample2-in-csvns2:sha", IndexImage: ""},
+			},
 		},
 	}
 
 	for _, tc := range testCases {
-		// The real method takes csvName and csvNamespace and execute several commands
-		// to obtain indexImage and bundleImage. Here we will do the same but with
-		// dummy commands (just echo)
-		obtainedIndexImage := execCommandOutput(fmt.Sprintf("echo http://index-%s-in-%s:sha", tc.csvName, tc.csvNamespace))
-		obtainedBundleImage := execCommandOutput(fmt.Sprintf("echo http://bundle-%s-in-%s:sha", tc.csvName, tc.csvNamespace))
+		mockedInstallPlans = tc.expectedPlans
 
-		assert.Equal(t, tc.indexImage, obtainedIndexImage)
-		assert.Equal(t, tc.bundleImage, obtainedBundleImage)
+		plans, err := getCsvInstallPlans(tc.csvName, tc.csvNamespace)
+		assert.Nil(t, err)
+		assert.Equal(t, plans, tc.expectedPlans)
 	}
 }

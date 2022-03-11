@@ -338,12 +338,11 @@ func getCsvInstallPlans(csvName, csvNamespace string) (installPlans []configsect
 	const bundleImageIndex = 0
 	const catalogSourceIndex = 1
 	const catalogSourceNamespaceIndex = 2
+	const nullOutput = "null"
 
 	// First step is to extract the installplan related to the csv
 	installPlanCmd := fmt.Sprintf("oc get installplan -n %s | grep %q | awk '{ print $1 }'", csvNamespace, csvName)
 	out := execCommandOutput(installPlanCmd)
-
-	// If no installPlan is obtained, just return an empty string for the two returned variables
 	if out == "" {
 		return installPlans, errors.New("installplan not found")
 	}
@@ -362,9 +361,7 @@ func getCsvInstallPlans(csvName, csvNamespace string) (installPlans []configsect
 			return installPlans, fmt.Errorf("invalid installplan info: %s", out)
 		}
 
-		bundleImage := installPlanFields[bundleImageIndex]
-		catalogSourceName := installPlanFields[catalogSourceIndex]
-		catalogSourceNamespace := installPlanFields[catalogSourceNamespaceIndex]
+		bundleImage, catalogSourceName, catalogSourceNamespace := installPlanFields[bundleImageIndex], installPlanFields[catalogSourceIndex], installPlanFields[catalogSourceNamespaceIndex]
 
 		// Then, we can retrieve the index image
 		indexImageCmd := fmt.Sprintf("oc get catalogsource -n %s %s -o json | jq -r .spec.image", catalogSourceNamespace, catalogSourceName)
@@ -373,6 +370,10 @@ func getCsvInstallPlans(csvName, csvNamespace string) (installPlans []configsect
 			return installPlans, fmt.Errorf("failed to get index image for catalogsource %s (ns %s)", catalogSourceName, catalogSourceNamespace)
 		}
 
+		// In case there wasn't a catalogsource for this installplan, jq will return null, so leave it empty.
+		if indexImage == nullOutput {
+			indexImage = ""
+		}
 		installPlans = append(installPlans, configsections.InstallPlan{Name: installPlanName, BundleImage: bundleImage, IndexImage: indexImage})
 	}
 
