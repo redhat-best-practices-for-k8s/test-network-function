@@ -330,50 +330,71 @@ func getConfiguredOperatorTests() []string {
 	return opTests
 }
 
-// getCsvInstallPlans provides the bundle image and index image of each installplan for a given CSV.
-// These variables are saved in the `configsections.Operator` in order to be used by DCI,
-// which obtains them from the claim.json and provides them to preflight suite.
-func getCsvInstallPlans(csvName, csvNamespace string) (installPlans []configsections.InstallPlan, err error) {
+var getCsvInstallPlanNames = func(csvName, csvNamespace string) ([]string, error) {
+	installPlanCmd := fmt.Sprintf("oc get installplan -n %s | grep %q | awk '{ print $1 }'", csvNamespace, csvName)
+	out := execCommandOutput(installPlanCmd)
+	if out == "" {
+		return []string{}, errors.New("installplan not found")
+	}
+
+	return strings.Split(out, "\n"), nil
+}
+
+var getInstallPlanData = func(installPlanName, namespace string) (bundleImagePath, catalogSource, catalogSourceNamespace string, err error) {
 	const installPlanNumFields = 3
 	const bundleImageIndex = 0
 	const catalogSourceIndex = 1
 	const catalogSourceNamespaceIndex = 2
-	const nullOutput = "null"
 
-	// First step is to extract the installplan related to the csv
-	installPlanCmd := fmt.Sprintf("oc get installplan -n %s | grep %q | awk '{ print $1 }'", csvNamespace, csvName)
-	out := execCommandOutput(installPlanCmd)
-	if out == "" {
-		return installPlans, errors.New("installplan not found")
+	infoFromInstallPlanCmd := fmt.Sprintf("oc get installplan -n %s -o go-template="+
+		"'{{range .items}}{{ if eq .metadata.name %q}}{{ range .status.bundleLookups }}"+
+		"{{ .path }},{{ .catalogSourceRef.name }},{{ .catalogSourceRef.namespace }}{{end}}{{end}}{{end}}'", namespace, installPlanName)
+
+	out := execCommandOutput(infoFromInstallPlanCmd)
+	installPlanFields := strings.Split(out, ",")
+	if len(installPlanFields) != installPlanNumFields {
+		return "", "", "", fmt.Errorf("invalid installplan info: %s", out)
 	}
 
-	// For each installPlan, retrieve the information we can extract from installplan
-	// Note that .status.bundleLookups is an array, but with length 1
-	installPlanNames := strings.Split(out, "\n")
+	return installPlanFields[bundleImageIndex], installPlanFields[catalogSourceIndex], installPlanFields[catalogSourceNamespaceIndex], nil
+}
+
+var getCatalogSourceImageIndex = func(catalogSourceName, catalogSourceNamespace string) (string, error) {
+	const nullOutput = "null"
+	indexImageCmd := fmt.Sprintf("oc get catalogsource -n %s %s -o json | jq -r .spec.image", catalogSourceNamespace, catalogSourceName)
+	indexImage := execCommandOutput(indexImageCmd)
+	if indexImage == "" {
+		return "", fmt.Errorf("failed to get index image for catalogsource %s (ns %s)", catalogSourceName, catalogSourceNamespace)
+	}
+
+	// In case there wasn't a catalogsource for this installplan, jq will return null, so leave it empty.
+	if indexImage == nullOutput {
+		indexImage = ""
+	}
+
+	return indexImage, nil
+}
+
+// getCsvInstallPlans provides the bundle image and index image of each installplan for a given CSV.
+// These variables are saved in the `configsections.Operator` in order to be used by DCI,
+// which obtains them from the claim.json and provides them to preflight suite.
+func getCsvInstallPlans(csvName, csvNamespace string) (installPlans []configsections.InstallPlan, err error) {
+	installPlanNames, err := getCsvInstallPlanNames(csvName, csvNamespace)
+	if err != nil {
+		return []configsections.InstallPlan{}, err
+	}
+
 	for _, installPlanName := range installPlanNames {
-		infoFromInstallPlanCmd := fmt.Sprintf("oc get installplan -n %s -o go-template="+
-			"'{{range .items}}{{ if eq .metadata.name %q}}{{ range .status.bundleLookups }}"+
-			"{{ .path }},{{ .catalogSourceRef.name }},{{ .catalogSourceRef.namespace }}{{end}}{{end}}{{end}}'", csvNamespace, installPlanName)
-
-		out := execCommandOutput(infoFromInstallPlanCmd)
-		installPlanFields := strings.Split(out, ",")
-		if len(installPlanFields) != installPlanNumFields {
-			return installPlans, fmt.Errorf("invalid installplan info: %s", out)
+		bundleImage, catalogSourceName, catalogSourceNamespace, err := getInstallPlanData(installPlanName, csvNamespace)
+		if err != nil {
+			return []configsections.InstallPlan{}, err
 		}
 
-		bundleImage, catalogSourceName, catalogSourceNamespace := installPlanFields[bundleImageIndex], installPlanFields[catalogSourceIndex], installPlanFields[catalogSourceNamespaceIndex]
-
-		// Then, we can retrieve the index image
-		indexImageCmd := fmt.Sprintf("oc get catalogsource -n %s %s -o json | jq -r .spec.image", catalogSourceNamespace, catalogSourceName)
-		indexImage := execCommandOutput(indexImageCmd)
-		if indexImage == "" {
-			return installPlans, fmt.Errorf("failed to get index image for catalogsource %s (ns %s)", catalogSourceName, catalogSourceNamespace)
+		indexImage, err := getCatalogSourceImageIndex(catalogSourceName, catalogSourceNamespace)
+		if err != nil {
+			return []configsections.InstallPlan{}, err
 		}
 
-		// In case there wasn't a catalogsource for this installplan, jq will return null, so leave it empty.
-		if indexImage == nullOutput {
-			indexImage = ""
-		}
 		installPlans = append(installPlans, configsections.InstallPlan{Name: installPlanName, BundleImage: bundleImage, IndexImage: indexImage})
 	}
 
