@@ -22,8 +22,11 @@ import (
 	"os"
 	"path"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
+	"github.com/test-network-function/test-network-function/pkg/utils"
 )
 
 const (
@@ -50,10 +53,10 @@ func TestGetClusterHelmCharts(t *testing.T) {
 
 	for _, tc := range testCases {
 		// Setup the mock functions
-		execCommandOutput = func(command string) string {
+		utils.ExecuteCommand = func(command string, timeout time.Duration, context *interactive.Context) (string, error) {
 			contents, err := os.ReadFile(testHelmChartPath)
 			assert.Nil(t, err)
-			return string(contents)
+			return string(contents), nil
 		}
 		if tc.badJSONUnmarshal {
 			jsonUnmarshal = func(data []byte, v interface{}) error {
