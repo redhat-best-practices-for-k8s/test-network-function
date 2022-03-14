@@ -130,7 +130,7 @@ install-tools:
 	go install github.com/golang/mock/mockgen@v1.6.0
 	wget https://get.helm.sh/helm-v3.8.1-linux-amd64.tar.gz && \
     tar -xvf helm-v3.8.1-linux-amd64.tar.gz && \
-    cp linux-amd64/helm /usr/bin/helm
+    cp linux-amd64/helm /usr/local/bin/helm
 	
 # Install golangci-lint	
 install-lint:
