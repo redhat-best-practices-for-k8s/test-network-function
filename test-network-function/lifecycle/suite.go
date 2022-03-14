@@ -188,7 +188,7 @@ func refreshReplicas(podset *configsections.PodSet, env *config.TestEnvironment)
 		notReady := waitForAllPodSetsReady(podset.Namespace, scalingTimeout, scalingPollingPeriod, podset.Type, env.GetLocalShellContext())
 		if notReady != 0 {
 			collectNodeAndPendingPodInfo(podset.Namespace, env.GetLocalShellContext())
-			log.Fatalf("Could not restore %s replicaCount for namespace %s.", string(podset.Type), podset.Namespace)
+			ginkgo.AbortSuite(fmt.Sprintf("Could not restore %s replicaCount for namespace %s.", string(podset.Type), podset.Namespace))
 		}
 	}
 	if podset.Hpa.HpaName != "" { // it have hpa and need to update the max min
@@ -579,12 +579,12 @@ func cleanupNodeDrain(env *config.TestEnvironment, nodeName string) {
 		notReady := waitForAllPodSetsReady(ns, postNodeDrainRecoveryTimeOut, scalingPollingPeriod, configsections.Deployment, env.GetLocalShellContext())
 		if notReady != 0 {
 			collectNodeAndPendingPodInfo(ns, env.GetLocalShellContext())
-			log.Fatalf("Cleanup after node drain for %s failed, stopping tests to ensure cluster integrity", nodeName)
+			ginkgo.AbortSuite(fmt.Sprintf("Cleanup after node drain for %s failed, stopping tests to ensure cluster integrity", nodeName))
 		}
 		notReadyStateFulSets := waitForAllPodSetsReady(ns, postNodeDrainRecoveryTimeOut, scalingPollingPeriod, configsections.StateFulSet, env.GetLocalShellContext())
 		if notReadyStateFulSets != 0 {
 			collectNodeAndPendingPodInfo(ns, env.GetLocalShellContext())
-			ginkgo.Fail(fmt.Sprintf("Cleanup after node drain for %s failed, stopping tests to ensure cluster integrity", nodeName))
+			ginkgo.AbortSuite(fmt.Sprintf("Cleanup after node drain for %s failed, stopping tests to ensure cluster integrity", nodeName))
 		}
 	}
 }
@@ -757,7 +757,13 @@ func uncordonNode(node string, context *interactive.Context) {
 	gomega.Expect(err).To(gomega.BeNil())
 	gomega.Expect(test).ToNot(gomega.BeNil())
 
-	test.RunAndValidate()
+	test.RunWithCallbacks(nil, func() {
+		tnf.ClaimFilePrintf("FAILURE: unable to uncordon node %s", node)
+		ginkgo.AbortSuite(fmt.Sprintf("Failed to uncordon node %s, stopping tests to ensure cluster integrity", node))
+	}, func(err error) {
+		tnf.ClaimFilePrintf("ERROR: unable to uncordon node %s: %s", node, err)
+		ginkgo.AbortSuite(fmt.Sprintf("Failed to uncordon node %s, stopping tests to ensure cluster integrity", node))
+	})
 }
 
 // Pod antiaffinity test for all deployments
