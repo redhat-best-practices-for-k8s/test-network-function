@@ -88,7 +88,7 @@ type TestEnvironment struct {
 	PodsUnderTest        []*configsections.Pod
 	DeploymentsUnderTest []configsections.PodSet
 	StateFulSetUnderTest []configsections.PodSet
-	OperatorsUnderTest   []configsections.Operator
+	OperatorsUnderTest   []*configsections.Operator
 	HelmchartsUnderTest  []configsections.HelmChart
 	NameSpacesUnderTest  []string
 	CrdNames             []string
