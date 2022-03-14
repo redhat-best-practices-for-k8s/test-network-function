@@ -128,7 +128,9 @@ install-tools:
 	go install github.com/onsi/ginkgo/v2/ginkgo@v2.1.3
 	go install github.com/onsi/gomega
 	go install github.com/golang/mock/mockgen@v1.6.0
-	git clone https://github.com/helm/helm.git && cd helm && make install
+	wget https://get.helm.sh/helm-v3.8.1-linux-amd64.tar.gz && \
+    tar -xvf helm-v3.8.1-linux-amd64.tar.gz && \
+    cp linux-amd64/helm /usr/bin/helm
 	
 # Install golangci-lint	
 install-lint:
