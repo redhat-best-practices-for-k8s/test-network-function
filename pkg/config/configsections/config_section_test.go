@@ -125,7 +125,7 @@ func loadOperatorConfig() {
 	operator.Name = operatorName
 	operator.Namespace = operatorNameSpace
 	operator.Tests = []string{testcases.OperatorStatus}
-	test.Operators = append(test.Operators, operator)
+	test.Operators = append(test.Operators, &operator)
 	loadPodConfig()
 }
 

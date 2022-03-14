@@ -173,7 +173,7 @@ func TestGetOutOfTreeModules(t *testing.T) {
 				"test1",
 			},
 			modinfo: map[string]string{
-				"test1": `intree:`,
+				"test1": ``,
 			},
 			expectedTaintedModules: []string{}, // test1 is 'intree'
 		},
@@ -182,7 +182,7 @@ func TestGetOutOfTreeModules(t *testing.T) {
 				"test2",
 			},
 			modinfo: map[string]string{
-				"test2": ``,
+				"test2": `O`,
 			},
 			expectedTaintedModules: []string{"test2"}, // test2 is not 'intree'
 		},
