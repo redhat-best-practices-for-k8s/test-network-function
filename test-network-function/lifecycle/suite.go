@@ -45,7 +45,8 @@ import (
 
 const (
 	defaultTerminationGracePeriod = 30
-	drainTimeoutMinutes           = 7
+	baseNodeDrainTimeout          = 5 * time.Minute
+	maxNodeDrainTimeout           = 30 * time.Minute
 	scalingTimeout                = 1 * time.Minute
 	scalingPollingPeriod          = 1 * time.Second
 	postNodeDrainRecoveryTimeOut  = 2 * time.Minute
@@ -104,8 +105,6 @@ var (
 	imagepullpolicyTestPath         = path.Join("pkg", "tnf", "handlers", "imagepullpolicy", "imagepullpolicy.json")
 	relativeimagepullpolicyTestPath = path.Join(common.PathRelativeToRoot, imagepullpolicyTestPath)
 )
-
-var drainTimeout = time.Duration(drainTimeoutMinutes) * time.Minute
 
 //
 // All actual test code belongs below here.  Utilities belong above.
@@ -189,7 +188,7 @@ func refreshReplicas(podset *configsections.PodSet, env *config.TestEnvironment)
 		notReady := waitForAllPodSetsReady(podset.Namespace, scalingTimeout, scalingPollingPeriod, podset.Type, env.GetLocalShellContext())
 		if notReady != 0 {
 			collectNodeAndPendingPodInfo(podset.Namespace, env.GetLocalShellContext())
-			log.Fatalf("Could not restore %s replicaCount for namespace %s.", string(podset.Type), podset.Namespace)
+			ginkgo.AbortSuite(fmt.Sprintf("Could not restore %s replicaCount for namespace %s.", string(podset.Type), podset.Namespace))
 		}
 	}
 	if podset.Hpa.HpaName != "" { // it have hpa and need to update the max min
@@ -580,12 +579,12 @@ func cleanupNodeDrain(env *config.TestEnvironment, nodeName string) {
 		notReady := waitForAllPodSetsReady(ns, postNodeDrainRecoveryTimeOut, scalingPollingPeriod, configsections.Deployment, env.GetLocalShellContext())
 		if notReady != 0 {
 			collectNodeAndPendingPodInfo(ns, env.GetLocalShellContext())
-			log.Fatalf("Cleanup after node drain for %s failed, stopping tests to ensure cluster integrity", nodeName)
+			ginkgo.AbortSuite(fmt.Sprintf("Cleanup after node drain for %s failed, stopping tests to ensure cluster integrity", nodeName))
 		}
 		notReadyStateFulSets := waitForAllPodSetsReady(ns, postNodeDrainRecoveryTimeOut, scalingPollingPeriod, configsections.StateFulSet, env.GetLocalShellContext())
 		if notReadyStateFulSets != 0 {
 			collectNodeAndPendingPodInfo(ns, env.GetLocalShellContext())
-			ginkgo.Fail(fmt.Sprintf("Cleanup after node drain for %s failed, stopping tests to ensure cluster integrity", nodeName))
+			ginkgo.AbortSuite(fmt.Sprintf("Cleanup after node drain for %s failed, stopping tests to ensure cluster integrity", nodeName))
 		}
 	}
 }
@@ -595,8 +594,12 @@ func testNodeDrain(env *config.TestEnvironment, nodeName string) {
 	// Ensure the node is uncordoned before exiting the function,
 	// and all podsets(deployments/statefulset) are ready
 	defer cleanupNodeDrain(env, nodeName)
+
 	// drain node
-	drainNode(nodeName, env.GetLocalShellContext())
+	if err := drainNode(nodeName, env.GetLocalShellContext()); err != nil {
+		ginkgo.Fail(fmt.Sprintf("Draining node %s failed: %s", nodeName, err))
+	}
+
 	for _, ns := range env.NameSpacesUnderTest {
 		notReadyDeployments := waitForAllPodSetsReady(ns, postNodeDrainRecoveryTimeOut, scalingPollingPeriod, configsections.Deployment, env.GetLocalShellContext())
 		if notReadyDeployments != 0 {
@@ -690,14 +693,60 @@ func collectNodeAndPendingPodInfo(ns string, context *interactive.Context) {
 	common.TcClaimLogPrintf("Events:\n%s", events)
 }
 
-func drainNode(node string, context *interactive.Context) {
-	tester := dd.NewDeploymentsDrain(drainTimeout, node)
+// getNumPodsDeployedOnNode is a helper function that returns the number of all pods
+// deployed in a given node.
+func getNumPodsDeployedOnNode(nodeName string, context *interactive.Context) (int, error) {
+	const cmdFmt = "oc get pods --all-namespaces -o wide --field-selector spec.nodeName=%s -l pod-template-hash"
+	cmd := fmt.Sprintf(cmdFmt, nodeName)
+	out, err := utils.ExecuteCommand(cmd, common.DefaultTimeout, context)
+	if err != nil {
+		return 0, fmt.Errorf("failed to get a pod list of pods deployed on the node: %s", err)
+	}
+
+	// The ouptut should be a table, should we expect at list one line for the columns description.
+	numPodsDeployed := len(strings.Split(out, "\n"))
+	if numPodsDeployed == 0 {
+		return 0, fmt.Errorf("empty output from cmd: %q", cmd)
+	}
+
+	return numPodsDeployed - 1, nil
+}
+
+func drainNode(node string, context *interactive.Context) error {
+	// Before draining, we'll get the number of pods currently deployed on it.
+	numPodsDeployed, err := getNumPodsDeployedOnNode(node, context)
+	if err != nil {
+		return fmt.Errorf("failed to get number of pods deployed in the node: %s", err)
+	}
+
+	// We'll add one minute per pod to the base timeout for the node drain operation.
+	nodeDrainTimeout := baseNodeDrainTimeout + (time.Duration(numPodsDeployed) * time.Minute)
+
+	// Make sure the calculated timeout won't exceed the allowed maximum.
+	if nodeDrainTimeout > maxNodeDrainTimeout {
+		nodeDrainTimeout = maxNodeDrainTimeout
+	}
+
+	log.Infof("Dynamic timeout for draining node %s: %s (pods deployed: %d)", node, nodeDrainTimeout, numPodsDeployed)
+
+	tester := dd.NewDeploymentsDrain(nodeDrainTimeout, node)
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
+
+	startTime := time.Now()
 	result, err := test.Run()
-	if err != nil || result == tnf.ERROR {
-		log.Fatalf("Test skipped because of draining node failure - platform issue")
+	if err != nil {
+		return err
 	}
+
+	elapsedTime := time.Since(startTime)
+	log.Infof("Draining node %s took %s.", node, elapsedTime)
+
+	if result != tnf.SUCCESS {
+		return fmt.Errorf("tester returned result code %d", result)
+	}
+
+	return nil
 }
 
 func uncordonNode(node string, context *interactive.Context) {
@@ -708,7 +757,13 @@ func uncordonNode(node string, context *interactive.Context) {
 	gomega.Expect(err).To(gomega.BeNil())
 	gomega.Expect(test).ToNot(gomega.BeNil())
 
-	test.RunAndValidate()
+	test.RunWithCallbacks(nil, func() {
+		tnf.ClaimFilePrintf("FAILURE: unable to uncordon node %s", node)
+		ginkgo.AbortSuite(fmt.Sprintf("Failed to uncordon node %s, stopping tests to ensure cluster integrity", node))
+	}, func(err error) {
+		tnf.ClaimFilePrintf("ERROR: unable to uncordon node %s: %s", node, err)
+		ginkgo.AbortSuite(fmt.Sprintf("Failed to uncordon node %s, stopping tests to ensure cluster integrity", node))
+	})
 }
 
 // Pod antiaffinity test for all deployments
