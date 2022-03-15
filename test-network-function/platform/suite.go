@@ -415,18 +415,20 @@ func testTainted(env *config.TestEnvironment) {
 				}
 				taintMsg, individualTaints := decodeKernelTaints(taintedBitmap)
 
-				// We only will fail the tainted kernel check if the reason for the taint
-				// only pertains to `module was loaded`.
+				// Count how many taints come from `module was loaded` taints versus `other`
 				log.Debug("Checking for 'module was loaded' taints")
-				moduleCheck := false
+				log.Debug("individualTaints", individualTaints)
+				moduleCheckCtr := 0
+				otherTaintCtr := 0
 				for _, it := range individualTaints {
 					if strings.Contains(it, `module was loaded`) {
-						moduleCheck = true
-						break
+						moduleCheckCtr++
+					} else {
+						otherTaintCtr++
 					}
 				}
 
-				if moduleCheck {
+				if moduleCheckCtr > 0 {
 					// Retrieve the modules from the node.
 					modules := utils.GetModulesFromNode(node.Name, context)
 					log.Debug("Got the modules from node")
@@ -441,7 +443,10 @@ func testTainted(env *config.TestEnvironment) {
 					// Looks through the accepted taints listed in the tnf-config file.
 					// If all of the tainted modules show up in the configuration file, don't fail the test.
 					nodeTaintsAccepted = taintsAccepted(env.Config.AcceptedKernelTaints, taintedModules)
-				} else if len(individualTaints) > 0 {
+				}
+
+				// If there are other taints than module was loaded, set the result to false/fail.
+				if otherTaintCtr > 0 {
 					nodeTaintsAccepted = false // taint was caused by something other than `module was loaded`
 				}
 
