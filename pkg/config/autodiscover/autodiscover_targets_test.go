@@ -24,8 +24,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/onsi/ginkgo/v2"
-	"github.com/onsi/gomega"
 	"github.com/stretchr/testify/assert"
 	"github.com/test-network-function/test-network-function/pkg/config/configsections"
 	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
@@ -221,37 +219,300 @@ func TestFindTestPodSetsByLabel(t *testing.T) {
 	}
 }
 
-func TestSetBundleAndIndexImage(t *testing.T) {
-	gomega.RegisterFailHandler(ginkgo.Fail)
-	defer ginkgo.GinkgoRecover()
+//nolint: funlen
+func TestGetCsvInstallPlanNames(t *testing.T) {
+	originalExecCommandOutput := execCommandOutput
+	defer func() {
+		execCommandOutput = originalExecCommandOutput
+	}()
+
 	testCases := []struct {
-		csvName      string
-		csvNamespace string
-		indexImage   string
-		bundleImage  string
+		csvName                     string
+		csvNamespace                string
+		expectedError               string
+		expectedPlanNames           []string
+		mockedExecCommandOutputFunc func(cmd string) string
 	}{
 		{
-			csvName:      "csvexample1",
-			csvNamespace: "csvns1",
-			indexImage:   "http://index-csvexample1-in-csvns1:sha",
-			bundleImage:  "http://bundle-csvexample1-in-csvns1:sha",
+			csvName:           "csvexample1",
+			csvNamespace:      "csvns1",
+			expectedError:     "",
+			expectedPlanNames: []string{"installPlan1"},
+			mockedExecCommandOutputFunc: func(cmd string) string {
+				return "installPlan1"
+			},
 		},
 		{
-			csvName:      "csvexample2",
-			csvNamespace: "csvns2",
-			indexImage:   "http://index-csvexample2-in-csvns2:sha",
-			bundleImage:  "http://bundle-csvexample2-in-csvns2:sha",
+			csvName:           "csvexample1",
+			csvNamespace:      "csvns1",
+			expectedPlanNames: []string{"installPlan1", "installPlan2"},
+			mockedExecCommandOutputFunc: func(cmd string) string {
+				return "installPlan1\ninstallPlan2"
+			},
+		},
+		{
+			csvName:           "csvexample1",
+			csvNamespace:      "csvns1",
+			expectedError:     "installplan not found",
+			expectedPlanNames: []string{},
+			mockedExecCommandOutputFunc: func(cmd string) string {
+				return ""
+			},
 		},
 	}
 
 	for _, tc := range testCases {
-		// The real method takes csvName and csvNamespace and execute several commands
-		// to obtain indexImage and bundleImage. Here we will do the same but with
-		// dummy commands (just echo)
-		obtainedIndexImage := execCommandOutput(fmt.Sprintf("echo http://index-%s-in-%s:sha", tc.csvName, tc.csvNamespace))
-		obtainedBundleImage := execCommandOutput(fmt.Sprintf("echo http://bundle-%s-in-%s:sha", tc.csvName, tc.csvNamespace))
+		execCommandOutput = tc.mockedExecCommandOutputFunc
+		planNames, err := getCsvInstallPlanNames(tc.csvName, tc.csvNamespace)
+		if tc.expectedError != "" {
+			assert.NotNil(t, err)
+			assert.Equal(t, err.Error(), tc.expectedError)
+		} else {
+			assert.Nil(t, err)
+		}
+		assert.Equal(t, planNames, tc.expectedPlanNames)
+	}
+}
 
-		assert.Equal(t, tc.indexImage, obtainedIndexImage)
-		assert.Equal(t, tc.bundleImage, obtainedBundleImage)
+//nolint:funlen
+func TestGetInstallPlanData(t *testing.T) {
+	originalExecCommandOutput := execCommandOutput
+	defer func() {
+		execCommandOutput = originalExecCommandOutput
+	}()
+
+	testCases := []struct {
+		installPlanName                string
+		namespace                      string
+		expectedError                  string
+		expectedBundleImage            string
+		expectedCatalogSourceName      string
+		expectedCatalogSourceNamespace string
+		mockedExecCommandOutputFunc    func(cmd string) string
+	}{
+		{
+			installPlanName:                "install-1",
+			namespace:                      "ns1",
+			expectedError:                  "",
+			expectedBundleImage:            "http://bundle-csvexample1-in-csvns1:sha",
+			expectedCatalogSourceName:      "catalogName1",
+			expectedCatalogSourceNamespace: "catalogNamespace1",
+			mockedExecCommandOutputFunc: func(cmd string) string {
+				return "http://bundle-csvexample1-in-csvns1:sha,catalogName1,catalogNamespace1"
+			},
+		},
+		{
+			installPlanName:                "install-2",
+			namespace:                      "ns1",
+			expectedError:                  "invalid installplan info: invalid-output",
+			expectedBundleImage:            "",
+			expectedCatalogSourceName:      "",
+			expectedCatalogSourceNamespace: "",
+			mockedExecCommandOutputFunc: func(cmd string) string {
+				return "invalid-output"
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		execCommandOutput = tc.mockedExecCommandOutputFunc
+		bundleImage, catalogName, catalogNamespace, err := getInstallPlanData(tc.installPlanName, tc.namespace)
+		if tc.expectedError != "" {
+			assert.NotNil(t, err)
+			assert.Equal(t, err.Error(), tc.expectedError)
+		} else {
+			assert.Nil(t, err)
+		}
+
+		assert.Equal(t, bundleImage, tc.expectedBundleImage)
+		assert.Equal(t, catalogName, tc.expectedCatalogSourceName)
+		assert.Equal(t, catalogNamespace, tc.expectedCatalogSourceNamespace)
+	}
+}
+
+//nolint:funlen
+func TestGetCatalogSourceImageIndex(t *testing.T) {
+	originalExecCommandOutput := execCommandOutput
+	defer func() {
+		execCommandOutput = originalExecCommandOutput
+	}()
+
+	testCases := []struct {
+		catalogName                 string
+		catalogNamespace            string
+		expectedError               string
+		expectedImageIndex          string
+		mockedExecCommandOutputFunc func(cmd string) string
+	}{
+		{
+			catalogName:        "catalogName1",
+			catalogNamespace:   "ns1",
+			expectedError:      "",
+			expectedImageIndex: "http://index1-csvexample2-in-csvns2:sha",
+			mockedExecCommandOutputFunc: func(cmd string) string {
+				return "http://index1-csvexample2-in-csvns2:sha"
+			},
+		},
+		{
+			catalogName:        "catalogName2",
+			catalogNamespace:   "ns1",
+			expectedError:      "",
+			expectedImageIndex: "",
+			mockedExecCommandOutputFunc: func(cmd string) string {
+				return "null"
+			},
+		},
+		{
+			catalogName:        "catalogName3",
+			catalogNamespace:   "ns3",
+			expectedError:      "failed to get index image for catalogsource catalogName3 (ns ns3)",
+			expectedImageIndex: "",
+			mockedExecCommandOutputFunc: func(cmd string) string {
+				return ""
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		execCommandOutput = tc.mockedExecCommandOutputFunc
+		imageIndex, err := getCatalogSourceImageIndex(tc.catalogName, tc.catalogNamespace)
+		if tc.expectedError != "" {
+			assert.NotNil(t, err)
+			assert.Equal(t, err.Error(), tc.expectedError)
+		} else {
+			assert.Nil(t, err)
+		}
+
+		assert.Equal(t, imageIndex, tc.expectedImageIndex)
+	}
+}
+
+//nolint:funlen
+func TestGetCsvInstallPlans(t *testing.T) {
+	// Save the original functions and defer its restoration.
+	originalGetCsvInstallPlanNames := getCsvInstallPlanNames
+	defer func() {
+		getCsvInstallPlanNames = originalGetCsvInstallPlanNames
+	}()
+
+	originalGetInstallPlanData := getInstallPlanData
+	defer func() {
+		getInstallPlanData = originalGetInstallPlanData
+	}()
+
+	originalGetCatalogSourceImageIndex := getCatalogSourceImageIndex
+	defer func() {
+		getCatalogSourceImageIndex = originalGetCatalogSourceImageIndex
+	}()
+
+	// installPlanIndex is a helper index for the mocking functions to allow
+	// the testing of several installPlans
+	installPlanIndex := 0
+	testCases := []struct {
+		csvName                          string
+		csvNamespace                     string
+		mockedGetCsvInstallPlanNames     func(csvName string, csvNamespace string) ([]string, error)
+		mockedGetInstallPlanData         func(installPlanName string, namespace string) (bundleImagePath string, catalogSource string, catalogSourceNamespace string, err error)
+		mockedGetCatalogSourceImageIndex func(catalogSourceName string, catalogSourceNamespace string) (string, error)
+		expectedError                    string
+		expectedInstallPlans             []configsections.InstallPlan
+	}{
+		// Positive TCs:
+		{
+			csvName:      "csvexample1",
+			csvNamespace: "csvns1",
+			mockedGetCsvInstallPlanNames: func(csvName string, csvNamespace string) ([]string, error) {
+				return []string{"install-1"}, nil
+			},
+			mockedGetInstallPlanData: func(installPlanName string, namespace string) (string, string, string, error) {
+				return "http://bundle1-csvexample1-in-csvns1:sha", "catalogName1", "catalogNamespace1", nil
+			},
+			mockedGetCatalogSourceImageIndex: func(catalogSourceName string, catalogSourceNamespace string) (string, error) {
+				return "http://index-csvexample1-in-csvns1:sha", nil
+			},
+			expectedError:        "",
+			expectedInstallPlans: []configsections.InstallPlan{{Name: "install-1", BundleImage: "http://bundle1-csvexample1-in-csvns1:sha", IndexImage: "http://index-csvexample1-in-csvns1:sha"}},
+		},
+		{
+			csvName:      "csvexample2",
+			csvNamespace: "csvns2",
+			mockedGetCsvInstallPlanNames: func(csvName string, csvNamespace string) ([]string, error) {
+				return []string{"install-1", "install-2"}, nil
+			},
+			mockedGetInstallPlanData: func(installPlanName string, namespace string) (string, string, string, error) {
+				if installPlanIndex == 0 {
+					return "http://bundle1-csvexample2-in-csvns2:sha", "catalogName1", "catalogNamespace1", nil
+				}
+				return "http://bundle2-csvexample2-in-csvns2:sha", "catalogName1", "catalogNamespace1", nil
+			},
+			mockedGetCatalogSourceImageIndex: func(catalogSourceName string, catalogSourceNamespace string) (string, error) {
+				if installPlanIndex == 0 {
+					installPlanIndex++
+					return "http://index1-csvexample2-in-csvns2:sha", nil
+				}
+				return "http://index2-csvexample2-in-csvns2:sha", nil
+			},
+			expectedError: "",
+			expectedInstallPlans: []configsections.InstallPlan{
+				{Name: "install-1", BundleImage: "http://bundle1-csvexample2-in-csvns2:sha", IndexImage: "http://index1-csvexample2-in-csvns2:sha"},
+				{Name: "install-2", BundleImage: "http://bundle2-csvexample2-in-csvns2:sha", IndexImage: "http://index2-csvexample2-in-csvns2:sha"},
+			},
+		},
+		// Error checking TCs:
+		{
+			// No installPlan found for given CSV.
+			csvName:      "csvexample5",
+			csvNamespace: "csvns5",
+			mockedGetCsvInstallPlanNames: func(csvName string, csvNamespace string) ([]string, error) {
+				return []string{}, errors.New("installplan not found")
+			},
+			expectedError:        "installplan not found",
+			expectedInstallPlans: []configsections.InstallPlan{},
+		},
+		{
+			// Invalid output when getting installPlan data.
+			csvName:      "csvexample4",
+			csvNamespace: "csvns4",
+			mockedGetCsvInstallPlanNames: func(csvName string, csvNamespace string) ([]string, error) {
+				return []string{"install-1"}, nil
+			},
+			mockedGetInstallPlanData: func(installPlanName string, namespace string) (string, string, string, error) {
+				return "", "", "", errors.New("invalid installplan info: invalid-output")
+			},
+			expectedError:        "invalid installplan info: invalid-output",
+			expectedInstallPlans: []configsections.InstallPlan{},
+		},
+		{
+			// Empty output when retrieving image index from catalog source.
+			csvName:      "csvexample3",
+			csvNamespace: "csvns3",
+			mockedGetCsvInstallPlanNames: func(csvName string, csvNamespace string) ([]string, error) {
+				return []string{"install-1"}, nil
+			},
+			mockedGetInstallPlanData: func(installPlanName string, namespace string) (string, string, string, error) {
+				return "http://bundle1-csvexample3-in-csvns3:sha", "catalogName1", "catalogNamespace1", nil
+			},
+			mockedGetCatalogSourceImageIndex: func(catalogSourceName string, catalogSourceNamespace string) (string, error) {
+				return "", fmt.Errorf("failed to get index image for catalogsource %s (ns %s)", catalogSourceName, catalogSourceNamespace)
+			},
+			expectedError:        "failed to get index image for catalogsource catalogName1 (ns catalogNamespace1)",
+			expectedInstallPlans: []configsections.InstallPlan{},
+		},
+	}
+
+	for _, tc := range testCases {
+		getCsvInstallPlanNames = tc.mockedGetCsvInstallPlanNames
+		getInstallPlanData = tc.mockedGetInstallPlanData
+		getCatalogSourceImageIndex = tc.mockedGetCatalogSourceImageIndex
+
+		installPlans, err := getCsvInstallPlans(tc.csvName, tc.csvNamespace)
+		if tc.expectedError != "" {
+			assert.NotNil(t, err)
+			assert.Equal(t, err.Error(), tc.expectedError)
+		} else {
+			assert.Nil(t, err)
+		}
+
+		assert.Equal(t, installPlans, tc.expectedInstallPlans)
 	}
 }
