@@ -418,17 +418,19 @@ func testTainted(env *config.TestEnvironment) {
 				// Count how many taints come from `module was loaded` taints versus `other`
 				log.Debug("Checking for 'module was loaded' taints")
 				log.Debug("individualTaints", individualTaints)
-				moduleCheckCtr := 0
-				otherTaintCtr := 0
+				moduleTaintsFound := false
+				otherTaintsFound := false
 				for _, it := range individualTaints {
 					if strings.Contains(it, `module was loaded`) {
-						moduleCheckCtr++
+						moduleTaintsFound = true
 					} else {
-						otherTaintCtr++
+						otherTaintsFound = true
 					}
 				}
 
-				if moduleCheckCtr > 0 {
+				if otherTaintsFound {
+					nodeTaintsAccepted = false
+				} else if moduleTaintsFound {
 					// Retrieve the modules from the node.
 					modules := utils.GetModulesFromNode(node.Name, context)
 					log.Debug("Got the modules from node")
@@ -443,11 +445,6 @@ func testTainted(env *config.TestEnvironment) {
 					// Looks through the accepted taints listed in the tnf-config file.
 					// If all of the tainted modules show up in the configuration file, don't fail the test.
 					nodeTaintsAccepted = taintsAccepted(env.Config.AcceptedKernelTaints, taintedModules)
-				}
-
-				// If there are other taints than module was loaded, set the result to false/fail.
-				if otherTaintCtr > 0 {
-					nodeTaintsAccepted = false // taint was caused by something other than `module was loaded`
 				}
 
 				message = fmt.Sprintf("Decoded tainted kernel causes (code=%d) for node %s : %s\n", taintedBitmap, node.Name, taintMsg)
