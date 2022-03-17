@@ -415,18 +415,22 @@ func testTainted(env *config.TestEnvironment) {
 				}
 				taintMsg, individualTaints := decodeKernelTaints(taintedBitmap)
 
-				// We only will fail the tainted kernel check if the reason for the taint
-				// only pertains to `module was loaded`.
+				// Count how many taints come from `module was loaded` taints versus `other`
 				log.Debug("Checking for 'module was loaded' taints")
-				moduleCheck := false
+				log.Debug("individualTaints", individualTaints)
+				moduleTaintsFound := false
+				otherTaintsFound := false
 				for _, it := range individualTaints {
 					if strings.Contains(it, `module was loaded`) {
-						moduleCheck = true
-						break
+						moduleTaintsFound = true
+					} else {
+						otherTaintsFound = true
 					}
 				}
 
-				if moduleCheck {
+				if otherTaintsFound {
+					nodeTaintsAccepted = false
+				} else if moduleTaintsFound {
 					// Retrieve the modules from the node.
 					modules := utils.GetModulesFromNode(node.Name, context)
 					log.Debug("Got the modules from node")
