@@ -6,6 +6,10 @@ import (
 	"io"
 	"net/http"
 
+	log "github.com/sirupsen/logrus"
+
+	"github.com/go-yaml/yaml"
+
 	"github.com/test-network-function/test-network-function/pkg/config/configsections"
 )
 
@@ -148,6 +152,13 @@ type ContainerCatalogEntry struct {
 		TopLayerID             string `json:"top_layer_id"`
 		UncompressedTopLayerID string `json:"uncompressed_top_layer_id"`*/
 }
+type ChartStruct struct {
+	Entries map[string][]struct {
+		Name        string `yaml:"name"`
+		Version     string `yaml:"version"`
+		KubeVersion string `yaml:"kubeVersion"`
+	} `yaml:"entries"`
+}
 
 func (e ContainerCatalogEntry) GetBestFreshnessGrade() string {
 	grade := "F"
@@ -227,11 +238,26 @@ func (api CertAPIClient) GetOperatorBundleIDByPackageName(org, name, vsersion st
 	} else {
 		url = fmt.Sprintf("%s/bundles?page_size=1&filter=organization==%s;csv_name==%s", apiOperatorCatalogExternalBaseEndPoint, org, name)
 	}
+
 	responseData, err := api.getRequest(url)
 	if err == nil {
 		imageID, err = api.getIDFromResponse(responseData)
 	}
+
 	return imageID, err
+}
+func (api CertAPIClient) GetYamlFile() (ChartStruct, error) {
+	url := ("https://charts.openshift.io/index.yaml")
+	responseData, err := api.getRequest(url)
+	var charts ChartStruct
+	if err != nil {
+		log.Error("error reading the helm certification list ", err)
+		return charts, err
+	}
+	if err = yaml.Unmarshal(responseData, &charts); err != nil {
+		log.Error("error while parsing the yaml file of the helm certification list ", err)
+	}
+	return charts, err
 }
 
 // getRequest a http call to rest api, returns byte array or error. Returns (response, error).

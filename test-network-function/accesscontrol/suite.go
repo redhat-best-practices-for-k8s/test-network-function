@@ -234,7 +234,7 @@ func testCrsNamespaces(crNames, configNamespaces []string, context *interactive.
 		ginkgo.By(fmt.Sprintf("CRD %s has %d CRs (plural name: %s).", crdName, len(crNamespaces), crdPluralName))
 		for crName, namespace := range crNamespaces {
 			ginkgo.By(fmt.Sprintf("Checking CR %s - Namespace %s", crName, namespace))
-			if !utils.StringInSlice(configNamespaces, namespace) {
+			if !utils.StringInSlice(configNamespaces, namespace, false) {
 				common.TcClaimLogPrintf("CRD: %s (kind:%s) - CR %s has an invalid namespace (%s)", crdName, crdPluralName, crName, namespace)
 				if crNames, exists := invalidCrs[crdName]; exists {
 					invalidCrs[crdName] = append(crNames, crName)

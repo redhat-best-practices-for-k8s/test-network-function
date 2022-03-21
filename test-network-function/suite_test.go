@@ -118,6 +118,10 @@ func loadJUnitXMLIntoMap(result map[string]interface{}, junitFilename, key strin
 
 //nolint:funlen // TestTest invokes the CNF Certification Test Suite.
 func TestTest(t *testing.T) {
+	// When running unit tests, skip the suite
+	if os.Getenv("UNIT_TEST") != "" {
+		t.Skip("Skipping test suite when running unit tests")
+	}
 	// Checking if output directories exist
 	utils.CheckFileExists(*claimPath, "claim")
 	utils.CheckFileExists(*junitPath, "junit")
@@ -268,10 +272,11 @@ func writeClaimOutput(claimOutputFile string, payload []byte) {
 
 func generateNodes() map[string]interface{} {
 	const (
-		nodeSummaryField = "nodeSummary"
-		cniPluginsField  = "cniPlugins"
-		nodesHwInfo      = "nodesHwInfo"
-		csiDriverInfo    = "csiDriver"
+		nodeSummaryField  = "nodeSummary"
+		cniPluginsField   = "cniPlugins"
+		nodesHwInfo       = "nodesHwInfo"
+		csiDriverInfo     = "csiDriver"
+		initialRuntimeEnv = "InitialRuntimeEnv"
 	)
 	nodes := map[string]interface{}{}
 	nodes[nodeSummaryField] = diagnostic.GetNodeSummary()

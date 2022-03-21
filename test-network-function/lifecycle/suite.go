@@ -23,33 +23,33 @@ import (
 	"strings"
 	"time"
 
-	"github.com/test-network-function/test-network-function/pkg/config"
-	"github.com/test-network-function/test-network-function/pkg/config/configsections"
-	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/scaling"
-	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
-	"github.com/test-network-function/test-network-function/pkg/tnf/testcases"
-	"github.com/test-network-function/test-network-function/pkg/utils"
-
-	"github.com/test-network-function/test-network-function/test-network-function/common"
-	"github.com/test-network-function/test-network-function/test-network-function/identifiers"
-
 	"github.com/onsi/ginkgo/v2"
 	"github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
+	"github.com/test-network-function/test-network-function/pkg/config"
+	"github.com/test-network-function/test-network-function/pkg/config/configsections"
 	"github.com/test-network-function/test-network-function/pkg/tnf"
 	dd "github.com/test-network-function/test-network-function/pkg/tnf/handlers/deploymentsdrain"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/nodeselector"
 	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/owners"
 	ps "github.com/test-network-function/test-network-function/pkg/tnf/handlers/podsets"
+	"github.com/test-network-function/test-network-function/pkg/tnf/handlers/scaling"
+	"github.com/test-network-function/test-network-function/pkg/tnf/interactive"
 	"github.com/test-network-function/test-network-function/pkg/tnf/reel"
+	"github.com/test-network-function/test-network-function/pkg/tnf/testcases"
+	"github.com/test-network-function/test-network-function/pkg/utils"
+	"github.com/test-network-function/test-network-function/test-network-function/common"
+	"github.com/test-network-function/test-network-function/test-network-function/identifiers"
 	"github.com/test-network-function/test-network-function/test-network-function/results"
 )
 
 const (
 	defaultTerminationGracePeriod = 30
-	drainTimeoutMinutes           = 5
-	scalingTimeout                = 60 * time.Second
+	baseNodeDrainTimeout          = 5 * time.Minute
+	maxNodeDrainTimeout           = 30 * time.Minute
+	scalingTimeout                = 1 * time.Minute
 	scalingPollingPeriod          = 1 * time.Second
+	postNodeDrainRecoveryTimeOut  = 2 * time.Minute
 )
 
 var (
@@ -59,8 +59,20 @@ var (
 	// shutdownTestPath is the file location of shutdown.json test case relative to the project root.
 	shutdownTestPath = path.Join("pkg", "tnf", "handlers", "shutdown", "shutdown.json")
 
+	// livenessTestPath is the file location of liveness.json test case relative to the project root.
+	livenessTestPath = path.Join("pkg", "tnf", "handlers", "liveness", "liveness.json")
+
+	// readinessTestPath is the file location of readiness.json test case relative to the project root.
+	readinessTestPath = path.Join("pkg", "tnf", "handlers", "readiness", "readiness.json")
+
 	// shutdownTestDirectoryPath is the directory of the shutdown test
 	shutdownTestDirectoryPath = path.Join("pkg", "tnf", "handlers", "shutdown")
+
+	// livenessTestDirectoryPath is the directory of the liveness test
+	livenessTestDirectoryPath = path.Join("pkg", "tnf", "handlers", "liveness")
+
+	// readinessTestDirectoryPath is the directory of the readiness test
+	readinessTestDirectoryPath = path.Join("pkg", "tnf", "handlers", "readiness")
 
 	// relativeNodesTestPath is the relative path to the nodes.json test case.
 	relativeNodesTestPath = path.Join(common.PathRelativeToRoot, nodeUncordonTestPath)
@@ -68,8 +80,20 @@ var (
 	// relativeShutdownTestPath is the relative path to the shutdown.json test case.
 	relativeShutdownTestPath = path.Join(common.PathRelativeToRoot, shutdownTestPath)
 
+	// relativeLivenessTestPath is the relative path to the liveness.json test case.
+	relativeLivenessTestPath = path.Join(common.PathRelativeToRoot, livenessTestPath)
+
+	// relativeReadinessTestPath is the relative path to the readiness.json test case.
+	relativeReadinessTestPath = path.Join(common.PathRelativeToRoot, readinessTestPath)
+
 	// relativeShutdownTestDirectoryPath is the directory of the shutdown directory
 	relativeShutdownTestDirectoryPath = path.Join(common.PathRelativeToRoot, shutdownTestDirectoryPath)
+
+	// relativelivenessTestDirectoryPath is the directory of the liveness directory
+	relativeLivenessTestDirectoryPath = path.Join(common.PathRelativeToRoot, livenessTestDirectoryPath)
+
+	// relativereadinessTestDirectoryPath is the directory of the readiness directory
+	relativeReadinessTestDirectoryPath = path.Join(common.PathRelativeToRoot, readinessTestDirectoryPath)
 
 	// podAntiAffinityTestPath is the file location of the podantiaffinity.json test case relative to the project root.
 	podAntiAffinityTestPath = path.Join("pkg", "tnf", "handlers", "podantiaffinity", "podantiaffinity.json")
@@ -81,8 +105,6 @@ var (
 	imagepullpolicyTestPath         = path.Join("pkg", "tnf", "handlers", "imagepullpolicy", "imagepullpolicy.json")
 	relativeimagepullpolicyTestPath = path.Join(common.PathRelativeToRoot, imagepullpolicyTestPath)
 )
-
-var drainTimeout = time.Duration(drainTimeoutMinutes) * time.Minute
 
 //
 // All actual test code belongs below here.  Utilities belong above.
@@ -108,6 +130,10 @@ var _ = ginkgo.Describe(common.LifecycleTestKey, func() {
 		testGracePeriod(env)
 
 		testShutdown(env)
+
+		testLiveness(env)
+
+		testReadiness(env)
 
 		testPodAntiAffinity(env)
 
@@ -162,7 +188,7 @@ func refreshReplicas(podset *configsections.PodSet, env *config.TestEnvironment)
 		notReady := waitForAllPodSetsReady(podset.Namespace, scalingTimeout, scalingPollingPeriod, podset.Type, env.GetLocalShellContext())
 		if notReady != 0 {
 			collectNodeAndPendingPodInfo(podset.Namespace, env.GetLocalShellContext())
-			log.Fatalf("Could not restore %s replicaCount for namespace %s.", string(podset.Type), podset.Namespace)
+			ginkgo.AbortSuite(fmt.Sprintf("Could not restore %s replicaCount for namespace %s.", string(podset.Type), podset.Namespace))
 		}
 	}
 	if podset.Hpa.HpaName != "" { // it have hpa and need to update the max min
@@ -424,6 +450,7 @@ func testGracePeriod(env *config.TestEnvironment) {
 	})
 }
 
+//nolint:dupl
 func testShutdown(env *config.TestEnvironment) {
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestShudtownIdentifier)
 	ginkgo.It(testID, ginkgo.Label(testID), func() {
@@ -464,18 +491,100 @@ func shutdownTest(podNamespace, podName string, context *interactive.Context) bo
 	return passed
 }
 
+//nolint:dupl
+func testLiveness(env *config.TestEnvironment) {
+	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestLivenessIdentifier)
+	ginkgo.It(testID, ginkgo.Label(testID), func() {
+		failedPods := []*configsections.Pod{}
+		ginkgo.By("Testing PUTs are configured with liveness lifecycle")
+		for _, podUnderTest := range env.PodsUnderTest {
+			ginkgo.By(fmt.Sprintf("should have liveness configured %s/%s", podUnderTest.Namespace, podUnderTest.Name))
+			passed := livenessTest(podUnderTest.Namespace, podUnderTest.Name, env.GetLocalShellContext())
+			if !passed {
+				failedPods = append(failedPods, podUnderTest)
+			}
+		}
+		if n := len(failedPods); n > 0 {
+			log.Debugf("Pods without liveness: %+v", failedPods)
+			ginkgo.Fail(fmt.Sprintf("%d pods do not have liveness configured.", n))
+		}
+	})
+}
+
+func livenessTest(podNamespace, podName string, context *interactive.Context) bool {
+	passed := true
+	values := make(map[string]interface{})
+	values["POD_NAMESPACE"] = podNamespace
+	values["POD_NAME"] = podName
+	values["GO_TEMPLATE_PATH"] = relativeLivenessTestDirectoryPath
+	tester, handlers := utils.NewGenericTesterAndValidate(relativeLivenessTestPath, common.RelativeSchemaPath, values)
+	test, err := tnf.NewTest(context.GetExpecter(), *tester, handlers, context.GetErrorChannel())
+	gomega.Expect(err).To(gomega.BeNil())
+	gomega.Expect(test).ToNot(gomega.BeNil())
+
+	test.RunWithCallbacks(nil, func() {
+		tnf.ClaimFilePrintf("FAILURE: Pod %s/%s does not have liveness defined", podNamespace, podName)
+		passed = false
+	}, func(err error) {
+		tnf.ClaimFilePrintf("ERROR: Pod %s/%s, error: %v", podNamespace, podName, err)
+		passed = false
+	})
+	return passed
+}
+
+//nolint:dupl
+func testReadiness(env *config.TestEnvironment) {
+	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestReadinessIdentifier)
+	ginkgo.It(testID, ginkgo.Label(testID), func() {
+		failedPods := []*configsections.Pod{}
+		ginkgo.By("Testing PUTs are configured with readiness lifecycle")
+		for _, podUnderTest := range env.PodsUnderTest {
+			ginkgo.By(fmt.Sprintf("should have readiness configured %s/%s", podUnderTest.Namespace, podUnderTest.Name))
+			passed := readinessTest(podUnderTest.Namespace, podUnderTest.Name, env.GetLocalShellContext())
+			if !passed {
+				failedPods = append(failedPods, podUnderTest)
+			}
+		}
+		if n := len(failedPods); n > 0 {
+			log.Debugf("Pods without readiness: %+v", failedPods)
+			ginkgo.Fail(fmt.Sprintf("%d pods do not have readiness configured.", n))
+		}
+	})
+}
+
+func readinessTest(podNamespace, podName string, context *interactive.Context) bool {
+	passed := true
+	values := make(map[string]interface{})
+	values["POD_NAMESPACE"] = podNamespace
+	values["POD_NAME"] = podName
+	values["GO_TEMPLATE_PATH"] = relativeReadinessTestDirectoryPath
+	tester, handlers := utils.NewGenericTesterAndValidate(relativeReadinessTestPath, common.RelativeSchemaPath, values)
+	test, err := tnf.NewTest(context.GetExpecter(), *tester, handlers, context.GetErrorChannel())
+	gomega.Expect(err).To(gomega.BeNil())
+	gomega.Expect(test).ToNot(gomega.BeNil())
+
+	test.RunWithCallbacks(nil, func() {
+		tnf.ClaimFilePrintf("FAILURE: Pod %s/%s does not have readiness defined", podNamespace, podName)
+		passed = false
+	}, func(err error) {
+		tnf.ClaimFilePrintf("ERROR: Pod %s/%s, error: %v", podNamespace, podName, err)
+		passed = false
+	})
+	return passed
+}
+
 func cleanupNodeDrain(env *config.TestEnvironment, nodeName string) {
 	uncordonNode(nodeName, env.GetLocalShellContext())
 	for _, ns := range env.NameSpacesUnderTest {
-		notReady := waitForAllPodSetsReady(ns, scalingTimeout, scalingPollingPeriod, configsections.Deployment, env.GetLocalShellContext())
+		notReady := waitForAllPodSetsReady(ns, postNodeDrainRecoveryTimeOut, scalingPollingPeriod, configsections.Deployment, env.GetLocalShellContext())
 		if notReady != 0 {
 			collectNodeAndPendingPodInfo(ns, env.GetLocalShellContext())
-			log.Fatalf("Cleanup after node drain for %s failed, stopping tests to ensure cluster integrity", nodeName)
+			ginkgo.AbortSuite(fmt.Sprintf("Cleanup after node drain for %s failed, stopping tests to ensure cluster integrity", nodeName))
 		}
-		notReadyStateFulSets := waitForAllPodSetsReady(ns, scalingTimeout, scalingPollingPeriod, configsections.StateFulSet, env.GetLocalShellContext())
+		notReadyStateFulSets := waitForAllPodSetsReady(ns, postNodeDrainRecoveryTimeOut, scalingPollingPeriod, configsections.StateFulSet, env.GetLocalShellContext())
 		if notReadyStateFulSets != 0 {
 			collectNodeAndPendingPodInfo(ns, env.GetLocalShellContext())
-			ginkgo.Fail(fmt.Sprintf("Cleanup after node drain for %s failed, stopping tests to ensure cluster integrity", nodeName))
+			ginkgo.AbortSuite(fmt.Sprintf("Cleanup after node drain for %s failed, stopping tests to ensure cluster integrity", nodeName))
 		}
 	}
 }
@@ -485,15 +594,19 @@ func testNodeDrain(env *config.TestEnvironment, nodeName string) {
 	// Ensure the node is uncordoned before exiting the function,
 	// and all podsets(deployments/statefulset) are ready
 	defer cleanupNodeDrain(env, nodeName)
+
 	// drain node
-	drainNode(nodeName, env.GetLocalShellContext())
+	if err := drainNode(nodeName, env.GetLocalShellContext()); err != nil {
+		ginkgo.Fail(fmt.Sprintf("Draining node %s failed: %s", nodeName, err))
+	}
+
 	for _, ns := range env.NameSpacesUnderTest {
-		notReadyDeployments := waitForAllPodSetsReady(ns, scalingTimeout, scalingPollingPeriod, configsections.Deployment, env.GetLocalShellContext())
+		notReadyDeployments := waitForAllPodSetsReady(ns, postNodeDrainRecoveryTimeOut, scalingPollingPeriod, configsections.Deployment, env.GetLocalShellContext())
 		if notReadyDeployments != 0 {
 			collectNodeAndPendingPodInfo(ns, env.GetLocalShellContext())
 			ginkgo.Fail(fmt.Sprintf("Failed to recover deployments on namespace %s after draining node %s.", ns, nodeName))
 		}
-		notReadyStateFulSets := waitForAllPodSetsReady(ns, scalingTimeout, scalingPollingPeriod, configsections.StateFulSet, env.GetLocalShellContext())
+		notReadyStateFulSets := waitForAllPodSetsReady(ns, postNodeDrainRecoveryTimeOut, scalingPollingPeriod, configsections.StateFulSet, env.GetLocalShellContext())
 		if notReadyStateFulSets != 0 {
 			collectNodeAndPendingPodInfo(ns, env.GetLocalShellContext())
 			ginkgo.Fail(fmt.Sprintf("Failed to recover statefulsets on namespace %s after draining node %s.", ns, nodeName))
@@ -580,14 +693,60 @@ func collectNodeAndPendingPodInfo(ns string, context *interactive.Context) {
 	common.TcClaimLogPrintf("Events:\n%s", events)
 }
 
-func drainNode(node string, context *interactive.Context) {
-	tester := dd.NewDeploymentsDrain(drainTimeout, node)
+// getNumPodsDeployedOnNode is a helper function that returns the number of all pods
+// deployed in a given node.
+func getNumPodsDeployedOnNode(nodeName string, context *interactive.Context) (int, error) {
+	const cmdFmt = "oc get pods --all-namespaces -o wide --field-selector spec.nodeName=%s -l pod-template-hash"
+	cmd := fmt.Sprintf(cmdFmt, nodeName)
+	out, err := utils.ExecuteCommand(cmd, common.DefaultTimeout, context)
+	if err != nil {
+		return 0, fmt.Errorf("failed to get a pod list of pods deployed on the node: %s", err)
+	}
+
+	// The ouptut should be a table, should we expect at list one line for the columns description.
+	numPodsDeployed := len(strings.Split(out, "\n"))
+	if numPodsDeployed == 0 {
+		return 0, fmt.Errorf("empty output from cmd: %q", cmd)
+	}
+
+	return numPodsDeployed - 1, nil
+}
+
+func drainNode(node string, context *interactive.Context) error {
+	// Before draining, we'll get the number of pods currently deployed on it.
+	numPodsDeployed, err := getNumPodsDeployedOnNode(node, context)
+	if err != nil {
+		return fmt.Errorf("failed to get number of pods deployed in the node: %s", err)
+	}
+
+	// We'll add one minute per pod to the base timeout for the node drain operation.
+	nodeDrainTimeout := baseNodeDrainTimeout + (time.Duration(numPodsDeployed) * time.Minute)
+
+	// Make sure the calculated timeout won't exceed the allowed maximum.
+	if nodeDrainTimeout > maxNodeDrainTimeout {
+		nodeDrainTimeout = maxNodeDrainTimeout
+	}
+
+	log.Infof("Dynamic timeout for draining node %s: %s (pods deployed: %d)", node, nodeDrainTimeout, numPodsDeployed)
+
+	tester := dd.NewDeploymentsDrain(nodeDrainTimeout, node)
 	test, err := tnf.NewTest(context.GetExpecter(), tester, []reel.Handler{tester}, context.GetErrorChannel())
 	gomega.Expect(err).To(gomega.BeNil())
+
+	startTime := time.Now()
 	result, err := test.Run()
-	if err != nil || result == tnf.ERROR {
-		log.Fatalf("Test skipped because of draining node failure - platform issue")
+	if err != nil {
+		return err
 	}
+
+	elapsedTime := time.Since(startTime)
+	log.Infof("Draining node %s took %s.", node, elapsedTime)
+
+	if result != tnf.SUCCESS {
+		return fmt.Errorf("tester returned result code %d", result)
+	}
+
+	return nil
 }
 
 func uncordonNode(node string, context *interactive.Context) {
@@ -598,7 +757,13 @@ func uncordonNode(node string, context *interactive.Context) {
 	gomega.Expect(err).To(gomega.BeNil())
 	gomega.Expect(test).ToNot(gomega.BeNil())
 
-	test.RunAndValidate()
+	test.RunWithCallbacks(nil, func() {
+		tnf.ClaimFilePrintf("FAILURE: unable to uncordon node %s", node)
+		ginkgo.AbortSuite(fmt.Sprintf("Failed to uncordon node %s, stopping tests to ensure cluster integrity", node))
+	}, func(err error) {
+		tnf.ClaimFilePrintf("ERROR: unable to uncordon node %s: %s", node, err)
+		ginkgo.AbortSuite(fmt.Sprintf("Failed to uncordon node %s, stopping tests to ensure cluster integrity", node))
+	})
 }
 
 // Pod antiaffinity test for all deployments

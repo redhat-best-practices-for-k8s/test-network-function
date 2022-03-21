@@ -227,7 +227,7 @@ At a minimum, the following dependencies must be installed *prior* to running `m
 Dependency|Minimum Version
 ---|---
 [GoLang](https://golang.org/dl/)|1.17
-[golangci-lint](https://golangci-lint.run/usage/install/)|1.44.0
+[golangci-lint](https://golangci-lint.run/usage/install/)|1.44.2
 [jq](https://stedolan.github.io/jq/)|1.6
 [OpenShift Client](https://mirror.openshift.com/pub/openshift-v4/clients/ocp/)|4.7
 
@@ -551,3 +551,6 @@ to test if operator certified need to label it with this command
 ```shell script
 oc label csv <name> -n <namespace> "test-network-function.com/operator=target" 
 ```
+# Testing certified helm charts
+to test if the helm chart is certified its need to be deployed under the namespace that are under test.
+if there is a need to skip a spisific helm need to add his name into the tnf_config.

@@ -98,6 +98,18 @@ Description|http://test-network-function.com/testcases/affiliated-certification/
 Result Type|normative
 Suggested Remediation|Ensure that your container has passed the Red Hat Container Certification Program (CCP).
 Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.3.7
+#### helmchart-is-certified
+
+Property|Description
+---|---
+Test Case Name|helmchart-is-certified
+Test Case Label|affiliated-certification-helmchart-is-certified
+Unique ID|http://test-network-function.com/testcases/affiliated-certification/helmchart-is-certified
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/affiliated-certification/helmchart-is-certified tests whether helm charts listed in the cluster passed the Red Hat Helm Certification Program.
+Result Type|normative
+Suggested Remediation|Ensure that the helm charts under test passed the Red Hat's helm Certification Program (e.g. listed in https://charts.openshift.io/index.yaml).
+Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2.12 and Section 6.3.3
 #### operator-is-certified
 
 Property|Description
@@ -149,6 +161,18 @@ Description|http://test-network-function.com/testcases/lifecycle/image-pull-poli
 Result Type|normative
 Suggested Remediation|Ensure that the containers under test are using IfNotPresent as Image Pull Policy.
 Best Practice Reference|https://docs.google.com/document/d/1wRHMk1ZYUSVmgp_4kxvqjVOKwolsZ5hDXjr5MLy-wbg/edit#  Section 15.6
+#### liveness
+
+Property|Description
+---|---
+Test Case Name|liveness
+Test Case Label|lifecycle-liveness
+Unique ID|http://test-network-function.com/testcases/lifecycle/liveness
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/lifecycle/liveness Checks that all pods under test have a liveness probe defined.
+Result Type|normative
+Suggested Remediation|Ensure that all CNF's pods under test have a liveness probe defined.
+Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2
 #### pod-high-availability
 
 Property|Description
@@ -209,6 +233,18 @@ Description|http://test-network-function.com/testcases/lifecycle/pod-termination
 Result Type|informative
 Suggested Remediation|Choose a terminationGracePeriod that is appropriate for your given CNF.  If the default (30s) is appropriate, then feel free to ignore this informative message.  This test is meant to raise awareness around how Pods are terminated, and to suggest that a CNF is configured based on its requirements.  In addition to a terminationGracePeriod, consider utilizing a termination hook in the case that your application requires special shutdown instructions.
 Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2
+#### readiness
+
+Property|Description
+---|---
+Test Case Name|readiness
+Test Case Label|lifecycle-readiness
+Unique ID|http://test-network-function.com/testcases/lifecycle/readiness
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/lifecycle/readiness Checks that all pods under test have a readiness probe defined.
+Result Type|normative
+Suggested Remediation|Ensure that all CNF's pods under test have a readiness probe defined.
+Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2
 #### statefulset-scaling
 
 Property|Description
@@ -248,6 +284,30 @@ Description|http://test-network-function.com/testcases/networking/icmpv4-connect
 Result Type|normative
 Suggested Remediation|Ensure that the CNF is able to communicate via the Multus network(s). In some rare cases, CNFs may require routing table changes in order to communicate over the Multus network(s). To exclude a particular pod from ICMPv4 connectivity tests, add the test-network-function.com/skip_connectivity_tests label to it. The label value is not important, only its presence.
 Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2
+#### icmpv6-connectivity
+
+Property|Description
+---|---
+Test Case Name|icmpv6-connectivity
+Test Case Label|networking-icmpv6-connectivity
+Unique ID|http://test-network-function.com/testcases/networking/icmpv6-connectivity
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/networking/icmpv6-connectivity checks that each CNF Container is able to communicate via ICMPv6 on the Default OpenShift network.  This test case requires the Deployment of the debug daemonset.
+Result Type|normative
+Suggested Remediation|Ensure that the CNF is able to communicate via the Default OpenShift network. In some rare cases, CNFs may require routing table changes in order to communicate over the Default network. To exclude a particular pod from ICMPv6 connectivity tests, add the test-network-function.com/skip_connectivity_tests label to it. The label value is not important, only its presence.
+Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2
+#### icmpv6-connectivity-multus
+
+Property|Description
+---|---
+Test Case Name|icmpv6-connectivity-multus
+Test Case Label|networking-icmpv6-connectivity-multus
+Unique ID|http://test-network-function.com/testcases/networking/icmpv6-connectivity-multus
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/networking/icmpv6-connectivity-multus checks that each CNF Container is able to communicate via ICMPv6 on the Multus network(s).  This test case requires the Deployment of the debug daemonset.
+Result Type|normative
+Suggested Remediation|Ensure that the CNF is able to communicate via the Multus network(s). In some rare cases, CNFs may require routing table changes in order to communicate over the Multus network(s). To exclude a particular pod from ICMPv6 connectivity tests, add the test-network-function.com/skip_connectivity_tests label to it.The label value is not important, only its presence. 
+Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.2
 #### service-type
 
 Property|Description
@@ -260,6 +320,18 @@ Description|http://test-network-function.com/testcases/networking/service-type t
 Result Type|normative
 Suggested Remediation|Ensure Services are not configured to use NodePort(s).
 Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 6.3.1
+#### undeclared-container-ports-usage
+
+Property|Description
+---|---
+Test Case Name|undeclared-container-ports-usage
+Test Case Label|networking-undeclared-container-ports-usage
+Unique ID|http://test-network-function.com/testcases/networking/undeclared-container-ports-usage
+Version|v1.0.0
+Description|http://test-network-function.com/testcases/networking/undeclared-container-ports-usage check that containers don't listen on ports that weren't declared in their specification
+Result Type|normative
+Suggested Remediation|ensure the CNF apps don't listen on undeclared containers' ports
+Best Practice Reference|[CNF Best Practice V1.2](https://connect.redhat.com/sites/default/files/2021-03/Cloud%20Native%20Network%20Function%20Requirements.pdf) Section 16.3.1.1
 
 ### observability
 

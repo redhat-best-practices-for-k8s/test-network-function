@@ -395,6 +395,7 @@ func testTainted(env *config.TestEnvironment) {
 			if !node.HasDebugPod() {
 				continue
 			}
+			ginkgo.By(fmt.Sprintf("Checking kernel taints of node %s", node.Name))
 			log.Debug("Node has a debug pod")
 			context := node.DebugContainer.GetOc()
 			tester := nodetainted.NewNodeTainted(common.DefaultTimeout)
@@ -414,18 +415,22 @@ func testTainted(env *config.TestEnvironment) {
 				}
 				taintMsg, individualTaints := decodeKernelTaints(taintedBitmap)
 
-				// We only will fail the tainted kernel check if the reason for the taint
-				// only pertains to `module was loaded`.
+				// Count how many taints come from `module was loaded` taints versus `other`
 				log.Debug("Checking for 'module was loaded' taints")
-				moduleCheck := false
+				log.Debug("individualTaints", individualTaints)
+				moduleTaintsFound := false
+				otherTaintsFound := false
 				for _, it := range individualTaints {
 					if strings.Contains(it, `module was loaded`) {
-						moduleCheck = true
-						break
+						moduleTaintsFound = true
+					} else {
+						otherTaintsFound = true
 					}
 				}
 
-				if moduleCheck {
+				if otherTaintsFound {
+					nodeTaintsAccepted = false
+				} else if moduleTaintsFound {
 					// Retrieve the modules from the node.
 					modules := utils.GetModulesFromNode(node.Name, context)
 					log.Debug("Got the modules from node")
@@ -434,8 +439,8 @@ func testTainted(env *config.TestEnvironment) {
 					// If the module info does not contain this string, the module is "tainted".
 					taintedModules := getOutOfTreeModules(modules, node.Name, context)
 					log.Debug("Collected all of the tainted modules: ", taintedModules)
-					tnf.ClaimFilePrintf("Kernel Modules loaded that cause taints: ", taintedModules)
-					tnf.ClaimFilePrintf("Modules allowed via configuration: ", env.Config.AcceptedKernelTaints)
+					tnf.ClaimFilePrintf("Kernel Modules loaded that cause taints: %v", taintedModules)
+					tnf.ClaimFilePrintf("Modules allowed via configuration: %v", env.Config.AcceptedKernelTaints)
 
 					// Looks through the accepted taints listed in the tnf-config file.
 					// If all of the tainted modules show up in the configuration file, don't fail the test.

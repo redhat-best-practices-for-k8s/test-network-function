@@ -23,6 +23,17 @@ type Label struct {
 	Value  string `yaml:"value" json:"value"`
 }
 
+type InstallPlan struct {
+	// Operator's installPlan name
+	Name string `yaml:"name" json:"name"`
+
+	// BundleImage is the URL referencing the bundle image
+	BundleImage string `yaml:"bundleImage" json:"bundleImage"`
+
+	// IndexImage is the URL referencing the index image
+	IndexImage string `yaml:"indexImage" json:"indexImage"`
+}
+
 // Operator struct defines operator manifest for testing
 type Operator struct {
 
@@ -39,6 +50,8 @@ type Operator struct {
 	// Subscription name is required field, Name of used subscription.
 	SubscriptionName string `yaml:"subscriptionName" json:"subscriptionName"`
 
+	InstallPlans []InstallPlan `yaml:"installPlans,omitempty" json:"installPlans,omitempty"`
+
 	Packag string `yaml:"packag" json:"packag"`
 
 	Org string `yaml:"Org" json:"Org"`
@@ -48,6 +61,9 @@ type Operator struct {
 
 // Namespace struct defines namespace properties
 type Namespace struct {
+	Name string `yaml:"name" json:"name"`
+}
+type SkipHelmChartList struct {
 	Name string `yaml:"name" json:"name"`
 }
 
@@ -72,6 +88,7 @@ type TestConfiguration struct {
 	CrdFilters []CrdFilter `yaml:"targetCrdFilters" json:"targetCrdFilters"`
 	// AcceptedKernelTaints
 	AcceptedKernelTaints []AcceptedKernelTaintsInfo `yaml:"acceptedKernelTaints,omitempty" json:"acceptedKernelTaints,omitempty"`
+	SkipHelmChartList    []SkipHelmChartList        `yaml:"skipHelmChartList,omitempty" json:"skipHelmChartList,omitempty"`
 }
 
 // TestPartner contains the helper containers that can be used to facilitate tests
@@ -98,7 +115,8 @@ type TestTarget struct {
 	// ExcludeContainersFromMultusConnectivityTests excludes specific containers from network connectivity tests.  This is particularly useful for containers that don't have ping available.
 	ExcludeContainersFromMultusConnectivityTests []ContainerIdentifier `yaml:"excludeContainersFromMultusConnectivityTests" json:"excludeContainersFromMultusConnectivityTests"`
 	// Operator is the list of operator objects that needs to be tested.
-	Operators []Operator `yaml:"operators,omitempty"  json:"operators,omitempty"`
+	Operators []*Operator `yaml:"operators,omitempty"  json:"operators,omitempty"`
+	HelmChart []HelmChart `yaml:"helm" json:"helm"`
 	//
 	// Node list
 	Nodes map[string]Node `yaml:"Nodes"  json:"Nodes"`

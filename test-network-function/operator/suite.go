@@ -100,10 +100,10 @@ func testOperatorsAreInstalledViaOLM(env *config.TestEnvironment) {
 
 			test.RunWithCallbacks(nil, func() {
 				tnf.ClaimFilePrintf("Operator %s doesn't have a proper OLM subscription.", operatorInTest.Name)
-				badOperators = append(badOperators, operatorInTest)
+				badOperators = append(badOperators, *operatorInTest)
 			}, func(err error) {
 				tnf.ClaimFilePrintf("Operator %s doesn't have a proper OLM subscription. Error: %v", operatorInTest.Name, err)
-				badOperators = append(badOperators, operatorInTest)
+				badOperators = append(badOperators, *operatorInTest)
 			})
 		}
 
@@ -155,10 +155,10 @@ func runTestsOnOperator(env *config.TestEnvironment, testCase testcases.BaseTest
 
 			test.RunWithCallbacks(nil, func() {
 				tnf.ClaimFilePrintf("Operator %s failed TC: %s", name, testCase.Name)
-				badOperators = append(badOperators, op)
+				badOperators = append(badOperators, *op)
 			}, func(err error) {
 				tnf.ClaimFilePrintf("Operator %s failed TC: %s. Error: %v", name, testCase.Name, err)
-				badOperators = append(badOperators, op)
+				badOperators = append(badOperators, *op)
 			})
 		}
 

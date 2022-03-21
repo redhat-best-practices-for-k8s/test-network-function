@@ -40,14 +40,14 @@ var (
 // as the reference to the interactive.Oc instance, the reference to the test configuration, and the default network
 // IP address.
 type Container struct {
-	ContainerIdentifier
-	Oc          *interactive.Oc
-	ImageSource *ContainerImageSource
+	ContainerIdentifier `yaml:"ContainerIdentifier" json:"ContainerIdentifier"`
+	Oc                  *interactive.Oc       `yaml:"-" json:"-"`
+	ImageSource         *ContainerImageSource `yaml:"ImageSource" json:"ImageSource"`
 }
 
 type ContainerImageSource struct {
-	Registry string
-	ContainerImageIdentifier
+	Registry                 string `yaml:"Registry" json:"Registry"`
+	ContainerImageIdentifier `yaml:"ContainerImageIdentifier" json:"ContainerImageIdentifier"`
 }
 
 // Tag and Digest should not be populated at the same time. Digest takes precedence if both are populated
@@ -123,6 +123,15 @@ type ContainerIdentifier struct {
 	NodeName         string `yaml:"nodeName" json:"nodeName"`
 	ContainerUID     string `yaml:"containerUID" json:"containerUID"`
 	ContainerRuntime string `yaml:"containerRuntime" json:"containerRuntime"`
+}
+
+func (cid ContainerIdentifier) MarshalText() (text []byte, err error) { //nolint:gocritic // This is the type for a key using pointer won't work
+	return []byte(cid.Namespace + "_" +
+		cid.PodName + "_" +
+		cid.ContainerName + "_" +
+		cid.NodeName + "_" +
+		cid.ContainerUID + "_" +
+		cid.ContainerRuntime), nil
 }
 
 func (cid *ContainerIdentifier) String() string {

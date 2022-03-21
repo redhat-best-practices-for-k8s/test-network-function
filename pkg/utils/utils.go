@@ -100,7 +100,7 @@ func escapeToJSONstringFormat(line string) (string, error) {
 
 // ExecuteCommand uses the generic command handler to execute an arbitrary interactive command, returning
 // its output wihout any filtering/matching if the command is successfully executed
-func ExecuteCommand(command string, timeout time.Duration, context *interactive.Context) (string, error) {
+var ExecuteCommand = func(command string, timeout time.Duration, context *interactive.Context) (string, error) {
 	tester, test := newGenericCommandTester(command, timeout, context)
 	result, err := test.Run()
 	if result == tnf.SUCCESS && err == nil {
@@ -169,7 +169,7 @@ func GetContainerPID(nodeName string, nodeOc *interactive.Oc, containerID, runti
 		command = "chroot /host docker inspect -f '{{.State.Pid}}' " + containerID + " 2>/dev/null"
 	case "docker-pullable": //nolint:goconst // used only once
 		command = "chroot /host docker inspect -f '{{.State.Pid}}' " + containerID + " 2>/dev/null"
-	case "cri-o": //nolint:goconst // used only once
+	case "cri-o", "containerd": //nolint:goconst // used only once
 		command = "chroot /host crictl inspect --output go-template --template '{{.info.pid}}' " + containerID + " 2>/dev/null"
 	default:
 		ginkgo.Skip(fmt.Sprintf("Container runtime %s not supported yet for this test, skipping", runtime))
@@ -187,17 +187,16 @@ func GetModulesFromNode(nodeName string, nodeOc *interactive.Oc) []string {
 	return strings.Split(strings.ReplaceAll(output, "\r\n", "\n"), "\n")
 }
 
+// ModuleInTree returns true if the module hasn't tainted the kernel with the
+// out-of-tree ("O") bit. The /sys/module/<module>/taint file has the stringified
+// values of all the taints it is adding to the kernel. Each bit is one letter.
+// Refs:
+//  1. https://www.kernel.org/doc/html/latest/admin-guide/tainted-kernels.html
+//  2. https://github.com/torvalds/linux/blob/master/kernel/panic.c#L369
 func ModuleInTree(nodeName, moduleName string, nodeOc *interactive.Oc) bool {
-	command := `chroot /host modinfo ` + moduleName + ` | awk '{ print $1 }'`
+	command := `chroot /host cat /sys/module/` + moduleName + `/taint`
 	cmdOutput := RunCommandInNode(nodeName, nodeOc, command, timeoutPid)
-	outputSlice := strings.Split(strings.ReplaceAll(cmdOutput, "\r\n", "\n"), "\n")
-	// The output, if found, should look something like 'intree:   Y'.
-	// As long as we look for 'intree:' being contained in the string we should be good to go.
-	found := false
-	if StringInSlice(outputSlice, `intree:`) {
-		found = true
-	}
-	return found
+	return !strings.Contains(cmdOutput, "O")
 }
 
 // RunCommandInNode runs a command on a remote kubernetes node
@@ -218,10 +217,16 @@ func AddNsenterPrefix(containerPID string) string {
 }
 
 // StringInSlice checks a slice for a given string.
-func StringInSlice(s []string, str string) bool {
+func StringInSlice(s []string, str string, contains bool) bool {
 	for _, v := range s {
-		if strings.TrimSpace(v) == str {
-			return true
+		if !contains {
+			if strings.TrimSpace(v) == str {
+				return true
+			}
+		} else {
+			if strings.Contains(strings.TrimSpace(v), str) {
+				return true
+			}
 		}
 	}
 	return false
