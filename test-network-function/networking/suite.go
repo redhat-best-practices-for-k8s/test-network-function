@@ -508,7 +508,7 @@ func testListenAndDeclared(env *config.TestEnvironment) {
 			// compare between declaredPort,listeningPort
 			undeclaredPorts = checkIfListenIsDeclared(listeningPorts, declaredPorts)
 			for k := range undeclaredPorts {
-				tnf.ClaimFilePrintf("The port %d on protocol %s in pod name %s and pod namespace is %s not declared.", k.port, k.protocol, podUnderTest.Name, podUnderTest.Namespace)
+				tnf.ClaimFilePrintf("The port %d on protocol %s in pod name %s and pod namespace is %s not declared on container %s.", k.port, k.protocol, podUnderTest.Name, podUnderTest.Namespace, containerPID)
 			}
 			if len(undeclaredPorts) != 0 {
 				failedPods = append(failedPods, *podUnderTest)
