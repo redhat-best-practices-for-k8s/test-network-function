@@ -404,7 +404,7 @@ func testNodePort(env *config.TestEnvironment) {
 	})
 }
 
-func parseVariables(res string, declaredPorts map[key]string) error {
+func parseVariables(res string, declaredPorts map[key]bool) error {
 	var p Port
 	err := json.Unmarshal([]byte(res), &p)
 	if err != nil {
@@ -415,11 +415,11 @@ func parseVariables(res string, declaredPorts map[key]string) error {
 		var k key
 		k.port = p[element].ContainerPort
 		k.protocol = p[element].Protocol
-		declaredPorts[k] = p[element].Name
+		declaredPorts[k] = true
 	}
 	return nil
 }
-func declaredPortList(container int, podName, podNamespace string, declaredPorts map[key]string) error {
+func declaredPortList(container int, podName, podNamespace string, declaredPorts map[key]bool) error {
 	ocCommandToExecute := fmt.Sprintf(commandportdeclared, podName, podNamespace, container)
 	res, err := utils.ExecuteCommand(ocCommandToExecute, ocCommandTimeOut, interactive.GetContext(false))
 	if err != nil {
@@ -429,7 +429,7 @@ func declaredPortList(container int, podName, podNamespace string, declaredPorts
 	return err
 }
 
-func listeningPortList(commandlisten []string, nodeOc *interactive.Context, listeningPorts map[key]string) error {
+func listeningPortList(commandlisten []string, nodeOc *interactive.Context, listeningPorts map[key]bool) error {
 	var k key
 	listeningPortCommand := strings.Join(commandlisten, " ")
 	res, err := utils.ExecuteCommand(listeningPortCommand, ocCommandTimeOut, nodeOc)
@@ -450,20 +450,19 @@ func listeningPortList(commandlisten []string, nodeOc *interactive.Context, list
 		k.port = p
 		k.protocol = strings.ToUpper(fields[indexprotocolname])
 		k.protocol = strings.ReplaceAll(k.protocol, "\"", "")
-		listeningPorts[k] = ""
+		listeningPorts[k] = true
 	}
 	return nil
 }
 
-func checkIfListenIsDeclared(listeningPorts, declaredPorts map[key]string) map[key]string {
-	res := make(map[key]string)
+func checkIfListenIsDeclared(listeningPorts, declaredPorts map[key]bool) map[key]bool {
+	res := make(map[key]bool)
 	if len(listeningPorts) == 0 {
 		return res
 	}
 	for k := range listeningPorts {
 		_, ok := declaredPorts[k]
 		if !ok {
-			tnf.ClaimFilePrintf(fmt.Sprintf("The port %d on protocol %s in pod %s is not declared.", k.port, k.protocol, listeningPorts[k]))
 			res[k] = listeningPorts[k]
 		}
 	}
@@ -471,52 +470,46 @@ func checkIfListenIsDeclared(listeningPorts, declaredPorts map[key]string) map[k
 }
 
 func testListenAndDeclared(env *config.TestEnvironment) {
-	declaredPorts := make(map[key]string)
-	listeningPorts := make(map[key]string)
-	undeclaredPorts := make(map[key]string)
-	var skippedPods []configsections.Pod
-	var failedPods []configsections.Pod
+	var failedcontainers []string
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestUndeclaredContainerPortsUsage)
 	ginkgo.It(testID, ginkgo.Label(testID), func() {
-	OUTER:
-		for _, podUnderTest := range env.PodsUnderTest {
-			for i := 0; i < podUnderTest.ContainerCount; i++ {
-				err := declaredPortList(i, podUnderTest.Name, podUnderTest.Namespace, declaredPorts)
-				if err != nil {
-					tnf.ClaimFilePrintf("Failed to get declared port for container %d due to %v, skipping pod %s", i, err, podUnderTest.Name)
-					skippedPods = append(skippedPods, *podUnderTest)
-					continue OUTER
-				}
+		for _, cut := range env.ContainersUnderTest {
+			declaredPorts := make(map[key]bool)
+			listeningPorts := make(map[key]bool)
+			container, _ := strconv.Atoi(cut.ContainerUID)
+			err := declaredPortList(container, cut.PodName, cut.Namespace, declaredPorts)
+			if err != nil {
+				tnf.ClaimFilePrintf("Failed to get declared port for container %d due to %v, skipping pod %s", cut.ContainerUID, err, cut.PodName)
+				continue
 			}
-
-			nodeName := podnodename.NewPodNodeName(common.DefaultTimeout, podUnderTest.Name, podUnderTest.Namespace)
+			nodeName := podnodename.NewPodNodeName(common.DefaultTimeout, cut.PodName, cut.Namespace)
 			context := env.GetLocalShellContext()
 			test, err := tnf.NewTest(context.GetExpecter(), nodeName, []reel.Handler{nodeName}, context.GetErrorChannel())
 			gomega.Expect(err).To(gomega.BeNil())
 			test.RunAndValidate()
 			nodeOc := env.NodesUnderTest[nodeName.GetNodeName()].DebugContainer.GetOc()
-			x := podUnderTest.ContainerList[0]
-			containerPID := utils.GetContainerPID(nodeName.GetNodeName(), nodeOc, x.ContainerUID, x.ContainerRuntime)
+			containerPID := utils.GetContainerPID(nodeName.GetNodeName(), nodeOc, cut.ContainerUID, cut.ContainerRuntime)
 
 			commandlisten := []string{utils.AddNsenterPrefix(containerPID), commandportlisten}
 
 			err = listeningPortList(commandlisten, nodeOc.Context, listeningPorts)
 			if err != nil {
-				tnf.ClaimFilePrintf("Failed to get listening port for pod name %s in pod namespace %s due to %v, skipping this pod", podUnderTest.Name, podUnderTest.Namespace, err)
+				tnf.ClaimFilePrintf("Failed to get listening port for pod name %s in pod namespace %s on container %s due to %v, skipping this pod", cut.PodName, cut.Namespace, cut.ContainerUID, err)
+				failedcontainers = append(failedcontainers, fmt.Sprintf("podName: %s, Namespace: %s, container:%s", cut.PodName, cut.Namespace, cut.ContainerUID))
 				continue
 			}
 			// compare between declaredPort,listeningPort
-			undeclaredPorts = checkIfListenIsDeclared(listeningPorts, declaredPorts)
+			undeclaredPorts := checkIfListenIsDeclared(listeningPorts, declaredPorts)
 			for k := range undeclaredPorts {
-				tnf.ClaimFilePrintf("The port %d on protocol %s in pod name %s and pod namespace is %s not declared on container %s.", k.port, k.protocol, podUnderTest.Name, podUnderTest.Namespace, containerPID)
+				tnf.ClaimFilePrintf("The port %d on protocol %s in pod name %s and namespace is %s not declared on container %s.", k.port, k.protocol, cut.PodName, cut.Namespace, containerPID)
 			}
 			if len(undeclaredPorts) != 0 {
-				failedPods = append(failedPods, *podUnderTest)
+				failedcontainers = append(failedcontainers, fmt.Sprintf("podName: %s, Namespace: %s, container:%s", cut.PodName, cut.Namespace, cut.ContainerUID))
 			}
 		}
 
-		if nf, ns := len(failedPods), len(skippedPods); nf > 0 || ns > 0 {
-			ginkgo.Fail("Found %d pods with listening ports not declared and Skipped %d pods due to unexpected error", nf, ns)
+		if n := len(failedcontainers); n > 0 {
+			ginkgo.Fail(fmt.Sprintf("Found %d pods with listening ports that had not been declared", n))
 		}
 	})
 }
