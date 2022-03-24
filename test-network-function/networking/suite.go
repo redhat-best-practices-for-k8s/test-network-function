@@ -470,16 +470,17 @@ func checkIfListenIsDeclared(listeningPorts, declaredPorts map[key]bool) map[key
 }
 
 func testListenAndDeclared(env *config.TestEnvironment) {
-	var failedcontainers []string
+	var failedContainers []string
 	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestUndeclaredContainerPortsUsage)
 	ginkgo.It(testID, ginkgo.Label(testID), func() {
 		for _, cut := range env.ContainersUnderTest {
 			declaredPorts := make(map[key]bool)
 			listeningPorts := make(map[key]bool)
-			container, _ := strconv.Atoi(cut.ContainerUID)
+			container, _ := strconv.Atoi(cut.ContainerName)
 			err := declaredPortList(container, cut.PodName, cut.Namespace, declaredPorts)
 			if err != nil {
-				tnf.ClaimFilePrintf("Failed to get declared port for container %d due to %v, skipping pod %s", cut.ContainerUID, err, cut.PodName)
+				tnf.ClaimFilePrintf("Failed to get declared ports list for container %s pod %s ns %s, err %s", cut.ContainerName, cut.PodName, cut.Namespace, err)
+				failedContainers = append(failedContainers, cut.ContainerName)
 				continue
 			}
 			nodeName := podnodename.NewPodNodeName(common.DefaultTimeout, cut.PodName, cut.Namespace)
@@ -494,21 +495,21 @@ func testListenAndDeclared(env *config.TestEnvironment) {
 
 			err = listeningPortList(commandlisten, nodeOc.Context, listeningPorts)
 			if err != nil {
-				tnf.ClaimFilePrintf("Failed to get listening port for pod name %s in pod namespace %s on container %s due to %v, skipping this pod", cut.PodName, cut.Namespace, cut.ContainerUID, err)
-				failedcontainers = append(failedcontainers, fmt.Sprintf("podName: %s, Namespace: %s, container:%s", cut.PodName, cut.Namespace, cut.ContainerUID))
+				tnf.ClaimFilePrintf("Failed to get listening ports for container %s pod %s ns %s due to err %s", cut.ContainerName, cut.PodName, cut.Namespace, err)
+				failedContainers = append(failedContainers, fmt.Sprintf("podName: %s, Namespace: %s, container:%s", cut.PodName, cut.Namespace, cut.ContainerName))
 				continue
 			}
 			// compare between declaredPort,listeningPort
 			undeclaredPorts := checkIfListenIsDeclared(listeningPorts, declaredPorts)
 			for k := range undeclaredPorts {
-				tnf.ClaimFilePrintf("The port %d on protocol %s in pod name %s and namespace is %s not declared on container %s.", k.port, k.protocol, cut.PodName, cut.Namespace, containerPID)
+				tnf.ClaimFilePrintf("The port %d on protocol %s in pod name %s and namespace is %s not declared on container %s.", k.port, k.protocol, cut.PodName, cut.Namespace, cut.ContainerName)
 			}
 			if len(undeclaredPorts) != 0 {
-				failedcontainers = append(failedcontainers, fmt.Sprintf("podName: %s, Namespace: %s, container:%s", cut.PodName, cut.Namespace, cut.ContainerUID))
+				failedContainers = append(failedContainers, fmt.Sprintf("podName: %s, Namespace: %s, container:%s", cut.PodName, cut.Namespace, cut.ContainerName))
 			}
 		}
 
-		if n := len(failedcontainers); n > 0 {
+		if n := len(failedContainers); n > 0 {
 			ginkgo.Fail(fmt.Sprintf("Found %d pods with listening ports that had not been declared", n))
 		}
 	})
