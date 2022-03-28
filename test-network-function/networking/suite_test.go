@@ -33,50 +33,42 @@ func TestParseVariables(t *testing.T) {
 		// inputs
 		// inputRes is string that include the result after we run the command ""oc get pod %s -n %s -o json  | jq -r '.spec.containers[%d].ports'""
 		inputRes string
-
-		// now is empty but maybe in the future has be not empty.
-		declaredPorts map[key]string
-
 		// expected outputs here
-		expectedDeclaredPorts map[key]string
+		expectedDeclaredPorts map[key]bool
 		expectedRes           string
 	}{
 		{
 			inputRes:              "[\n  {\n    \"containerPort\": 8080,\n    \"name\": \"http-probe\",\n    \"protocol\": \"TCP\"\n  },{\n    \"containerPort\": 7878,\n    \"name\": \"http\",\n    \"protocol\": \"TCP\"\n  } \n]",
-			declaredPorts:         map[key]string{},
-			expectedDeclaredPorts: map[key]string{{port: 8080, protocol: "TCP"}: "http-probe", {port: 7878, protocol: "TCP"}: "http"},
+			expectedDeclaredPorts: map[key]bool{{port: 8080, protocol: "TCP"}: true, {port: 7878, protocol: "TCP"}: true},
 			expectedRes:           "[\n  {\n    \"containerPort\": 8080,\n    \"name\": \"http-probe\",\n    \"protocol\": \"TCP\"\n  },{\n    \"containerPort\": 7878,\n    \"name\": \"http\",\n    \"protocol\": \"TCP\"\n  } \n]",
 		},
 		{
 			inputRes:              "[\n  {\n    \"containerPort\": 8080,\n    \"name\": \"http-probe\",\n    \"protocol\": \"TCP\"\n  }\n]",
-			declaredPorts:         map[key]string{},
-			expectedDeclaredPorts: map[key]string{{port: 8080, protocol: "TCP"}: "http-probe"},
+			expectedDeclaredPorts: map[key]bool{{port: 8080, protocol: "TCP"}: true},
 			expectedRes:           "[\n  {\n    \"containerPort\": 8080,\n    \"name\": \"http-probe\",\n    \"protocol\": \"TCP\"\n  }\n]",
 		},
 		{
 			inputRes:              "[\n  {\n    \"containerPort\": 8080,\n    \"name\": \"http-probe\",\n    \"protocol\": \"UDP\"\n  }\n]",
-			declaredPorts:         map[key]string{},
-			expectedDeclaredPorts: map[key]string{{port: 8080, protocol: "UDP"}: "http-probe"},
+			expectedDeclaredPorts: map[key]bool{{port: 8080, protocol: "UDP"}: true},
 			expectedRes:           "[\n  {\n    \"containerPort\": 8080,\n    \"name\": \"http-probe\",\n    \"protocol\": \"UDP\"\n  }\n]",
 		},
 		{
 			inputRes:              "[\n \n]",
-			declaredPorts:         map[key]string{},
-			expectedDeclaredPorts: map[key]string{},
+			expectedDeclaredPorts: map[key]bool{},
 			expectedRes:           "[\n \n]",
 		},
 		{
 			inputRes:              "[\n  {\n    \"containerPort\": 9000,\n    \"name\": \"http-probe\",\n    \"protocol\": \"UDP\"\n  }\n]",
-			declaredPorts:         map[key]string{},
-			expectedDeclaredPorts: map[key]string{{port: 9000, protocol: "UDP"}: "http-probe"},
+			expectedDeclaredPorts: map[key]bool{{port: 9000, protocol: "UDP"}: true},
 			expectedRes:           "[\n  {\n    \"containerPort\": 9000,\n    \"name\": \"http-probe\",\n    \"protocol\": \"UDP\"\n  }\n]",
 		},
 	}
 
 	for _, tc := range testCases {
-		err := parseVariables(tc.inputRes, tc.declaredPorts)
+		declaredPorts := map[key]bool{}
+		err := parseVariables(tc.inputRes, declaredPorts)
 		assert.Nil(t, err)
-		assert.Equal(t, tc.expectedDeclaredPorts, tc.declaredPorts)
+		assert.Equal(t, tc.expectedDeclaredPorts, declaredPorts)
 	}
 }
 
@@ -88,18 +80,18 @@ func TestDeclaredPortList(t *testing.T) {
 		container     int
 		podName       string
 		podNamespace  string
-		declaredPorts map[key]string
+		declaredPorts map[key]bool
 
 		// expected outputs here
-		expectedDeclaredPorts map[key]string
+		expectedDeclaredPorts map[key]bool
 	}{
 		{
 			jsonFileName:          "testdata/test_ports.json",
 			container:             0,
 			podName:               "test-54bc4c6d7-8rzch",
 			podNamespace:          "tnf",
-			declaredPorts:         map[key]string{},
-			expectedDeclaredPorts: map[key]string{{port: 8080, protocol: "TCP"}: "http-probe", {port: 8443, protocol: "TCP"}: "https", {port: 50051, protocol: "TCP"}: "grpc"},
+			declaredPorts:         map[key]bool{},
+			expectedDeclaredPorts: map[key]bool{{port: 8080, protocol: "TCP"}: true, {port: 8443, protocol: "TCP"}: true, {port: 50051, protocol: "TCP"}: true},
 		},
 	}
 
@@ -125,17 +117,17 @@ func TestListeningPortList(t *testing.T) {
 		jsonFileName   string
 		commandlisten  []string
 		nodeOc         *interactive.Context
-		listeningPorts map[key]string
+		listeningPorts map[key]bool
 
 		// expected outputs here
-		expectedlisteningPorts map[key]string
+		expectedlisteningPorts map[key]bool
 	}{
 		{
 			jsonFileName:           "testdata/test_listening_port.json",
 			commandlisten:          []string{"nsenter -t 4380 -n", "ss -tulwnH"},
 			nodeOc:                 nil,
-			listeningPorts:         map[key]string{},
-			expectedlisteningPorts: map[key]string{{port: 8080, protocol: "TCP"}: "", {port: 8443, protocol: "TCP"}: ""},
+			listeningPorts:         map[key]bool{},
+			expectedlisteningPorts: map[key]bool{{port: 8080, protocol: "TCP"}: true, {port: 8443, protocol: "TCP"}: true},
 		},
 	}
 	origFunc := utils.ExecuteCommand
@@ -157,42 +149,42 @@ func TestCheckIfListenIsDeclared(t *testing.T) {
 	// expected inputs
 	testCases := []struct {
 		// inputs
-		listeningPorts map[key]string
-		declaredPorts  map[key]string
+		listeningPorts map[key]bool
+		declaredPorts  map[key]bool
 
 		// expected outputs here
-		expectedres map[key]string
+		expectedres map[key]bool
 	}{
 		{
-			listeningPorts: map[key]string{},
-			declaredPorts:  map[key]string{},
-			expectedres:    map[key]string{},
+			listeningPorts: map[key]bool{},
+			declaredPorts:  map[key]bool{},
+			expectedres:    map[key]bool{},
 		},
 		{
-			listeningPorts: map[key]string{{port: 8080, protocol: "TCP"}: ""},
-			declaredPorts:  map[key]string{{port: 8080, protocol: "TCP"}: "http-probe"},
-			expectedres:    map[key]string{},
+			listeningPorts: map[key]bool{{port: 8080, protocol: "TCP"}: true},
+			declaredPorts:  map[key]bool{{port: 8080, protocol: "TCP"}: true},
+			expectedres:    map[key]bool{},
 		},
 
 		{
-			listeningPorts: map[key]string{{port: 8080, protocol: "TCP"}: ""},
-			declaredPorts:  map[key]string{},
-			expectedres:    map[key]string{{port: 8080, protocol: "TCP"}: ""},
+			listeningPorts: map[key]bool{{port: 8080, protocol: "TCP"}: true},
+			declaredPorts:  map[key]bool{},
+			expectedres:    map[key]bool{{port: 8080, protocol: "TCP"}: true},
 		},
 		{
-			listeningPorts: map[key]string{{port: 8080, protocol: "TCP"}: "", {port: 8443, protocol: "TCP"}: ""},
-			declaredPorts:  map[key]string{{port: 8080, protocol: "TCP"}: "http-probe"},
-			expectedres:    map[key]string{{port: 8443, protocol: "TCP"}: ""},
+			listeningPorts: map[key]bool{{port: 8080, protocol: "TCP"}: true, {port: 8443, protocol: "TCP"}: true},
+			declaredPorts:  map[key]bool{{port: 8080, protocol: "TCP"}: true},
+			expectedres:    map[key]bool{{port: 8443, protocol: "TCP"}: true},
 		},
 		{
-			listeningPorts: map[key]string{},
-			declaredPorts:  map[key]string{{port: 8080, protocol: "TCP"}: "http-probe"},
-			expectedres:    map[key]string{},
+			listeningPorts: map[key]bool{},
+			declaredPorts:  map[key]bool{{port: 8080, protocol: "TCP"}: true},
+			expectedres:    map[key]bool{},
 		},
 		{
-			listeningPorts: map[key]string{{port: 8080, protocol: "TCP"}: "", {port: 8443, protocol: "TCP"}: ""},
-			declaredPorts:  map[key]string{{port: 8080, protocol: "TCP"}: "http-probe", {port: 8443, protocol: "TCP"}: "https"},
-			expectedres:    map[key]string{},
+			listeningPorts: map[key]bool{{port: 8080, protocol: "TCP"}: true, {port: 8443, protocol: "TCP"}: true},
+			declaredPorts:  map[key]bool{{port: 8080, protocol: "TCP"}: true, {port: 8443, protocol: "TCP"}: true},
+			expectedres:    map[key]bool{},
 		},
 	}
 	for _, tc := range testCases {
