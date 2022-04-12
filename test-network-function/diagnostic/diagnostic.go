@@ -21,7 +21,7 @@ import (
 
 const (
 	// defaultTimeoutSeconds contains the default timeout in seconds.
-	defaultTimeoutSeconds = 20
+	defaultTimeoutSeconds = 120
 )
 
 var (
