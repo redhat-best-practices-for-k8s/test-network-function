@@ -31,14 +31,16 @@ import (
 )
 
 const (
-	defaultNamespace   = "default"
-	debugDaemonSet     = "debug"
-	debugLabelName     = "test-network-function.com/app"
-	debugLabelValue    = "debug"
-	nodeLabelName      = "test-network-function.com/node"
-	nodeLabelValue     = "target"
-	addlabelCommand    = "oc label node %s %s=%s --overwrite=true"
-	deletelabelCommand = "oc label node %s %s- --overwrite=true"
+	defaultNamespace    = "default"
+	debugDaemonSet      = "debug"
+	debugLabelName      = "test-network-function.com/app"
+	debugLabelValue     = "debug"
+	nodeLabelName       = "test-network-function.com/node"
+	nodeLabelValue      = "target"
+	addlabelCommand     = "oc label node %s %s=%s --overwrite=true"
+	deletelabelCommand  = "oc label node %s %s- --overwrite=true"
+	dsTimeoutMins       = 5
+	dsRetryIntervalSecs = 5
 )
 
 // FindDebugPods completes a `configsections.TestPartner.ContainersDebugList` from the current state of the cluster,
@@ -81,7 +83,7 @@ func CheckDebugDaemonset(expectedDebugPods int) {
 	gomega.Eventually(func() bool {
 		log.Debug("check debug daemonset status")
 		return checkDebugPodsReadiness(expectedDebugPods)
-	}, 60*time.Second, 2*time.Second).Should(gomega.Equal(true)) //nolint: gomnd
+	}, dsTimeoutMins*time.Minute, dsRetryIntervalSecs*time.Second).Should(gomega.Equal(true))
 }
 
 // checkDebugPodsReadiness helper function that returns true if the daemonset debug is deployed properly
