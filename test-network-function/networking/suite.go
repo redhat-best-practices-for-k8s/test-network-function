@@ -507,7 +507,7 @@ func testListenAndDeclared(env *config.TestEnvironment) {
 			// compare between declaredPort,listeningPort
 			undeclaredPorts := checkIfListenIsDeclared(listeningPorts, declaredPorts)
 			for k := range undeclaredPorts {
-				tnf.ClaimFilePrintf("pod %s ns %s is listening on port %d protocol %d, but that port was not declared in any container spec.", podUnderTest.Name, podUnderTest.Namespace, k.port, k.protocol)
+				tnf.ClaimFilePrintf("pod %s ns %s is listening on port %d protocol %s, but that port was not declared in any container spec.", podUnderTest.Name, podUnderTest.Namespace, k.port, k.protocol)
 			}
 			if len(undeclaredPorts) != 0 {
 				failedPods = append(failedPods, *podUnderTest)
@@ -515,7 +515,7 @@ func testListenAndDeclared(env *config.TestEnvironment) {
 		}
 
 		if nf, ns := len(failedPods), len(skippedPods); nf > 0 || ns > 0 {
-			ginkgo.Fail("Found %d pods with listening ports not declared and Skipped %d pods due to unexpected error", nf, ns)
+			ginkgo.Fail(fmt.Sprintf("Found %d pods with listening ports not declared and Skipped %d pods due to unexpected error", nf, ns))
 		}
 	})
 }

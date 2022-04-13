@@ -40,7 +40,7 @@ func NewNodeSelector(timeout time.Duration, podName, podNamespace string) *NodeS
 	return &NodeSelector{
 		timeout: timeout,
 		result:  tnf.ERROR,
-		args:    []string{"oc", "-n", podNamespace, "get", "pods", podName, "-o", "custom-columns=nodeselector:.spec.nodeSelector,nodeaffinity:.spec.nodeAffinity"},
+		args:    []string{"oc", "-n", podNamespace, "get", "pods", podName, "-o", "custom-columns=nodeselector:.spec.nodeSelector,nodeaffinity:.spec.affinity.nodeAffinity"},
 	}
 }
 
