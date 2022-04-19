@@ -447,9 +447,10 @@ func listeningPortList(commandlisten []string, nodeOc *interactive.Context, list
 		}
 		s := strings.Split(fields[indexport], ":")
 		if len(s) == 0 {
+			log.Errorf("error decoding port number for line: %s", line)
 			continue
 		}
-		p, _ := strconv.Atoi(s[len(s)-1])
+		p, _ := strconv.Atoi(strings.ReplaceAll(s[len(s)-1], "\"", ""))
 		k.port = p
 		k.protocol = strings.ToUpper(fields[indexprotocolname])
 		k.protocol = strings.ReplaceAll(k.protocol, "\"", "")
