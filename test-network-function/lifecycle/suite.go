@@ -17,7 +17,6 @@
 package lifecycle
 
 import (
-	"encoding/json"
 	"fmt"
 	"path"
 	"strings"
@@ -44,12 +43,11 @@ import (
 )
 
 const (
-	defaultTerminationGracePeriod = 30
-	baseNodeDrainTimeout          = 5 * time.Minute
-	maxNodeDrainTimeout           = 30 * time.Minute
-	scalingTimeout                = 1 * time.Minute
-	scalingPollingPeriod          = 1 * time.Second
-	postNodeDrainRecoveryTimeOut  = 2 * time.Minute
+	baseNodeDrainTimeout         = 5 * time.Minute
+	maxNodeDrainTimeout          = 30 * time.Minute
+	scalingTimeout               = 1 * time.Minute
+	scalingPollingPeriod         = 1 * time.Second
+	postNodeDrainRecoveryTimeOut = 2 * time.Minute
 )
 
 var (
@@ -126,8 +124,6 @@ var _ = ginkgo.Describe(common.LifecycleTestKey, func() {
 		testImagePolicy(env)
 
 		testNodeSelector(env)
-
-		testGracePeriod(env)
 
 		testShutdown(env)
 
@@ -328,124 +324,6 @@ func testNodeSelector(env *config.TestEnvironment) {
 		if n := len(badPods); n > 0 {
 			log.Debugf("Pods with nodeSelector/nodeAffinity: %+v", badPods)
 			ginkgo.Fail(fmt.Sprintf("%d pods found with nodeSelector/nodeAffinity rules", n))
-		}
-	})
-}
-
-func testTerminationGracePeriodOnPodSet(podsetsUnderTests []configsections.PodSet, context *interactive.Context) []configsections.PodSet {
-	const ocCommandTemplate = "oc get %s %s -n %s -o jsonpath={.metadata.annotations\\.\"kubectl\\.kubernetes\\.io/last-applied-configuration\"}"
-
-	type lastAppliedConfigType struct {
-		Spec struct {
-			Template struct {
-				Spec struct {
-					TerminationGracePeriodSeconds int
-				}
-			}
-		}
-	}
-
-	badPodsets := []configsections.PodSet{}
-	for _, podset := range podsetsUnderTests {
-		ocCommand := fmt.Sprintf(ocCommandTemplate, podset.Type, podset.Name, podset.Namespace)
-		lastAppliedConfigString, err := utils.ExecuteCommand(ocCommand, common.DefaultTimeout, context)
-		if err != nil {
-			ginkgo.Fail(fmt.Sprintf("%s %s (ns %s): failed to get last-applied-configuration field", podset.Type, podset.Name, podset.Namespace))
-		}
-		lastAppliedConfig := lastAppliedConfigType{}
-
-		// Use -1 as default value, in case the param was not set.
-		lastAppliedConfig.Spec.Template.Spec.TerminationGracePeriodSeconds = -1
-
-		err = json.Unmarshal([]byte(lastAppliedConfigString), &lastAppliedConfig)
-		if err != nil {
-			ginkgo.Fail(fmt.Sprintf("%s %s (ns %s): failed to unmarshall last-applied-configuration string (%s)", podset.Type, podset.Name, podset.Namespace, lastAppliedConfigString))
-		}
-
-		if lastAppliedConfig.Spec.Template.Spec.TerminationGracePeriodSeconds == -1 {
-			tnf.ClaimFilePrintf("%s %s (ns %s) template's spec does not have a terminationGracePeriodSeconds value set. Default value (%d) will be used.",
-				podset.Type, podset.Name, podset.Namespace, defaultTerminationGracePeriod)
-			badPodsets = append(badPodsets, podset)
-		} else {
-			log.Infof("%s %s (ns %s) last-applied-configuration's terminationGracePeriodSeconds: %d", podset.Type, podset.Name, podset.Namespace, lastAppliedConfig.Spec.Template.Spec.TerminationGracePeriodSeconds)
-		}
-	}
-
-	return badPodsets
-}
-
-func testTerminationGracePeriodOnPods(pods []*configsections.Pod, context *interactive.Context) []configsections.Pod {
-	const ocCommandTemplate = "oc get pod %s -n %s -o jsonpath={.metadata.annotations\\.\"kubectl\\.kubernetes\\.io/last-applied-configuration\"}"
-
-	type lastAppliedConfigType struct {
-		Spec struct {
-			TerminationGracePeriodSeconds int
-		}
-	}
-
-	badPods := []configsections.Pod{}
-	numUnmanagedPods := 0
-	for _, pod := range pods {
-		// We'll process only "unmanaged" pods (not belonging to any deployment/statefulset) here.
-		if pod.IsManaged {
-			continue
-		}
-
-		numUnmanagedPods++
-
-		ocCommand := fmt.Sprintf(ocCommandTemplate, pod.Name, pod.Namespace)
-		lastAppliedConfigString, err := utils.ExecuteCommand(ocCommand, common.DefaultTimeout, context)
-		if err != nil {
-			ginkgo.Fail(fmt.Sprintf("Pod %s (ns %s): failed to get last-applied-configuration field", pod.Name, pod.Namespace))
-		}
-		lastAppliedConfig := lastAppliedConfigType{}
-
-		// Use -1 as default value, in case the param was not set.
-		lastAppliedConfig.Spec.TerminationGracePeriodSeconds = -1
-
-		err = json.Unmarshal([]byte(lastAppliedConfigString), &lastAppliedConfig)
-		if err != nil {
-			ginkgo.Fail(fmt.Sprintf("Pod %s (ns %s): failed to unmarshall last-applied-configuration string (%s)", pod.Name, pod.Namespace, lastAppliedConfigString))
-		}
-
-		if lastAppliedConfig.Spec.TerminationGracePeriodSeconds == -1 {
-			tnf.ClaimFilePrintf("Pod %s (ns %s) spec does not have a terminationGracePeriodSeconds value set. Default value (%d) will be used.",
-				pod.Name, pod.Namespace, defaultTerminationGracePeriod)
-			badPods = append(badPods, *pod)
-		} else {
-			log.Infof("Pod %s (ns %s) last-applied-configuration's terminationGracePeriodSeconds: %d", pod.Name, pod.Namespace, lastAppliedConfig.Spec.TerminationGracePeriodSeconds)
-		}
-
-		log.Debugf("Number of unamanaged pods processed: %d", numUnmanagedPods)
-	}
-	return badPods
-}
-
-func testGracePeriod(env *config.TestEnvironment) {
-	testID := identifiers.XformToGinkgoItIdentifier(identifiers.TestNonDefaultGracePeriodIdentifier)
-	ginkgo.It(testID, ginkgo.Label(testID), func() {
-		ginkgo.By("Test terminationGracePeriod")
-		context := env.GetLocalShellContext()
-
-		badDeployments := testTerminationGracePeriodOnPodSet(env.DeploymentsUnderTest, context)
-		badStatefulsets := testTerminationGracePeriodOnPodSet(env.StateFulSetUnderTest, context)
-		badPods := testTerminationGracePeriodOnPods(env.PodsUnderTest, context)
-
-		numDeps := len(badDeployments)
-		if numDeps > 0 {
-			log.Debugf("Deployments found without terminationGracePeriodSeconds param set: %+v", badDeployments)
-		}
-		numSts := len(badStatefulsets)
-		if numSts > 0 {
-			log.Debugf("Statefulsets found without terminationGracePeriodSeconds param set: %+v", badStatefulsets)
-		}
-		numPods := len(badPods)
-		if numPods > 0 {
-			log.Debugf("Pods found without terminationGracePeriodSeconds param set: %+v", badPods)
-		}
-
-		if numDeps > 0 || numSts > 0 || numPods > 0 {
-			ginkgo.Fail(fmt.Sprintf("Found %d deployments, %d statefulsets and %d pods without terminationGracePeriodSeconds param set.", numDeps, numSts, numPods))
 		}
 	})
 }

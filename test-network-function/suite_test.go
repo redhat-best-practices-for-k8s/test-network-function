@@ -160,7 +160,7 @@ func TestTest(t *testing.T) {
 	if diagnosticMode {
 		log.Warn("No test suites selected to run. Diagnostic mode enabled.")
 		// In diagnostic mode, we need to remove labels explicitly before exiting tnf.
-		defer common.RemoveLabelsFromAllNodes()
+		defer common.RemoveDebugPods()
 	}
 
 	// Make sure cluster nodes don't have the debug pod label from previous runs,
