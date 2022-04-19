@@ -127,7 +127,7 @@ func TestListeningPortList(t *testing.T) {
 			commandlisten:          []string{"nsenter -t 4380 -n", "ss -tulwnH"},
 			nodeOc:                 nil,
 			listeningPorts:         map[key]bool{},
-			expectedlisteningPorts: map[key]bool{{port: 8080, protocol: "TCP"}: true, {port: 8443, protocol: "TCP"}: true},
+			expectedlisteningPorts: map[key]bool{{port: 8080, protocol: "TCP"}: true, {port: 8443, protocol: "TCP"}: true, {port: 22, protocol: "TCP"}: true},
 		},
 	}
 	origFunc := utils.ExecuteCommand
