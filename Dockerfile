@@ -18,7 +18,7 @@ RUN wget https://get.helm.sh/helm-v3.8.1-linux-amd64.tar.gz && \
     cp linux-amd64/helm /usr/bin/helm
 # Install Go binary
 ENV GO_DL_URL="https://golang.org/dl"
-ENV GO_BIN_TAR="go1.17.8.linux-amd64.tar.gz"
+ENV GO_BIN_TAR="go1.17.9.linux-amd64.tar.gz"
 ENV GO_BIN_URL_x86_64=${GO_DL_URL}/${GO_BIN_TAR}
 ENV GOPATH="/root/go"
 RUN if [[ "$(uname -m)" -eq "x86_64" ]] ; then \
