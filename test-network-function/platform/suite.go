@@ -289,7 +289,7 @@ func parseSysctlSystemOutput(sysctlSystemOutput string) map[string]string {
 			continue
 		}
 
-		keyValRegexp := regexp.MustCompile(`( \S+)(\s*)=(\s*)(\S+)`) // A line is of the form "kernel.yama.ptrace_scope = 0"
+		keyValRegexp := regexp.MustCompile(`(\S+)(\s*)=(\s*)(\S+)`) // A line is of the form "kernel.yama.ptrace_scope = 0"
 		if !keyValRegexp.MatchString(line) {
 			continue
 		}
