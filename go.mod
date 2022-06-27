@@ -14,7 +14,7 @@ require (
 	github.com/onsi/ginkgo/v2 v2.1.3
 	github.com/onsi/gomega v1.19.0
 	github.com/sirupsen/logrus v1.8.1
-	github.com/spf13/cobra v1.4.0
+	github.com/spf13/cobra v1.5.0
 	github.com/stretchr/testify v1.7.5
 	github.com/test-network-function/test-network-function-claim v1.0.5
 	github.com/xeipuuv/gojsonschema v1.2.0
