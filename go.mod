@@ -11,14 +11,14 @@ require (
 	github.com/golang/mock v1.6.0
 	github.com/google/goexpect v0.0.0-20210330220015-096e5d1cbd97
 	github.com/google/goterm v0.0.0-20190703233501-fc88cf888a3f
-	github.com/onsi/ginkgo/v2 v2.1.3
+	github.com/onsi/ginkgo/v2 v2.1.4
 	github.com/onsi/gomega v1.19.0
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.4.0
 	github.com/stretchr/testify v1.7.5
 	github.com/test-network-function/test-network-function-claim v1.0.5
 	github.com/xeipuuv/gojsonschema v1.2.0
-	golang.org/x/sys v0.0.0-20211216021012-1d35b9e2eb4e // indirect
+	golang.org/x/sys v0.0.0-20220319134239-a9b59b0215f8 // indirect
 	google.golang.org/grpc v1.47.0
 	gopkg.in/yaml.v2 v2.4.0
 )
