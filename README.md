@@ -2,6 +2,14 @@
 # Test Network Function ![build](https://github.com/test-network-function/test-network-function/actions/workflows/merge.yaml/badge.svg) [![Go Report Card](https://goreportcard.com/badge/github.com/test-network-function/test-network-function)](https://goreportcard.com/report/github.com/test-network-function/test-network-function)
 
 
+## Deprecation
+
+Please note that this repository has been *DEPRECATED* and further development is being done in our new repository [cnf-certification-test](https://github.com/test-network-function/cnf-certification-test).
+
+
+## Overview 
+ ![overview](docs/images/overview-new.svg)
+
 This repository contains a set of Cloud-Native Network Functions (CNFs) test cases and the framework to build more. The tests and framework are intended 
 to test the interaction of CNFs with OpenShift Container Platform.  It also generates a report 
 (claim.json) after running tests.
@@ -10,9 +18,6 @@ Please consult [CATALOG.md](./CATALOG.md) for a catalog of the included test cas
 
 The suite is provided here in part so that CNF Developers can use the suite to test their CNFs readiness for
 certification.  Please see "CNF Developers" below for more information.
-
-## Overview 
- ![overview](docs/images/overview-new.svg)
 
 In the diagram above:
 - the `CNF` is the CNF to be certified. The certification suite identifies the resources (containers/pods/operators etc) belonging to the CNF via labels or static data entries in the config file
